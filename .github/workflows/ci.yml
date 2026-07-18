@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: mix test
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+    services:
+      postgres:
+        image: postgres:16
+        # Match config/test.exs: a goodmao2/goodmao2 role (superuser here, so it has
+        # CREATEDB) and the test database the `test` alias creates.
+        env:
+          POSTGRES_USER: goodmao2
+          POSTGRES_PASSWORD: goodmao2
+          POSTGRES_DB: goodmao2_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U goodmao2"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pin Erlang/Elixir to the versions in .tool-versions.
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps and _build
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Check for unused deps in the lockfile
+        run: mix deps.unlock --check-unused
+
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Dependency advisory audit
+        run: mix deps.audit
+
+      - name: Static security scan (Sobelow)
+        run: mix sobelow --config
+
+      - name: Run tests
+        run: mix test
