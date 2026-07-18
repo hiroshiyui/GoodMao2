@@ -159,7 +159,12 @@ defmodule Goodmao2.Accounts do
 
   """
   def change_user_email(user, attrs \\ %{}, opts \\ []) do
-    User.email_changeset(user, attrs, opts)
+    changeset = User.email_changeset(user, attrs, opts)
+
+    case Keyword.fetch(opts, :current_password) do
+      {:ok, current_password} -> User.validate_current_password(changeset, current_password)
+      :error -> changeset
+    end
   end
 
   @doc """
@@ -195,7 +200,12 @@ defmodule Goodmao2.Accounts do
 
   """
   def change_user_password(user, attrs \\ %{}, opts \\ []) do
-    User.password_changeset(user, attrs, opts)
+    changeset = User.password_changeset(user, attrs, opts)
+
+    case Keyword.fetch(opts, :current_password) do
+      {:ok, current_password} -> User.validate_current_password(changeset, current_password)
+      :error -> changeset
+    end
   end
 
   @doc """
@@ -215,6 +225,31 @@ defmodule Goodmao2.Accounts do
   def update_user_password(user, attrs) do
     user
     |> User.password_changeset(attrs)
+    |> update_user_and_delete_all_tokens()
+  end
+
+  @doc """
+  Updates the user password, gated by their current password.
+
+  Verifies `current_password` before applying the change (defense in depth on top of
+  sudo mode). A wrong current password invalidates the changeset, so no update runs and
+  no tokens are rotated — it returns `{:error, %Ecto.Changeset{}}` with a
+  `:current_password` error. On success, returns `{:ok, {user, expired_tokens}}` and all
+  of the user's tokens are rotated, exactly like `update_user_password/2`.
+
+  ## Examples
+
+      iex> update_user_password(user, "current", %{password: "new valid password"})
+      {:ok, {%User{}, [...]}}
+
+      iex> update_user_password(user, "wrong", %{password: "new valid password"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_password(user, current_password, attrs) do
+    user
+    |> User.password_changeset(attrs)
+    |> User.validate_current_password(current_password)
     |> update_user_and_delete_all_tokens()
   end
 

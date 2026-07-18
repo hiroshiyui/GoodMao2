@@ -311,6 +311,52 @@ defmodule Goodmao2.AccountsTest do
     end
   end
 
+  describe "update_user_password/3 (current-password gated)" do
+    setup do
+      %{user: set_password(user_fixture())}
+    end
+
+    test "updates the password when the current password is correct", %{user: user} do
+      _ = Accounts.generate_user_session_token(user)
+
+      {:ok, {updated, expired_tokens}} =
+        Accounts.update_user_password(user, valid_user_password(), %{
+          password: "new valid password"
+        })
+
+      assert is_nil(updated.password)
+      assert expired_tokens != []
+      refute Repo.get_by(UserToken, user_id: user.id)
+      assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
+    end
+
+    test "rejects a wrong current password and rotates no tokens", %{user: user} do
+      _ = Accounts.generate_user_session_token(user)
+
+      {:error, changeset} =
+        Accounts.update_user_password(user, "wrong current password", %{
+          password: "new valid password"
+        })
+
+      assert "is not valid" in errors_on(changeset).current_password
+      # nothing changed: the old password still works and the token is intact
+      assert Accounts.get_user_by_email_and_password(user.email, valid_user_password())
+      assert Repo.get_by(UserToken, user_id: user.id)
+    end
+
+    test "still enforces the new-password rules", %{user: user} do
+      {:error, changeset} =
+        Accounts.update_user_password(user, valid_user_password(), %{
+          password: "short",
+          password_confirmation: "mismatch"
+        })
+
+      errors = errors_on(changeset)
+      assert "should be at least 12 character(s)" in errors.password
+      assert "does not match password" in errors.password_confirmation
+    end
+  end
+
   describe "generate_user_session_token/1" do
     setup do
       %{user: user_fixture()}

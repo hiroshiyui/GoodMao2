@@ -12,7 +12,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       <div class="text-center">
         <.header>
           {gettext("Account settings")}
-          <:subtitle>{gettext("Manage your profile, email address and password")}</:subtitle>
+          <:subtitle>{gettext("Manage your profile and email address")}</:subtitle>
         </.header>
       </div>
 
@@ -49,51 +49,35 @@ defmodule Goodmao2Web.UserLive.Settings do
         <.input
           field={@email_form[:email]}
           type="email"
-          label="Email"
+          label={gettext("Email")}
           autocomplete="username"
           spellcheck="false"
           required
         />
-        <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+        <.input
+          field={@email_form[:current_password]}
+          type="password"
+          label={gettext("Current password")}
+          value={@email_form_current_password}
+          autocomplete="current-password"
+          spellcheck="false"
+          required
+        />
+        <.button variant="primary" phx-disable-with={gettext("Changing...")}>
+          {gettext("Change Email")}
+        </.button>
       </.form>
 
       <div class="divider" />
 
-      <.form
-        for={@password_form}
-        id="password_form"
-        action={~p"/users/update-password"}
-        method="post"
-        phx-change="validate_password"
-        phx-submit="update_password"
-        phx-trigger-action={@trigger_submit}
-      >
-        <input
-          name={@password_form[:email].name}
-          type="hidden"
-          id="hidden_user_email"
-          spellcheck="false"
-          value={@current_email}
-        />
-        <.input
-          field={@password_form[:password]}
-          type="password"
-          label="New password"
-          autocomplete="new-password"
-          spellcheck="false"
-          required
-        />
-        <.input
-          field={@password_form[:password_confirmation]}
-          type="password"
-          label="Confirm new password"
-          autocomplete="new-password"
-          spellcheck="false"
-        />
-        <.button variant="primary" phx-disable-with="Saving...">
-          Save Password
-        </.button>
-      </.form>
+      <div id="password-settings-link" class="text-center">
+        <p class="text-base-content/60 mb-2 text-sm">
+          {gettext("Your password is managed on its own page.")}
+        </p>
+        <.link navigate={~p"/users/settings/password"} class="btn btn-soft btn-primary">
+          {gettext("Change password")}
+        </.link>
+      </div>
     </Layouts.app>
     """
   end
@@ -115,17 +99,13 @@ defmodule Goodmao2Web.UserLive.Settings do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
-    password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
-
     profile_changeset = Accounts.change_user_profile(user, %{}, validate_unique: false)
 
     socket =
       socket
-      |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
-      |> assign(:password_form, to_form(password_changeset))
+      |> assign(:email_form_current_password, nil)
       |> assign(:profile_form, to_form(profile_changeset))
-      |> assign(:trigger_submit, false)
 
     {:ok, socket}
   end
@@ -159,21 +139,28 @@ defmodule Goodmao2Web.UserLive.Settings do
   def handle_event("validate_email", params, socket) do
     %{"user" => user_params} = params
 
+    # The current-password error is held back until submit (like the password page), so
+    # it doesn't flash while the user is still typing the new email.
     email_form =
       socket.assigns.current_scope.user
       |> Accounts.change_user_email(user_params, validate_unique: false)
       |> Map.put(:action, :validate)
       |> to_form()
 
-    {:noreply, assign(socket, email_form: email_form)}
+    {:noreply,
+     assign(socket,
+       email_form: email_form,
+       email_form_current_password: user_params["current_password"]
+     )}
   end
 
   def handle_event("update_email", params, socket) do
     %{"user" => user_params} = params
+    current_password = user_params["current_password"]
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_email(user, user_params) do
+    case Accounts.change_user_email(user, user_params, current_password: current_password) do
       %{valid?: true} = changeset ->
         Accounts.deliver_user_update_email_instructions(
           Ecto.Changeset.apply_action!(changeset, :insert),
@@ -181,37 +168,19 @@ defmodule Goodmao2Web.UserLive.Settings do
           &url(~p"/users/settings/confirm-email/#{&1}")
         )
 
-        info = "A link to confirm your email change has been sent to the new address."
-        {:noreply, socket |> put_flash(:info, info)}
+        info =
+          gettext("A link to confirm your email change has been sent to the new address.")
+
+        {:noreply, socket |> put_flash(:info, info) |> assign(email_form_current_password: nil)}
 
       changeset ->
-        {:noreply, assign(socket, :email_form, to_form(changeset, action: :insert))}
+        {:noreply,
+         socket
+         |> assign(:email_form, to_form(changeset, action: :insert))
+         |> assign(:email_form_current_password, current_password)}
     end
   end
 
-  def handle_event("validate_password", params, socket) do
-    %{"user" => user_params} = params
-
-    password_form =
-      socket.assigns.current_scope.user
-      |> Accounts.change_user_password(user_params, hash_password: false)
-      |> Map.put(:action, :validate)
-      |> to_form()
-
-    {:noreply, assign(socket, password_form: password_form)}
-  end
-
-  def handle_event("update_password", params, socket) do
-    %{"user" => user_params} = params
-    user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
-
-    case Accounts.change_user_password(user, user_params) do
-      %{valid?: true} = changeset ->
-        {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
-
-      changeset ->
-        {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
-    end
-  end
+  # (Password change moved to Goodmao2Web.UserLive.PasswordSettings — gated by the
+  # current password in addition to sudo mode.)
 end
