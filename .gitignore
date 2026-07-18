@@ -7,8 +7,11 @@
 # The directory Mix downloads your dependencies sources to.
 /deps/
 
-# Where 3rd-party dependencies like ExDoc output generated docs.
-/doc/
+# Where 3rd-party dependencies like ExDoc output generated docs. Hand-written
+# Markdown design docs under doc/ are tracked; only generated HTML is ignored.
+/doc/*
+!/doc/*.md
+!/doc/adr/
 
 # Ignore .fetch files in case you like to edit your project deps locally.
 /.fetch

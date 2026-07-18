@@ -7,9 +7,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`AGENTS.md`** — the authoritative Elixir/Phoenix/LiveView/Ecto coding rules for this
   repo, plus a **GoodMao2 section** stating the invariants to preserve (authorization
   boundary, one-table logs, soft-delete, a11y, Gettext). Follow it.
-- **`doc/architecture.md`** — contexts, data model, authorization table, and the
-  GoodMao → GoodMao2 technology mapping.
-- **`doc/roadmap.md`** — what's shipped vs. intentionally deferred.
+- **`doc/architecture.md`** — contexts, data model (incl. per-`type` log payload fields),
+  authorization table, deferred entities, and the GoodMao → GoodMao2 technology mapping.
+- **`doc/roadmap.md`** — the product vision, the structured-logging core principle, and
+  what's shipped vs. intentionally deferred.
+- **`doc/glossary.md`** — the shared product/domain vocabulary (and its Phoenix tech terms).
+- **`doc/adr/`** — Architecture Decision Records: the *why* behind the invariants
+  (pet-lifecycle, log-visibility, error-reporting, soft-delete, localization, deferred
+  media/revisions/notifications). Ported from GoodMao and adapted to this stack.
+- **`doc/web-application-development-common-practices.md`** — product-agnostic engineering
+  lessons (security/data-modeling/testing/ops), each with the failure mode behind it.
 
 ## Commands
 
