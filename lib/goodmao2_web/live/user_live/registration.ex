@@ -74,6 +74,14 @@ defmodule Goodmao2Web.UserLive.Registration do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
+
+      {:error, :not_site_owner} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Registration is restricted to the site owner for the first account."
+         )}
     end
   end
 

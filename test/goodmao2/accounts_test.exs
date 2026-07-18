@@ -85,6 +85,65 @@ defmodule Goodmao2.AccountsTest do
       assert is_nil(user.confirmed_at)
       assert is_nil(user.password)
     end
+
+    test "the first registered account becomes the sole administrator" do
+      {:ok, first} = Accounts.register_user(valid_user_attributes())
+      {:ok, second} = Accounts.register_user(valid_user_attributes())
+      assert first.is_admin
+      refute second.is_admin
+    end
+  end
+
+  describe "register_user/1 site-owner gate" do
+    setup do
+      Application.put_env(:goodmao2, :site_owner_email, "owner@example.com")
+      on_exit(fn -> Application.delete_env(:goodmao2, :site_owner_email) end)
+    end
+
+    test "refuses the first account to anyone but the configured site owner" do
+      assert Accounts.register_user(valid_user_attributes(email: "intruder@example.com")) ==
+               {:error, :not_site_owner}
+    end
+
+    test "allows the configured site owner (case-insensitively) to register first as admin" do
+      assert {:ok, user} =
+               Accounts.register_user(valid_user_attributes(email: "Owner@Example.com"))
+
+      assert user.is_admin
+    end
+
+    test "does not gate later accounts once the first exists" do
+      {:ok, _owner} = Accounts.register_user(valid_user_attributes(email: "owner@example.com"))
+      assert {:ok, _second} = Accounts.register_user(valid_user_attributes())
+    end
+  end
+
+  defp handle_errors(handle) do
+    %User{}
+    |> User.profile_changeset(%{"handle" => handle}, validate_unique: false)
+    |> errors_on()
+    |> Map.get(:handle, [])
+  end
+
+  describe "handle rules (parity with GoodMao)" do
+    test "rejects a handle that does not start with a letter or number" do
+      assert "must start with a letter or number" in handle_errors("_johndoe")
+      assert "must start with a letter or number" in handle_errors(".johndoe")
+    end
+
+    test "rejects a handle that ends with a dot" do
+      assert "may not end with a dot" in handle_errors("johndoe.")
+    end
+
+    test "rejects a reserved handle" do
+      assert "is reserved" in handle_errors("everyone")
+      assert "is reserved" in handle_errors("administrator")
+    end
+
+    test "accepts a valid handle with interior dots and underscores" do
+      assert handle_errors("dr_lin") == []
+      assert handle_errors("j.doe_2") == []
+    end
   end
 
   describe "sudo_mode?/2" do
