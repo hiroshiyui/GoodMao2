@@ -206,7 +206,7 @@ failure mode that motivates it — the reasoning matters more than the rule.
   none. (The `docs-engineering` skill exists for this.)
 - **Write down what you deliberately did _not_ build.** Keep a deferred/follow-ups list,
   each item linked to the decision that scoped it out. Scope cut silently is scope
-  forgotten — that is what the roadmap's "Deferred" section is for.
+  forgotten — that is what the roadmap's `(deferred)` sections are for.
 - **Stale comments are bugs.** A comment referencing a nonexistent field actively
   misdirects the next reader; fix it with the same seriousness as code.
 - **Split docs by audience, not by size**: how it's designed (architecture), the shared
