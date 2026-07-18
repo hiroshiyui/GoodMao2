@@ -22,7 +22,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 mix setup                      # deps + create/migrate DB + seed demo data + build assets
-mix phx.server                 # dev server at http://localhost:4000 (mailbox: /dev/mailbox)
+mix phx.gen.cert               # ONE-TIME: self-signed dev TLS cert in priv/cert/ (git-ignored)
+mix phx.server                 # dev server: http://localhost:4000 + https://localhost:4001 (mailbox: /dev/mailbox)
 iex -S mix phx.server          # same, with a REPL
 
 mix precommit                  # THE gate: compile --warnings-as-errors + deps.unlock --unused + format + test
