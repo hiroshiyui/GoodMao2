@@ -58,7 +58,7 @@ Pets.grant_access(owner, pet, %{
   "expires_at" => DateTime.utc_now() |> DateTime.add(7, :day) |> DateTime.truncate(:second)
 })
 
-if Logs.list_entries(pet) == [] do
+if Logs.list_entries(owner, pet) == [] do
   hours_ago = fn h ->
     DateTime.utc_now() |> DateTime.add(-h, :hour) |> DateTime.truncate(:second)
   end
