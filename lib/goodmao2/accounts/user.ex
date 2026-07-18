@@ -193,6 +193,23 @@ defmodule Goodmao2.Accounts.User do
   end
 
   @doc """
+  Validates that `current_password` matches the user's existing password.
+
+  Used to gate self-service password and email changes (defense in depth on top of
+  sudo mode). Adds a `:current_password` error to the changeset on mismatch.
+
+  Passwordless accounts (magic-link users with no `hashed_password` yet) have nothing
+  to verify, so the check is skipped — this still allows an initial password set.
+  """
+  def validate_current_password(changeset, current_password) do
+    cond do
+      is_nil(changeset.data.hashed_password) -> changeset
+      valid_password?(changeset.data, current_password) -> changeset
+      true -> add_error(changeset, :current_password, "is not valid")
+    end
+  end
+
+  @doc """
   Confirms the account by setting `confirmed_at`.
   """
   def confirm_changeset(user) do

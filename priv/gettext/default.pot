@@ -73,7 +73,7 @@ msgstr ""
 msgid "Account settings"
 msgstr ""
 
-#: lib/goodmao2_web/components/core_components.ex:368
+#: lib/goodmao2_web/components/core_components.ex:370
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -416,11 +416,6 @@ msgstr ""
 msgid "Male"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/settings.ex:15
-#, elixir-autogen, elixir-format
-msgid "Manage your profile, email address and password"
-msgstr ""
-
 #: lib/goodmao2_web/helpers.ex:54
 #: lib/goodmao2_web/live/pet_live/show.ex:516
 #, elixir-autogen, elixir-format
@@ -564,7 +559,7 @@ msgstr ""
 msgid "Private"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/settings.ex:151
+#: lib/goodmao2_web/live/user_live/settings.ex:131
 #, elixir-autogen, elixir-format
 msgid "Profile updated."
 msgstr ""
@@ -645,6 +640,7 @@ msgstr ""
 msgid "Saved. %{name}'s record is preserved."
 msgstr ""
 
+#: lib/goodmao2_web/live/user_live/password_settings.ex:67
 #: lib/goodmao2_web/live/user_live/settings.ex:41
 #, elixir-autogen, elixir-format
 msgid "Saving..."
@@ -909,4 +905,71 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/show.ex:190
 #, elixir-autogen, elixir-format
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:172
+#, elixir-autogen, elixir-format
+msgid "A link to confirm your email change has been sent to the new address."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:67
+#, elixir-autogen, elixir-format
+msgid "Change Email"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:23
+#: lib/goodmao2_web/live/user_live/settings.ex:78
+#, elixir-autogen, elixir-format
+msgid "Change password"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:66
+#, elixir-autogen, elixir-format
+msgid "Changing..."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:63
+#, elixir-autogen, elixir-format
+msgid "Confirm new password"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:24
+#, elixir-autogen, elixir-format
+msgid "Confirm your current password to set a new one."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:47
+#: lib/goodmao2_web/live/user_live/settings.ex:60
+#, elixir-autogen, elixir-format
+msgid "Current password"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:52
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:15
+#, elixir-autogen, elixir-format
+msgid "Manage your profile and email address"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:55
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:68
+#, elixir-autogen, elixir-format
+msgid "Save password"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:75
+#, elixir-autogen, elixir-format
+msgid "Your password is managed on its own page."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:74
+#, elixir-autogen, elixir-format
+msgid "← Back to account settings"
 msgstr ""

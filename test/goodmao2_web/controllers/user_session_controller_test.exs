@@ -144,4 +144,51 @@ defmodule Goodmao2Web.UserSessionControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Logged out successfully"
     end
   end
+
+  describe "POST /users/update-password (authoritative current-password gate)" do
+    setup %{user: user} do
+      %{user: set_password(user)}
+    end
+
+    test "changes the password with the correct current password", %{conn: conn, user: user} do
+      new_password = "a brand new valid password"
+
+      conn =
+        conn
+        |> log_in_user(user)
+        |> post(~p"/users/update-password", %{
+          "user" => %{
+            "email" => user.email,
+            "current_password" => valid_user_password(),
+            "password" => new_password,
+            "password_confirmation" => new_password
+          }
+        })
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Password updated successfully"
+      assert Accounts.get_user_by_email_and_password(user.email, new_password)
+    end
+
+    test "rejects a direct POST with a wrong current password", %{conn: conn, user: user} do
+      new_password = "a brand new valid password"
+
+      conn =
+        conn
+        |> log_in_user(user)
+        |> post(~p"/users/update-password", %{
+          "user" => %{
+            "email" => user.email,
+            "current_password" => "not the current password",
+            "password" => new_password,
+            "password_confirmation" => new_password
+          }
+        })
+
+      assert redirected_to(conn) == ~p"/users/settings/password"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "Current password is not valid"
+      # unchanged: old password still works, new one does not
+      assert Accounts.get_user_by_email_and_password(user.email, valid_user_password())
+      refute Accounts.get_user_by_email_and_password(user.email, new_password)
+    end
+  end
 end

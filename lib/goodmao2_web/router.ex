@@ -60,6 +60,7 @@ defmodule Goodmao2Web.Router do
     live_session :require_authenticated_user,
       on_mount: [{Goodmao2Web.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
+      live "/users/settings/password", UserLive.PasswordSettings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
 
       live "/pets", PetLive.Index, :index

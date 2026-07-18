@@ -13,7 +13,10 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
         |> live(~p"/users/settings")
 
       assert html =~ "Change Email"
-      assert html =~ "Save Password"
+      # Password is no longer changed here — it lives on its own gated page.
+      refute html =~ "Save Password"
+      assert html =~ "Change password"
+      assert html =~ ~p"/users/settings/password"
     end
 
     test "redirects if user is not logged in", %{conn: conn} do
@@ -39,11 +42,13 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
 
   describe "update email form" do
     setup %{conn: conn} do
-      user = user_fixture()
+      # Set a password so the current-password gate on the email change applies
+      # (magic-link `user_fixture/0` has no password).
+      user = set_password(user_fixture())
       %{conn: log_in_user(conn, user), user: user}
     end
 
-    test "updates the user email", %{conn: conn, user: user} do
+    test "updates the user email with the correct current password", %{conn: conn, user: user} do
       new_email = unique_user_email()
 
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
@@ -51,12 +56,31 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
       result =
         lv
         |> form("#email_form", %{
-          "user" => %{"email" => new_email}
+          "user" => %{"email" => new_email, "current_password" => valid_user_password()}
         })
         |> render_submit()
 
       assert result =~ "A link to confirm your email"
       assert Accounts.get_user_by_email(user.email)
+    end
+
+    test "does not send the email change with a wrong current password", %{conn: conn, user: user} do
+      new_email = unique_user_email()
+
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      result =
+        lv
+        |> form("#email_form", %{
+          "user" => %{"email" => new_email, "current_password" => "not the current password"}
+        })
+        |> render_submit()
+
+      refute result =~ "A link to confirm your email"
+      assert result =~ "is not valid"
+      # unchanged, and no confirmation was delivered
+      assert Accounts.get_user_by_email(user.email)
+      refute Accounts.get_user_by_email(new_email)
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
@@ -80,83 +104,12 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
       result =
         lv
         |> form("#email_form", %{
-          "user" => %{"email" => user.email}
+          "user" => %{"email" => user.email, "current_password" => valid_user_password()}
         })
         |> render_submit()
 
       assert result =~ "Change Email"
       assert result =~ "did not change"
-    end
-  end
-
-  describe "update password form" do
-    setup %{conn: conn} do
-      user = user_fixture()
-      %{conn: log_in_user(conn, user), user: user}
-    end
-
-    test "updates the user password", %{conn: conn, user: user} do
-      new_password = valid_user_password()
-
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
-
-      form =
-        form(lv, "#password_form", %{
-          "user" => %{
-            "email" => user.email,
-            "password" => new_password,
-            "password_confirmation" => new_password
-          }
-        })
-
-      render_submit(form)
-
-      new_password_conn = follow_trigger_action(form, conn)
-
-      assert redirected_to(new_password_conn) == ~p"/users/settings"
-
-      assert get_session(new_password_conn, :user_token) != get_session(conn, :user_token)
-
-      assert Phoenix.Flash.get(new_password_conn.assigns.flash, :info) =~
-               "Password updated successfully"
-
-      assert Accounts.get_user_by_email_and_password(user.email, new_password)
-    end
-
-    test "renders errors with invalid data (phx-change)", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
-
-      result =
-        lv
-        |> element("#password_form")
-        |> render_change(%{
-          "user" => %{
-            "password" => "too short",
-            "password_confirmation" => "does not match"
-          }
-        })
-
-      assert result =~ "Save Password"
-      assert result =~ "should be at least 12 character(s)"
-      assert result =~ "does not match password"
-    end
-
-    test "renders errors with invalid data (phx-submit)", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
-
-      result =
-        lv
-        |> form("#password_form", %{
-          "user" => %{
-            "password" => "too short",
-            "password_confirmation" => "does not match"
-          }
-        })
-        |> render_submit()
-
-      assert result =~ "Save Password"
-      assert result =~ "should be at least 12 character(s)"
-      assert result =~ "does not match password"
     end
   end
 
