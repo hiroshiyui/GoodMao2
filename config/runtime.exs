@@ -23,6 +23,13 @@ end
 config :goodmao2, Goodmao2Web.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+# Optional: pin the bootstrap administrator. When set, only this email may create the
+# *first* account (which becomes the sole admin), closing the "first registrant wins
+# admin" race on a fresh public deploy. Unset ⇒ the first account to register wins.
+if owner = System.get_env("GOODMAO_SITE_OWNER_EMAIL") do
+  config :goodmao2, :site_owner_email, owner
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

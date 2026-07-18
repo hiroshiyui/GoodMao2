@@ -25,6 +25,7 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:page_title, pet.name)
          |> assign(:pet, pet)
          |> assign(:role, role)
+         |> assign(:history_hidden?, pet.history_hidden)
          |> assign(:can_write?, Pets.can?(pet, user, :write))
          |> assign(:can_manage?, Pets.can?(pet, user, :manage))
          |> assign(:filter, "all")
@@ -42,7 +43,8 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   defp load_entries(socket) do
-    entries = Logs.list_entries(socket.assigns.pet, type: socket.assigns.filter)
+    user = socket.assigns.current_scope.user
+    entries = Logs.list_entries(user, socket.assigns.pet, type: socket.assigns.filter)
 
     socket
     |> stream(:entries, entries, reset: true)
@@ -80,7 +82,7 @@ defmodule Goodmao2Web.PetLive.Show do
     pet = socket.assigns.pet
     user = socket.assigns.current_scope.user
 
-    with %LogEntry{} = entry <- Logs.get_entry(pet, id),
+    with %LogEntry{} = entry <- Logs.get_entry(user, pet, id),
          {:ok, _} <- Logs.delete_entry(user, pet, entry) do
       {:noreply, put_flash(socket, :info, gettext("Entry removed."))}
     else
@@ -123,7 +125,7 @@ defmodule Goodmao2Web.PetLive.Show do
 
   @impl true
   def handle_info({:entry_created, entry}, socket) do
-    if matches_filter?(entry, socket.assigns.filter) do
+    if visible_here?(socket, entry) and matches_filter?(entry, socket.assigns.filter) do
       {:noreply,
        socket |> stream_insert(:entries, entry, at: 0) |> assign(:entries_empty?, false)}
     else
@@ -132,7 +134,12 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   def handle_info({:entry_updated, entry}, socket) do
-    {:noreply, stream_insert(socket, :entries, entry)}
+    # An edit can flip visibility, so drop an entry this viewer may no longer see.
+    if visible_here?(socket, entry) do
+      {:noreply, stream_insert(socket, :entries, entry)}
+    else
+      {:noreply, stream_delete(socket, :entries, entry)}
+    end
   end
 
   def handle_info({:entry_deleted, entry}, socket) do
@@ -140,6 +147,12 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+  # Applies the same per-entry visibility rule as the DB read to PubSub-pushed entries.
+  defp visible_here?(socket, entry) do
+    user = socket.assigns.current_scope.user
+    Logs.can_view_entry?(entry, user.id, socket.assigns.role)
+  end
 
   defp matches_filter?(_entry, "all"), do: true
   defp matches_filter?(entry, type), do: entry.type == type
@@ -166,8 +179,22 @@ defmodule Goodmao2Web.PetLive.Show do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <.pet_header pet={@pet} role={@role} can_manage?={@can_manage?} />
 
+      <div
+        :if={@history_hidden?}
+        id="history-hidden-notice"
+        role="status"
+        class="alert alert-warning mt-4"
+      >
+        <.icon name="hero-eye-slash" class="size-5" />
+        <span>
+          {gettext(
+            "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
+          )}
+        </span>
+      </div>
+
       <section
-        :if={@can_write?}
+        :if={@can_write? and not @history_hidden?}
         id="quicklog-section"
         aria-labelledby="quicklog-heading"
         class="card card-border bg-base-100 mt-4"
@@ -247,7 +274,12 @@ defmodule Goodmao2Web.PetLive.Show do
         </div>
       </section>
 
-      <section id="timeline-section" aria-labelledby="timeline-heading" class="mt-6">
+      <section
+        :if={not @history_hidden?}
+        id="timeline-section"
+        aria-labelledby="timeline-heading"
+        class="mt-6"
+      >
         <div class="flex items-center justify-between gap-4">
           <h2 id="timeline-heading" class="text-lg font-semibold">{gettext("Timeline")}</h2>
         </div>

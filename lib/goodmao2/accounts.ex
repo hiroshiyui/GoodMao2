@@ -75,13 +75,34 @@ defmodule Goodmao2.Accounts do
 
   """
   def register_user(attrs) do
-    # The first registered account becomes the sole global administrator.
+    # The first registered account becomes the sole global administrator. On a public
+    # deploy that is a race an attacker can win, so when `:site_owner_email` is
+    # configured only that address may create the first account (checked before any
+    # insert). Returns `{:error, :not_site_owner}` otherwise.
     first? = not Repo.exists?(User)
 
-    changeset = User.email_changeset(%User{}, attrs)
-    changeset = if first?, do: Ecto.Changeset.change(changeset, is_admin: true), else: changeset
+    with :ok <- authorize_first_registration(first?, attrs) do
+      changeset = User.email_changeset(%User{}, attrs)
+      changeset = if first?, do: Ecto.Changeset.change(changeset, is_admin: true), else: changeset
 
-    Repo.insert(changeset)
+      Repo.insert(changeset)
+    end
+  end
+
+  defp authorize_first_registration(false, _attrs), do: :ok
+
+  defp authorize_first_registration(true, attrs) do
+    case Application.get_env(:goodmao2, :site_owner_email) do
+      owner when is_binary(owner) and owner != "" ->
+        email = attrs[:email] || attrs["email"] || ""
+
+        if String.downcase(to_string(email)) == String.downcase(owner),
+          do: :ok,
+          else: {:error, :not_site_owner}
+
+      _ ->
+        :ok
+    end
   end
 
   @doc """

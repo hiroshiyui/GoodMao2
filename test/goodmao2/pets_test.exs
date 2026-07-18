@@ -151,6 +151,41 @@ defmodule Goodmao2.PetsTest do
       access = Pets.effective_access(pet, owner)
       assert {:ok, _} = Pets.revoke_access(co_owner, pet, access)
     end
+
+    test "the grant-update path cannot demote the last owner" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+
+      assert Pets.grant_access(owner, pet, %{"identifier" => owner.email, "role" => "viewer"}) ==
+               {:error, :last_owner}
+
+      # The owner grant is untouched.
+      assert Pets.effective_role(pet, owner) == "owner"
+    end
+
+    test "the grant-update path cannot time-box the last owner" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      future = DateTime.utc_now() |> DateTime.add(1, :day) |> DateTime.truncate(:second)
+
+      assert Pets.grant_access(owner, pet, %{
+               "identifier" => owner.email,
+               "role" => "owner",
+               "expires_at" => future
+             }) == {:error, :last_owner}
+    end
+
+    test "demoting an owner via the grant path is allowed when another owner remains" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      co_owner = user_fixture()
+      grant_fixture(pet, owner, co_owner, "owner")
+
+      assert {:ok, _} =
+               Pets.grant_access(owner, pet, %{"identifier" => owner.email, "role" => "viewer"})
+
+      assert Pets.effective_role(pet, owner) == "viewer"
+    end
   end
 
   describe "list_pets/2 and lifecycle" do

@@ -2,9 +2,12 @@ defmodule Goodmao2.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  # Reserved handles that may not be claimed by a user (routes, roles, support names).
-  @reserved_handles ~w(admin administrator root support help api me settings login logout
-                       register goodmao pets vet vets owner staff mod moderator system)
+  # Reserved handles that may not be claimed by a user (routes, roles, support names,
+  # impersonation bait). Kept in parity with the original GoodMao's reserved set.
+  @reserved_handles ~w(admin administrator superuser sysadmin operator moderator mod system
+                       root support help about auth login logout register settings account
+                       user users owner staff official team goodmao pets vet vets vetprofile
+                       me here all everyone anonymous none null undefined shared media api)
 
   schema "users" do
     field :email, :string
@@ -27,9 +30,9 @@ defmodule Goodmao2.Accounts.User do
   A changeset for the user's editable profile: display name and public handle.
 
   The handle is optional but, once set, is normalized to lowercase-canonical and
-  validated against the handle rules (3–30 chars of `a–z 0–9 . _`, no leading/
-  trailing dot, no `..`, no reserved words). Uniqueness is case-insensitive via
-  the `citext` column.
+  validated against the handle rules (3–30 chars of `a–z 0–9 . _`, must start with a
+  letter or number, may not end with a dot, no `..`, no reserved words). Uniqueness is
+  case-insensitive via the `citext` column.
   """
   def profile_changeset(user, attrs, opts \\ []) do
     user
@@ -61,9 +64,8 @@ defmodule Goodmao2.Accounts.User do
         |> validate_format(:handle, ~r/^[a-z0-9._]+$/,
           message: "may only contain lowercase letters, numbers, dots and underscores"
         )
-        |> validate_format(:handle, ~r/^[^.].*[^.]$|^[^.]$/,
-          message: "may not start or end with a dot"
-        )
+        |> validate_format(:handle, ~r/^[a-z0-9]/, message: "must start with a letter or number")
+        |> validate_format(:handle, ~r/[^.]$/, message: "may not end with a dot")
         |> validate_exclusion(:handle, @reserved_handles, message: "is reserved")
         |> validate_no_double_dot()
       else

@@ -75,6 +75,37 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, ".timeline-entry-type", "Food")
       refute has_element?(lv, "#quicklog-section")
     end
+
+    test "a private entry is hidden from a viewer on the timeline", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+
+      {:ok, _private} =
+        Goodmao2.Logs.create_entry(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "visibility" => "private"
+        })
+
+      grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      refute has_element?(lv, ".timeline-entry-type")
+    end
+
+    test "hidden history shows a notice instead of the timeline and QuickLog", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+      log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      {:ok, _} = Goodmao2.Pets.update_pet(user, pet, %{"history_hidden" => true})
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      assert has_element?(lv, "#history-hidden-notice")
+      refute has_element?(lv, "#quicklog-section")
+      refute has_element?(lv, "#timeline-section")
+    end
   end
 
   describe "authorization" do
