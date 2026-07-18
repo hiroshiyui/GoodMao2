@@ -13,7 +13,7 @@ original [GoodMao roadmap](../../GoodMao/doc/roadmap.md).
 > surfaced several rules that are *modeled but not yet enforced* — tracked as hardening,
 > not treated as done.
 
-## Vision
+## 1. Vision
 
 The classic vet-visit problem is that owners reconstruct history from memory, badly.
 GoodMao makes **effortless structured daily logging** that produces a **shareable health
@@ -29,7 +29,7 @@ rushing a heavy moment, and letting them record the truth of their situation. Th
 end-of-care preserves the record and its date is backdatable ([ADR-0003](adr/0003-pet-lifecycle.md)),
 and why error copy stays honest without leaking ([ADR-0007](adr/0007-error-reporting.md)).
 
-## Core principle: structured logging
+## 2. Core principle: structured logging
 
 Free-text ("seemed off today 😟") is clinically useless. The heart of the product is
 **structured, one-tap log entries** that a vet can act on. If logging is not effortless,
@@ -48,7 +48,7 @@ per-type `data` fields in [`architecture.md`](architecture.md):
 - Energy / mood (1–5 scale)
 - Medication given (timestamped — ties to multi-caretaker coordination)
 
-## Vet access model (both planned)
+## 3. Vet access model (both planned)
 
 1. **Time-boxed live access** — an owner grants a vet temporary read access to the pet's
    live timeline for a visit ("share history with Dr. Lin"). The `pet_accesses` grant with
@@ -60,7 +60,7 @@ per-type `data` fields in [`architecture.md`](architecture.md):
 Vets are **active, verified users** (professional credential verification), so their input
 carries authority rather than being anonymous advice.
 
-## Shipped — MVP core
+## 4. Shipped — MVP core
 
 - [x] Scope-based auth (`phx.gen.auth`), first user → administrator, editable `@handle`
 - [x] Pets: create / list / view / edit, coat colour, weight unit
@@ -81,7 +81,7 @@ carries authority rather than being anonymous advice.
 - [x] Gettext throughout; `en` populated, `zh_TW` / `ja_JP` scaffolded
 - [x] Test suite (context + LiveView) and `mix precommit` gate; dev seed data
 
-## Near-term hardening — enforcement gaps
+## 5. Near-term hardening — enforcement gaps
 
 **Closed (2026-07-18).** The GoodMao parity audit found these rules **modeled in the schema
 but not enforced in code** — correctness/security defects in shipped areas. All seven are now
@@ -109,11 +109,11 @@ rejects *and* the legitimate case still passes).
       `FOR UPDATE` on the pet's owner rows, so concurrent revokes/demotes can't write-skew into
       an ownerless pet (`lib/goodmao2/pets.ex`).
 
-## Deferred (mapped to the original's later phases)
+## 6. Deferred (mapped to the original's later phases)
 
 Grouped by category; each item keeps its original phase tag and ADR link.
 
-### Clinical logging & timeline
+### 6.1 Clinical logging & timeline
 
 - [ ] Weight / trend charts (Phase 1)
 - [ ] Medication schedules + reminders; the "did anyone give the pill?" coordination (Phase 1/3)
@@ -131,7 +131,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       Full / Partial / Refused), advanced context in a disclosure, instead of the current
       tab-then-fill flow (fewer taps for the common case)
 
-### Sharing, notifications & vet workflow
+### 6.2 Sharing, notifications & vet workflow
 
 - [ ] In-site **notification feed** + 1:1 **mailbox**, live unread badges via PubSub
       ([ADR-0011](adr/0011-notifications-and-messaging.md); Phase 3) — preserve: inline vs
@@ -145,7 +145,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       **verified `VetProfile`** exists, on grant *and* re-grant; the report share token carries
       an **expiry** (unlike log tokens)
 
-### Localization & typography
+### 6.3 Localization & typography
 
 - [ ] **Locale switcher + per-request locale**: resolve cookie → `Accept-Language` → default,
       call `Gettext.put_locale` in a plug + LiveView `on_mount`, reflect `lang` on `<html>`
@@ -160,7 +160,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       so a trilingual app renders Traditional-Chinese/Japanese correctly instead of leaving it to
       browser defaults (`unicode-range` + `font-display: swap`)
 
-### Platform & data model
+### 6.4 Platform & data model
 
 - [ ] **Oban** for background jobs (janitor, reminders, async media, notification fan-out)
       — deferred until a job actually needs it (supersedes the original's ADR-0006; Phase 1/2)
@@ -168,7 +168,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline
       `from` / `to` / `offset` query params for the calendar/report views
 
-## Engineering & ops maturity
+## 7. Engineering & ops maturity
 
 Drawn from the parity audit. Fully shipped over two 2026-07-18 tranches: first CI + dependabot
 + security scanners + `/health` + seed fencing + CHANGELOG, then CSP + `mix goodmao.doctor` +
@@ -202,7 +202,7 @@ the locale-parity test + the ported `a11y-engineering` skill.
       rewritten for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
       invariant `AGENTS.md` states; completes GoodMao's seven-skill set.
 
-## Accessibility & UX polish
+## 8. Accessibility & UX polish
 
 Delivered 2026-07-18 as one tranche — small CSS/HEEx edits in `assets/css/app.css`,
 `components/layouts.ex`, `components/layouts/root.html.heex`, `components/core_components.ex`,
@@ -233,7 +233,7 @@ SvelteKit routing/preload; re-vendoring Lucide icons (Phoenix hero-icons already
 [ADR-0010's](adr/README.md) self-hosted/SSR-safe/tree-shaken requirements). Note GoodMao2's
 light/dark/system theme toggle is **ahead** of GoodMao, which has no dark theme.
 
-## Notes / follow-ups
+## 9. Notes / follow-ups
 
 - User references that are audit-only (`recorded_by_user_id`, `granted_by_user_id`,
   `created_by_user_id`) are stored without FK navigations, mirroring the original's
