@@ -65,6 +65,35 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, ".timeline-entry-type", "Food")
     end
 
+    test "logs a text-only daily-life note", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      lv |> element("#quicklog-type-life") |> render_click()
+
+      lv
+      |> form("#quicklog-form", log: %{note: "Chased the laser pointer for ten minutes."})
+      |> render_submit()
+
+      assert has_element?(lv, ".timeline-entry-type", "Daily life")
+      assert has_element?(lv, ".timeline-entry-note", "Chased the laser pointer")
+    end
+
+    test "a daily-life note requires a caption", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      lv |> element("#quicklog-type-life") |> render_click()
+
+      html =
+        lv
+        |> form("#quicklog-form", log: %{note: ""})
+        |> render_submit()
+
+      assert html =~ "note can&#39;t be blank"
+      refute has_element?(lv, ".timeline-entry-type")
+    end
+
     test "a viewer sees the timeline but no QuickLog", %{conn: conn, user: user} do
       owner = user_fixture()
       pet = pet_fixture(owner)

@@ -76,6 +76,22 @@ defmodule Goodmao2.LogsTest do
                  "data" => %{"assessment" => "stable"}
                })
     end
+
+    test "a caretaker may author a text-only life log", %{owner: owner, pet: pet} do
+      assert {:ok, entry} =
+               Logs.create_entry(owner, pet, %{"type" => "life", "note" => "Zoomies at dawn."})
+
+      assert entry.type == "life"
+      assert entry.note == "Zoomies at dawn."
+    end
+
+    test "a life log requires a caption (its content until media lands)", %{
+      owner: owner,
+      pet: pet
+    } do
+      assert {:error, changeset} = Logs.create_entry(owner, pet, %{"type" => "life"})
+      assert %{note: ["can't be blank"]} = errors_on(changeset)
+    end
   end
 
   describe "list_entries/2" do

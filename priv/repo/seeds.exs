@@ -99,6 +99,30 @@ if Logs.list_entries(owner, pet) == [] do
        "data" => %{"level" => "3", "mood" => "quiet"},
        "occurred_at" => hours_ago.(3)
      }},
+    {owner,
+     %{
+       "type" => "vomit",
+       "data" => %{"count" => 1, "contents" => "hairball"},
+       "occurred_at" => hours_ago.(6)
+     }},
+    {owner,
+     %{
+       "type" => "symptom",
+       "data" => %{"symptom" => "sneezing", "severity" => 2},
+       "occurred_at" => hours_ago.(4)
+     }},
+    {owner,
+     %{
+       "type" => "medication",
+       "data" => %{"medication_name" => "Metacam", "dose" => "0.5 ml"},
+       "occurred_at" => hours_ago.(1)
+     }},
+    {owner,
+     %{
+       "type" => "life",
+       "occurred_at" => hours_ago.(9),
+       "note" => "Napped in the sunbeam by the window all afternoon. 🐈"
+     }},
     {vet,
      %{
        "type" => "vet_note",

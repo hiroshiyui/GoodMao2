@@ -10,6 +10,11 @@ skill).
 
 ### Added
 
+- **Daily-life logs (`life` type) as text notes** — any caretaker can now author a
+  daily-life entry from QuickLog; its required caption is the base `note`. This completes
+  the last log type that had no user-facing authoring path (photo/video enrichment remains
+  deferred with the media work). The demo seed now exercises every shipped type.
+
 - **CI** — a GitHub Actions `mix` job (Erlang/Elixir pinned from `.tool-versions`) running
   the gate against a Postgres service: compile with warnings-as-errors, format check,
   unused-deps check, dependency audit, Sobelow scan, and the full test suite.

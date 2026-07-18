@@ -16,8 +16,10 @@ defmodule Goodmao2.Logs.LogEntry do
   @types ~w(food water bathroom vomit weight energy medication symptom vet_note life)
   @visibilities ~w(private limited public)
 
-  # One-tap QuickLog types shown on the pet page (vet_note/life are authored elsewhere).
-  @quicklog_types ~w(food water bathroom vomit weight energy medication symptom)
+  # Types any caretaker can author from the pet page's QuickLog. `life` is a plain
+  # daily-life note here — its caption is the base `note`; media enrichment is deferred.
+  # `vet_note` is excluded: it is vet-only and authored through its own gated path.
+  @quicklog_types ~w(food water bathroom vomit weight energy medication symptom life)
 
   def types, do: @types
   def quicklog_types, do: @quicklog_types
@@ -53,6 +55,18 @@ defmodule Goodmao2.Logs.LogEntry do
     |> validate_length(:note, max: 2000)
     |> validate_not_future(:occurred_at)
     |> validate_data()
+    |> validate_life_note()
+  end
+
+  # A daily-life log carries no clinical fields — its content is the caption (the base
+  # `note`). Until media enrichment lands, a life entry with no note would be empty, so
+  # require one. (Other types may leave `note` blank alongside their structured data.)
+  defp validate_life_note(changeset) do
+    if get_field(changeset, :type) == "life" do
+      validate_required(changeset, [:note])
+    else
+      changeset
+    end
   end
 
   defp put_default_occurred_at(changeset) do

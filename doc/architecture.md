@@ -75,7 +75,7 @@ The `data` payload per `type` (validated in `LogEntry.changeset/2`):
 | `medication` | `medication_name`, `dose`, `administered_at` (later: FK to a `medications` schedule) |
 | `symptom` | `symptom`, `severity` (1–5) |
 | `vet_note` | `assessment`, `recommendation` — vet-authored, authoritative timeline note |
-| `life` | caption reuses the base `note`; content is attached media (deferred). Backdatable like any log |
+| `life` | daily-life note — the required caption is the base `note` (photo/video enrichment deferred). Backdatable like any log |
 
 Range-checked scales (1–5) and non-negative quantities are validated for *meaning*, not
 just type. See [`glossary.md`](glossary.md) for the domain terms.

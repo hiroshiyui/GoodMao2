@@ -225,5 +225,7 @@ light/dark/system theme toggle is **ahead** of GoodMao, which has no dark theme.
 - User references that are audit-only (`recorded_by_user_id`, `granted_by_user_id`,
   `created_by_user_id`) are stored without FK navigations, mirroring the original's
   cascade-path decision.
-- The `life` log type and `visibility` `public` + share-token concept are modeled in the
-  schema but their UI/endpoints are deferred with the media and share-link work above.
+- The `life` log type ships as a **text-only** daily-life note (authored from QuickLog,
+  caption required); only its photo/video enrichment is deferred with the media work above.
+  The `visibility` `public` + share-token concept is modeled in the schema but its
+  UI/endpoints are deferred with the share-link work above.

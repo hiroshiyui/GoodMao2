@@ -244,7 +244,14 @@ defmodule Goodmao2Web.PetLive.Show do
                 {gettext("Add note, time, or visibility")}
               </summary>
               <div class="mt-3 space-y-3">
-                <.input field={@quick_form[:note]} type="textarea" label={gettext("Note")} rows="2" />
+                <%!-- A life log's note is its primary caption above, so skip the duplicate here. --%>
+                <.input
+                  :if={@quicklog_type != "life"}
+                  field={@quick_form[:note]}
+                  type="textarea"
+                  label={gettext("Note")}
+                  rows="2"
+                />
                 <div class="grid gap-3 sm:grid-cols-2">
                   <.input
                     field={@quick_form[:occurred_at]}
@@ -530,6 +537,18 @@ defmodule Goodmao2Web.PetLive.Show do
         options={Enum.map(1..5, &{"#{&1}", "#{&1}"})}
       />
     </div>
+    """
+  end
+
+  defp quicklog_fields(%{type: "life"} = assigns) do
+    ~H"""
+    <.input
+      field={@form[:note]}
+      type="textarea"
+      label={gettext("What happened?")}
+      rows="3"
+      required
+    />
     """
   end
 

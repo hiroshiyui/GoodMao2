@@ -48,10 +48,11 @@ The **product and domain** are inherited unchanged from the original
 - **Log entry** — a single structured, timestamped health record (food, water,
   bathroom, vomit, weight, energy, medication, symptom, vet note, life). Structured
   fields are first-class; free-text notes only accompany them.
-- **LifeLog (`life` type)** — a daily-life log subtype whose content is attached
-  **photos/videos** (its caption reuses the base note). Backdatable like any log (a photo
-  is often posted days later). _Deferred_ — the `life` type is modeled in the schema, but
-  media upload/serving is not yet built.
+- **LifeLog (`life` type)** — a daily-life log subtype for a pet's everyday moments. Any
+  caretaker can author one from QuickLog as a **text caption** (the base `note`, which is
+  required for this type). Backdatable like any log (it is often posted days later). Its
+  eventual **photo/video** enrichment is _deferred_ — the media upload/serving layer
+  (ADR-0005) is not yet built, but the text log itself ships today.
 - **Media purification** — the (deferred) rule that **every uploaded byte is actively
   cleaned, never stored as-is**: content type is sniffed from magic bytes (SVG rejected),
   images are re-encoded to strip EXIF/GPS/polyglots, and videos are validated then
