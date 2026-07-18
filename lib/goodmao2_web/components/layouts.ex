@@ -35,75 +35,97 @@ defmodule Goodmao2Web.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header id="site-header" class="navbar border-b border-base-200 px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <.link
-          navigate={~p"/"}
-          id="site-brand"
-          class="flex w-fit items-center gap-2 text-lg font-semibold"
-        >
-          <span aria-hidden="true">🐾</span>
-          <span>GoodMao <span class="text-base-content/50 text-sm font-normal">顧毛</span></span>
-        </.link>
-      </div>
-      <nav id="site-nav" aria-label={gettext("Primary")} class="flex-none">
-        <ul class="flex items-center gap-2 sm:gap-3">
-          <%= if @current_scope && @current_scope.user do %>
-            <li>
-              <.link navigate={~p"/pets"} id="nav-pets" class="btn btn-ghost btn-sm">
-                {gettext("My pets")}
-              </.link>
-            </li>
-            <%= if @current_scope.user.is_admin do %>
+    <a
+      href="#main-content"
+      id="skip-to-content"
+      class="gm-skip-link btn btn-primary btn-sm sr-only focus:not-sr-only"
+    >
+      {gettext("Skip to content")}
+    </a>
+    <div id="app-shell" class="flex min-h-dvh flex-col">
+      <header
+        id="site-header"
+        class="navbar sticky top-0 z-30 border-b border-base-200 bg-base-100/90 px-4 backdrop-blur sm:px-6 lg:px-8"
+      >
+        <div class="flex-1">
+          <.link
+            navigate={~p"/"}
+            id="site-brand"
+            class="flex w-fit items-center gap-2 text-lg font-semibold"
+          >
+            <span aria-hidden="true">🐾</span>
+            <span>GoodMao <span class="text-base-content/50 text-sm font-normal">顧毛</span></span>
+          </.link>
+        </div>
+        <nav id="site-nav" aria-label={gettext("Primary")} class="flex-none">
+          <ul class="flex items-center gap-2 sm:gap-3">
+            <%= if @current_scope && @current_scope.user do %>
               <li>
-                <span
-                  id="nav-admin-badge"
-                  class="badge badge-secondary badge-sm"
-                  title={gettext("Administrator")}
+                <.link navigate={~p"/pets"} id="nav-pets" class="btn btn-ghost btn-sm">
+                  {gettext("My pets")}
+                </.link>
+              </li>
+              <%= if @current_scope.user.is_admin do %>
+                <li>
+                  <span
+                    id="nav-admin-badge"
+                    class="badge badge-secondary badge-sm"
+                    title={gettext("Administrator")}
+                  >
+                    {gettext("Admin")}
+                  </span>
+                </li>
+              <% end %>
+              <li>
+                <.link navigate={~p"/users/settings"} id="nav-settings" class="btn btn-ghost btn-sm">
+                  {account_label(@current_scope.user)}
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/users/log-out"}
+                  method="delete"
+                  id="nav-logout"
+                  class="btn btn-ghost btn-sm"
                 >
-                  {gettext("Admin")}
-                </span>
+                  {gettext("Log out")}
+                </.link>
+              </li>
+            <% else %>
+              <li>
+                <.link navigate={~p"/users/log-in"} id="nav-login" class="btn btn-ghost btn-sm">
+                  {gettext("Log in")}
+                </.link>
+              </li>
+              <li>
+                <.link navigate={~p"/users/register"} id="nav-register" class="btn btn-primary btn-sm">
+                  {gettext("Get started")}
+                </.link>
               </li>
             <% end %>
             <li>
-              <.link navigate={~p"/users/settings"} id="nav-settings" class="btn btn-ghost btn-sm">
-                {account_label(@current_scope.user)}
-              </.link>
+              <.theme_toggle />
             </li>
-            <li>
-              <.link
-                href={~p"/users/log-out"}
-                method="delete"
-                id="nav-logout"
-                class="btn btn-ghost btn-sm"
-              >
-                {gettext("Log out")}
-              </.link>
-            </li>
-          <% else %>
-            <li>
-              <.link navigate={~p"/users/log-in"} id="nav-login" class="btn btn-ghost btn-sm">
-                {gettext("Log in")}
-              </.link>
-            </li>
-            <li>
-              <.link navigate={~p"/users/register"} id="nav-register" class="btn btn-primary btn-sm">
-                {gettext("Get started")}
-              </.link>
-            </li>
-          <% end %>
-          <li>
-            <.theme_toggle />
-          </li>
-        </ul>
-      </nav>
-    </header>
+          </ul>
+        </nav>
+      </header>
 
-    <main class="px-4 py-8 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-3xl space-y-4">
-        {render_slot(@inner_block)}
-      </div>
-    </main>
+      <main id="main-content" tabindex="-1" class="flex-1 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl space-y-4">
+          {render_slot(@inner_block)}
+        </div>
+      </main>
+
+      <footer id="site-footer" class="border-t border-base-200 px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto flex max-w-3xl flex-col items-center gap-1 text-center text-sm text-base-content/60">
+          <p>
+            <span aria-hidden="true">🐾</span>
+            {gettext("GoodMao — a shareable health timeline for the pets you love.")}
+          </p>
+          <p>© {gettext("GoodMao")} 顧毛</p>
+        </div>
+      </footer>
+    </div>
 
     <.flash_group flash={@flash} />
     """
@@ -175,6 +197,8 @@ defmodule Goodmao2Web.Layouts do
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="system"
+        aria-label={gettext("Match system theme")}
+        title={gettext("Match system theme")}
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
@@ -183,6 +207,8 @@ defmodule Goodmao2Web.Layouts do
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="light"
+        aria-label={gettext("Light theme")}
+        title={gettext("Light theme")}
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
@@ -191,6 +217,8 @@ defmodule Goodmao2Web.Layouts do
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="dark"
+        aria-label={gettext("Dark theme")}
+        title={gettext("Dark theme")}
       >
         <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>

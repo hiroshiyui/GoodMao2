@@ -15,10 +15,23 @@ skill).
   unused-deps check, dependency audit, Sobelow scan, and the full test suite.
 - **Dependabot** — weekly grouped updates for Hex (`mix`) and GitHub Actions.
 - **Security tooling in the gate** — `mix_audit` (advisory audit) and `sobelow` (Phoenix
-  static scan) added to `mix precommit` and CI. A Content-Security-Policy is intentionally
-  deferred (tracked in the roadmap) and ignored via `.sobelow-conf`.
+  static scan) added to `mix precommit` and CI.
 - **`GET /health`** — an unauthenticated liveness/readiness probe returning `200 ok` when
   the database is reachable, `503` otherwise.
+- **Content-Security-Policy** — a per-request, nonce-based CSP on the browser pipeline
+  (`Goodmao2Web.Plugs.ContentSecurityPolicy`); the sole inline script carries the nonce and
+  the LiveView socket is covered by `connect-src 'self'`.
+- **`mix goodmao.doctor`** — an environment preflight task (runtime versions vs
+  `.tool-versions`, Postgres reachability + `CREATEDB`, deps, asset installers, prod secrets).
+- **Locale-parity test** — guards structural parity of the `en` / `zh_TW` / `ja_JP` Gettext
+  catalogs (identical domains and msgids, no fuzzy entries, templates merged).
+- **Accessibility & UX polish** — skip-to-content link, a `:focus-visible` brand ring,
+  `aria-hidden` on decorative `<.icon>` glyphs (with an opt-out), a global
+  `prefers-reduced-motion` guard, Fluent elevation/motion design tokens with `.gm-lift` /
+  `.gm-press` utilities, a `theme-color` meta + inline SVG favicon + branded page title, a
+  sticky app-shell with a footer, and a reduced-motion-aware pointer-glow hook.
+- **`a11y-engineering` Claude skill** — accessibility auditing/fixing workflow for the
+  Phoenix/LiveView layer, completing GoodMao's seven-skill set.
 - **Project documentation** — glossary, ADRs, a common-practices reference, and expanded
   roadmap sections, ported from and adapted to the Phoenix stack.
 - **Brand theme** — GoodMao's "Terracotta + Teal" identity as daisyUI light/dark themes

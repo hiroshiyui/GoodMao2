@@ -128,4 +128,119 @@
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
+/* ------------------------------------------------------------------------
+   Accessibility & UX polish (see doc/roadmap.md → "Accessibility & UX polish"
+   and the a11y-engineering skill). Hand-written CSS layered on top of Tailwind
+   v4 + daisyUI — no preprocessor (Lightning CSS already gives nesting/vars).
+   ------------------------------------------------------------------------ */
+
+/* Fluent design tokens — a small, theme-agnostic ramp for elevation and motion
+   so components animate and lift consistently. Referenced by the utilities
+   below; also reachable from any component (style="box-shadow: var(--gm-elevation-2)").
+   Motion durations are honoured only when the user allows motion (guard below). */
+:root {
+  /* Layered elevation shadow ramp (resting → hover → floating). */
+  --gm-elevation-1: 0 1px 2px rgba(35, 35, 35, 0.06), 0 1px 3px rgba(35, 35, 35, 0.08);
+  --gm-elevation-2: 0 2px 6px rgba(35, 35, 35, 0.08), 0 4px 12px rgba(35, 35, 35, 0.10);
+  --gm-elevation-3: 0 6px 16px rgba(35, 35, 35, 0.12), 0 12px 28px rgba(35, 35, 35, 0.14);
+  /* Decelerating (ease-out) curve + standard durations. */
+  --gm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --gm-duration-fast: 120ms;
+  --gm-duration: 200ms;
+}
+
+/* Dark theme casts deeper shadows so elevation still reads on a warm-dark canvas. */
+:root:where([data-theme="dark"]) {
+  --gm-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.30), 0 1px 3px rgba(0, 0, 0, 0.36);
+  --gm-elevation-2: 0 2px 6px rgba(0, 0, 0, 0.36), 0 4px 12px rgba(0, 0, 0, 0.44);
+  --gm-elevation-3: 0 6px 16px rgba(0, 0, 0, 0.44), 0 12px 28px rgba(0, 0, 0, 0.52);
+}
+
+/* Visible focus for keyboard users — the a11y invariant AGENTS.md states.
+   :focus-visible only fires for keyboard/programmatic focus, so mouse clicks
+   don't get a ring. A 2px ring + 2px offset in the brand primary, on every
+   natively-focusable element and anything that opts in with tabindex. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-field, 0.25rem);
+}
+
+/* Skip-to-content link: visually hidden until it receives focus (WCAG 2.4.1). */
+.gm-skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 50;
+  transition: top var(--gm-duration) var(--gm-ease-out);
+}
+.gm-skip-link:focus {
+  top: 0.5rem;
+}
+
+/* Delightful micro-interactions (AGENTS.md). Opt-in utility classes rather than
+   restyling every card/button globally. Both self-disable under reduced motion. */
+.gm-lift {
+  transition: box-shadow var(--gm-duration) var(--gm-ease-out),
+    transform var(--gm-duration) var(--gm-ease-out);
+}
+.gm-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--gm-elevation-3);
+}
+.gm-press {
+  transition: transform var(--gm-duration-fast) var(--gm-ease-out);
+}
+.gm-press:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Reveal pointer-glow — a soft radial highlight that follows the cursor over an
+   opted-in surface. Driven by the PointerGlow JS hook, which writes --gm-glow-x/y.
+   Pure delight; fully removed under reduced motion (guard below). */
+.gm-glow {
+  position: relative;
+  isolation: isolate;
+}
+.gm-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--gm-duration) var(--gm-ease-out);
+  background: radial-gradient(
+    16rem circle at var(--gm-glow-x, 50%) var(--gm-glow-y, 50%),
+    color-mix(in oklch, var(--color-primary) 18%, transparent),
+    transparent 60%
+  );
+}
+.gm-glow:hover::before {
+  opacity: 1;
+}
+
+/* Global reduced-motion guard — honour the user's OS preference. Neutralises the
+   micro-interactions above and any transition/animation, without removing the
+   focus ring (that's not motion). Ships alongside every motion feature. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .gm-lift:hover {
+    transform: none;
+  }
+  .gm-press:active {
+    transform: none;
+  }
+  .gm-glow::before {
+    display: none;
+  }
+}
+
 /* This file is for your main application CSS */

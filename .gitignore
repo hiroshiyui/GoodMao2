@@ -41,3 +41,6 @@ npm-debug.log
 # Local, per-developer Claude Code settings.
 /.claude/settings.local.json
 
+
+# Transient agent worktrees
+/.claude/worktrees/

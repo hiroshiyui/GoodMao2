@@ -435,13 +435,19 @@ defmodule Goodmao2Web.CoreComponents do
 
       <.icon name="hero-x-mark" />
       <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
+
+  Icons are decorative by default (`aria-hidden`) so screen readers don't announce
+  the glyph. For a *standalone, meaningful* icon (e.g. an icon-only control), pass
+  `aria_hidden={false}` and give the icon an accessible name via its parent
+  (`aria-label` on the button) or a sibling label.
   """
   attr :name, :string, required: true
   attr :class, :any, default: "size-4"
+  attr :aria_hidden, :boolean, default: true, doc: "hide the decorative glyph from assistive tech"
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} />
+    <span class={[@name, @class]} aria-hidden={@aria_hidden && "true"} />
     """
   end
 

@@ -25,11 +25,29 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/goodmao2"
 import topbar from "../vendor/topbar"
 
+// Reveal pointer-glow: track the cursor over an element marked phx-hook="PointerGlow"
+// (paired with the .gm-glow CSS) and expose its position as CSS custom properties.
+// Self-disables when the user prefers reduced motion — the listener is never attached.
+const PointerGlow = {
+  mounted() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    this.onMove = (e) => {
+      const rect = this.el.getBoundingClientRect()
+      this.el.style.setProperty("--gm-glow-x", `${e.clientX - rect.left}px`)
+      this.el.style.setProperty("--gm-glow-y", `${e.clientY - rect.top}px`)
+    }
+    this.el.addEventListener("pointermove", this.onMove)
+  },
+  destroyed() {
+    if (this.onMove) this.el.removeEventListener("pointermove", this.onMove)
+  },
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...colocatedHooks, PointerGlow},
 })
 
 // Show progress bar on live navigation and form submits

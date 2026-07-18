@@ -4,13 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="Goodmao2" suffix=" · Phoenix Framework">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdf6ef" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#26201c" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🐾</text></svg>"
+    />
+    <.live_title default="GoodMao 顧毛" suffix=" · GoodMao">
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
-    <script>
+    <script nonce={assigns[:csp_nonce]}>
       (() => {
         const setTheme = (theme) => {
           if (theme === "system") {
