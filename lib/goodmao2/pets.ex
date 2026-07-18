@@ -188,18 +188,24 @@ defmodule Goodmao2.Pets do
   def grant_access(%User{} = granter, %Pet{} = pet, %{"identifier" => identifier} = attrs) do
     with :ok <- require(pet, granter, :manage),
          %User{} = grantee <- resolve_user(identifier) do
-      existing = Repo.get_by(PetAccess, pet_id: pet.id, user_id: grantee.id)
+      # This path doubles as the grant-*update* path (insert_or_update), so it must
+      # honor the >=1-owner invariant when demoting or time-boxing an existing owner.
+      with_owner_lock(pet, fn ->
+        existing = Repo.get_by(PetAccess, pet_id: pet.id, user_id: grantee.id)
 
-      (existing || %PetAccess{})
-      |> PetAccess.changeset(%{
-        "pet_id" => pet.id,
-        "user_id" => grantee.id,
-        "role" => attrs["role"],
-        "granted_by_user_id" => granter.id,
-        "expires_at" => attrs["expires_at"],
-        "status" => "active"
-      })
-      |> Repo.insert_or_update()
+        with :ok <- guard_owner_retirement(pet, existing, attrs) do
+          (existing || %PetAccess{})
+          |> PetAccess.changeset(%{
+            "pet_id" => pet.id,
+            "user_id" => grantee.id,
+            "role" => attrs["role"],
+            "granted_by_user_id" => granter.id,
+            "expires_at" => attrs["expires_at"],
+            "status" => "active"
+          })
+          |> Repo.insert_or_update()
+        end
+      end)
     else
       nil -> {:error, :grantee_not_found}
       {:error, _} = err -> err
@@ -211,11 +217,40 @@ defmodule Goodmao2.Pets do
   last effective owner (`{:error, :last_owner}`).
   """
   def revoke_access(%User{} = revoker, %Pet{} = pet, %PetAccess{} = access) do
-    with :ok <- require(pet, revoker, :manage),
-         :ok <- guard_last_owner(pet, access) do
-      access |> PetAccess.changeset(%{status: "revoked"}) |> Repo.update()
+    with :ok <- require(pet, revoker, :manage) do
+      with_owner_lock(pet, fn ->
+        with :ok <- guard_last_owner(pet, access) do
+          access |> PetAccess.changeset(%{status: "revoked"}) |> Repo.update()
+        end
+      end)
     end
   end
+
+  # Serializes owner-invariant checks for a pet: two concurrent revokes/demotes can
+  # otherwise each see the other as still-effective and both commit into an ownerless
+  # state (write skew). Locking the pet's owner rows makes them take turns.
+  defp with_owner_lock(%Pet{id: pet_id}, fun) do
+    Repo.transact(fn ->
+      Repo.all(
+        from a in PetAccess,
+          where: a.pet_id == ^pet_id and a.role == "owner",
+          lock: "FOR UPDATE"
+      )
+
+      fun.()
+    end)
+  end
+
+  # A grant update that demotes an existing effective owner or gives it an expiry must
+  # leave another effective owner behind.
+  defp guard_owner_retirement(pet, %PetAccess{role: "owner", status: "active"} = existing, attrs) do
+    demoting? = attrs["role"] != "owner"
+    time_boxing? = not is_nil(attrs["expires_at"])
+
+    if demoting? or time_boxing?, do: guard_last_owner(pet, existing), else: :ok
+  end
+
+  defp guard_owner_retirement(_pet, _existing, _attrs), do: :ok
 
   defp guard_last_owner(pet, %PetAccess{role: "owner"} = access) do
     other_owners =
