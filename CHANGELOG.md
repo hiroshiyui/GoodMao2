@@ -52,6 +52,12 @@ skill).
 
 ### Changed
 
+- **Gentler tone for ended pets** — a pet's ended lifecycle status (on the pet card and
+  header) now shows in a muted tone with a soft glyph — a heart for a pet that has passed
+  away — instead of alarming warning-amber, honouring ADR-0003's "be gracious to people"
+  principle. The end-of-care page's explanation now spells out the full reassurance (the
+  record and timeline are kept and stay reachable by direct link; the pet just leaves the
+  active list; hiding history is a separate, reversible choice).
 - Hard-fenced `priv/repo/seeds.exs` to the `:dev` environment so its demo accounts can
   never be planted in staging/production.
 

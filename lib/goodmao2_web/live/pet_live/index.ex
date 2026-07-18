@@ -88,7 +88,11 @@ defmodule Goodmao2Web.PetLive.Index do
                 |> Enum.filter(&(&1 && &1 != ""))
                 |> Enum.join(" · ")}
               </p>
-              <p :if={pet.lifecycle_status != "active"} class="pet-card-status text-warning text-sm">
+              <p
+                :if={pet.lifecycle_status != "active"}
+                class="pet-card-status text-base-content/60 mt-1 flex items-center gap-1 text-sm"
+              >
+                <.icon name={lifecycle_icon(pet.lifecycle_status)} class="size-4" />
                 {translate_lifecycle(pet.lifecycle_status)}
                 <span :if={pet.ended_at}>· {format_date(pet.ended_at)}</span>
               </p>

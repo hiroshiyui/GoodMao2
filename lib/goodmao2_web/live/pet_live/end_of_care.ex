@@ -75,7 +75,7 @@ defmodule Goodmao2Web.PetLive.EndOfCare do
 
         <p class="text-base-content/70 mt-3 text-sm">
           {gettext(
-            "This records that %{name}'s active care has ended. Nothing is deleted — their timeline stays with you.",
+            "This records that %{name} is no longer under your active care — for example if they have passed away, been rehomed, or been lost. Nothing is deleted: the full record and timeline are kept and stay reachable by direct link; %{name} simply leaves your active list. Hiding the history is a separate, reversible choice.",
             name: @pet.name
           )}
         </p>

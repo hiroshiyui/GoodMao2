@@ -38,6 +38,16 @@ defmodule Goodmao2Web.Helpers do
   def translate_lifecycle("other"), do: gettext("Other")
   def translate_lifecycle(other), do: other
 
+  @doc """
+  A deliberately gentle glyph for a pet's ended lifecycle status. A pet's passing is a
+  tender moment, so `passed_away` is a soft heart — never anything morbid or alarming
+  (ADR-0003, the "be gracious to people" principle).
+  """
+  def lifecycle_icon("passed_away"), do: "hero-heart"
+  def lifecycle_icon("rehomed"), do: "hero-home"
+  def lifecycle_icon("lost"), do: "hero-question-mark-circle"
+  def lifecycle_icon(_), do: "hero-bookmark"
+
   def translate_visibility("private"), do: gettext("Private")
   def translate_visibility("limited"), do: gettext("Limited")
   def translate_visibility("public"), do: gettext("Public")
