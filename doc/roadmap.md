@@ -111,16 +111,28 @@ rejects *and* the legitimate case still passes).
 
 ## Deferred (mapped to the original's later phases)
 
+Grouped by category; each item keeps its original phase tag and ADR link.
+
+### Clinical logging & timeline
+
 - [ ] Weight / trend charts (Phase 1)
 - [ ] Medication schedules + reminders; the "did anyone give the pill?" coordination (Phase 1/3)
 - [ ] LifeLog media (photos/videos) with EXIF-stripping purification — the `image` lib +
       `life` type is scaffolded ([ADR-0005](adr/0005-media-storage.md); Phase 1)
-- [ ] **Oban** for background jobs (janitor, reminders, async media, notification fan-out)
-      — deferred until a job actually needs it (supersedes the original's ADR-0006; Phase 1/2)
 - [ ] Log **edit revisions** audit trail + edit-count cap ([ADR-0009](adr/0009-log-edit-revisions.md); Phase 1)
       — preserve: 9-edit cap (refuse the 10th), only a *real* change consumes a life, snapshot
       **excludes the share token**, readable by any entry-reader, survives soft-delete, type
       immutable on edit
+- [ ] **Clinical flag chips** (urgent / watch pills) in the timeline — surface the highest-signal
+      cues (feline urinary blood/straining, anorexia, repeated vomiting) as scannable chips
+      carried by **icon + text + shape, not colour alone** (WCAG 1.4.1); add a `clinical_flags/1`
+      helper rather than burying them in the summary string
+- [ ] **One-tap QuickLog buttons** — make each common value its own submit button (Food:
+      Full / Partial / Refused), advanced context in a disclosure, instead of the current
+      tab-then-fill flow (fewer taps for the common case)
+
+### Sharing, notifications & vet workflow
+
 - [ ] In-site **notification feed** + 1:1 **mailbox**, live unread badges via PubSub
       ([ADR-0011](adr/0011-notifications-and-messaging.md); Phase 3) — preserve: inline vs
       Oban fan-out split, **shared-pet gate** to start a conversation, non-leaking uniform
@@ -132,9 +144,9 @@ rejects *and* the legitimate case still passes).
       **health-summary report** export (Phase 4) — preserve: reject `role: "vet"` unless a
       **verified `VetProfile`** exists, on grant *and* re-grant; the report share token carries
       an **expiry** (unlike log tokens)
-- [ ] Weight-unit-aware display + richer `Species` enum (`rabbit` / `bird`); 5-minute
-      clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline
-      `from` / `to` / `offset` query params for the calendar/report views
+
+### Localization & typography
+
 - [ ] **Locale switcher + per-request locale**: resolve cookie → `Accept-Language` → default,
       call `Gettext.put_locale` in a plug + LiveView `on_mount`, reflect `lang` on `<html>`
       (today hard-coded `en`), and route the **brand wordmark** through Gettext per
@@ -147,13 +159,14 @@ rejects *and* the legitimate case still passes).
       text with an explicit `PingFang TC` / `Noto Sans TC` / `Hiragino Sans` / … fallback chain,
       so a trilingual app renders Traditional-Chinese/Japanese correctly instead of leaving it to
       browser defaults (`unicode-range` + `font-display: swap`)
-- [ ] **Clinical flag chips** (urgent / watch pills) in the timeline — surface the highest-signal
-      cues (feline urinary blood/straining, anorexia, repeated vomiting) as scannable chips
-      carried by **icon + text + shape, not colour alone** (WCAG 1.4.1); add a `clinical_flags/1`
-      helper rather than burying them in the summary string
-- [ ] **One-tap QuickLog buttons** — make each common value its own submit button (Food:
-      Full / Partial / Refused), advanced context in a disclosure, instead of the current
-      tab-then-fill flow (fewer taps for the common case)
+
+### Platform & data model
+
+- [ ] **Oban** for background jobs (janitor, reminders, async media, notification fan-out)
+      — deferred until a job actually needs it (supersedes the original's ADR-0006; Phase 1/2)
+- [ ] Weight-unit-aware display + richer `Species` enum (`rabbit` / `bird`); 5-minute
+      clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline
+      `from` / `to` / `offset` query params for the calendar/report views
 
 ## Engineering & ops maturity
 
