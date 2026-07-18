@@ -52,6 +52,11 @@ skill).
 
 ### Changed
 
+- **Past pets moved off the active list** — ended companions are no longer shown as a tab
+  beside living pets on `/pets`. They now have their own quiet memorial surface at
+  `/pets/past` (a soft heart, a gentle intro, a "back to your pets" link), reached by a
+  subtle heart-marked link at the foot of **Account settings** rather than confronting
+  owners on their everyday pets list (ADR-0003).
 - **Gentler tone for ended pets** — a pet's ended lifecycle status (on the pet card and
   header) now shows in a muted tone with a soft glyph — a heart for a pet that has passed
   away — instead of alarming warning-amber, honouring ADR-0003's "be gracious to people"

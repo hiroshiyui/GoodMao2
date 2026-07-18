@@ -64,6 +64,9 @@ defmodule Goodmao2Web.Router do
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
 
       live "/pets", PetLive.Index, :index
+      # A quiet, memorial surface for pets whose care has ended — reached by a subtle
+      # link from settings, deliberately kept off the active list (ADR-0003).
+      live "/pets/past", PetLive.Index, :past
       live "/pets/new", PetLive.Form, :new
       live "/pets/:id", PetLive.Show, :show
       live "/pets/:id/edit", PetLive.Form, :edit

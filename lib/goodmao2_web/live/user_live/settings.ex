@@ -78,6 +78,18 @@ defmodule Goodmao2Web.UserLive.Settings do
           {gettext("Change password")}
         </.link>
       </div>
+
+      <%!-- A subtle, memorial entry to the "past pets" surface (ADR-0003): companions
+            whose care has ended are preserved and reachable, just kept off the active
+            list rather than shown beside the living. --%>
+      <div id="past-pets-link" class="mt-8 text-center">
+        <.link
+          navigate={~p"/pets/past"}
+          class="text-base-content/50 hover:text-base-content/70 inline-flex items-center gap-1 text-sm"
+        >
+          <.icon name="hero-heart" class="size-4" /> {gettext("Past pets")}
+        </.link>
+      </div>
     </Layouts.app>
     """
   end

@@ -18,7 +18,7 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, ".pet-card-name", "Sesame")
     end
 
-    test "past-pets filter separates ended pets", %{conn: conn, user: user} do
+    test "the active list keeps past pets on their own quiet surface", %{conn: conn, user: user} do
       active = pet_fixture(user, %{"name" => "Active One"})
       ended = pet_fixture(user, %{"name" => "Memorial One"})
 
@@ -28,10 +28,18 @@ defmodule Goodmao2Web.PetLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/pets")
       assert has_element?(lv, ".pet-card-name", active.name)
       refute has_element?(lv, ".pet-card-name", ended.name)
+      # Past pets are not surfaced beside the living — no filter tab on the active list.
+      refute has_element?(lv, "#pets-filter")
 
-      {:ok, lv, _html} = live(conn, ~p"/pets?ended=true")
-      assert has_element?(lv, ".pet-card-name", ended.name)
-      refute has_element?(lv, ".pet-card-name", active.name)
+      {:ok, past_lv, _html} = live(conn, ~p"/pets/past")
+      assert has_element?(past_lv, ".pet-card-name", ended.name)
+      refute has_element?(past_lv, ".pet-card-name", active.name)
+      assert has_element?(past_lv, "#past-pets-back")
+    end
+
+    test "the past-pets surface is reached by a subtle link from settings", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      assert lv |> element("#past-pets-link a") |> render() =~ ~p"/pets/past"
     end
   end
 
