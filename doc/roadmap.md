@@ -65,16 +65,16 @@ carries authority rather than being anonymous advice.
 - [x] Scope-based auth (`phx.gen.auth`), first user → administrator, editable `@handle`
 - [x] Pets: create / list / view / edit, coat colour, weight unit
 - [x] Owner-only end-of-care lifecycle (status transition, backdatable `ended_at`, reversible)
-- [x] `history_hidden` opt-in flag (schema + changeset) — ⚠ *read/write enforcement is
-      not wired yet; tracked under [Near-term hardening](#near-term-hardening--enforcement-gaps)*
+- [x] `history_hidden` opt-in flag — schema, changeset, **and** read/write enforcement
+      (existence-hidden timeline; see [ADR-0003](adr/0003-pet-lifecycle.md))
 - [x] Resource-based per-pet authorization (`owner` / `co_caretaker` / `viewer` / `vet`,
       capability levels, time-boxed grants, ≥1-owner invariant, IDOR-hidden 404s)
 - [x] Grant / revoke access by `@handle` or email (Sharing page)
 - [x] Structured log entries (single table + `type` + `jsonb`), per-type validation
 - [x] One-tap QuickLog (food / water / bathroom / vomit / weight / energy / medication / symptom)
-- [x] Backdatable `occurred_at`, free-text note, per-entry `visibility` (owner-only change)
-      — ⚠ *the owner-only **change** is shipped; **read-side** `private` filtering is not
-      wired yet; tracked under [Near-term hardening](#near-term-hardening--enforcement-gaps)*
+- [x] Backdatable `occurred_at`, free-text note, per-entry `visibility` — owner-only change
+      **and** read-side `private` filtering (reads + live PubSub; see
+      [ADR-0004](adr/0004-log-visibility.md))
 - [x] Vet-authored `vet_note` entries (vet-only)
 - [x] Live, type-filterable timeline via Phoenix PubSub
 - [x] Soft-delete of entries (`deleted_at`)
@@ -83,42 +83,31 @@ carries authority rather than being anonymous advice.
 
 ## Near-term hardening — enforcement gaps
 
-Highest priority. The GoodMao parity audit found these rules **modeled in the schema but
-not enforced in code** — the columns and write-guards exist, but the matching read-filter
-or invalidation is missing. They are correctness/security defects in shipped areas, not new
-features. Each should land with a **both-directions regression test** (the gate rejects
-*and* the legitimate case still passes), matching the discipline in `pets_test.exs` /
-`logs_test.exs`.
+**Closed (2026-07-18).** The GoodMao parity audit found these rules **modeled in the schema
+but not enforced in code** — correctness/security defects in shipped areas. All seven are now
+enforced at the context boundary, each with a both-directions regression test (the gate
+rejects *and* the legitimate case still passes).
 
-- [ ] **Enforce `history_hidden`** on every `Logs` read and write — `list_entries`,
-      `get_entry`, and the create/update/delete paths never consult it (`lib/goodmao2/logs.ex`),
-      so a documented privacy control currently does nothing. When hidden, the timeline is
-      existence-hidden (empty / `nil` / unauthorized), reversibly ([ADR-0003](adr/0003-pet-lifecycle.md)).
-- [ ] **Apply per-entry `private` visibility on reads** — `list_entries`/`get_entry` do no
-      visibility filtering (`lib/goodmao2/logs.ex`), so viewers/co-caretakers/vets can see
-      entries an owner marked `private`. Rule: a caller sees an entry when
-      `visibility != "private" OR recorded_by_user_id == caller OR role == owner`. Requires
-      threading the caller (role + id) into these reads and `PetLive.Show`
-      ([ADR-0004](adr/0004-log-visibility.md)).
-- [ ] **≥1-owner invariant on the grant-update/expiry path** — `grant_access` doubles as the
-      update path (`insert_or_update`) and never calls `guard_last_owner` (`lib/goodmao2/pets.ex`),
-      so a sole owner can downgrade themselves to `viewer` or set an `expires_at` and leave the
-      pet ownerless. Guard whenever an existing `owner` grant is changed to non-owner or given
-      an expiry.
-- [ ] **Recorder-or-owner check on log edit/delete** — `update_entry`/`delete_entry` check only
-      `:write` (`lib/goodmao2/logs.ex`), so any co-caretaker can alter another caretaker's
-      entries. Matrix: owner → any general log; recorder → own logs; `vet_note` → authoring vet
-      only (authoring is already gated; edit/delete is not).
-- [ ] **Site-owner registration gate** for the bootstrap admin — `register_user` grants
-      `is_admin` to the first registrant with no gate (`lib/goodmao2/accounts.ex`), so on a
-      fresh public deploy anyone can grab admin. Add optional `config :goodmao2, :site_owner_email`;
-      when set, only that email may create the first account.
-- [ ] **Handle-rule parity** — the regex `~r/^[^.].*[^.]$/` forbids only leading/trailing dots,
-      so `@_johndoe` passes here but not in GoodMao (`lib/goodmao2/accounts/user.ex`). Require the
-      first char to be alphanumeric and expand `@reserved_handles` toward GoodMao's ~40-word set.
-- [ ] **Row-lock the owner invariant** — `guard_last_owner` is a lock-free `Repo.aggregate`
-      (`lib/goodmao2/pets.ex`); two concurrent revokes can write-skew into an ownerless pet.
-      Wrap owner-mutations in a transaction with `lock: "FOR UPDATE"` on the pet's owner rows.
+- [x] **Enforce `history_hidden`** on every `Logs` read and write — when hidden the timeline
+      is existence-hidden (`list_entries` → `[]`, `get_entry` → `nil`, writes → `:unauthorized`,
+      reversibly), and `PetLive.Show` shows a notice in place of the QuickLog/timeline
+      (`lib/goodmao2/logs.ex`; [ADR-0003](adr/0003-pet-lifecycle.md)).
+- [x] **Per-entry `private` visibility on reads** — a caller sees a `private` entry only when
+      they are an owner or its recorder; applied in the DB read **and** to live PubSub-pushed
+      entries via `Logs.can_view_entry?/3` (`lib/goodmao2/logs.ex`, `PetLive.Show`;
+      [ADR-0004](adr/0004-log-visibility.md)).
+- [x] **≥1-owner invariant on the grant-update/expiry path** — `grant_access` now guards
+      against demoting or time-boxing the last effective owner (`lib/goodmao2/pets.ex`).
+- [x] **Recorder-or-owner check on log edit/delete** — owner → any entry; anyone else → only
+      what they recorded; `vet_note` edits stay vet-only (`lib/goodmao2/logs.ex`).
+- [x] **Site-owner registration gate** — optional `config :goodmao2, :site_owner_email`
+      (env `GOODMAO_SITE_OWNER_EMAIL`); when set, only that address may create the first
+      (admin) account (`lib/goodmao2/accounts.ex`).
+- [x] **Handle-rule parity** — the handle must start with a letter or number (leading `_`
+      rejected) and the reserved-word set is expanded to GoodMao's (`lib/goodmao2/accounts/user.ex`).
+- [x] **Row-locked owner invariant** — owner-grant mutations run in a transaction that takes
+      `FOR UPDATE` on the pet's owner rows, so concurrent revokes/demotes can't write-skew into
+      an ownerless pet (`lib/goodmao2/pets.ex`).
 
 ## Deferred (mapped to the original's later phases)
 
