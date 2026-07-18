@@ -4,9 +4,11 @@
   verbose: false,
   private: false,
   skip: true,
-  # Config.CSP — a Content-Security-Policy is a worthwhile hardening item, but a
-  # correct CSP for a LiveView + Tailwind/daisyUI app needs care (nonces, asset and
-  # websocket sources) and is tracked separately in doc/roadmap.md, not here.
+  # Config.CSP — a Content-Security-Policy IS set, per request, by
+  # Goodmao2Web.Plugs.ContentSecurityPolicy (nonce-based; wired into the :browser
+  # pipeline). Sobelow's static check only recognises a CSP declared via
+  # `put_secure_browser_headers`, so it can't see the plug and reports a false
+  # positive here; the ignore suppresses that blind spot, not a missing header.
   ignore: ["Config.CSP"],
   ignore_files: [],
   exit: "low"

@@ -157,8 +157,9 @@ rejects *and* the legitimate case still passes).
 
 ## Engineering & ops maturity
 
-Drawn from the parity audit. The first ops tranche shipped 2026-07-18 (CI + dependabot +
-security scanners + `/health` + seed fencing + CHANGELOG).
+Drawn from the parity audit. Fully shipped over two 2026-07-18 tranches: first CI + dependabot
++ security scanners + `/health` + seed fencing + CHANGELOG, then CSP + `mix goodmao.doctor` +
+the locale-parity test + the ported `a11y-engineering` skill.
 
 - [x] **CI** (`.github/workflows/ci.yml`) — a `mix` job on a `postgres` service, Erlang/Elixir
       pinned from `.tool-versions`, running unused-deps + compile-warnings + format + audit +
@@ -169,39 +170,49 @@ security scanners + `/health` + seed fencing + CHANGELOG).
 - [x] **`/health` endpoint + test** — `GET /health` returns `200 ok` when the DB is reachable.
 - [x] **Hard-fence `seeds.exs` to `:dev`** — refuses to run outside development.
 - [x] **`CHANGELOG.md`** — Keep-a-Changelog, version single-sourced in `mix.exs`.
-- [ ] **Content-Security-Policy** on the browser pipeline — Sobelow flags its absence
-      (currently ignored in `.sobelow-conf`); a correct CSP for LiveView + Tailwind/daisyUI
-      needs nonces and asset/websocket sources, so it is its own task.
-- [ ] **`mix doctor` preflight task** — check Erlang/Elixir vs `.tool-versions`, Postgres + the
-      `goodmao2` CREATEDB role, deps, asset installers, prod secrets. Port only the `doctor` verb
-      (not GoodMao's whole `./goodmao` CLI — `mix` is already the entry point).
-- [ ] **Locale-parity test** across `en` / `zh_TW` / `ja_JP` — the one stated invariant with no
-      test behind it (fail the build on a missing/fuzzy translation).
-- [ ] Port the **`a11y-engineering` skill** — the only one of GoodMao's seven Claude skills
-      GoodMao2 lacks; rewrite for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the
-      accessibility-first invariant `AGENTS.md` already states.
+- [x] **Content-Security-Policy** on the browser pipeline — set per request by
+      `Goodmao2Web.Plugs.ContentSecurityPolicy` (a fresh nonce assigned to `@csp_nonce`, stamped
+      onto the one inline `<script>` in `root.html.heex`; `default-src 'self'`, `script-src`
+      `'self'` + nonce, `style-src 'self' 'unsafe-inline'`, `connect-src 'self'` for the LiveView
+      socket, `img-src 'self' data:` for the inline favicon). Sobelow's static check only sees a
+      CSP declared via `put_secure_browser_headers`, so `.sobelow-conf` still ignores `Config.CSP`
+      as a documented blind spot, not a missing header.
+- [x] **`mix goodmao.doctor` preflight task** — checks Erlang/Elixir vs `.tool-versions`, Postgres
+      reachability + the `CREATEDB` privilege, deps fetched, asset installers, and (under
+      `MIX_ENV=prod`) required secrets; PASS/WARN/FAIL per line, non-zero exit only on a hard FAIL
+      (`lib/mix/tasks/goodmao.doctor.ex`). Ports only the `doctor` verb (`mix` is the entry point).
+- [x] **Locale-parity test** across `en` / `zh_TW` / `ja_JP` (`test/goodmao2/locale_parity_test.exs`)
+      — asserts *structural* parity: identical domain and msgid sets across locales, no `#, fuzzy`
+      entries, and `.pot` templates fully merged. (Translation *completeness* stays deferred with the
+      locale switcher below; the scaffolded catalogs are intentionally untranslated.)
+- [x] Ported the **`a11y-engineering` skill** (`.claude/skills/a11y-engineering/SKILL.md`) —
+      rewritten for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
+      invariant `AGENTS.md` states; completes GoodMao's seven-skill set.
 
 ## Accessibility & UX polish
 
-Mostly small CSS/HEEx edits in `assets/css/app.css`, `components/layouts.ex`, and
-`components/core_components.ex` — cluster the cheap a11y wins together.
+Delivered 2026-07-18 as one tranche — small CSS/HEEx edits in `assets/css/app.css`,
+`components/layouts.ex`, `components/layouts/root.html.heex`, `components/core_components.ex`,
+and a `PointerGlow` hook in `assets/js/app.js`.
 
-- [ ] **Skip-to-content link** → `#main-content` (`tabindex="-1"`), visually hidden until focused
-      (WCAG 2.4.1 bypass block).
-- [ ] **`:focus-visible` brand ring** (2 px + 2 px offset, `var(--color-primary)`) — the a11y
-      invariant `AGENTS.md` claims but doesn't currently back in CSS.
-- [ ] **`aria-hidden` on decorative `<.icon>` glyphs** — the shared `<.icon>` renders no
-      `aria-hidden` today; add it (with an opt-out for standalone icons) so screen readers don't
-      announce decorative glyphs.
-- [ ] **Global `prefers-reduced-motion` guard** — ship alongside any motion added below.
-- [ ] **Fluent design tokens** — layered elevation shadow ramp, decelerating motion curve,
-      card hover-lift, button press-depth (the "delightful micro-interactions" `AGENTS.md` asks
-      for), as CSS custom properties.
-- [ ] **`theme-color` meta + SVG favicon + branded `<.live_title>`** (the title suffix still reads
-      "· Phoenix Framework").
-- [ ] **Footer + sticky app-shell** — the natural home for the locale switcher.
-- [ ] **Reveal pointer-glow** (a LiveView JS hook that self-disables under
-      `prefers-reduced-motion`) — pure delight; do it last.
+- [x] **Skip-to-content link** → `#main-content` (`tabindex="-1"`), visually hidden until focused
+      (`.gm-skip-link`, WCAG 2.4.1 bypass block).
+- [x] **`:focus-visible` brand ring** (2 px + 2 px offset, `var(--color-primary)`) on every
+      focusable element — backs the a11y invariant `AGENTS.md` states.
+- [x] **`aria-hidden` on decorative `<.icon>` glyphs** — the shared `<.icon>` now hides the glyph
+      by default with an `aria_hidden={false}` opt-out for standalone icons; the icon-only theme
+      toggle buttons gained `aria-label`s so they stay named.
+- [x] **Global `prefers-reduced-motion` guard** — neutralises transitions/animations and the
+      micro-interactions/glow below (keeps the focus ring, which isn't motion).
+- [x] **Fluent design tokens** — layered elevation shadow ramp (`--gm-elevation-1..3`, deepened in
+      dark), decelerating curve + durations, and opt-in `.gm-lift` (card hover-lift) / `.gm-press`
+      (button press-depth) utilities.
+- [x] **`theme-color` meta + inline SVG favicon + branded `<.live_title>`** — the title suffix now
+      reads "· GoodMao"; light/dark `theme-color`s match the base canvas.
+- [x] **Footer + sticky app-shell** — `#app-shell` flex column with a sticky, backdrop-blurred
+      header and a `#site-footer` (the natural home for the future locale switcher).
+- [x] **Reveal pointer-glow** — the `PointerGlow` LiveView hook + `.gm-glow` surface; the hook
+      never attaches its listener under `prefers-reduced-motion`.
 
 **Explicitly not porting** (tied to the SvelteKit/PWA architecture, antithetical to a LiveView
 monolith): PWA / service worker / offline; no-JS progressive-enhancement form fallbacks;
