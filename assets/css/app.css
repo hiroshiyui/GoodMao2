@@ -17,35 +17,42 @@
   themes: false;
 }
 
-/* daisyUI theme plugin. You can update this file by fetching the latest version with:
-  curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.js
-  We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired
-  on Elixir colors. Build your own at: https://daisyui.com/theme-generator/ */
+/* daisyUI theme plugin.
+   GoodMao2 "Terracotta + Teal" palette — ported from the original GoodMao's
+   UIkit theme (see ../../doc/adr/0002 and doc/glossary.md → Culture-first / brand):
+   a warm, owner-first terracotta primary paired with a calm teal "care" accent,
+   over a warm cream canvas. Token values are the WCAG-verified sRGB hexes from
+   GoodMao's palette, kept EXACT so the audited contrast ratios hold (every colored
+   surface clears WCAG AA against its content text). The dark theme lightens the
+   brand hues so they read on a warm-dark canvas and still pass AA as fills *and*
+   as text/links. Accessibility is a hard product principle — re-verify ratios if
+   you retune a hue. Build/preview at: https://daisyui.com/theme-generator/ */
 @plugin "../vendor/daisyui-theme" {
-  name: "dark";
-  default: false;
-  prefersdark: true;
-  color-scheme: "dark";
-  --color-base-100: oklch(30.33% 0.016 252.42);
-  --color-base-200: oklch(25.26% 0.014 253.1);
-  --color-base-300: oklch(20.15% 0.012 254.09);
-  --color-base-content: oklch(97.807% 0.029 256.847);
-  --color-primary: oklch(58% 0.233 277.117);
-  --color-primary-content: oklch(96% 0.018 272.314);
-  --color-secondary: oklch(58% 0.233 277.117);
-  --color-secondary-content: oklch(96% 0.018 272.314);
-  --color-accent: oklch(60% 0.25 292.717);
-  --color-accent-content: oklch(96% 0.016 293.756);
-  --color-neutral: oklch(37% 0.044 257.287);
-  --color-neutral-content: oklch(98% 0.003 247.858);
-  --color-info: oklch(58% 0.158 241.966);
-  --color-info-content: oklch(97% 0.013 236.62);
-  --color-success: oklch(60% 0.118 184.704);
-  --color-success-content: oklch(98% 0.014 180.72);
-  --color-warning: oklch(66% 0.179 58.318);
-  --color-warning-content: oklch(98% 0.022 95.277);
-  --color-error: oklch(58% 0.253 17.585);
-  --color-error-content: oklch(96% 0.015 12.422);
+  name: "light";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  /* Warm cream canvas; content surfaces float on daisyUI's depth shadow. */
+  --color-base-100: #fdf6ef; /* cream — the page canvas (@gm-cream) */
+  --color-base-200: #f4ebe0; /* a step down */
+  --color-base-300: #e8dccd; /* recessed / borders */
+  --color-base-content: #232323; /* near-black; 14.7:1 on cream */
+  --color-primary: #b5482b; /* terracotta; white text 5.35:1 */
+  --color-primary-content: #ffffff;
+  --color-secondary: #34495e; /* dark slate; white text 9.29:1 */
+  --color-secondary-content: #ffffff;
+  --color-accent: #0f766e; /* teal "care" accent; white text 5.47:1 */
+  --color-accent-content: #ffffff;
+  --color-neutral: #4a4a4a; /* warm grey; white text 8.86:1 */
+  --color-neutral-content: #ffffff;
+  --color-info: #0e7490; /* calm blue-teal; white text 5.36:1 */
+  --color-info-content: #ffffff;
+  --color-success: #2e7d32; /* white text 5.13:1 */
+  --color-success-content: #ffffff;
+  --color-warning: #a05f00; /* white text 5.08:1 */
+  --color-warning-content: #ffffff;
+  --color-error: #c0392b; /* white text 5.44:1 */
+  --color-error-content: #ffffff;
   --radius-selector: 0.25rem;
   --radius-field: 0.25rem;
   --radius-box: 0.5rem;
@@ -57,30 +64,31 @@
 }
 
 @plugin "../vendor/daisyui-theme" {
-  name: "light";
-  default: true;
-  prefersdark: false;
-  color-scheme: "light";
-  --color-base-100: oklch(98% 0 0);
-  --color-base-200: oklch(96% 0.001 286.375);
-  --color-base-300: oklch(92% 0.004 286.32);
-  --color-base-content: oklch(21% 0.006 285.885);
-  --color-primary: oklch(70% 0.213 47.604);
-  --color-primary-content: oklch(98% 0.016 73.684);
-  --color-secondary: oklch(55% 0.027 264.364);
-  --color-secondary-content: oklch(98% 0.002 247.839);
-  --color-accent: oklch(0% 0 0);
-  --color-accent-content: oklch(100% 0 0);
-  --color-neutral: oklch(44% 0.017 285.786);
-  --color-neutral-content: oklch(98% 0 0);
-  --color-info: oklch(62% 0.214 259.815);
-  --color-info-content: oklch(97% 0.014 254.604);
-  --color-success: oklch(70% 0.14 182.503);
-  --color-success-content: oklch(98% 0.014 180.72);
-  --color-warning: oklch(66% 0.179 58.318);
-  --color-warning-content: oklch(98% 0.022 95.277);
-  --color-error: oklch(58% 0.253 17.585);
-  --color-error-content: oklch(96% 0.015 12.422);
+  name: "dark";
+  default: false;
+  prefersdark: true;
+  color-scheme: "dark";
+  /* Warm-dark canvas; brand hues lightened so they pass AA as fills and as text. */
+  --color-base-100: #26201c; /* warm near-black */
+  --color-base-200: #1e1815;
+  --color-base-300: #15100d;
+  --color-base-content: #efe7df; /* warm off-white; 13.2:1 on base-100 */
+  --color-primary: #d9805f; /* lightened terracotta; dark text 6.09:1, as text on base 5.52:1 */
+  --color-primary-content: #2a1109;
+  --color-secondary: #9db4c9; /* dark text 7.52:1 */
+  --color-secondary-content: #152230;
+  --color-accent: #4cc2b0; /* lightened teal; dark text 6.60:1, as text on base 7.39:1 */
+  --color-accent-content: #053029;
+  --color-neutral: #c9c1b8; /* dark text 9.67:1 */
+  --color-neutral-content: #201a16;
+  --color-info: #6bb6d6; /* dark text 7.14:1 */
+  --color-info-content: #052430;
+  --color-success: #74c47a; /* dark text 8.07:1 */
+  --color-success-content: #06210a;
+  --color-warning: #e0b24a; /* dark text 7.90:1 */
+  --color-warning-content: #2e2205;
+  --color-error: #e88a7e; /* dark text 6.82:1 */
+  --color-error-content: #33110c;
   --radius-selector: 0.25rem;
   --radius-field: 0.25rem;
   --radius-box: 0.5rem;
@@ -89,6 +97,24 @@
   --border: 1.5px;
   --depth: 1;
   --noise: 0;
+}
+
+/* GoodMao "Pastel / Macaron" surface tints — light, natural fills meant to CARRY
+   dark text (alerts, badges, decorative sections), not to be used as text on a
+   light surface (they would fail contrast). Exposed as CSS custom properties so
+   any component can reach them, e.g. style="background: var(--gm-sage)". Scoped to
+   the light theme: these are light-surface tints and assume dark text on them. */
+:root:where([data-theme="light"], :not([data-theme])) {
+  --gm-seafoam: #dbe9e2;
+  --gm-blush: #f7d4d8;
+  --gm-cream: #fdf6ef;
+  --gm-stone: #cdcac4;
+  --gm-sand: #ebd6c3;
+  --gm-sage: #c7d6c9;
+  --gm-mist: #a8b8be;
+  --gm-slate: #949aa0;
+  --gm-mint: #aaccb9;
+  --gm-coral: #eda9a3;
 }
 
 /* Add variants based on LiveView classes */
