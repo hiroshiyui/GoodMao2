@@ -45,8 +45,13 @@ See [`doc/roadmap.md`](doc/roadmap.md) for what's deferred.
 
 ```bash
 mix setup                 # deps + create/migrate DB + seed demo data + build assets
-mix phx.server            # http://localhost:4000
+mix phx.gen.cert          # one-time: self-signed dev TLS cert (for HTTPS on :4001)
+mix phx.server            # http://localhost:4000  and  https://localhost:4001
 ```
+
+The dev server listens on **both** plain HTTP (`:4000`) and HTTPS (`:4001`, a
+self-signed cert in `priv/cert/`; accept the browser warning). The cert is
+git-ignored and regenerable — run `mix phx.gen.cert` once after cloning.
 
 Demo accounts (from `priv/repo/seeds.exs`):
 

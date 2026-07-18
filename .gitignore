@@ -44,3 +44,6 @@ npm-debug.log
 
 # Transient agent worktrees
 /.claude/worktrees/
+
+# TLS certificates (self-signed dev certs — per-machine, regenerable)
+/priv/cert/

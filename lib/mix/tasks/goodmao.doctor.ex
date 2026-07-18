@@ -18,6 +18,8 @@ defmodule Mix.Tasks.Goodmao.Doctor do
     * Dependencies fetched (`mix deps.get`) — WARN if any look missing.
     * Asset installers (tailwind + esbuild) present — WARN if missing, advising
       `mix assets.setup`.
+    * Dev HTTPS certificate (`priv/cert/`) — WARN if missing, advising `mix phx.gen.cert`
+      (dev-only; the dev server serves HTTPS on `:4001`).
     * Production secrets (`SECRET_KEY_BASE`, `DATABASE_URL`) — only checked under
       `MIX_ENV=prod`; skipped/INFO in dev and test.
 
@@ -46,6 +48,7 @@ defmodule Mix.Tasks.Goodmao.Doctor do
         check_postgres(),
         check_deps(),
         check_assets(),
+        check_dev_cert(),
         check_prod_secrets()
       ]
       |> List.flatten()
@@ -354,6 +357,33 @@ defmodule Mix.Tasks.Goodmao.Doctor do
       _ ->
         warn("env #{var}", "not set — required to boot in production")
     end
+  end
+
+  # ── Check 6: Dev HTTPS certificate (only meaningful in dev) ───────────────────
+
+  @dev_cert "priv/cert/selfsigned.pem"
+  @dev_key "priv/cert/selfsigned_key.pem"
+
+  defp check_dev_cert do
+    guard(fn ->
+      if Mix.env() == :dev do
+        cert = Path.join(File.cwd!(), @dev_cert)
+        key = Path.join(File.cwd!(), @dev_key)
+
+        if File.exists?(cert) and File.exists?(key) do
+          [pass("dev TLS certificate", "present — HTTPS on :4001 can start")]
+        else
+          [
+            warn(
+              "dev TLS certificate",
+              "missing #{@dev_cert}/#{@dev_key} — run `mix phx.gen.cert` (needed for HTTPS on :4001)"
+            )
+          ]
+        end
+      else
+        [info("dev TLS certificate", "skipped in #{Mix.env()} (dev-only HTTPS)")]
+      end
+    end)
   end
 
   # ── Result plumbing ──────────────────────────────────────────────────────────

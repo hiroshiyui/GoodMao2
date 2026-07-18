@@ -20,6 +20,20 @@ config :goodmao2, Goodmao2Web.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}],
+  # HTTPS in dev on :4001 with a self-signed certificate. Generate the cert once
+  # (it is gitignored — per-machine, regenerable) with:
+  #
+  #     mix phx.gen.cert
+  #
+  # then browse https://localhost:4001 (accept the self-signed warning). The plain
+  # HTTP server on :4000 keeps running too.
+  https: [
+    ip: {127, 0, 0, 1},
+    port: 4001,
+    cipher_suite: :strong,
+    certfile: "priv/cert/selfsigned.pem",
+    keyfile: "priv/cert/selfsigned_key.pem"
+  ],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
