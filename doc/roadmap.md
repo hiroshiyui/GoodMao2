@@ -109,11 +109,7 @@ rejects *and* the legitimate case still passes).
       `FOR UPDATE` on the pet's owner rows, so concurrent revokes/demotes can't write-skew into
       an ownerless pet (`lib/goodmao2/pets.ex`).
 
-## 6. Deferred (mapped to the original's later phases)
-
-Grouped by category; each item keeps its original phase tag and ADR link.
-
-### 6.1 Clinical logging & timeline
+## 6. Clinical logging & timeline (deferred)
 
 - [ ] Weight / trend charts (Phase 1)
 - [ ] Medication schedules + reminders; the "did anyone give the pill?" coordination (Phase 1/3)
@@ -131,7 +127,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       Full / Partial / Refused), advanced context in a disclosure, instead of the current
       tab-then-fill flow (fewer taps for the common case)
 
-### 6.2 Sharing, notifications & vet workflow
+## 7. Sharing, notifications & vet workflow (deferred)
 
 - [ ] In-site **notification feed** + 1:1 **mailbox**, live unread badges via PubSub
       ([ADR-0011](adr/0011-notifications-and-messaging.md); Phase 3) — preserve: inline vs
@@ -145,7 +141,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       **verified `VetProfile`** exists, on grant *and* re-grant; the report share token carries
       an **expiry** (unlike log tokens)
 
-### 6.3 Localization & typography
+## 8. Localization & typography (deferred)
 
 - [ ] **Locale switcher + per-request locale**: resolve cookie → `Accept-Language` → default,
       call `Gettext.put_locale` in a plug + LiveView `on_mount`, reflect `lang` on `<html>`
@@ -160,7 +156,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       so a trilingual app renders Traditional-Chinese/Japanese correctly instead of leaving it to
       browser defaults (`unicode-range` + `font-display: swap`)
 
-### 6.4 Platform & data model
+## 9. Platform & data model (deferred)
 
 - [ ] **Oban** for background jobs (janitor, reminders, async media, notification fan-out)
       — deferred until a job actually needs it (supersedes the original's ADR-0006; Phase 1/2)
@@ -168,7 +164,7 @@ Grouped by category; each item keeps its original phase tag and ADR link.
       clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline
       `from` / `to` / `offset` query params for the calendar/report views
 
-## 7. Engineering & ops maturity
+## 10. Engineering & ops maturity
 
 Drawn from the parity audit. Fully shipped over two 2026-07-18 tranches: first CI + dependabot
 + security scanners + `/health` + seed fencing + CHANGELOG, then CSP + `mix goodmao.doctor` +
@@ -202,7 +198,7 @@ the locale-parity test + the ported `a11y-engineering` skill.
       rewritten for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
       invariant `AGENTS.md` states; completes GoodMao's seven-skill set.
 
-## 8. Accessibility & UX polish
+## 11. Accessibility & UX polish
 
 Delivered 2026-07-18 as one tranche — small CSS/HEEx edits in `assets/css/app.css`,
 `components/layouts.ex`, `components/layouts/root.html.heex`, `components/core_components.ex`,
@@ -233,7 +229,7 @@ SvelteKit routing/preload; re-vendoring Lucide icons (Phoenix hero-icons already
 [ADR-0010's](adr/README.md) self-hosted/SSR-safe/tree-shaken requirements). Note GoodMao2's
 light/dark/system theme toggle is **ahead** of GoodMao, which has no dark theme.
 
-## 9. Notes / follow-ups
+## 12. Notes / follow-ups
 
 - User references that are audit-only (`recorded_by_user_id`, `granted_by_user_id`,
   `created_by_user_id`) are stored without FK navigations, mirroring the original's
