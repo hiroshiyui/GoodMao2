@@ -66,7 +66,10 @@ defmodule Goodmao2.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      # Security tooling — advisory audit of deps and a Phoenix-aware static scan.
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -89,7 +92,14 @@ defmodule Goodmao2.MixProject do
         "esbuild goodmao2 --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: [
+        "compile --warnings-as-errors",
+        "deps.unlock --unused",
+        "format",
+        "deps.audit",
+        "sobelow --config",
+        "test"
+      ]
     ]
   end
 end

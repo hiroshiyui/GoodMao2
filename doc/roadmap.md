@@ -157,28 +157,26 @@ rejects *and* the legitimate case still passes).
 
 ## Engineering & ops maturity
 
-Drawn from the parity audit — GoodMao2 has **no `.github/` at all** (no CI, no dependabot),
-which is the single biggest maturity gap.
+Drawn from the parity audit. The first ops tranche shipped 2026-07-18 (CI + dependabot +
+security scanners + `/health` + seed fencing + CHANGELOG).
 
-- [ ] **CI** (`.github/workflows/ci.yml`) — a `mix` job: `erlef/setup-beam` pinned from
-      `.tool-versions`, a `postgres` service matching `config/test.exs`, deps cache, then the
-      existing `precommit` chain (`compile --warnings-as-errors` + `format --check-formatted` +
-      `test`). Nothing verifies pushes/PRs today.
-- [ ] **Dependabot** (`.github/dependabot.yml`) — `mix` + `github-actions` (+ `npm` in `/assets`
-      if present), weekly/grouped; pairs with the `check-updates` skill.
-- [ ] **`mix_audit`** (+ optional **`sobelow`**) wired into CI / the `precommit` gate — Elixir-native
-      continuous security signal complementing the on-demand `security-audit` skill.
-- [ ] **`/health` endpoint + test** — an anonymous route running a trivial `Repo` query; the
-      day-one hook every later deploy/monitoring practice hangs off.
+- [x] **CI** (`.github/workflows/ci.yml`) — a `mix` job on a `postgres` service, Erlang/Elixir
+      pinned from `.tool-versions`, running unused-deps + compile-warnings + format + audit +
+      Sobelow + tests.
+- [x] **Dependabot** (`.github/dependabot.yml`) — `mix` + `github-actions`, weekly/grouped.
+      (`npm` omitted — assets use the esbuild/tailwind installers, no `package.json`.)
+- [x] **`mix_audit` + `sobelow`** wired into `mix precommit` and CI.
+- [x] **`/health` endpoint + test** — `GET /health` returns `200 ok` when the DB is reachable.
+- [x] **Hard-fence `seeds.exs` to `:dev`** — refuses to run outside development.
+- [x] **`CHANGELOG.md`** — Keep-a-Changelog, version single-sourced in `mix.exs`.
+- [ ] **Content-Security-Policy** on the browser pipeline — Sobelow flags its absence
+      (currently ignored in `.sobelow-conf`); a correct CSP for LiveView + Tailwind/daisyUI
+      needs nonces and asset/websocket sources, so it is its own task.
 - [ ] **`mix doctor` preflight task** — check Erlang/Elixir vs `.tool-versions`, Postgres + the
       `goodmao2` CREATEDB role, deps, asset installers, prod secrets. Port only the `doctor` verb
       (not GoodMao's whole `./goodmao` CLI — `mix` is already the entry point).
 - [ ] **Locale-parity test** across `en` / `zh_TW` / `ja_JP` — the one stated invariant with no
       test behind it (fail the build on a missing/fuzzy translation).
-- [ ] **Hard-fence `seeds.exs` to `:dev`** — it plants `password1234!` demo accounts with no
-      environment guard; make seeding structurally unable to run outside development.
-- [ ] **`CHANGELOG.md`** — completes the already-wired `release-engineering` skill (version stays
-      single-sourced in `mix.exs`).
 - [ ] Port the **`a11y-engineering` skill** — the only one of GoodMao's seven Claude skills
       GoodMao2 lacks; rewrite for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the
       accessibility-first invariant `AGENTS.md` already states.

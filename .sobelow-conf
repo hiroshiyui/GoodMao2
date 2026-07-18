@@ -1,0 +1,13 @@
+# Sobelow (Phoenix security static analysis) configuration.
+# Run: `mix sobelow` (or `mix sobelow --config` to use this file).
+[
+  verbose: false,
+  private: false,
+  skip: true,
+  # Config.CSP — a Content-Security-Policy is a worthwhile hardening item, but a
+  # correct CSP for a LiveView + Tailwind/daisyUI app needs care (nonces, asset and
+  # websocket sources) and is tracked separately in doc/roadmap.md, not here.
+  ignore: ["Config.CSP"],
+  ignore_files: [],
+  exit: "low"
+]

@@ -4,6 +4,18 @@
 #
 # It is idempotent: it upserts a demo owner + vet, a cat, and a handful of
 # structured log entries so the timeline has something to show in development.
+#
+# Development only. It plants demo accounts with a known password, so it must never
+# run against a staging/production database. Tests build their own fixtures and never
+# run this script.
+
+unless Application.get_env(:goodmao2, :seed_env, Mix.env()) == :dev do
+  raise """
+  priv/repo/seeds.exs is a development-only script (it creates demo accounts with a
+  known password) and refuses to run in #{Mix.env()}. If you really mean to seed a
+  non-dev environment, do it deliberately with your own script.
+  """
+end
 
 import Ecto.Query
 alias Goodmao2.{Accounts, Logs, Pets, Repo}

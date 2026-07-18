@@ -23,6 +23,12 @@ defmodule Goodmao2Web.Router do
     get "/", PageController, :home
   end
 
+  # Unauthenticated liveness/readiness probe (no pipeline: no session, CSRF, or
+  # content negotiation to get in a monitor's way).
+  scope "/", Goodmao2Web do
+    get "/health", HealthController, :index
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", Goodmao2Web do
   #   pipe_through :api
