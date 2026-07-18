@@ -1,0 +1,878 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:119
+#, elixir-autogen, elixir-format
+msgid "%{count} episode"
+msgid_plural "%{count} episodes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/goodmao2_web/helpers.ex:173
+#, elixir-autogen, elixir-format
+msgid "%{g} g"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:127
+#, elixir-autogen, elixir-format
+msgid "%{kg} kg"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:59
+#, elixir-autogen, elixir-format
+msgid "%{name} added."
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:176
+#, elixir-autogen, elixir-format
+msgid "%{v} ml"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:94
+#, elixir-autogen, elixir-format
+msgid "@handle or email"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:45
+#, elixir-autogen, elixir-format
+msgid "A clinical timeline"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:71
+#, elixir-autogen, elixir-format
+msgid "A pet must keep at least one owner."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:98
+#, elixir-autogen, elixir-format
+msgid "Access expires (optional)"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:42
+#, elixir-autogen, elixir-format
+msgid "Access granted."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:68
+#, elixir-autogen, elixir-format
+msgid "Access revoked."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:14
+#, elixir-autogen, elixir-format
+msgid "Account settings"
+msgstr ""
+
+#: lib/goodmao2_web/components/core_components.ex:368
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:34
+#: lib/goodmao2_web/live/pet_live/index.ex:48
+#, elixir-autogen, elixir-format
+msgid "Active"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:20
+#: lib/goodmao2_web/live/pet_live/index.ex:42
+#, elixir-autogen, elixir-format
+msgid "Add a pet"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:200
+#, elixir-autogen, elixir-format
+msgid "Add note, time, or visibility"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:56
+#, elixir-autogen, elixir-format
+msgid "Admin"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:55
+#, elixir-autogen, elixir-format
+msgid "Administrator"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:231
+#, elixir-autogen, elixir-format
+msgid "All types"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:332
+#, elixir-autogen, elixir-format
+msgid "Amount"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:167
+#: lib/goodmao2_web/live/pet_live/show.ex:333
+#, elixir-autogen, elixir-format
+msgid "Ate fully"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:168
+#: lib/goodmao2_web/live/pet_live/show.ex:333
+#, elixir-autogen, elixir-format
+msgid "Ate partially"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:132
+#: lib/goodmao2_web/components/layouts.ex:144
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:85
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:61
+#, elixir-autogen, elixir-format
+msgid "Back"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:297
+#, elixir-autogen, elixir-format
+msgid "Back to pets"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:50
+#: lib/goodmao2_web/helpers.ex:103
+#, elixir-autogen, elixir-format
+msgid "Bathroom"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:121
+#, elixir-autogen, elixir-format
+msgid "Birth date"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:358
+#, elixir-autogen, elixir-format
+msgid "Blood present"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:116
+#, elixir-autogen, elixir-format
+msgid "Breed"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:80
+#: lib/goodmao2_web/live/pet_live/form.ex:141
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:19
+#, elixir-autogen, elixir-format
+msgid "Cat"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:14
+#, elixir-autogen, elixir-format
+msgid "Co-caretaker"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:117
+#, elixir-autogen, elixir-format
+msgid "Coat colour"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:355
+#, elixir-autogen, elixir-format
+msgid "Consistency"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:368
+#, elixir-autogen, elixir-format
+msgid "Contents"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:53
+#, elixir-autogen, elixir-format
+msgid "Could not grant access. Check the details and try again."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:87
+#, elixir-autogen, elixir-format
+msgid "Could not remove that entry."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:74
+#, elixir-autogen, elixir-format
+msgid "Could not revoke that grant."
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:57
+#: lib/goodmao2_web/helpers.ex:148
+#, elixir-autogen, elixir-format
+msgid "Daily life"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:23
+#, elixir-autogen, elixir-format
+msgid "Display name"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:20
+#, elixir-autogen, elixir-format
+msgid "Dog"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:393
+#, elixir-autogen, elixir-format
+msgid "Dose"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:319
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:31
+#, elixir-autogen, elixir-format
+msgid "Edit %{name}"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Effortless structured daily logging that turns everyday care into a shareable health timeline your vet can actually use."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:64
+#, elixir-autogen, elixir-format
+msgid "End of care"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:148
+#, elixir-autogen, elixir-format
+msgid "End of care for %{name}…"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:20
+#, elixir-autogen, elixir-format
+msgid "End of care · %{name}"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:53
+#, elixir-autogen, elixir-format
+msgid "Energy"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:133
+#, elixir-autogen, elixir-format
+msgid "Energy %{level}/5"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:382
+#, elixir-autogen, elixir-format
+msgid "Energy level"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:85
+#, elixir-autogen, elixir-format
+msgid "Entry removed."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:367
+#, elixir-autogen, elixir-format
+msgid "Episodes"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:47
+#, elixir-autogen, elixir-format
+msgid "Everyday logs become the history a vet needs the moment your pet gets sick."
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:38
+#, elixir-autogen, elixir-format
+msgid "Family and sitters coordinate in real time; grant a vet time-boxed access for a visit."
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:25
+#, elixir-autogen, elixir-format
+msgid "Female"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:229
+#, elixir-autogen, elixir-format
+msgid "Filter by type"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:48
+#: lib/goodmao2_web/helpers.ex:170
+#: lib/goodmao2_web/live/pet_live/show.ex:334
+#, elixir-autogen, elixir-format
+msgid "Food"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:78
+#, elixir-autogen, elixir-format
+msgid "Get started"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "GoodMao"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:103
+#, elixir-autogen, elixir-format
+msgid "Grant access"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:63
+#, elixir-autogen, elixir-format
+msgid "Grant not found."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:344
+#, elixir-autogen, elixir-format
+msgid "High"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:91
+#, elixir-autogen, elixir-format
+msgid "High intake"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:343
+#, elixir-autogen, elixir-format
+msgid "Intake"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:93
+#, elixir-autogen, elixir-format
+msgid "Invite someone"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:353
+#, elixir-autogen, elixir-format
+msgid "Kind"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:42
+#, elixir-autogen, elixir-format
+msgid "Limited"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:217
+#, elixir-autogen, elixir-format
+msgid "Log %{type}"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:73
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:16
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:67
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:173
+#, elixir-autogen, elixir-format
+msgid "Log type"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:112
+#, elixir-autogen, elixir-format
+msgid "Logged."
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:37
+#, elixir-autogen, elixir-format
+msgid "Lost"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:344
+#, elixir-autogen, elixir-format
+msgid "Low"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:90
+#, elixir-autogen, elixir-format
+msgid "Low intake"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:24
+#, elixir-autogen, elixir-format
+msgid "Male"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:15
+#, elixir-autogen, elixir-format
+msgid "Manage your profile, email address and password"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:54
+#: lib/goodmao2_web/live/pet_live/show.ex:392
+#, elixir-autogen, elixir-format
+msgid "Medication"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:384
+#, elixir-autogen, elixir-format
+msgid "Mood"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:50
+#: lib/goodmao2_web/live/pet_live/index.ex:12
+#: lib/goodmao2_web/live/pet_live/index.ex:38
+#, elixir-autogen, elixir-format
+msgid "My pets"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:98
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:130
+#, elixir-autogen, elixir-format
+msgid "Neutered / spayed"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:47
+#, elixir-autogen, elixir-format
+msgid "No account matches that handle or email."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:240
+#, elixir-autogen, elixir-format
+msgid "No entries yet. Use Quick log above to start recording."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:110
+#, elixir-autogen, elixir-format
+msgid "No one else has access yet."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/index.ex:58
+#, elixir-autogen, elixir-format
+msgid "No past pets. Records of pets whose care has ended appear here."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/index.ex:60
+#, elixir-autogen, elixir-format
+msgid "No pets yet. Add your first companion to start their timeline."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:344
+#, elixir-autogen, elixir-format
+msgid "Normal"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:89
+#, elixir-autogen, elixir-format
+msgid "Normal intake"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:49
+#, elixir-autogen, elixir-format
+msgid "Not allowed."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:202
+#, elixir-autogen, elixir-format
+msgid "Note"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:171
+#, elixir-autogen, elixir-format
+msgid "One tap to record what just happened."
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "One-tap logging"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:21
+#: lib/goodmao2_web/helpers.ex:38
+#, elixir-autogen, elixir-format
+msgid "Other"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:13
+#, elixir-autogen, elixir-format
+msgid "Owner"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:35
+#, elixir-autogen, elixir-format
+msgid "Passed away"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/index.ex:36
+#: lib/goodmao2_web/live/pet_live/index.ex:51
+#, elixir-autogen, elixir-format
+msgid "Past pets"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:107
+#, elixir-autogen, elixir-format
+msgid "People with access"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:314
+#, elixir-autogen, elixir-format
+msgid "Pet actions"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/index.ex:46
+#, elixir-autogen, elixir-format
+msgid "Pet filter"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:26
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:25
+#: lib/goodmao2_web/live/pet_live/form.ex:37
+#: lib/goodmao2_web/live/pet_live/show.ex:39
+#, elixir-autogen, elixir-format
+msgid "Pet not found."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:335
+#, elixir-autogen, elixir-format
+msgid "Portion (g)"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:45
+#, elixir-autogen, elixir-format
+msgid "Primary"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:41
+#, elixir-autogen, elixir-format
+msgid "Private"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:144
+#, elixir-autogen, elixir-format
+msgid "Profile updated."
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:43
+#, elixir-autogen, elixir-format
+msgid "Public"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:28
+#, elixir-autogen, elixir-format
+msgid "Public @handle"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:170
+#, elixir-autogen, elixir-format
+msgid "Quick log"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:333
+#, elixir-autogen, elixir-format
+msgid "Refused"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:169
+#, elixir-autogen, elixir-format
+msgid "Refused food"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:36
+#, elixir-autogen, elixir-format
+msgid "Rehomed"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:274
+#, elixir-autogen, elixir-format
+msgid "Remove entry"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:272
+#, elixir-autogen, elixir-format
+msgid "Remove this entry?"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:135
+#, elixir-autogen, elixir-format
+msgid "Revoke"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:132
+#, elixir-autogen, elixir-format
+msgid "Revoke access for this person?"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:96
+#, elixir-autogen, elixir-format
+msgid "Role"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:78
+#: lib/goodmao2_web/live/pet_live/form.ex:134
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:36
+#, elixir-autogen, elixir-format
+msgid "Save profile"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:74
+#, elixir-autogen, elixir-format
+msgid "Saved."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:42
+#, elixir-autogen, elixir-format
+msgid "Saved. %{name}'s record is preserved."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:36
+#, elixir-autogen, elixir-format
+msgid "Saving..."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:77
+#: lib/goodmao2_web/live/pet_live/form.ex:133
+#: lib/goodmao2_web/live/pet_live/show.ex:216
+#, elixir-autogen, elixir-format
+msgid "Saving…"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:402
+#, elixir-autogen, elixir-format
+msgid "Severity"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:110
+#, elixir-autogen, elixir-format
+msgid "Sex"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "Shared care"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:316
+#, elixir-autogen, elixir-format
+msgid "Sharing"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:20
+#: lib/goodmao2_web/live/pet_live/access.ex:88
+#, elixir-autogen, elixir-format
+msgid "Sharing %{name}"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:139
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:104
+#, elixir-autogen, elixir-format
+msgid "Species"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "Start caring"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:72
+#, elixir-autogen, elixir-format
+msgid "Status"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:102
+#: lib/goodmao2_web/live/pet_live/show.ex:354
+#, elixir-autogen, elixir-format
+msgid "Stool"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:359
+#, elixir-autogen, elixir-format
+msgid "Straining (⚠ cat emergency)"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:55
+#: lib/goodmao2_web/live/pet_live/show.ex:401
+#, elixir-autogen, elixir-format
+msgid "Symptom"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:68
+#, elixir-autogen, elixir-format
+msgid "This records that %{name}'s active care has ended. Nothing is deleted — their timeline stays with you."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:225
+#, elixir-autogen, elixir-format
+msgid "Timeline"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:101
+#, elixir-autogen, elixir-format
+msgid "Tip: give a veterinarian a time-boxed expiry so their access ends after the visit."
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:26
+#, elixir-autogen, elixir-format
+msgid "Unknown"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:101
+#: lib/goodmao2_web/live/pet_live/show.ex:354
+#, elixir-autogen, elixir-format
+msgid "Urine"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:56
+#, elixir-autogen, elixir-format
+msgid "Vet note"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:16
+#, elixir-autogen, elixir-format
+msgid "Veterinarian"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:15
+#, elixir-autogen, elixir-format
+msgid "Viewer"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:209
+#, elixir-autogen, elixir-format
+msgid "Visibility"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:345
+#, elixir-autogen, elixir-format
+msgid "Volume (ml)"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:51
+#, elixir-autogen, elixir-format
+msgid "Vomiting"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:49
+#: lib/goodmao2_web/helpers.ex:92
+#, elixir-autogen, elixir-format
+msgid "Water"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:127
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:52
+#: lib/goodmao2_web/helpers.ex:126
+#, elixir-autogen, elixir-format
+msgid "Weight"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:375
+#, elixir-autogen, elixir-format
+msgid "Weight (grams)"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:125
+#, elixir-autogen, elixir-format
+msgid "Weight unit"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_html/home.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "What GoodMao does"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:204
+#, elixir-autogen, elixir-format
+msgid "When"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:74
+#, elixir-autogen, elixir-format
+msgid "When care ended (optional — defaults to now)"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/form.ex:83
+#, elixir-autogen, elixir-format
+msgid "You are not allowed to edit this pet."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:120
+#, elixir-autogen, elixir-format
+msgid "You are not allowed to log for this pet."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:50
+#, elixir-autogen, elixir-format
+msgid "You are not allowed to manage sharing."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/settings.ex:34
+#, elixir-autogen, elixir-format
+msgid "Your handle lets others invite you to a pet by @handle."
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:109
+#, elixir-autogen, elixir-format
+msgid "blood"
+msgstr ""
+
+#: lib/goodmao2_web/components/core_components.ex:74
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:29
+#, elixir-autogen, elixir-format
+msgid "grams"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:30
+#, elixir-autogen, elixir-format
+msgid "kilograms"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:31
+#, elixir-autogen, elixir-format
+msgid "pounds"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:179
+#, elixir-autogen, elixir-format
+msgid "severity %{s}/5"
+msgstr ""
+
+#: lib/goodmao2_web/helpers.ex:110
+#, elixir-autogen, elixir-format
+msgid "straining ⚠"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex:124
+#, elixir-autogen, elixir-format
+msgid "until %{t}"
+msgstr ""

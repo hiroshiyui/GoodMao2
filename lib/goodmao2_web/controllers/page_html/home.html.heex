@@ -1,0 +1,61 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section id="landing-hero" aria-labelledby="landing-title" class="py-10 text-center">
+    <p class="text-5xl" aria-hidden="true">🐾</p>
+    <h1 id="landing-title" class="mt-4 text-4xl font-bold tracking-tight">
+      {gettext("GoodMao")} <span class="text-base-content/50 text-2xl font-normal">顧毛</span>
+    </h1>
+    <p id="landing-tagline" class="text-base-content/70 mx-auto mt-3 max-w-xl text-lg">
+      {gettext(
+        "Effortless structured daily logging that turns everyday care into a shareable health timeline your vet can actually use."
+      )}
+    </p>
+
+    <div class="mt-8 flex justify-center gap-3">
+      <.link navigate={~p"/users/register"} id="landing-register" class="btn btn-primary">
+        {gettext("Start caring")}
+      </.link>
+      <.link navigate={~p"/users/log-in"} id="landing-login" class="btn btn-ghost">
+        {gettext("Log in")}
+      </.link>
+    </div>
+  </section>
+
+  <section id="landing-features" aria-labelledby="landing-features-heading" class="py-6">
+    <h2 id="landing-features-heading" class="sr-only">{gettext("What GoodMao does")}</h2>
+    <div class="grid gap-4 sm:grid-cols-3">
+      <article class="landing-feature card card-border bg-base-100">
+        <div class="card-body items-center p-5 text-center">
+          <.icon name="hero-bolt" class="text-primary size-7" />
+          <h3 class="landing-feature-title font-semibold">{gettext("One-tap logging")}</h3>
+          <p class="landing-feature-body text-base-content/60 text-sm">
+            {gettext(
+              "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
+            )}
+          </p>
+        </div>
+      </article>
+      <article class="landing-feature card card-border bg-base-100">
+        <div class="card-body items-center p-5 text-center">
+          <.icon name="hero-user-group" class="text-primary size-7" />
+          <h3 class="landing-feature-title font-semibold">{gettext("Shared care")}</h3>
+          <p class="landing-feature-body text-base-content/60 text-sm">
+            {gettext(
+              "Family and sitters coordinate in real time; grant a vet time-boxed access for a visit."
+            )}
+          </p>
+        </div>
+      </article>
+      <article class="landing-feature card card-border bg-base-100">
+        <div class="card-body items-center p-5 text-center">
+          <.icon name="hero-clipboard-document-check" class="text-primary size-7" />
+          <h3 class="landing-feature-title font-semibold">{gettext("A clinical timeline")}</h3>
+          <p class="landing-feature-body text-base-content/60 text-sm">
+            {gettext(
+              "Everyday logs become the history a vet needs the moment your pet gets sick."
+            )}
+          </p>
+        </div>
+      </article>
+    </div>
+  </section>
+</Layouts.app>
