@@ -238,6 +238,17 @@ the locale-parity test + the `a11y-engineering` skill.
 - [x] The **`a11y-engineering` skill** (`.claude/skills/a11y-engineering/SKILL.md`) —
       written for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
       invariant `AGENTS.md` states; completes the project's seven-skill set.
+- [ ] **Co-hosting deployment note** — GoodMao shares its default HTTP port (`PORT`, default
+      `4000`) and dev ports (`4000`/`4001` http/https, `4002` test) with sibling Phoenix apps such
+      as Baudrate, so the two collide if run at their defaults on one host. In production the
+      listening port is `PORT`-driven, so co-hosting is just: give each app a distinct `PORT`, a
+      distinct Postgres role/database, and front both with one reverse proxy terminating TLS on
+      `443` and routing by hostname (the `443` in `runtime.exs` is only the canonical-URL host, not
+      a listener). To document as a deploy runbook.
+- [ ] **Ansible-driven deployment** — provisioning and releases will be automated with Ansible,
+      mirroring Baudrate's approach (see `my_ansible_playbooks`), so the two apps co-host under a
+      consistent, repeatable playbook (distinct `PORT` / Postgres role+db per app, shared reverse
+      proxy). Playbook not yet written.
 
 ### 10. Accessibility & UX polish
 
