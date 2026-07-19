@@ -10,7 +10,8 @@ co-caretakers, and vets. It is a single **Phoenix/LiveView** monolith
 
 **Contexts** (`lib/goodmao2/`): `Accounts` (auth + `@handle` + first-user-admin),
 `Pets` (pets, access grants, resource authorization), `Logs` (structured entries +
-timeline + PubSub). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
+timeline + revisions + PubSub), `Media` (ffmpeg-purified LifeLog photos/videos, id-keyed
+storage). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
 
 **Rules to preserve when changing this app:**
 

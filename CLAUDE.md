@@ -48,7 +48,7 @@ Postgres: dev and test both use a **`goodmao2`** role (password `goodmao2`) need
 ## Architecture in one screen
 
 GoodMao is a **single Phoenix/LiveView monolith** (no separate API/frontend). Domain
-logic lives in three contexts under `lib/goodmao2/`; the web layer is thin LiveViews that
+logic lives in four contexts under `lib/goodmao2/`; the web layer is thin LiveViews that
 call them.
 
 - **`Accounts`** (`accounts.ex`) — `phx.gen.auth` scope-based auth (the caller is
@@ -70,14 +70,25 @@ call them.
   payload; per-type field validation is in `LogEntry.changeset/2`. Entries are
   **soft-deleted** (`deleted_at`); every read filters `deleted_at IS NULL`. Writes re-check
   `Pets` capability at the context boundary (`vet_note` is vet-only; changing `visibility`
-  is owner-only). `create/update/delete_entry` broadcast on the pet's topic so
-  `PetLive.Show` streams live updates.
+  is owner-only). Each real edit snapshots the prior state into `log_entry_revisions`
+  (append-only, edit-count-capped). `create/update/delete_entry` broadcast on the pet's
+  topic so `PetLive.Show` streams live updates.
+- **`Media`** (`media.ex`) — purified LifeLog photos/videos attached to `life` logs
+  ([ADR-0005](doc/adr/0005-media-storage.md)). `Media.Purifier` re-encodes/remuxes uploads
+  with **ffmpeg** (magic-byte typing, EXIF/GPS stripped, codec allow-list + duration cap);
+  `Media.Storage` writes id-keyed opaque objects under a configured `storage_dir` (the
+  physical path is never stored — traversal-proof); assets are created atomically with the
+  log and re-authorized per request. `Media.RateLimiter` throttles uploads.
 
 Web LiveViews (`lib/goodmao2_web/live/pet_live/`): `Index`, `Form` (new/edit), `Show`
-(QuickLog + live filterable timeline), `Access` (grant/revoke), `EndOfCare` (owner-only
-lifecycle). They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on
-failure. Routes are in the `:require_authenticated_user` `live_session` in `router.ex`.
-Shared view helpers (enum-label translations, log summaries) are in
+(QuickLog + live filterable timeline/calendar + weight trend), `LogEntry` (single entry:
+edit + revision history), `Access` (grant/revoke), `EndOfCare` (owner-only lifecycle).
+`AdminLive` (`live/admin_live.ex`) is the admin-only read-only `/admin` site overview.
+They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on failure. Purified
+media is served by `MediaController` at `GET /media/:id` (re-applies the parent log's read
+authorization, IDOR-hidden, hardened headers, `Range` support). Routes are in the
+`:require_authenticated_user` `live_session` in `router.ex`. Shared view helpers
+(enum-label translations, log summaries, clinical flags) are in
 `lib/goodmao2_web/helpers.ex`, imported app-wide via `goodmao2_web.ex`.
 
 ## Non-obvious conventions

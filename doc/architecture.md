@@ -1,6 +1,6 @@
 # GoodMao — Architecture
 
-_Last updated: 2026-07-18_
+_Last updated: 2026-07-20_
 
 GoodMao is a single **Phoenix/LiveView** application: effortless structured daily
 logging that becomes a shareable clinical timeline, built as an idiomatic
@@ -143,6 +143,11 @@ LiveViews under `live/pet_live/`: `Index` (active / past pets), `Form` (new & ed
 history, ADR-0009), `Access` (sharing/grants), `EndOfCare` (owner-only lifecycle). Routes live
 in the `:require_authenticated_user` live_session in `router.ex`.
 The `Show` LiveView subscribes to the pet's PubSub topic and streams entries.
+
+`AdminLive` (`live/admin_live.ex`, `GET /admin`) is a separate `:require_admin`-gated,
+read-only site-overview surface for the sole administrator (user count, admin identity,
+first-registration gate status). Admin is a global role only — it grants **no** access to
+pet data, so this page reads none.
 
 Purified life-log media is served by `MediaController` at `GET /media/:id` (a dedicated
 `:serve_media` pipeline — session + scope, no HTML negotiation), which re-applies the parent
