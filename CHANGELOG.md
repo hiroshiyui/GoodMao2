@@ -18,6 +18,11 @@ skill).
   rather than transliterated. The `phx.gen.auth` LiveViews (log-in / register / confirmation)
   and the session controller's auth flashes are now fully localized too, closing the last
   generator-default-English gap.
+- **Larger default text + a font-size control** — the base reading size is now 20px
+  (`html { font-size: 125% }`, scaling the rem-based UI uniformly), and a −/+ text-size
+  control sits beside the theme toggle in the primary nav. The chosen size persists in
+  `localStorage` and is applied before first paint (no flash), mirroring the theme
+  preference. Clamped to 100–175%.
 - **CJK-aware font stack** — the brand wordmark uses Roboto Slab (vendored, self-hosted,
   Apache-2.0), and body text falls through an explicit Traditional-Chinese / Japanese
   fallback chain so CJK renders in a proper face instead of a browser default.

@@ -8,6 +8,14 @@ defmodule Goodmao2Web.PageControllerTest do
     assert response =~ "shareable health timeline"
   end
 
+  test "GET / renders the font-size controls next to the theme toggle", %{conn: conn} do
+    response = conn |> get(~p"/") |> html_response(200)
+    assert response =~ ~s(id="font-size-controls")
+    assert response =~ ~s(id="font-size-decrease")
+    assert response =~ ~s(id="font-size-increase")
+    assert response =~ "phx:font-size-increase"
+  end
+
   test "GET / redirects a signed-in user to their pets", %{conn: conn} do
     conn = conn |> log_in_user(Goodmao2.AccountsFixtures.user_fixture()) |> get(~p"/")
     assert redirected_to(conn) == ~p"/pets"

@@ -125,8 +125,8 @@ msgstr "吃光光"
 msgid "Ate partially"
 msgstr "吃了一部分"
 
-#: lib/goodmao2_web/components/layouts.ex:172
-#: lib/goodmao2_web/components/layouts.ex:184
+#: lib/goodmao2_web/components/layouts.ex:175
+#: lib/goodmao2_web/components/layouts.ex:187
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "正在嘗試重新連線"
@@ -374,7 +374,7 @@ msgstr "記錄%{type}"
 
 #: lib/goodmao2_web/components/layouts.ex:99
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
-#: lib/goodmao2_web/live/user_live/confirmation.ex:50
+#: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
 #: lib/goodmao2_web/live/user_live/registration.ex:18
 #, elixir-autogen, elixir-format
@@ -675,7 +675,7 @@ msgstr "分享"
 msgid "Sharing %{name}"
 msgstr "分享 %{name}"
 
-#: lib/goodmao2_web/components/layouts.ex:179
+#: lib/goodmao2_web/components/layouts.ex:182
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "發生錯誤！"
@@ -769,7 +769,7 @@ msgstr "嘔吐"
 msgid "Water"
 msgstr "飲水"
 
-#: lib/goodmao2_web/components/layouts.ex:167
+#: lib/goodmao2_web/components/layouts.ex:170
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "找不到網際網路連線"
@@ -865,25 +865,25 @@ msgstr "用力 ⚠"
 msgid "until %{t}"
 msgstr "至 %{t}"
 
-#: lib/goodmao2_web/components/layouts.ex:256
-#: lib/goodmao2_web/components/layouts.ex:257
+#: lib/goodmao2_web/components/layouts.ex:297
+#: lib/goodmao2_web/components/layouts.ex:298
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr "深色主題"
 
-#: lib/goodmao2_web/components/layouts.ex:128
+#: lib/goodmao2_web/components/layouts.ex:131
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr "顧毛 — 為你所愛的毛小孩打造、可分享的健康時間軸。"
 
-#: lib/goodmao2_web/components/layouts.ex:246
-#: lib/goodmao2_web/components/layouts.ex:247
+#: lib/goodmao2_web/components/layouts.ex:287
+#: lib/goodmao2_web/components/layouts.ex:288
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr "淺色主題"
 
-#: lib/goodmao2_web/components/layouts.ex:236
-#: lib/goodmao2_web/components/layouts.ex:237
+#: lib/goodmao2_web/components/layouts.ex:277
+#: lib/goodmao2_web/components/layouts.ex:278
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr "跟隨系統主題"
@@ -988,7 +988,7 @@ msgstr "返回你的寵物"
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr "已結束照護的夥伴。牠們的紀錄與時間軸，永遠保存在這裡。"
 
-#: lib/goodmao2_web/components/layouts.ex:202
+#: lib/goodmao2_web/components/layouts.ex:205
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr "切換語言"
@@ -1003,7 +1003,7 @@ msgstr "已經有帳號了嗎？"
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr "一封電子郵件已寄至 %{email}，請前往查收以確認您的帳號。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:34
+#: lib/goodmao2_web/live/user_live/confirmation.ex:37
 #, elixir-autogen, elixir-format
 msgid "Confirm and log in only this time"
 msgstr "確認並僅此次登入"
@@ -1014,7 +1014,7 @@ msgid "Confirm and stay logged in"
 msgstr "確認並保持登入"
 
 #: lib/goodmao2_web/live/user_live/confirmation.ex:28
-#: lib/goodmao2_web/live/user_live/confirmation.ex:33
+#: lib/goodmao2_web/live/user_live/confirmation.ex:34
 #, elixir-autogen, elixir-format
 msgid "Confirming..."
 msgstr "確認中…"
@@ -1029,7 +1029,7 @@ msgstr "建立帳號"
 msgid "Creating account..."
 msgstr "建立帳號中…"
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:67
+#: lib/goodmao2_web/controllers/user_session_controller.ex:69
 #, elixir-autogen, elixir-format
 msgid "Current password is not valid, or the new password is invalid."
 msgstr "目前的密碼不正確，或新密碼不符合規則。"
@@ -1059,7 +1059,7 @@ msgstr "如果您的電子郵件在我們的系統中，您很快就會收到登
 msgid "Invalid email or password"
 msgstr "電子郵件或密碼不正確"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:59
+#: lib/goodmao2_web/live/user_live/confirmation.ex:62
 #, elixir-autogen, elixir-format
 msgid "Keep me logged in on this device"
 msgstr "在這台裝置上保持登入"
@@ -1079,24 +1079,24 @@ msgstr "僅此次登入"
 msgid "Log in with email"
 msgstr "使用電子郵件登入"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:62
+#: lib/goodmao2_web/live/user_live/confirmation.ex:68
 #, elixir-autogen, elixir-format
 msgid "Log me in only this time"
 msgstr "僅這次登入"
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:74
+#: lib/goodmao2_web/controllers/user_session_controller.ex:77
 #, elixir-autogen, elixir-format
 msgid "Logged out successfully."
 msgstr "已成功登出。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:49
-#: lib/goodmao2_web/live/user_live/confirmation.ex:56
-#: lib/goodmao2_web/live/user_live/confirmation.ex:61
+#: lib/goodmao2_web/live/user_live/confirmation.ex:52
+#: lib/goodmao2_web/live/user_live/confirmation.ex:59
+#: lib/goodmao2_web/live/user_live/confirmation.ex:65
 #, elixir-autogen, elixir-format
 msgid "Logging in..."
 msgstr "登入中…"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:85
+#: lib/goodmao2_web/live/user_live/confirmation.ex:91
 #, elixir-autogen, elixir-format
 msgid "Magic link is invalid or it has expired."
 msgstr "魔術連結無效或已過期。"
@@ -1131,7 +1131,7 @@ msgstr "註冊"
 msgid "The link is invalid or it has expired."
 msgstr "此連結無效或已過期。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:68
+#: lib/goodmao2_web/live/user_live/confirmation.ex:74
 #, elixir-autogen, elixir-format
 msgid "Tip: If you prefer passwords, you can enable them in the user settings."
 msgstr "提示：如果您偏好使用密碼，可以在使用者設定中啟用。"
@@ -1185,3 +1185,20 @@ msgstr "信箱頁面"
 #, elixir-autogen, elixir-format
 msgid "to your account now."
 msgstr "登入您的帳號。"
+
+#: lib/goodmao2_web/components/layouts.ex:244
+#: lib/goodmao2_web/components/layouts.ex:245
+#, elixir-autogen, elixir-format
+msgid "Decrease text size"
+msgstr "縮小文字"
+
+#: lib/goodmao2_web/components/layouts.ex:254
+#: lib/goodmao2_web/components/layouts.ex:255
+#, elixir-autogen, elixir-format
+msgid "Increase text size"
+msgstr "放大文字"
+
+#: lib/goodmao2_web/components/layouts.ex:237
+#, elixir-autogen, elixir-format
+msgid "Text size"
+msgstr "文字大小"

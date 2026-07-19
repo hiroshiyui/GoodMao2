@@ -109,6 +109,9 @@ defmodule Goodmao2Web.Layouts do
               <.locale_switcher locale={Gettext.get_locale(Goodmao2Web.Gettext)} />
             </li>
             <li>
+              <.font_size_controls />
+            </li>
+            <li>
               <.theme_toggle />
             </li>
           </ul>
@@ -216,6 +219,44 @@ defmodule Goodmao2Web.Layouts do
         </li>
       </ul>
     </details>
+    """
+  end
+
+  @doc """
+  Renders font-size zoom in/out controls.
+
+  Dispatches `phx:font-size-decrease` / `phx:font-size-increase`, handled by JS in
+  `app.js`, which clamps and persists the root font-size in localStorage. See the
+  pre-paint guard in root.html.heex which applies a stored size before first paint.
+  """
+  def font_size_controls(assigns) do
+    ~H"""
+    <div
+      id="font-size-controls"
+      role="group"
+      aria-label={gettext("Text size")}
+      class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full"
+    >
+      <button
+        id="font-size-decrease"
+        class="flex p-2 cursor-pointer"
+        phx-click={JS.dispatch("phx:font-size-decrease")}
+        aria-label={gettext("Decrease text size")}
+        title={gettext("Decrease text size")}
+      >
+        <.icon name="hero-minus-micro" class="size-4 opacity-75 hover:opacity-100" />
+      </button>
+
+      <button
+        id="font-size-increase"
+        class="flex p-2 cursor-pointer"
+        phx-click={JS.dispatch("phx:font-size-increase")}
+        aria-label={gettext("Increase text size")}
+        title={gettext("Increase text size")}
+      >
+        <.icon name="hero-plus-micro" class="size-4 opacity-75 hover:opacity-100" />
+      </button>
+    </div>
     """
   end
 

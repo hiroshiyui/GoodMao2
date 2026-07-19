@@ -125,8 +125,8 @@ msgstr "完食"
 msgid "Ate partially"
 msgstr "一部食べた"
 
-#: lib/goodmao2_web/components/layouts.ex:172
-#: lib/goodmao2_web/components/layouts.ex:184
+#: lib/goodmao2_web/components/layouts.ex:175
+#: lib/goodmao2_web/components/layouts.ex:187
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "再接続を試みています"
@@ -374,7 +374,7 @@ msgstr "%{type}を記録"
 
 #: lib/goodmao2_web/components/layouts.ex:99
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
-#: lib/goodmao2_web/live/user_live/confirmation.ex:50
+#: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
 #: lib/goodmao2_web/live/user_live/registration.ex:18
 #, elixir-autogen, elixir-format
@@ -675,7 +675,7 @@ msgstr "共有"
 msgid "Sharing %{name}"
 msgstr "%{name}を共有"
 
-#: lib/goodmao2_web/components/layouts.ex:179
+#: lib/goodmao2_web/components/layouts.ex:182
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "問題が発生しました！"
@@ -769,7 +769,7 @@ msgstr "嘔吐"
 msgid "Water"
 msgstr "水"
 
-#: lib/goodmao2_web/components/layouts.ex:167
+#: lib/goodmao2_web/components/layouts.ex:170
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "インターネットに接続できません"
@@ -865,25 +865,25 @@ msgstr "いきみ ⚠"
 msgid "until %{t}"
 msgstr "%{t}まで"
 
-#: lib/goodmao2_web/components/layouts.ex:256
-#: lib/goodmao2_web/components/layouts.ex:257
+#: lib/goodmao2_web/components/layouts.ex:297
+#: lib/goodmao2_web/components/layouts.ex:298
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr "ダークテーマ"
 
-#: lib/goodmao2_web/components/layouts.ex:128
+#: lib/goodmao2_web/components/layouts.ex:131
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr "グッドマオ — 大切なペットのための、共有できる健康タイムライン。"
 
-#: lib/goodmao2_web/components/layouts.ex:246
-#: lib/goodmao2_web/components/layouts.ex:247
+#: lib/goodmao2_web/components/layouts.ex:287
+#: lib/goodmao2_web/components/layouts.ex:288
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr "ライトテーマ"
 
-#: lib/goodmao2_web/components/layouts.ex:236
-#: lib/goodmao2_web/components/layouts.ex:237
+#: lib/goodmao2_web/components/layouts.ex:277
+#: lib/goodmao2_web/components/layouts.ex:278
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr "システムに合わせる"
@@ -988,7 +988,7 @@ msgstr "あなたのペットへ戻る"
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr "ケアを終えたパートナーたち。その記録とタイムラインは、ここにずっと保管されます。"
 
-#: lib/goodmao2_web/components/layouts.ex:202
+#: lib/goodmao2_web/components/layouts.ex:205
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr "言語を切り替える"
@@ -1003,7 +1003,7 @@ msgstr "すでに登録済みですか？"
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr "%{email} に確認メールを送信しました。メールを開いてアカウントを確認してください。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:34
+#: lib/goodmao2_web/live/user_live/confirmation.ex:37
 #, elixir-autogen, elixir-format
 msgid "Confirm and log in only this time"
 msgstr "確認して今回のみログイン"
@@ -1014,7 +1014,7 @@ msgid "Confirm and stay logged in"
 msgstr "確認してログインしたままにする"
 
 #: lib/goodmao2_web/live/user_live/confirmation.ex:28
-#: lib/goodmao2_web/live/user_live/confirmation.ex:33
+#: lib/goodmao2_web/live/user_live/confirmation.ex:34
 #, elixir-autogen, elixir-format
 msgid "Confirming..."
 msgstr "確認しています…"
@@ -1029,7 +1029,7 @@ msgstr "アカウントを作成"
 msgid "Creating account..."
 msgstr "アカウントを作成しています…"
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:67
+#: lib/goodmao2_web/controllers/user_session_controller.ex:69
 #, elixir-autogen, elixir-format
 msgid "Current password is not valid, or the new password is invalid."
 msgstr "現在のパスワードが正しくないか、新しいパスワードが無効です。"
@@ -1059,7 +1059,7 @@ msgstr "ご登録のメールアドレスがシステムにあれば、まもな
 msgid "Invalid email or password"
 msgstr "メールアドレスまたはパスワードが正しくありません"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:59
+#: lib/goodmao2_web/live/user_live/confirmation.ex:62
 #, elixir-autogen, elixir-format
 msgid "Keep me logged in on this device"
 msgstr "この端末でログインしたままにする"
@@ -1079,24 +1079,24 @@ msgstr "今回のみログイン"
 msgid "Log in with email"
 msgstr "メールでログイン"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:62
+#: lib/goodmao2_web/live/user_live/confirmation.ex:68
 #, elixir-autogen, elixir-format
 msgid "Log me in only this time"
 msgstr "今回のみログインする"
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:74
+#: lib/goodmao2_web/controllers/user_session_controller.ex:77
 #, elixir-autogen, elixir-format
 msgid "Logged out successfully."
 msgstr "ログアウトしました。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:49
-#: lib/goodmao2_web/live/user_live/confirmation.ex:56
-#: lib/goodmao2_web/live/user_live/confirmation.ex:61
+#: lib/goodmao2_web/live/user_live/confirmation.ex:52
+#: lib/goodmao2_web/live/user_live/confirmation.ex:59
+#: lib/goodmao2_web/live/user_live/confirmation.ex:65
 #, elixir-autogen, elixir-format
 msgid "Logging in..."
 msgstr "ログインしています…"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:85
+#: lib/goodmao2_web/live/user_live/confirmation.ex:91
 #, elixir-autogen, elixir-format
 msgid "Magic link is invalid or it has expired."
 msgstr "マジックリンクが無効か、有効期限が切れています。"
@@ -1131,7 +1131,7 @@ msgstr "新規登録"
 msgid "The link is invalid or it has expired."
 msgstr "リンクが無効か、有効期限が切れています。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:68
+#: lib/goodmao2_web/live/user_live/confirmation.ex:74
 #, elixir-autogen, elixir-format
 msgid "Tip: If you prefer passwords, you can enable them in the user settings."
 msgstr "ヒント：パスワードをご希望の場合は、ユーザー設定で有効にできます。"
@@ -1185,3 +1185,20 @@ msgstr "メールボックスページ"
 #, elixir-autogen, elixir-format
 msgid "to your account now."
 msgstr "にログインしましょう。"
+
+#: lib/goodmao2_web/components/layouts.ex:244
+#: lib/goodmao2_web/components/layouts.ex:245
+#, elixir-autogen, elixir-format
+msgid "Decrease text size"
+msgstr "文字を小さく"
+
+#: lib/goodmao2_web/components/layouts.ex:254
+#: lib/goodmao2_web/components/layouts.ex:255
+#, elixir-autogen, elixir-format
+msgid "Increase text size"
+msgstr "文字を大きく"
+
+#: lib/goodmao2_web/components/layouts.ex:237
+#, elixir-autogen, elixir-format
+msgid "Text size"
+msgstr "文字サイズ"

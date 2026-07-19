@@ -160,6 +160,10 @@ rejects *and* the legitimate case still passes).
       session controller's auth flashes) now route every string through `gettext()`, translated
       for `zh_TW` and `ja_JP`; a regression test asserts these pages render in the negotiated
       locale.
+- [x] **Readable default size + font-size control** — the base reading size is 20px
+      (`html { font-size: 125% }`, scaling the rem-based UI), with a −/+ text-size control
+      beside the theme toggle. The choice persists in `localStorage` (clamped 100–175%) and
+      is applied before first paint, mirroring the theme-preference mechanism.
 
 ## 9. Platform & data model (deferred)
 

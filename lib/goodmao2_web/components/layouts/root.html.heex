@@ -30,6 +30,10 @@
         if (!document.documentElement.hasAttribute("data-theme")) {
           setTheme(localStorage.getItem("phx:theme") || "system");
         }
+        // Apply the stored font size before first paint (no flash to the CSS default).
+        let fs = Number(localStorage.getItem("phx:font-size")) || 125;
+        fs = Math.max(100, Math.min(175, fs));
+        document.documentElement.style.fontSize = fs + "%";
         window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
         
         window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));

@@ -43,6 +43,39 @@ const PointerGlow = {
   },
 }
 
+// Font-size zoom: persist the root font-size (as a percentage) in localStorage and
+// apply it to <html>. The whole UI is rem-based, so this scales everything. The
+// default (125% = 20px) matches the CSS baseline in app.css; the pre-paint guard
+// in root.html.heex applies any stored value before first paint to avoid a flash.
+const FONT_SIZE_KEY = "phx:font-size"
+const FONT_SIZE_DEFAULT = 125
+const FONT_SIZE_MIN = 100
+const FONT_SIZE_MAX = 175
+const FONT_SIZE_STEP = 12.5
+const clampFontSize = (size) =>
+  Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Number(size) || FONT_SIZE_DEFAULT))
+// Apply the size WITHOUT persisting it — so the default is never frozen into
+// localStorage. Only an explicit −/+ choice (setFontSize) is stored; that way a
+// later change to FONT_SIZE_DEFAULT reaches everyone who hasn't picked a size.
+const applyFontSize = (size) => {
+  document.documentElement.style.fontSize = clampFontSize(size) + "%"
+}
+const setFontSize = (size) => {
+  const s = clampFontSize(size)
+  localStorage.setItem(FONT_SIZE_KEY, String(s))
+  applyFontSize(s)
+}
+applyFontSize(localStorage.getItem(FONT_SIZE_KEY) || FONT_SIZE_DEFAULT)
+window.addEventListener("phx:font-size-increase", () => {
+  setFontSize((Number(localStorage.getItem(FONT_SIZE_KEY)) || FONT_SIZE_DEFAULT) + FONT_SIZE_STEP)
+})
+window.addEventListener("phx:font-size-decrease", () => {
+  setFontSize((Number(localStorage.getItem(FONT_SIZE_KEY)) || FONT_SIZE_DEFAULT) - FONT_SIZE_STEP)
+})
+window.addEventListener("storage", (e) => {
+  if (e.key === FONT_SIZE_KEY) applyFontSize(e.newValue || FONT_SIZE_DEFAULT)
+})
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,

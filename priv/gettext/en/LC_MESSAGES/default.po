@@ -126,8 +126,8 @@ msgstr ""
 msgid "Ate partially"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:172
-#: lib/goodmao2_web/components/layouts.ex:184
+#: lib/goodmao2_web/components/layouts.ex:175
+#: lib/goodmao2_web/components/layouts.ex:187
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
@@ -375,7 +375,7 @@ msgstr ""
 
 #: lib/goodmao2_web/components/layouts.ex:99
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
-#: lib/goodmao2_web/live/user_live/confirmation.ex:50
+#: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
 #: lib/goodmao2_web/live/user_live/registration.ex:18
 #, elixir-autogen, elixir-format
@@ -676,7 +676,7 @@ msgstr ""
 msgid "Sharing %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:179
+#: lib/goodmao2_web/components/layouts.ex:182
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
@@ -770,7 +770,7 @@ msgstr ""
 msgid "Water"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:167
+#: lib/goodmao2_web/components/layouts.ex:170
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
@@ -866,25 +866,25 @@ msgstr ""
 msgid "until %{t}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:256
-#: lib/goodmao2_web/components/layouts.ex:257
+#: lib/goodmao2_web/components/layouts.ex:297
+#: lib/goodmao2_web/components/layouts.ex:298
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:128
+#: lib/goodmao2_web/components/layouts.ex:131
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:246
-#: lib/goodmao2_web/components/layouts.ex:247
+#: lib/goodmao2_web/components/layouts.ex:287
+#: lib/goodmao2_web/components/layouts.ex:288
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:236
-#: lib/goodmao2_web/components/layouts.ex:237
+#: lib/goodmao2_web/components/layouts.ex:277
+#: lib/goodmao2_web/components/layouts.ex:278
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr ""
@@ -989,7 +989,7 @@ msgstr ""
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:202
+#: lib/goodmao2_web/components/layouts.ex:205
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr ""
@@ -1004,7 +1004,7 @@ msgstr ""
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:34
+#: lib/goodmao2_web/live/user_live/confirmation.ex:37
 #, elixir-autogen, elixir-format
 msgid "Confirm and log in only this time"
 msgstr ""
@@ -1015,7 +1015,7 @@ msgid "Confirm and stay logged in"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/confirmation.ex:28
-#: lib/goodmao2_web/live/user_live/confirmation.ex:33
+#: lib/goodmao2_web/live/user_live/confirmation.ex:34
 #, elixir-autogen, elixir-format
 msgid "Confirming..."
 msgstr ""
@@ -1030,7 +1030,7 @@ msgstr ""
 msgid "Creating account..."
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:67
+#: lib/goodmao2_web/controllers/user_session_controller.ex:69
 #, elixir-autogen, elixir-format
 msgid "Current password is not valid, or the new password is invalid."
 msgstr ""
@@ -1060,7 +1060,7 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:59
+#: lib/goodmao2_web/live/user_live/confirmation.ex:62
 #, elixir-autogen, elixir-format
 msgid "Keep me logged in on this device"
 msgstr ""
@@ -1080,24 +1080,24 @@ msgstr ""
 msgid "Log in with email"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:62
+#: lib/goodmao2_web/live/user_live/confirmation.ex:68
 #, elixir-autogen, elixir-format
 msgid "Log me in only this time"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:74
+#: lib/goodmao2_web/controllers/user_session_controller.ex:77
 #, elixir-autogen, elixir-format
 msgid "Logged out successfully."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:49
-#: lib/goodmao2_web/live/user_live/confirmation.ex:56
-#: lib/goodmao2_web/live/user_live/confirmation.ex:61
+#: lib/goodmao2_web/live/user_live/confirmation.ex:52
+#: lib/goodmao2_web/live/user_live/confirmation.ex:59
+#: lib/goodmao2_web/live/user_live/confirmation.ex:65
 #, elixir-autogen, elixir-format
 msgid "Logging in..."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:85
+#: lib/goodmao2_web/live/user_live/confirmation.ex:91
 #, elixir-autogen, elixir-format
 msgid "Magic link is invalid or it has expired."
 msgstr ""
@@ -1132,7 +1132,7 @@ msgstr ""
 msgid "The link is invalid or it has expired."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:68
+#: lib/goodmao2_web/live/user_live/confirmation.ex:74
 #, elixir-autogen, elixir-format
 msgid "Tip: If you prefer passwords, you can enable them in the user settings."
 msgstr ""
@@ -1185,4 +1185,21 @@ msgstr ""
 #: lib/goodmao2_web/live/user_live/registration.ex:20
 #, elixir-autogen, elixir-format
 msgid "to your account now."
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:244
+#: lib/goodmao2_web/components/layouts.ex:245
+#, elixir-autogen, elixir-format
+msgid "Decrease text size"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:254
+#: lib/goodmao2_web/components/layouts.ex:255
+#, elixir-autogen, elixir-format
+msgid "Increase text size"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:237
+#, elixir-autogen, elixir-format
+msgid "Text size"
 msgstr ""
