@@ -121,10 +121,11 @@ rejects *and* the legitimate case still passes).
 - [ ] Medication schedules + reminders; the "did anyone give the pill?" coordination (Phase 1/3)
 - [ ] LifeLog media (photos/videos) with EXIF-stripping purification — the `image` lib +
       `life` type is scaffolded ([ADR-0005](adr/0005-media-storage.md); Phase 1)
-- [ ] Log **edit revisions** audit trail + edit-count cap ([ADR-0009](adr/0009-log-edit-revisions.md); Phase 1)
-      — preserve: 9-edit cap (refuse the 10th), only a *real* change consumes a life, snapshot
-      **excludes the share token**, readable by any entry-reader, survives soft-delete, type
-      immutable on edit
+- [x] Log **edit revisions** audit trail + edit-count cap ([ADR-0009](adr/0009-log-edit-revisions.md); Phase 1)
+      — each real edit snapshots the prior state into `log_entry_revisions` and bumps a
+      denormalized `edit_count`; the 10th edit is refused; a no-op consumes no life; the snapshot
+      excludes the share token; the history is readable by any entry-reader (private/hidden-history
+      aware) on a dedicated `/pets/:pet_id/logs/:id` page; `type` is immutable on edit
 - [x] **Clinical flag chips** (urgent / watch pills) in the timeline — surface the highest-signal
       cues (feline urinary blood/straining, not eating, repeated vomiting, a severe symptom) as
       scannable chips carried by **icon + text + shape, not colour alone** (WCAG 1.4.1). A

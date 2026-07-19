@@ -1,11 +1,12 @@
 # 9. Log-entry edit history, capped at nine edits
 
-- **Status:** Proposed _(deferred — design captured ahead of implementation)_
+- **Status:** Accepted _(shipped)_
 - **Date:** 2026-07-14
 - **Deciders:** GoodMao maintainers
 
-> _Editing and its revision trail are not yet built — this is the spec to satisfy when
-> they are._
+> _Shipped: a real edit snapshots the prior state into `log_entry_revisions` and bumps a
+> denormalized `edit_count`; the tenth edit is refused; the history is read by anyone who can
+> read the entry, on a dedicated entry page at `/pets/:pet_id/logs/:id`._
 
 ## Context
 

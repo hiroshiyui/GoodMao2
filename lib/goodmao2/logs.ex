@@ -19,13 +19,21 @@ defmodule Goodmao2.Logs do
   Soft-deleted entries (`deleted_at` set) are hidden from all reads.
   """
   import Ecto.Query, warn: false
+  alias Ecto.Multi
   alias Goodmao2.Repo
   alias Goodmao2.Accounts.User
   alias Goodmao2.Pets
   alias Goodmao2.Pets.Pet
-  alias Goodmao2.Logs.LogEntry
+  alias Goodmao2.Logs.{LogEntry, LogEntryRevision}
 
   @topic_prefix "pet_timeline:"
+
+  # A log entry may be edited at most nine times ("a cat's nine lives"); the tenth is
+  # refused. Denormalized on `log_entries.edit_count` for an O(1) cap check (ADR-0009).
+  @max_edits 9
+
+  @doc "The maximum number of edits a single log entry may accrue (ADR-0009)."
+  def max_edits, do: @max_edits
 
   @doc "The PubSub topic carrying a pet's live timeline events."
   def topic(%Pet{id: id}), do: topic(id)
@@ -196,28 +204,121 @@ defmodule Goodmao2.Logs do
   end
 
   @doc """
-  Edits a live entry.
+  Edits a live entry, recording an immutable revision of its prior state (ADR-0009).
 
   Requires write capability for the type, that the caller is the entry's recorder or
-  an owner, and that the pet's history is not hidden. Only owners may change
-  `visibility`. Broadcasts the updated entry.
+  an owner, and that the pet's history is not hidden. Only owners may change `visibility`;
+  the `type` is immutable on edit.
+
+  A **real** change snapshots the entry's prior state into `log_entry_revisions` and bumps
+  `edit_count`, in one transaction. A **no-op** edit records nothing and returns `{:ok,
+  entry}` unchanged. The **tenth** edit is refused with `{:error, :edit_limit}`. Broadcasts
+  the updated entry.
   """
   def update_entry(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, attrs) do
     role = Pets.effective_role(pet, user)
-    attrs = stringify(attrs)
+    # The type is immutable on edit — a food entry stays a food entry (ADR-0009).
+    attrs = attrs |> stringify() |> Map.delete("type")
 
     with :ok <- ensure_visible(pet),
          :ok <- authorize_write(role, entry.type),
          :ok <- authorize_modify(role, user, entry),
          :ok <- authorize_visibility_change(role, entry, attrs) do
-      case entry |> LogEntry.changeset(attrs) |> Repo.update() do
-        {:ok, updated} ->
-          broadcast(pet, {:entry_updated, updated})
-          {:ok, updated}
+      changeset = LogEntry.changeset(entry, attrs)
 
-        error ->
-          error
+      cond do
+        not changeset.valid? ->
+          {:error, %{changeset | action: :update}}
+
+        unchanged?(entry, changeset) ->
+          {:ok, entry}
+
+        entry.edit_count >= @max_edits ->
+          {:error, :edit_limit}
+
+        true ->
+          commit_edit(pet, user, entry, changeset)
       end
+    end
+  end
+
+  # A real change is one that alters any snapshotted field; the re-sanitized `data` map can
+  # differ by identity without differing by value, so compare applied snapshots, not `changes`.
+  defp unchanged?(entry, changeset) do
+    snapshot(Ecto.Changeset.apply_changes(changeset)) == snapshot(entry)
+  end
+
+  # The immutable point-in-time copy stored in a revision (and used for no-op detection).
+  # Deliberately excludes the share token — a snapshot must never duplicate a secret.
+  defp snapshot(%LogEntry{} = entry) do
+    %{
+      "type" => entry.type,
+      "data" => entry.data || %{},
+      "note" => entry.note,
+      "occurred_at" => entry.occurred_at && DateTime.to_iso8601(entry.occurred_at),
+      "visibility" => entry.visibility
+    }
+  end
+
+  defp commit_edit(pet, user, entry, changeset) do
+    revision = %LogEntryRevision{
+      log_entry_id: entry.id,
+      pet_id: pet.id,
+      edited_by_user_id: user.id,
+      snapshot: snapshot(entry)
+    }
+
+    changeset = Ecto.Changeset.put_change(changeset, :edit_count, entry.edit_count + 1)
+
+    Multi.new()
+    |> Multi.insert(:revision, revision)
+    |> Multi.update(:entry, changeset)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{entry: updated}} ->
+        broadcast(pet, {:entry_updated, updated})
+        {:ok, updated}
+
+      {:error, :entry, %Ecto.Changeset{} = changeset, _changes} ->
+        {:error, changeset}
+    end
+  end
+
+  @doc """
+  Lists an entry's revision snapshots, **newest first**, if the caller may read the entry.
+
+  History follows the entry (ADR-0009): the same read authorization as the entry itself —
+  any effective grant, plus the private-entry rule and hidden-history existence-hiding.
+  Returns `[]` when the caller can't read the entry.
+  """
+  def list_revisions(%User{} = user, %Pet{} = pet, %LogEntry{} = entry) do
+    role = Pets.effective_role(pet, user)
+
+    if pet.history_hidden or not can_view_entry?(entry, user.id, role) do
+      []
+    else
+      Repo.all(
+        from r in LogEntryRevision,
+          where: r.log_entry_id == ^entry.id,
+          order_by: [desc: r.inserted_at, desc: r.id]
+      )
+    end
+  end
+
+  @doc """
+  Returns `true` if the caller may edit `entry` — write capability for its type, recorder
+  or owner, and the pet's history not hidden. Mirrors the `update_entry/4` gate so the UI
+  can show/hide the edit affordance without attempting a write.
+  """
+  def can_edit?(%User{} = user, %Pet{} = pet, %LogEntry{} = entry) do
+    role = Pets.effective_role(pet, user)
+
+    with :ok <- ensure_visible(pet),
+         :ok <- authorize_write(role, entry.type),
+         :ok <- authorize_modify(role, user, entry) do
+      true
+    else
+      _ -> false
     end
   end
 

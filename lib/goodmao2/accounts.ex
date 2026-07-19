@@ -60,6 +60,20 @@ defmodule Goodmao2.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  @doc """
+  Loads the given user ids as an `%{id => %User{}}` map.
+
+  For labelling audit references (e.g. the editor of a log revision) in one query; unknown
+  or `nil` ids are simply absent from the map.
+  """
+  def get_users_map(ids) when is_list(ids) do
+    ids = ids |> Enum.reject(&is_nil/1) |> Enum.uniq()
+
+    from(u in User, where: u.id in ^ids)
+    |> Repo.all()
+    |> Map.new(&{&1.id, &1})
+  end
+
   ## Administration (site overview)
 
   @doc "Total number of registered users — for the admin site overview."

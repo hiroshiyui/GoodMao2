@@ -81,6 +81,7 @@ defmodule Goodmao2Web.Router do
       live "/pets/:id/edit", PetLive.Form, :edit
       live "/pets/:id/access", PetLive.Access, :index
       live "/pets/:id/end-of-care", PetLive.EndOfCare, :edit
+      live "/pets/:pet_id/logs/:id", PetLive.LogEntry, :show
     end
 
     post "/users/update-password", UserSessionController, :update_password

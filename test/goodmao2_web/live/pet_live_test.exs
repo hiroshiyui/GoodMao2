@@ -289,6 +289,83 @@ defmodule Goodmao2Web.PetLiveTest do
     end
   end
 
+  describe "Log entry page — edit + history (ADR-0009)" do
+    test "the timeline links each entry to its detail page", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      entry = log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      assert has_element?(lv, "#entry-detail-#{entry.id}")
+    end
+
+    test "editing an entry records a revision shown in the history", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+
+      entry =
+        log_entry_fixture(user, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "note" => "before"
+        })
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      assert has_element?(lv, "#log-edit-form")
+      assert has_element?(lv, "#log-history-empty")
+
+      lv |> form("#log-edit-form", log: %{amount: "full", note: "after"}) |> render_submit()
+
+      assert has_element?(lv, "#log-edit-count", "1")
+      assert has_element?(lv, ".log-revision-note", "before")
+    end
+
+    test "an edited entry is marked on the timeline", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      entry = log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      {:ok, _} = Goodmao2.Logs.update_entry(user, pet, entry, %{"note" => "changed"})
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      assert has_element?(lv, ".timeline-entry-edited", "edited")
+    end
+
+    test "a viewer sees the history but no edit form", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      entry = log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      {:ok, _} = Goodmao2.Logs.update_entry(owner, pet, entry, %{"note" => "changed"})
+      grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      assert has_element?(lv, "#log-history")
+      refute has_element?(lv, "#log-edit-form")
+    end
+
+    test "at the nine-edit cap the form is replaced by a notice", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      entry = log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      entry =
+        Enum.reduce(1..Goodmao2.Logs.max_edits(), entry, fn i, acc ->
+          {:ok, next} = Goodmao2.Logs.update_entry(user, pet, acc, %{"note" => "edit #{i}"})
+          next
+        end)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      refute has_element?(lv, "#log-edit-form")
+      assert has_element?(lv, "#log-edit-limit-notice")
+    end
+
+    test "another user's entry is reported as not found", %{conn: conn} do
+      other = user_fixture()
+      pet = pet_fixture(other)
+      entry = log_entry_fixture(other, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      assert {:error, {:live_redirect, %{to: to}}} =
+               live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+
+      assert to == "/pets/#{pet.id}"
+    end
+  end
+
   describe "authorization" do
     test "accessing another user's pet is reported as not found", %{conn: conn} do
       other = user_fixture()

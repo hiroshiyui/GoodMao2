@@ -86,6 +86,8 @@ defmodule Goodmao2Web do
       import Phoenix.HTML
       # Core UI components
       import Goodmao2Web.CoreComponents
+      # Per-type log entry input fields (shared by QuickLog and the entry editor)
+      import Goodmao2Web.LogFields
       # App-wide view helpers (label translations, log summaries, formatting)
       import Goodmao2Web.Helpers
 

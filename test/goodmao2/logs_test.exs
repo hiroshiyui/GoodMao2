@@ -274,6 +274,86 @@ defmodule Goodmao2.LogsTest do
     end
   end
 
+  describe "edit revisions (ADR-0009)" do
+    test "a real edit snapshots the prior state and increments edit_count", %{
+      owner: owner,
+      pet: pet
+    } do
+      entry =
+        log_entry_fixture(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "note" => "before"
+        })
+
+      assert {:ok, updated} = Logs.update_entry(owner, pet, entry, %{"note" => "after"})
+      assert updated.edit_count == 1
+      assert updated.note == "after"
+
+      assert [rev] = Logs.list_revisions(owner, pet, updated)
+      assert rev.snapshot["note"] == "before"
+      assert rev.snapshot["type"] == "food"
+      assert rev.edited_by_user_id == owner.id
+    end
+
+    test "a no-op edit records nothing", %{owner: owner, pet: pet} do
+      entry =
+        log_entry_fixture(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "note" => "same"
+        })
+
+      assert {:ok, same} = Logs.update_entry(owner, pet, entry, %{"note" => "same"})
+      assert same.edit_count == 0
+      assert Logs.list_revisions(owner, pet, same) == []
+    end
+
+    test "the tenth edit is refused and leaves the entry at nine", %{owner: owner, pet: pet} do
+      entry = log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      entry =
+        Enum.reduce(1..Logs.max_edits(), entry, fn i, acc ->
+          {:ok, next} = Logs.update_entry(owner, pet, acc, %{"note" => "edit #{i}"})
+          next
+        end)
+
+      assert entry.edit_count == Logs.max_edits()
+
+      assert Logs.update_entry(owner, pet, entry, %{"note" => "one too many"}) ==
+               {:error, :edit_limit}
+
+      assert length(Logs.list_revisions(owner, pet, entry)) == Logs.max_edits()
+    end
+
+    test "the type is immutable on edit", %{owner: owner, pet: pet} do
+      entry = log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      assert {:ok, updated} =
+               Logs.update_entry(owner, pet, entry, %{"type" => "water", "note" => "still food"})
+
+      assert updated.type == "food"
+    end
+
+    test "history follows the entry's read authorization (ADR-0009)", %{owner: owner, pet: pet} do
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+
+      {:ok, private} =
+        Logs.create_entry(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "visibility" => "private"
+        })
+
+      {:ok, private} = Logs.update_entry(owner, pet, private, %{"note" => "edited"})
+
+      # The owner sees the history; a viewer who can't see the private entry can't see it.
+      assert [_rev] = Logs.list_revisions(owner, pet, private)
+      assert Logs.list_revisions(viewer, pet, private) == []
+    end
+  end
+
   describe "pubsub" do
     test "broadcasts on create", %{owner: owner, pet: pet} do
       Logs.subscribe(pet)

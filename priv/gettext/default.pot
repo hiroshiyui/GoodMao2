@@ -24,8 +24,8 @@ msgid "%{g} g"
 msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:145
-#: lib/goodmao2_web/live/pet_live/show.ex:1024
-#: lib/goodmao2_web/live/pet_live/show.ex:1072
+#: lib/goodmao2_web/live/pet_live/show.ex:905
+#: lib/goodmao2_web/live/pet_live/show.ex:960
 #, elixir-autogen, elixir-format
 msgid "%{kg} kg"
 msgstr ""
@@ -92,7 +92,7 @@ msgstr ""
 msgid "Add a pet"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:901
+#: lib/goodmao2_web/live/pet_live/show.ex:782
 #, elixir-autogen, elixir-format
 msgid "Add note, time, or visibility"
 msgstr ""
@@ -107,26 +107,26 @@ msgstr ""
 msgid "Administrator"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:423
+#: lib/goodmao2_web/live/pet_live/show.ex:429
 #, elixir-autogen, elixir-format
 msgid "All types"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:752
+#: lib/goodmao2_web/components/log_fields.ex:24
 #, elixir-autogen, elixir-format
 msgid "Amount"
 msgstr ""
 
+#: lib/goodmao2_web/components/log_fields.ex:26
 #: lib/goodmao2_web/helpers.ex:296
-#: lib/goodmao2_web/live/pet_live/show.ex:754
-#: lib/goodmao2_web/live/pet_live/show.ex:957
+#: lib/goodmao2_web/live/pet_live/show.ex:838
 #, elixir-autogen, elixir-format
 msgid "Ate fully"
 msgstr ""
 
+#: lib/goodmao2_web/components/log_fields.ex:27
 #: lib/goodmao2_web/helpers.ex:297
-#: lib/goodmao2_web/live/pet_live/show.ex:755
-#: lib/goodmao2_web/live/pet_live/show.ex:958
+#: lib/goodmao2_web/live/pet_live/show.ex:839
 #, elixir-autogen, elixir-format
 msgid "Ate partially"
 msgstr ""
@@ -143,7 +143,7 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:700
+#: lib/goodmao2_web/live/pet_live/show.ex:717
 #, elixir-autogen, elixir-format
 msgid "Back to pets"
 msgstr ""
@@ -159,7 +159,7 @@ msgstr ""
 msgid "Birth date"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:791
+#: lib/goodmao2_web/components/log_fields.ex:63
 #, elixir-autogen, elixir-format
 msgid "Blood present"
 msgstr ""
@@ -171,6 +171,7 @@ msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:112
 #: lib/goodmao2_web/live/pet_live/form.ex:152
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:202
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr ""
@@ -190,12 +191,12 @@ msgstr ""
 msgid "Coat colour"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:788
+#: lib/goodmao2_web/components/log_fields.ex:60
 #, elixir-autogen, elixir-format
 msgid "Consistency"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:811
+#: lib/goodmao2_web/components/log_fields.ex:83
 #, elixir-autogen, elixir-format
 msgid "Contents"
 msgstr ""
@@ -231,12 +232,12 @@ msgstr ""
 msgid "Dog"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:846
+#: lib/goodmao2_web/components/log_fields.ex:118
 #, elixir-autogen, elixir-format
 msgid "Dose"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:736
+#: lib/goodmao2_web/live/pet_live/show.ex:753
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr ""
@@ -276,7 +277,7 @@ msgstr ""
 msgid "Energy %{level}/5"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:834
+#: lib/goodmao2_web/components/log_fields.ex:106
 #, elixir-autogen, elixir-format
 msgid "Energy level"
 msgstr ""
@@ -286,7 +287,7 @@ msgstr ""
 msgid "Entry removed."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:807
+#: lib/goodmao2_web/components/log_fields.ex:79
 #, elixir-autogen, elixir-format
 msgid "Episodes"
 msgstr ""
@@ -306,14 +307,14 @@ msgstr ""
 msgid "Female"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:417
+#: lib/goodmao2_web/live/pet_live/show.ex:423
 #, elixir-autogen, elixir-format
 msgid "Filter by type"
 msgstr ""
 
+#: lib/goodmao2_web/components/log_fields.ex:31
 #: lib/goodmao2_web/helpers.ex:65
 #: lib/goodmao2_web/helpers.ex:299
-#: lib/goodmao2_web/live/pet_live/show.ex:759
 #, elixir-autogen, elixir-format
 msgid "Food"
 msgstr ""
@@ -343,18 +344,18 @@ msgstr ""
 msgid "Grant not found."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:772
+#: lib/goodmao2_web/components/log_fields.ex:44
 #, elixir-autogen, elixir-format
 msgid "High"
 msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:108
-#: lib/goodmao2_web/live/pet_live/show.ex:967
+#: lib/goodmao2_web/live/pet_live/show.ex:848
 #, elixir-autogen, elixir-format
 msgid "High intake"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:771
+#: lib/goodmao2_web/components/log_fields.ex:43
 #, elixir-autogen, elixir-format
 msgid "Intake"
 msgstr ""
@@ -364,7 +365,7 @@ msgstr ""
 msgid "Invite someone"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:785
+#: lib/goodmao2_web/components/log_fields.ex:57
 #, elixir-autogen, elixir-format
 msgid "Kind"
 msgstr ""
@@ -374,7 +375,7 @@ msgstr ""
 msgid "Limited"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:917
+#: lib/goodmao2_web/live/pet_live/show.ex:798
 #, elixir-autogen, elixir-format
 msgid "Log %{type}"
 msgstr ""
@@ -394,7 +395,7 @@ msgstr ""
 msgid "Log out"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:304
+#: lib/goodmao2_web/live/pet_live/show.ex:307
 #, elixir-autogen, elixir-format
 msgid "Log type"
 msgstr ""
@@ -409,13 +410,13 @@ msgstr ""
 msgid "Lost"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:772
+#: lib/goodmao2_web/components/log_fields.ex:44
 #, elixir-autogen, elixir-format
 msgid "Low"
 msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:107
-#: lib/goodmao2_web/live/pet_live/show.ex:966
+#: lib/goodmao2_web/live/pet_live/show.ex:847
 #, elixir-autogen, elixir-format
 msgid "Low intake"
 msgstr ""
@@ -425,13 +426,13 @@ msgstr ""
 msgid "Male"
 msgstr ""
 
+#: lib/goodmao2_web/components/log_fields.ex:117
 #: lib/goodmao2_web/helpers.ex:71
-#: lib/goodmao2_web/live/pet_live/show.ex:845
 #, elixir-autogen, elixir-format
 msgid "Medication"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:837
+#: lib/goodmao2_web/components/log_fields.ex:109
 #, elixir-autogen, elixir-format
 msgid "Mood"
 msgstr ""
@@ -458,7 +459,7 @@ msgstr ""
 msgid "No account matches that handle or email."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:443
+#: lib/goodmao2_web/live/pet_live/show.ex:449
 #, elixir-autogen, elixir-format
 msgid "No entries yet. Use Quick log above to start recording."
 msgstr ""
@@ -478,13 +479,13 @@ msgstr ""
 msgid "No pets yet. Add your first companion to start their timeline."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:772
+#: lib/goodmao2_web/components/log_fields.ex:44
 #, elixir-autogen, elixir-format
 msgid "Normal"
 msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:106
-#: lib/goodmao2_web/live/pet_live/show.ex:965
+#: lib/goodmao2_web/live/pet_live/show.ex:846
 #, elixir-autogen, elixir-format
 msgid "Normal intake"
 msgstr ""
@@ -494,12 +495,13 @@ msgstr ""
 msgid "Not allowed."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:936
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:183
+#: lib/goodmao2_web/live/pet_live/show.ex:817
 #, elixir-autogen, elixir-format
 msgid "Note"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:297
+#: lib/goodmao2_web/live/pet_live/show.ex:300
 #, elixir-autogen, elixir-format
 msgid "One tap to record what just happened."
 msgstr ""
@@ -537,7 +539,7 @@ msgstr ""
 msgid "People with access"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:727
+#: lib/goodmao2_web/live/pet_live/show.ex:744
 #, elixir-autogen, elixir-format
 msgid "Pet actions"
 msgstr ""
@@ -550,7 +552,7 @@ msgstr ""
 msgid "Pet not found."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:760
+#: lib/goodmao2_web/components/log_fields.ex:32
 #, elixir-autogen, elixir-format
 msgid "Portion (g)"
 msgstr ""
@@ -580,13 +582,13 @@ msgstr ""
 msgid "Public @handle"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:295
+#: lib/goodmao2_web/live/pet_live/show.ex:298
 #, elixir-autogen, elixir-format
 msgid "Quick log"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:756
-#: lib/goodmao2_web/live/pet_live/show.ex:959
+#: lib/goodmao2_web/components/log_fields.ex:28
+#: lib/goodmao2_web/live/pet_live/show.ex:840
 #, elixir-autogen, elixir-format
 msgid "Refused"
 msgstr ""
@@ -601,12 +603,12 @@ msgstr ""
 msgid "Rehomed"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:516
+#: lib/goodmao2_web/live/pet_live/show.ex:532
 #, elixir-autogen, elixir-format
 msgid "Remove entry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:514
+#: lib/goodmao2_web/live/pet_live/show.ex:530
 #, elixir-autogen, elixir-format
 msgid "Remove this entry?"
 msgstr ""
@@ -655,13 +657,14 @@ msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:107
 #: lib/goodmao2_web/live/pet_live/form.ex:143
-#: lib/goodmao2_web/live/pet_live/show.ex:340
-#: lib/goodmao2_web/live/pet_live/show.ex:915
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:198
+#: lib/goodmao2_web/live/pet_live/show.ex:343
+#: lib/goodmao2_web/live/pet_live/show.ex:796
 #, elixir-autogen, elixir-format
 msgid "Saving…"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:858
+#: lib/goodmao2_web/components/log_fields.ex:130
 #, elixir-autogen, elixir-format
 msgid "Severity"
 msgstr ""
@@ -676,7 +679,7 @@ msgstr ""
 msgid "Shared care"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:733
+#: lib/goodmao2_web/live/pet_live/show.ex:750
 #, elixir-autogen, elixir-format
 msgid "Sharing"
 msgstr ""
@@ -707,25 +710,25 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
+#: lib/goodmao2_web/components/log_fields.ex:58
 #: lib/goodmao2_web/helpers.ex:119
-#: lib/goodmao2_web/live/pet_live/show.ex:786
-#: lib/goodmao2_web/live/pet_live/show.ex:974
+#: lib/goodmao2_web/live/pet_live/show.ex:855
 #, elixir-autogen, elixir-format
 msgid "Stool"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:795
+#: lib/goodmao2_web/components/log_fields.ex:67
 #, elixir-autogen, elixir-format
 msgid "Straining (⚠ cat emergency)"
 msgstr ""
 
+#: lib/goodmao2_web/components/log_fields.ex:126
 #: lib/goodmao2_web/helpers.ex:72
-#: lib/goodmao2_web/live/pet_live/show.ex:854
 #, elixir-autogen, elixir-format
 msgid "Symptom"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:379
+#: lib/goodmao2_web/live/pet_live/show.ex:385
 #, elixir-autogen, elixir-format
 msgid "Timeline"
 msgstr ""
@@ -740,9 +743,9 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
+#: lib/goodmao2_web/components/log_fields.ex:58
 #: lib/goodmao2_web/helpers.ex:118
-#: lib/goodmao2_web/live/pet_live/show.ex:786
-#: lib/goodmao2_web/live/pet_live/show.ex:973
+#: lib/goodmao2_web/live/pet_live/show.ex:854
 #, elixir-autogen, elixir-format
 msgid "Urine"
 msgstr ""
@@ -762,12 +765,13 @@ msgstr ""
 msgid "Viewer"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:945
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:192
+#: lib/goodmao2_web/live/pet_live/show.ex:826
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:774
+#: lib/goodmao2_web/components/log_fields.ex:46
 #, elixir-autogen, elixir-format
 msgid "Volume (ml)"
 msgstr ""
@@ -791,12 +795,12 @@ msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:69
 #: lib/goodmao2_web/helpers.ex:144
-#: lib/goodmao2_web/live/pet_live/show.ex:1064
+#: lib/goodmao2_web/live/pet_live/show.ex:952
 #, elixir-autogen, elixir-format
 msgid "Weight"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:821
+#: lib/goodmao2_web/components/log_fields.ex:93
 #, elixir-autogen, elixir-format
 msgid "Weight (grams)"
 msgstr ""
@@ -811,7 +815,8 @@ msgstr ""
 msgid "What GoodMao does"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:940
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:187
+#: lib/goodmao2_web/live/pet_live/show.ex:821
 #, elixir-autogen, elixir-format
 msgid "When"
 msgstr ""
@@ -909,7 +914,7 @@ msgstr ""
 msgid "Skip to content"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:282
+#: lib/goodmao2_web/live/pet_live/show.ex:285
 #, elixir-autogen, elixir-format
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
 msgstr ""
@@ -985,7 +990,7 @@ msgstr ""
 msgid "← Back to account settings"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:870
+#: lib/goodmao2_web/components/log_fields.ex:156
 #, elixir-autogen, elixir-format
 msgid "What happened?"
 msgstr ""
@@ -1221,7 +1226,7 @@ msgstr ""
 msgid "Text size"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1131
+#: lib/goodmao2_web/live/pet_live/show.ex:1019
 #, elixir-autogen, elixir-format
 msgid "%{count} entry"
 msgid_plural "%{count} entries"
@@ -1248,12 +1253,12 @@ msgstr ""
 msgid "August"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:603
+#: lib/goodmao2_web/live/pet_live/show.ex:620
 #, elixir-autogen, elixir-format
 msgid "Back to month"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:411
+#: lib/goodmao2_web/live/pet_live/show.ex:417
 #, elixir-autogen, elixir-format
 msgid "Calendar"
 msgstr ""
@@ -1263,7 +1268,7 @@ msgstr ""
 msgid "December"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:566
+#: lib/goodmao2_web/live/pet_live/show.ex:583
 #, elixir-autogen, elixir-format
 msgid "Entries for %{month}"
 msgstr ""
@@ -1293,7 +1298,7 @@ msgstr ""
 msgid "June"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:398
+#: lib/goodmao2_web/live/pet_live/show.ex:404
 #, elixir-autogen, elixir-format
 msgid "List"
 msgstr ""
@@ -1313,17 +1318,17 @@ msgstr ""
 msgid "Mon"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:539
+#: lib/goodmao2_web/live/pet_live/show.ex:556
 #, elixir-autogen, elixir-format
 msgid "Month navigation"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:558
+#: lib/goodmao2_web/live/pet_live/show.ex:575
 #, elixir-autogen, elixir-format
 msgid "Next month"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:607
+#: lib/goodmao2_web/live/pet_live/show.ex:624
 #, elixir-autogen, elixir-format
 msgid "No entries on this day."
 msgstr ""
@@ -1338,7 +1343,7 @@ msgstr ""
 msgid "October"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:547
+#: lib/goodmao2_web/live/pet_live/show.ex:564
 #, elixir-autogen, elixir-format
 msgid "Previous month"
 msgstr ""
@@ -1363,7 +1368,7 @@ msgstr ""
 msgid "Thu"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:384
+#: lib/goodmao2_web/live/pet_live/show.ex:390
 #, elixir-autogen, elixir-format
 msgid "Timeline view"
 msgstr ""
@@ -1378,12 +1383,12 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1134
+#: lib/goodmao2_web/live/pet_live/show.ex:1022
 #, elixir-autogen, elixir-format
 msgid "urgent"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1135
+#: lib/goodmao2_web/live/pet_live/show.ex:1023
 #, elixir-autogen, elixir-format
 msgid "worth watching"
 msgstr ""
@@ -1490,7 +1495,7 @@ msgstr ""
 msgid "Blood"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:479
+#: lib/goodmao2_web/live/pet_live/show.ex:485
 #, elixir-autogen, elixir-format
 msgid "Clinical flags"
 msgstr ""
@@ -1515,47 +1520,147 @@ msgstr ""
 msgid "Straining"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:351
+#: lib/goodmao2_web/live/pet_live/show.ex:354
 #, elixir-autogen, elixir-format
 msgid "More options"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:331
+#: lib/goodmao2_web/live/pet_live/show.ex:334
 #, elixir-autogen, elixir-format
 msgid "Quick log shortcuts"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:979
+#: lib/goodmao2_web/live/pet_live/show.ex:860
 #, elixir-autogen, elixir-format
 msgid "Vomited"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1117
+#: lib/goodmao2_web/live/pet_live/show.ex:1005
 #, elixir-autogen, elixir-format
 msgid "+%{kg} kg"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1063
+#: lib/goodmao2_web/live/pet_live/show.ex:951
 #, elixir-autogen, elixir-format
 msgid "Date"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1060
+#: lib/goodmao2_web/live/pet_live/show.ex:948
 #, elixir-autogen, elixir-format
 msgid "Weight measurements"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1021
+#: lib/goodmao2_web/live/pet_live/show.ex:902
 #, elixir-autogen, elixir-format
 msgid "Weight trend"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1119
+#: lib/goodmao2_web/live/pet_live/show.ex:1007
 #, elixir-autogen, elixir-format
 msgid "no change"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1118
+#: lib/goodmao2_web/live/pet_live/show.ex:1006
 #, elixir-autogen, elixir-format
 msgid "−%{kg} kg"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:27
+#, elixir-autogen, elixir-format
+msgid "%{type} entry"
+msgstr ""
+
+#: lib/goodmao2_web/components/log_fields.ex:140
+#, elixir-autogen, elixir-format
+msgid "Assessment"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:134
+#, elixir-autogen, elixir-format
+msgid "Back to %{name}"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:89
+#, elixir-autogen, elixir-format
+msgid "Changes saved."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:144
+#, elixir-autogen, elixir-format
+msgid "Current entry"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:169
+#, elixir-autogen, elixir-format
+msgid "Each saved change keeps a snapshot. %{left} edits left."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:167
+#, elixir-autogen, elixir-format
+msgid "Edit entry"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:520
+#, elixir-autogen, elixir-format
+msgid "Edit entry or view its history"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:221
+#, elixir-autogen, elixir-format
+msgid "Edit history"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:155
+#, elixir-autogen, elixir-format
+msgid "Edited %{n} of %{max}"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:33
+#, elixir-autogen, elixir-format
+msgid "Entry not found."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:223
+#, elixir-autogen, elixir-format
+msgid "No edits yet — this entry is as first recorded."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:239
+#, elixir-autogen, elixir-format
+msgid "Previous value:"
+msgstr ""
+
+#: lib/goodmao2_web/components/log_fields.ex:144
+#, elixir-autogen, elixir-format
+msgid "Recommendation"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:199
+#, elixir-autogen, elixir-format
+msgid "Save changes"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:216
+#, elixir-autogen, elixir-format
+msgid "This entry has reached its nine-edit limit and can no longer be changed."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:94
+#, elixir-autogen, elixir-format
+msgid "This entry has reached its nine-edit limit."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:97
+#, elixir-autogen, elixir-format
+msgid "You are not allowed to edit this entry."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:120
+#, elixir-autogen, elixir-format
+msgid "a former caretaker"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex:512
+#, elixir-autogen, elixir-format
+msgid "edited"
 msgstr ""

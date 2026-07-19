@@ -10,6 +10,16 @@ skill).
 
 ### Added
 
+- **Log editing with an audited revision trail (ADR-0009)** — log entries can now be edited on
+  a dedicated entry page (`/pets/:pet_id/logs/:id`), and every real edit records an immutable
+  snapshot of the entry's prior state (type, data, note, time, visibility — never the share
+  token) in a new `log_entry_revisions` table. A no-op edit records nothing; the type is
+  immutable on edit; and an entry may be edited at most nine times ("a cat's nine lives") — the
+  tenth is refused and the form gives way to a lock notice, tracked by a denormalized
+  `edit_count`. The revision history follows the entry's own read authorization (any grant-holder
+  who can see the entry can see how it changed — private-entry and hidden-history rules apply),
+  so it renders for readers, not just editors; the timeline marks edited entries and links each
+  to its page. Localized in en / 台灣漢語 / 日本語.
 - **Weight trend chart** — the pet page now shows the pet's weight over time as an inline SVG
   line chart (server-rendered, CSP-safe, no JavaScript), appearing once there are two or more
   measurements. It headlines the latest weight and the signed change since the first reading

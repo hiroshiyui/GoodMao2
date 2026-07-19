@@ -34,7 +34,12 @@ defmodule Goodmao2.Logs.LogEntry do
     field :data, :map, default: %{}
     field :deleted_at, :utc_datetime
 
+    # Denormalized 0–9 count of real edits made to this entry (ADR-0009). Incremented by
+    # the context on each snapshotted edit; not user-castable.
+    field :edit_count, :integer, default: 0
+
     belongs_to :pet, Goodmao2.Pets.Pet
+    has_many :revisions, Goodmao2.Logs.LogEntryRevision
 
     timestamps(type: :utc_datetime)
   end

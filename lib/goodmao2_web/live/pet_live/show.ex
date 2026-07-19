@@ -509,20 +509,31 @@ defmodule Goodmao2Web.PetLive.Show do
           <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
             {format_datetime(@entry.occurred_at)}
           </time>
+          <span :if={@entry.edit_count > 0} class="timeline-entry-edited">· {gettext("edited")}</span>
         </p>
       </div>
-      <button
-        :if={@can_write?}
-        type="button"
-        id={"delete-entry-#{@entry.id}"}
-        phx-click="delete_entry"
-        phx-value-id={@entry.id}
-        data-confirm={gettext("Remove this entry?")}
-        class="timeline-entry-delete btn btn-ghost btn-xs"
-        aria-label={gettext("Remove entry")}
-      >
-        <.icon name="hero-trash" class="size-4" />
-      </button>
+      <div class="flex shrink-0 gap-1">
+        <.link
+          navigate={~p"/pets/#{@entry.pet_id}/logs/#{@entry.id}"}
+          id={"entry-detail-#{@entry.id}"}
+          class="timeline-entry-detail btn btn-ghost btn-xs"
+          aria-label={gettext("Edit entry or view its history")}
+        >
+          <.icon name="hero-pencil-square" class="size-4" />
+        </.link>
+        <button
+          :if={@can_write?}
+          type="button"
+          id={"delete-entry-#{@entry.id}"}
+          phx-click="delete_entry"
+          phx-value-id={@entry.id}
+          data-confirm={gettext("Remove this entry?")}
+          class="timeline-entry-delete btn btn-ghost btn-xs"
+          aria-label={gettext("Remove entry")}
+        >
+          <.icon name="hero-trash" class="size-4" />
+        </button>
+      </div>
     </div>
     """
   end
@@ -746,142 +757,6 @@ defmodule Goodmao2Web.PetLive.Show do
     """
   end
 
-  attr :type, :string, required: true
-  attr :form, :map, required: true
-
-  defp quicklog_fields(%{type: "food"} = assigns) do
-    ~H"""
-    <div class="grid gap-3 sm:grid-cols-3">
-      <.input
-        field={@form[:amount]}
-        type="select"
-        label={gettext("Amount")}
-        options={[
-          {gettext("Ate fully"), "full"},
-          {gettext("Ate partially"), "partial"},
-          {gettext("Refused"), "refused"}
-        ]}
-      />
-      <.input field={@form[:food_type]} type="text" label={gettext("Food")} />
-      <.input field={@form[:portion_grams]} type="number" label={gettext("Portion (g)")} min="0" />
-    </div>
-    """
-  end
-
-  defp quicklog_fields(%{type: "water"} = assigns) do
-    ~H"""
-    <div class="grid gap-3 sm:grid-cols-2">
-      <.input
-        field={@form[:amount]}
-        type="select"
-        label={gettext("Intake")}
-        options={[{gettext("Normal"), "normal"}, {gettext("Low"), "low"}, {gettext("High"), "high"}]}
-      />
-      <.input field={@form[:volume_ml]} type="number" label={gettext("Volume (ml)")} min="0" />
-    </div>
-    """
-  end
-
-  defp quicklog_fields(%{type: "bathroom"} = assigns) do
-    ~H"""
-    <div class="grid gap-3 sm:grid-cols-2">
-      <.input
-        field={@form[:kind]}
-        type="select"
-        label={gettext("Kind")}
-        options={[{gettext("Urine"), "urine"}, {gettext("Stool"), "stool"}]}
-      />
-      <.input field={@form[:consistency]} type="text" label={gettext("Consistency")} />
-    </div>
-    <div class="flex flex-wrap gap-4">
-      <.input field={@form[:has_blood]} type="checkbox" label={gettext("Blood present")} />
-      <.input
-        field={@form[:straining]}
-        type="checkbox"
-        label={gettext("Straining (⚠ cat emergency)")}
-      />
-    </div>
-    """
-  end
-
-  defp quicklog_fields(%{type: "vomit"} = assigns) do
-    ~H"""
-    <div class="grid gap-3 sm:grid-cols-2">
-      <.input
-        field={@form[:count]}
-        type="number"
-        label={gettext("Episodes")}
-        min="1"
-        value={@form[:count].value || "1"}
-      />
-      <.input field={@form[:contents]} type="text" label={gettext("Contents")} />
-    </div>
-    """
-  end
-
-  defp quicklog_fields(%{type: "weight"} = assigns) do
-    ~H"""
-    <.input
-      field={@form[:weight_grams]}
-      type="number"
-      label={gettext("Weight (grams)")}
-      min="0"
-      required
-    />
-    """
-  end
-
-  defp quicklog_fields(%{type: "energy"} = assigns) do
-    ~H"""
-    <div class="grid gap-3 sm:grid-cols-2">
-      <.input
-        field={@form[:level]}
-        type="select"
-        label={gettext("Energy level")}
-        options={Enum.map(1..5, &{"#{&1}", "#{&1}"})}
-      />
-      <.input field={@form[:mood]} type="text" label={gettext("Mood")} />
-    </div>
-    """
-  end
-
-  defp quicklog_fields(%{type: "medication"} = assigns) do
-    ~H"""
-    <div class="grid gap-3 sm:grid-cols-2">
-      <.input field={@form[:medication_name]} type="text" label={gettext("Medication")} required />
-      <.input field={@form[:dose]} type="text" label={gettext("Dose")} required />
-    </div>
-    """
-  end
-
-  defp quicklog_fields(%{type: "symptom"} = assigns) do
-    ~H"""
-    <div class="grid gap-3 sm:grid-cols-2">
-      <.input field={@form[:symptom]} type="text" label={gettext("Symptom")} required />
-      <.input
-        field={@form[:severity]}
-        type="select"
-        label={gettext("Severity")}
-        options={Enum.map(1..5, &{"#{&1}", "#{&1}"})}
-      />
-    </div>
-    """
-  end
-
-  defp quicklog_fields(%{type: "life"} = assigns) do
-    ~H"""
-    <.input
-      field={@form[:note]}
-      type="textarea"
-      label={gettext("What happened?")}
-      rows="3"
-      required
-    />
-    """
-  end
-
-  defp quicklog_fields(assigns), do: ~H""
-
   # The full manual log form: the type's structured fields, its extra context (note / time /
   # visibility), and the submit button. `collapse_extras` tucks the extras behind their own
   # disclosure when the form itself is already shown directly (types with no one-tap path);
@@ -900,7 +775,7 @@ defmodule Goodmao2Web.PetLive.Show do
       phx-submit="quicklog"
       class="mt-3 space-y-3"
     >
-      <.quicklog_fields type={@type} form={@form} />
+      <.log_fields type={@type} form={@form} />
 
       <details :if={@collapse_extras} class="quicklog-more">
         <summary class="cursor-pointer text-sm text-base-content/70">

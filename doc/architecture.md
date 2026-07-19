@@ -65,6 +65,19 @@ The `data` payload per `type` (validated in `LogEntry.changeset/2`):
 Range-checked scales (1–5) and non-negative quantities are validated for *meaning*, not
 just type. See [`glossary.md`](glossary.md) for the domain terms.
 
+An entry also carries a denormalized `edit_count` (0–9). Each **real** edit refuses to
+exceed nine (`{:error, :edit_limit}`), snapshots the entry's prior state, and increments the
+count — see revisions below.
+
+### `log_entry_revisions` (Logs.LogEntryRevision) — the edit audit trail
+
+An immutable, append-only snapshot written on each real edit ([ADR-0009](adr/0009-log-edit-revisions.md)):
+a `jsonb` `snapshot` of the entry as it stood *before* the edit (`type` + `data` + `note` +
+`occurred_at` + `visibility`, never the share token), `edited_by_user_id` (audit ref) and its
+insert time, plus a denormalized `pet_id` for scoping. Rows are never edited or deleted and
+ride the parent entry's soft-delete. History uses the **same read authorization as the entry**
+(any effective grant, private-entry and hidden-history rules apply).
+
 ## Authorization logic
 
 `Goodmao2.Pets.can?(pet, user, level)` where `level` ∈ `:read | :write | :manage`:
@@ -104,16 +117,17 @@ schema**. Recorded here so the payload/relationship shapes are known when the wo
   range (`period_start`, `period_end`, `generated_by_user_id`), optionally shared via an
   expiring share token. Content generated from `log_entries` (stored or regenerated —
   open question). _Phase 4._
-- **Log-edit revisions**, **notifications**, and the **mailbox** (`conversations` /
-  `conversation_participants` / `messages`) are likewise deferred — see
-  [ADR-0009](adr/0009-log-edit-revisions.md) and
-  [ADR-0011](adr/0011-notifications-and-messaging.md).
+- **Notifications** and the **mailbox** (`conversations` / `conversation_participants` /
+  `messages`) are likewise deferred — see
+  [ADR-0011](adr/0011-notifications-and-messaging.md). (**Log-edit revisions** have shipped —
+  see the data model above and [ADR-0009](adr/0009-log-edit-revisions.md).)
 
 ## Web layer (`lib/goodmao2_web/`)
 
 LiveViews under `live/pet_live/`: `Index` (active / past pets), `Form` (new & edit),
-`Show` (QuickLog + live timeline), `Access` (sharing/grants), `EndOfCare` (owner-only
-lifecycle). Routes live in the `:require_authenticated_user` live_session in `router.ex`.
+`Show` (QuickLog + live timeline + weight trend), `LogEntry` (a single entry: edit + revision
+history, ADR-0009), `Access` (sharing/grants), `EndOfCare` (owner-only lifecycle). Routes live
+in the `:require_authenticated_user` live_session in `router.ex`.
 The `Show` LiveView subscribes to the pet's PubSub topic and streams entries.
 
 ### Conventions carried from `baudrate`
