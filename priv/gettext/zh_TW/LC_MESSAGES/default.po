@@ -17,7 +17,7 @@ msgid "%{count} episode"
 msgid_plural "%{count} episodes"
 msgstr[0] "%{count} 次"
 
-#: lib/goodmao2_web/helpers.ex:191
+#: lib/goodmao2_web/helpers.ex:246
 #, elixir-autogen, elixir-format
 msgid "%{g} g"
 msgstr "%{g} 公克"
@@ -32,7 +32,7 @@ msgstr "%{kg} 公斤"
 msgid "%{name} added."
 msgstr "已新增 %{name}。"
 
-#: lib/goodmao2_web/helpers.ex:194
+#: lib/goodmao2_web/helpers.ex:249
 #, elixir-autogen, elixir-format
 msgid "%{v} ml"
 msgstr "%{v} 毫升"
@@ -88,7 +88,7 @@ msgstr "照護中"
 msgid "Add a pet"
 msgstr "新增寵物"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:244
+#: lib/goodmao2_web/live/pet_live/show.ex:320
 #, elixir-autogen, elixir-format
 msgid "Add note, time, or visibility"
 msgstr "新增備註、時間或可見範圍"
@@ -103,24 +103,24 @@ msgstr "管理者"
 msgid "Administrator"
 msgstr "系統管理者"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:301
+#: lib/goodmao2_web/live/pet_live/show.ex:411
 #, elixir-autogen, elixir-format
 msgid "All types"
 msgstr "所有類型"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:431
+#: lib/goodmao2_web/live/pet_live/show.ex:714
 #, elixir-autogen, elixir-format
 msgid "Amount"
 msgstr "份量"
 
-#: lib/goodmao2_web/helpers.ex:185
-#: lib/goodmao2_web/live/pet_live/show.ex:433
+#: lib/goodmao2_web/helpers.ex:240
+#: lib/goodmao2_web/live/pet_live/show.ex:716
 #, elixir-autogen, elixir-format
 msgid "Ate fully"
 msgstr "吃光光"
 
-#: lib/goodmao2_web/helpers.ex:186
-#: lib/goodmao2_web/live/pet_live/show.ex:434
+#: lib/goodmao2_web/helpers.ex:241
+#: lib/goodmao2_web/live/pet_live/show.ex:717
 #, elixir-autogen, elixir-format
 msgid "Ate partially"
 msgstr "吃了一部分"
@@ -137,7 +137,7 @@ msgstr "正在嘗試重新連線"
 msgid "Back"
 msgstr "返回"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:381
+#: lib/goodmao2_web/live/pet_live/show.ex:664
 #, elixir-autogen, elixir-format
 msgid "Back to pets"
 msgstr "返回寵物列表"
@@ -153,7 +153,7 @@ msgstr "如廁"
 msgid "Birth date"
 msgstr "出生日期"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:470
+#: lib/goodmao2_web/live/pet_live/show.ex:753
 #, elixir-autogen, elixir-format
 msgid "Blood present"
 msgstr "有血"
@@ -184,12 +184,12 @@ msgstr "共同照護者"
 msgid "Coat colour"
 msgstr "毛色"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:467
+#: lib/goodmao2_web/live/pet_live/show.ex:750
 #, elixir-autogen, elixir-format
 msgid "Consistency"
 msgstr "軟硬度"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:490
+#: lib/goodmao2_web/live/pet_live/show.ex:773
 #, elixir-autogen, elixir-format
 msgid "Contents"
 msgstr "內容物"
@@ -199,7 +199,7 @@ msgstr "內容物"
 msgid "Could not grant access. Check the details and try again."
 msgstr "無法授予存取權，請確認資料後再試一次。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:89
+#: lib/goodmao2_web/live/pet_live/show.ex:155
 #, elixir-autogen, elixir-format
 msgid "Could not remove that entry."
 msgstr "無法移除該筆紀錄。"
@@ -225,12 +225,12 @@ msgstr "顯示名稱"
 msgid "Dog"
 msgstr "狗"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:525
+#: lib/goodmao2_web/live/pet_live/show.ex:808
 #, elixir-autogen, elixir-format
 msgid "Dose"
 msgstr "劑量"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:415
+#: lib/goodmao2_web/live/pet_live/show.ex:698
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "編輯"
@@ -270,17 +270,17 @@ msgstr "活力"
 msgid "Energy %{level}/5"
 msgstr "活力 %{level}/5"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:513
+#: lib/goodmao2_web/live/pet_live/show.ex:796
 #, elixir-autogen, elixir-format
 msgid "Energy level"
 msgstr "活力程度"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:87
+#: lib/goodmao2_web/live/pet_live/show.ex:153
 #, elixir-autogen, elixir-format
 msgid "Entry removed."
 msgstr "已移除紀錄。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:486
+#: lib/goodmao2_web/live/pet_live/show.ex:769
 #, elixir-autogen, elixir-format
 msgid "Episodes"
 msgstr "次數"
@@ -300,14 +300,14 @@ msgstr "家人與寵物保姆即時協作；也可為看診授予獸醫有時限
 msgid "Female"
 msgstr "母"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:295
+#: lib/goodmao2_web/live/pet_live/show.ex:405
 #, elixir-autogen, elixir-format
 msgid "Filter by type"
 msgstr "依類型篩選"
 
 #: lib/goodmao2_web/helpers.ex:65
-#: lib/goodmao2_web/helpers.ex:188
-#: lib/goodmao2_web/live/pet_live/show.ex:438
+#: lib/goodmao2_web/helpers.ex:243
+#: lib/goodmao2_web/live/pet_live/show.ex:721
 #, elixir-autogen, elixir-format
 msgid "Food"
 msgstr "飲食"
@@ -337,7 +337,7 @@ msgstr "授予存取權"
 msgid "Grant not found."
 msgstr "找不到該存取權。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:451
+#: lib/goodmao2_web/live/pet_live/show.ex:734
 #, elixir-autogen, elixir-format
 msgid "High"
 msgstr "偏多"
@@ -347,7 +347,7 @@ msgstr "偏多"
 msgid "High intake"
 msgstr "飲水偏多"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:450
+#: lib/goodmao2_web/live/pet_live/show.ex:733
 #, elixir-autogen, elixir-format
 msgid "Intake"
 msgstr "飲水量"
@@ -357,7 +357,7 @@ msgstr "飲水量"
 msgid "Invite someone"
 msgstr "邀請他人"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:464
+#: lib/goodmao2_web/live/pet_live/show.ex:747
 #, elixir-autogen, elixir-format
 msgid "Kind"
 msgstr "類型"
@@ -367,7 +367,7 @@ msgstr "類型"
 msgid "Limited"
 msgstr "限定"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:278
+#: lib/goodmao2_web/live/pet_live/show.ex:354
 #, elixir-autogen, elixir-format
 msgid "Log %{type}"
 msgstr "記錄%{type}"
@@ -386,12 +386,12 @@ msgstr "登入"
 msgid "Log out"
 msgstr "登出"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:212
+#: lib/goodmao2_web/live/pet_live/show.ex:288
 #, elixir-autogen, elixir-format
 msgid "Log type"
 msgstr "紀錄類型"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:114
+#: lib/goodmao2_web/live/pet_live/show.ex:180
 #, elixir-autogen, elixir-format
 msgid "Logged."
 msgstr "已記錄。"
@@ -401,7 +401,7 @@ msgstr "已記錄。"
 msgid "Lost"
 msgstr "走失"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:451
+#: lib/goodmao2_web/live/pet_live/show.ex:734
 #, elixir-autogen, elixir-format
 msgid "Low"
 msgstr "偏少"
@@ -417,12 +417,12 @@ msgid "Male"
 msgstr "公"
 
 #: lib/goodmao2_web/helpers.ex:71
-#: lib/goodmao2_web/live/pet_live/show.ex:524
+#: lib/goodmao2_web/live/pet_live/show.ex:807
 #, elixir-autogen, elixir-format
 msgid "Medication"
 msgstr "用藥"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:516
+#: lib/goodmao2_web/live/pet_live/show.ex:799
 #, elixir-autogen, elixir-format
 msgid "Mood"
 msgstr "情緒"
@@ -449,7 +449,7 @@ msgstr "已絕育"
 msgid "No account matches that handle or email."
 msgstr "找不到符合該代號或電子郵件的帳號。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:310
+#: lib/goodmao2_web/live/pet_live/show.ex:431
 #, elixir-autogen, elixir-format
 msgid "No entries yet. Use Quick log above to start recording."
 msgstr "尚無任何紀錄。使用上方的快速記錄開始吧。"
@@ -469,7 +469,7 @@ msgstr "目前沒有過往的毛孩。已結束照護的寵物紀錄會顯示在
 msgid "No pets yet. Add your first companion to start their timeline."
 msgstr "還沒有寵物。新增你的第一位夥伴，開始牠的時間軸。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:451
+#: lib/goodmao2_web/live/pet_live/show.ex:734
 #, elixir-autogen, elixir-format
 msgid "Normal"
 msgstr "正常"
@@ -484,12 +484,12 @@ msgstr "飲水正常"
 msgid "Not allowed."
 msgstr "沒有權限。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:252
+#: lib/goodmao2_web/live/pet_live/show.ex:328
 #, elixir-autogen, elixir-format
 msgid "Note"
 msgstr "備註"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:205
+#: lib/goodmao2_web/live/pet_live/show.ex:281
 #, elixir-autogen, elixir-format
 msgid "One tap to record what just happened."
 msgstr "一鍵記錄剛剛發生的事。"
@@ -527,7 +527,7 @@ msgstr "過往的毛孩"
 msgid "People with access"
 msgstr "有存取權的人"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:406
+#: lib/goodmao2_web/live/pet_live/show.ex:689
 #, elixir-autogen, elixir-format
 msgid "Pet actions"
 msgstr "寵物操作"
@@ -535,12 +535,12 @@ msgstr "寵物操作"
 #: lib/goodmao2_web/live/pet_live/access.ex:27
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:26
 #: lib/goodmao2_web/live/pet_live/form.ex:37
-#: lib/goodmao2_web/live/pet_live/show.ex:40
+#: lib/goodmao2_web/live/pet_live/show.ex:46
 #, elixir-autogen, elixir-format
 msgid "Pet not found."
 msgstr "找不到寵物。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:439
+#: lib/goodmao2_web/live/pet_live/show.ex:722
 #, elixir-autogen, elixir-format
 msgid "Portion (g)"
 msgstr "份量（公克）"
@@ -570,17 +570,17 @@ msgstr "公開"
 msgid "Public @handle"
 msgstr "公開 @代號"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:203
+#: lib/goodmao2_web/live/pet_live/show.ex:279
 #, elixir-autogen, elixir-format
 msgid "Quick log"
 msgstr "快速記錄"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:435
+#: lib/goodmao2_web/live/pet_live/show.ex:718
 #, elixir-autogen, elixir-format
 msgid "Refused"
 msgstr "拒食"
 
-#: lib/goodmao2_web/helpers.ex:187
+#: lib/goodmao2_web/helpers.ex:242
 #, elixir-autogen, elixir-format
 msgid "Refused food"
 msgstr "拒絕進食"
@@ -590,12 +590,12 @@ msgstr "拒絕進食"
 msgid "Rehomed"
 msgstr "已送養"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:350
+#: lib/goodmao2_web/live/pet_live/show.ex:488
 #, elixir-autogen, elixir-format
 msgid "Remove entry"
 msgstr "移除紀錄"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:348
+#: lib/goodmao2_web/live/pet_live/show.ex:486
 #, elixir-autogen, elixir-format
 msgid "Remove this entry?"
 msgstr "要移除這筆紀錄嗎？"
@@ -644,12 +644,12 @@ msgstr "儲存中..."
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:107
 #: lib/goodmao2_web/live/pet_live/form.ex:143
-#: lib/goodmao2_web/live/pet_live/show.ex:276
+#: lib/goodmao2_web/live/pet_live/show.ex:352
 #, elixir-autogen, elixir-format
 msgid "Saving…"
 msgstr "儲存中…"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:537
+#: lib/goodmao2_web/live/pet_live/show.ex:820
 #, elixir-autogen, elixir-format
 msgid "Severity"
 msgstr "嚴重程度"
@@ -664,7 +664,7 @@ msgstr "性別"
 msgid "Shared care"
 msgstr "共同照護"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:412
+#: lib/goodmao2_web/live/pet_live/show.ex:695
 #, elixir-autogen, elixir-format
 msgid "Sharing"
 msgstr "分享"
@@ -696,23 +696,23 @@ msgid "Status"
 msgstr "狀態"
 
 #: lib/goodmao2_web/helpers.ex:119
-#: lib/goodmao2_web/live/pet_live/show.ex:465
+#: lib/goodmao2_web/live/pet_live/show.ex:748
 #, elixir-autogen, elixir-format
 msgid "Stool"
 msgstr "糞便"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:474
+#: lib/goodmao2_web/live/pet_live/show.ex:757
 #, elixir-autogen, elixir-format
 msgid "Straining (⚠ cat emergency)"
 msgstr "用力排尿／便（⚠ 貓咪緊急狀況）"
 
 #: lib/goodmao2_web/helpers.ex:72
-#: lib/goodmao2_web/live/pet_live/show.ex:533
+#: lib/goodmao2_web/live/pet_live/show.ex:816
 #, elixir-autogen, elixir-format
 msgid "Symptom"
 msgstr "症狀"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:291
+#: lib/goodmao2_web/live/pet_live/show.ex:367
 #, elixir-autogen, elixir-format
 msgid "Timeline"
 msgstr "時間軸"
@@ -728,7 +728,7 @@ msgid "Unknown"
 msgstr "未知"
 
 #: lib/goodmao2_web/helpers.ex:118
-#: lib/goodmao2_web/live/pet_live/show.ex:465
+#: lib/goodmao2_web/live/pet_live/show.ex:748
 #, elixir-autogen, elixir-format
 msgid "Urine"
 msgstr "尿液"
@@ -748,12 +748,12 @@ msgstr "獸醫"
 msgid "Viewer"
 msgstr "檢視者"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:265
+#: lib/goodmao2_web/live/pet_live/show.ex:341
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr "可見範圍"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:453
+#: lib/goodmao2_web/live/pet_live/show.ex:736
 #, elixir-autogen, elixir-format
 msgid "Volume (ml)"
 msgstr "容量（毫升）"
@@ -780,7 +780,7 @@ msgstr "找不到網際網路連線"
 msgid "Weight"
 msgstr "體重"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:500
+#: lib/goodmao2_web/live/pet_live/show.ex:783
 #, elixir-autogen, elixir-format
 msgid "Weight (grams)"
 msgstr "體重（公克）"
@@ -795,7 +795,7 @@ msgstr "體重單位"
 msgid "What GoodMao does"
 msgstr "顧毛能做什麼"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:259
+#: lib/goodmao2_web/live/pet_live/show.ex:335
 #, elixir-autogen, elixir-format
 msgid "When"
 msgstr "時間"
@@ -810,7 +810,7 @@ msgstr "照護結束時間（選填，預設為現在）"
 msgid "You are not allowed to edit this pet."
 msgstr "你沒有編輯這隻寵物的權限。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:122
+#: lib/goodmao2_web/live/pet_live/show.ex:188
 #, elixir-autogen, elixir-format
 msgid "You are not allowed to log for this pet."
 msgstr "你沒有為這隻寵物記錄的權限。"
@@ -850,7 +850,7 @@ msgstr "公斤"
 msgid "pounds"
 msgstr "磅"
 
-#: lib/goodmao2_web/helpers.ex:197
+#: lib/goodmao2_web/helpers.ex:252
 #, elixir-autogen, elixir-format
 msgid "severity %{s}/5"
 msgstr "嚴重度 %{s}/5"
@@ -893,7 +893,7 @@ msgstr "跟隨系統主題"
 msgid "Skip to content"
 msgstr "跳至主要內容"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:190
+#: lib/goodmao2_web/live/pet_live/show.ex:266
 #, elixir-autogen, elixir-format
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
 msgstr "這隻寵物的歷史紀錄已隱藏。在飼主從「編輯」重新開啟前，時間軸將無法檢視。"
@@ -968,7 +968,7 @@ msgstr "密碼在專屬頁面管理。"
 msgid "← Back to account settings"
 msgstr "← 返回帳號設定"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:549
+#: lib/goodmao2_web/live/pet_live/show.ex:832
 #, elixir-autogen, elixir-format
 msgid "What happened?"
 msgstr "發生了什麼事？"
@@ -1202,3 +1202,169 @@ msgstr "放大文字"
 #, elixir-autogen, elixir-format
 msgid "Text size"
 msgstr "文字大小"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:851
+#, elixir-autogen, elixir-format
+msgid "%{count} entry"
+msgid_plural "%{count} entries"
+msgstr[0] "%{count} 筆記錄"
+
+#: lib/goodmao2_web/helpers.ex:213
+#, elixir-autogen, elixir-format
+msgid "%{month} %{day}, %{year}"
+msgstr "%{year}年%{month}%{day}日"
+
+#: lib/goodmao2_web/helpers.ex:208
+#, elixir-autogen, elixir-format
+msgid "%{month} %{year}"
+msgstr "%{year}年%{month}"
+
+#: lib/goodmao2_web/helpers.ex:219
+#, elixir-autogen, elixir-format
+msgid "April"
+msgstr "4月"
+
+#: lib/goodmao2_web/helpers.ex:223
+#, elixir-autogen, elixir-format
+msgid "August"
+msgstr "8月"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:571
+#, elixir-autogen, elixir-format
+msgid "Back to month"
+msgstr "返回當月"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:399
+#, elixir-autogen, elixir-format
+msgid "Calendar"
+msgstr "日曆"
+
+#: lib/goodmao2_web/helpers.ex:227
+#, elixir-autogen, elixir-format
+msgid "December"
+msgstr "12月"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:537
+#, elixir-autogen, elixir-format
+msgid "Entries for %{month}"
+msgstr "%{month}的記錄"
+
+#: lib/goodmao2_web/helpers.ex:217
+#, elixir-autogen, elixir-format
+msgid "February"
+msgstr "2月"
+
+#: lib/goodmao2_web/helpers.ex:235
+#, elixir-autogen, elixir-format
+msgid "Fri"
+msgstr "五"
+
+#: lib/goodmao2_web/helpers.ex:216
+#, elixir-autogen, elixir-format
+msgid "January"
+msgstr "1月"
+
+#: lib/goodmao2_web/helpers.ex:222
+#, elixir-autogen, elixir-format
+msgid "July"
+msgstr "7月"
+
+#: lib/goodmao2_web/helpers.ex:221
+#, elixir-autogen, elixir-format
+msgid "June"
+msgstr "6月"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:386
+#, elixir-autogen, elixir-format
+msgid "List"
+msgstr "列表"
+
+#: lib/goodmao2_web/helpers.ex:218
+#, elixir-autogen, elixir-format
+msgid "March"
+msgstr "3月"
+
+#: lib/goodmao2_web/helpers.ex:220
+#, elixir-autogen, elixir-format
+msgid "May"
+msgstr "5月"
+
+#: lib/goodmao2_web/helpers.ex:231
+#, elixir-autogen, elixir-format
+msgid "Mon"
+msgstr "一"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:511
+#, elixir-autogen, elixir-format
+msgid "Month navigation"
+msgstr "月份導覽"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:530
+#, elixir-autogen, elixir-format
+msgid "Next month"
+msgstr "下個月"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:575
+#, elixir-autogen, elixir-format
+msgid "No entries on this day."
+msgstr "這一天沒有記錄。"
+
+#: lib/goodmao2_web/helpers.ex:226
+#, elixir-autogen, elixir-format
+msgid "November"
+msgstr "11月"
+
+#: lib/goodmao2_web/helpers.ex:225
+#, elixir-autogen, elixir-format
+msgid "October"
+msgstr "10月"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:519
+#, elixir-autogen, elixir-format
+msgid "Previous month"
+msgstr "上個月"
+
+#: lib/goodmao2_web/helpers.ex:236
+#, elixir-autogen, elixir-format
+msgid "Sat"
+msgstr "六"
+
+#: lib/goodmao2_web/helpers.ex:224
+#, elixir-autogen, elixir-format
+msgid "September"
+msgstr "9月"
+
+#: lib/goodmao2_web/helpers.ex:230
+#, elixir-autogen, elixir-format
+msgid "Sun"
+msgstr "日"
+
+#: lib/goodmao2_web/helpers.ex:234
+#, elixir-autogen, elixir-format
+msgid "Thu"
+msgstr "四"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:372
+#, elixir-autogen, elixir-format
+msgid "Timeline view"
+msgstr "時間軸檢視"
+
+#: lib/goodmao2_web/helpers.ex:232
+#, elixir-autogen, elixir-format
+msgid "Tue"
+msgstr "二"
+
+#: lib/goodmao2_web/helpers.ex:233
+#, elixir-autogen, elixir-format
+msgid "Wed"
+msgstr "三"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:854
+#, elixir-autogen, elixir-format
+msgid "urgent"
+msgstr "緊急"
+
+#: lib/goodmao2_web/live/pet_live/show.ex:855
+#, elixir-autogen, elixir-format
+msgid "worth watching"
+msgstr "需留意"

@@ -9,6 +9,7 @@ defmodule Goodmao2Web.PetLive.Show do
 
   alias Goodmao2.{Logs, Pets}
   alias Goodmao2.Logs.LogEntry
+  alias Goodmao2Web.CalendarGrid
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -29,6 +30,11 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:can_write?, Pets.can?(pet, user, :write))
          |> assign(:can_manage?, Pets.can?(pet, user, :manage))
          |> assign(:filter, "all")
+         |> assign(:view, "list")
+         |> assign(:cal_month, CalendarGrid.month_of(Date.utc_today()))
+         |> assign(:selected_day, nil)
+         |> assign(:month_entries, [])
+         |> assign(:day_buckets, %{})
          |> assign(:quicklog_type, "food")
          |> assign(:quick_form, to_form(%{}, as: :log))
          |> assign(:quick_error, nil)
@@ -51,9 +57,68 @@ defmodule Goodmao2Web.PetLive.Show do
     |> assign(:entries_empty?, entries == [])
   end
 
+  # Load just the visible month grid's entries (with the active type filter) and bucket
+  # them by UTC day for the calendar's per-day count and clinical-flag cues.
+  defp load_month(socket) do
+    user = socket.assigns.current_scope.user
+    {from, to} = CalendarGrid.grid_range(socket.assigns.cal_month)
+
+    entries =
+      Logs.list_entries(user, socket.assigns.pet,
+        type: socket.assigns.filter,
+        from: from,
+        to: to,
+        limit: 500
+      )
+
+    socket
+    |> assign(:month_entries, entries)
+    |> assign(:day_buckets, day_buckets(entries))
+  end
+
+  defp day_buckets(entries) do
+    Enum.reduce(entries, %{}, fn entry, acc ->
+      day = DateTime.to_date(entry.occurred_at)
+      info = Map.get(acc, day, %{count: 0, level: nil})
+
+      Map.put(acc, day, %{
+        count: info.count + 1,
+        level: escalate(info.level, clinical_level(entry))
+      })
+    end)
+  end
+
   @impl true
   def handle_event("filter", %{"type" => type}, socket) do
-    {:noreply, socket |> assign(:filter, type) |> load_entries()}
+    socket = socket |> assign(:filter, type) |> load_entries()
+    {:noreply, if(socket.assigns.view == "calendar", do: load_month(socket), else: socket)}
+  end
+
+  # Switch between the chronological list and the month grid. Returning to the list
+  # re-streams (the container was removed from the DOM); opening the calendar loads its month.
+  def handle_event("set_view", %{"view" => "calendar"}, socket) do
+    {:noreply, socket |> assign(:view, "calendar") |> load_month()}
+  end
+
+  def handle_event("set_view", %{"view" => _list}, socket) do
+    {:noreply, socket |> assign(:view, "list") |> assign(:selected_day, nil) |> load_entries()}
+  end
+
+  def handle_event("cal_month", %{"delta" => delta}, socket) do
+    month = CalendarGrid.add_months(socket.assigns.cal_month, String.to_integer(delta))
+
+    {:noreply, socket |> assign(:cal_month, month) |> assign(:selected_day, nil) |> load_month()}
+  end
+
+  def handle_event("select_day", %{"day" => day}, socket) do
+    case Date.from_iso8601(day) do
+      {:ok, date} -> {:noreply, assign(socket, :selected_day, date)}
+      _ -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("clear_day", _params, socket) do
+    {:noreply, assign(socket, :selected_day, nil)}
   end
 
   def handle_event("select_type", %{"type" => type}, socket) do
@@ -125,28 +190,38 @@ defmodule Goodmao2Web.PetLive.Show do
 
   @impl true
   def handle_info({:entry_created, entry}, socket) do
-    if visible_here?(socket, entry) and matches_filter?(entry, socket.assigns.filter) do
-      {:noreply,
-       socket |> stream_insert(:entries, entry, at: 0) |> assign(:entries_empty?, false)}
-    else
-      {:noreply, socket}
-    end
+    socket =
+      if visible_here?(socket, entry) and matches_filter?(entry, socket.assigns.filter) do
+        socket |> stream_insert(:entries, entry, at: 0) |> assign(:entries_empty?, false)
+      else
+        socket
+      end
+
+    {:noreply, maybe_refresh_month(socket)}
   end
 
   def handle_info({:entry_updated, entry}, socket) do
     # An edit can flip visibility, so drop an entry this viewer may no longer see.
-    if visible_here?(socket, entry) do
-      {:noreply, stream_insert(socket, :entries, entry)}
-    else
-      {:noreply, stream_delete(socket, :entries, entry)}
-    end
+    socket =
+      if visible_here?(socket, entry) do
+        stream_insert(socket, :entries, entry)
+      else
+        stream_delete(socket, :entries, entry)
+      end
+
+    {:noreply, maybe_refresh_month(socket)}
   end
 
   def handle_info({:entry_deleted, entry}, socket) do
-    {:noreply, stream_delete(socket, :entries, entry)}
+    {:noreply, socket |> stream_delete(:entries, entry) |> maybe_refresh_month()}
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+  # In calendar view, a live create/update/delete can change the month's day buckets — and
+  # the drilled-down day list — so recompute from the DB. Cheap at a pet's log rate.
+  defp maybe_refresh_month(%{assigns: %{view: "calendar"}} = socket), do: load_month(socket)
+  defp maybe_refresh_month(socket), do: socket
 
   # Applies the same per-entry visibility rule as the DB read to PubSub-pushed entries.
   defp visible_here?(socket, entry) do
@@ -287,8 +362,42 @@ defmodule Goodmao2Web.PetLive.Show do
         aria-labelledby="timeline-heading"
         class="mt-6"
       >
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
           <h2 id="timeline-heading" class="text-lg font-semibold">{gettext("Timeline")}</h2>
+
+          <div
+            id="timeline-view-toggle"
+            role="group"
+            aria-label={gettext("Timeline view")}
+            class="join"
+          >
+            <button
+              type="button"
+              id="view-list"
+              phx-click="set_view"
+              phx-value-view="list"
+              aria-pressed={to_string(@view == "list")}
+              class={[
+                "join-item btn btn-sm",
+                (@view == "list" && "btn-primary") || "btn-ghost"
+              ]}
+            >
+              <.icon name="hero-list-bullet" class="size-4" /> {gettext("List")}
+            </button>
+            <button
+              type="button"
+              id="view-calendar"
+              phx-click="set_view"
+              phx-value-view="calendar"
+              aria-pressed={to_string(@view == "calendar")}
+              class={[
+                "join-item btn btn-sm",
+                (@view == "calendar" && "btn-primary") || "btn-ghost"
+              ]}
+            >
+              <.icon name="hero-calendar-days" class="size-4" /> {gettext("Calendar")}
+            </button>
+          </div>
         </div>
 
         <form id="timeline-filter" phx-change="filter" class="mt-2">
@@ -305,7 +414,18 @@ defmodule Goodmao2Web.PetLive.Show do
           </select>
         </form>
 
-        <ol id="timeline" phx-update="stream" class="mt-4 space-y-2">
+        <.log_calendar
+          :if={@view == "calendar"}
+          month={@cal_month}
+          grid={CalendarGrid.month_grid(@cal_month)}
+          buckets={@day_buckets}
+          selected_day={@selected_day}
+          today={Date.utc_today()}
+          day_entries={selected_day_entries(@month_entries, @selected_day)}
+          can_write?={@can_write?}
+        />
+
+        <ol :if={@view == "list"} id="timeline" phx-update="stream" class="mt-4 space-y-2">
           <li class="hidden only:block text-base-content/60 py-8 text-center" id="timeline-empty">
             {gettext("No entries yet. Use Quick log above to start recording.")}
           </li>
@@ -314,44 +434,7 @@ defmodule Goodmao2Web.PetLive.Show do
             id={dom_id}
             class="timeline-entry card card-border bg-base-100"
           >
-            <div class="card-body flex-row items-start gap-3 p-3">
-              <span class={"timeline-entry-icon mt-0.5 shrink-0 rounded-full bg-base-200 p-2 " <> entry_tone(entry)}>
-                <.icon name={log_type_icon(entry.type)} class="size-4" />
-              </span>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <span class="timeline-entry-type font-medium">{log_type_label(entry.type)}</span>
-                  <span
-                    :if={entry.visibility != "limited"}
-                    class="timeline-entry-visibility badge badge-ghost badge-xs"
-                  >
-                    {translate_visibility(entry.visibility)}
-                  </span>
-                </div>
-                <p class="timeline-entry-summary text-sm break-words">{log_summary(entry)}</p>
-                <p
-                  :if={entry.note}
-                  class="timeline-entry-note text-base-content/70 mt-1 text-sm break-words"
-                >
-                  {entry.note}
-                </p>
-                <p class="timeline-entry-time text-base-content/50 mt-1 text-xs">
-                  {format_datetime(entry.occurred_at)}
-                </p>
-              </div>
-              <button
-                :if={@can_write?}
-                type="button"
-                id={"delete-entry-#{entry.id}"}
-                phx-click="delete_entry"
-                phx-value-id={entry.id}
-                data-confirm={gettext("Remove this entry?")}
-                class="timeline-entry-delete btn btn-ghost btn-xs"
-                aria-label={gettext("Remove entry")}
-              >
-                <.icon name="hero-trash" class="size-4" />
-              </button>
-            </div>
+            <.timeline_entry_card entry={entry} can_write?={@can_write?} />
           </li>
         </ol>
       </section>
@@ -360,6 +443,211 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   ## Function components
+
+  # One timeline entry's card body — shared by the streamed list and the calendar's
+  # per-day drill-down so both render identically.
+  attr :entry, :map, required: true
+  attr :can_write?, :boolean, default: false
+
+  defp timeline_entry_card(assigns) do
+    ~H"""
+    <div class="card-body flex-row items-start gap-3 p-3">
+      <span class={"timeline-entry-icon mt-0.5 shrink-0 rounded-full bg-base-200 p-2 " <> entry_tone(@entry)}>
+        <.icon name={log_type_icon(@entry.type)} class="size-4" />
+      </span>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <span class="timeline-entry-type font-medium">{log_type_label(@entry.type)}</span>
+          <span
+            :if={@entry.visibility != "limited"}
+            class="timeline-entry-visibility badge badge-ghost badge-xs"
+          >
+            {translate_visibility(@entry.visibility)}
+          </span>
+        </div>
+        <p class="timeline-entry-summary text-sm break-words">{log_summary(@entry)}</p>
+        <p
+          :if={@entry.note}
+          class="timeline-entry-note text-base-content/70 mt-1 text-sm break-words"
+        >
+          {@entry.note}
+        </p>
+        <p class="timeline-entry-time text-base-content/50 mt-1 text-xs">
+          {format_datetime(@entry.occurred_at)}
+        </p>
+      </div>
+      <button
+        :if={@can_write?}
+        type="button"
+        id={"delete-entry-#{@entry.id}"}
+        phx-click="delete_entry"
+        phx-value-id={@entry.id}
+        data-confirm={gettext("Remove this entry?")}
+        class="timeline-entry-delete btn btn-ghost btn-xs"
+        aria-label={gettext("Remove entry")}
+      >
+        <.icon name="hero-trash" class="size-4" />
+      </button>
+    </div>
+    """
+  end
+
+  # The month grid: prev/next nav, a Sunday-first weekday header, a 6×7 day table, and —
+  # when a day is picked — that day's entries below.
+  attr :month, Date, required: true
+  attr :grid, :list, required: true
+  attr :buckets, :map, required: true
+  attr :selected_day, Date, default: nil
+  attr :today, Date, required: true
+  attr :day_entries, :list, default: []
+  attr :can_write?, :boolean, default: false
+
+  defp log_calendar(assigns) do
+    ~H"""
+    <div id="timeline-calendar" class="mt-4">
+      <nav
+        class="flex items-center justify-between gap-2"
+        aria-label={gettext("Month navigation")}
+      >
+        <button
+          type="button"
+          id="cal-prev"
+          phx-click="cal_month"
+          phx-value-delta="-1"
+          class="btn btn-ghost btn-sm btn-circle"
+          aria-label={gettext("Previous month")}
+        >
+          <.icon name="hero-chevron-left" class="size-4" />
+        </button>
+        <span id="cal-month-label" class="font-semibold">{month_label(@month)}</span>
+        <button
+          type="button"
+          id="cal-next"
+          phx-click="cal_month"
+          phx-value-delta="1"
+          class="btn btn-ghost btn-sm btn-circle"
+          aria-label={gettext("Next month")}
+        >
+          <.icon name="hero-chevron-right" class="size-4" />
+        </button>
+      </nav>
+
+      <table class="mt-3 w-full table-fixed border-collapse">
+        <caption class="sr-only">
+          {gettext("Entries for %{month}", month: month_label(@month))}
+        </caption>
+        <thead>
+          <tr>
+            <th
+              :for={i <- 0..6}
+              scope="col"
+              class="text-base-content/60 p-1 text-center text-xs font-semibold"
+            >
+              {weekday_short(i)}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={week <- @grid}>
+            <td
+              :for={date <- week}
+              class="border-base-200 h-16 border p-0 align-top"
+            >
+              <.cal_cell
+                date={date}
+                month={@month}
+                buckets={@buckets}
+                selected_day={@selected_day}
+                today={@today}
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div :if={@selected_day} id="cal-day-detail" class="mt-4">
+        <div class="flex items-center justify-between gap-2">
+          <h3 id="cal-day-heading" class="font-semibold">{day_label(@selected_day)}</h3>
+          <button type="button" id="cal-day-clear" phx-click="clear_day" class="btn btn-ghost btn-xs">
+            {gettext("Back to month")}
+          </button>
+        </div>
+        <p :if={@day_entries == []} class="text-base-content/60 py-4 text-sm">
+          {gettext("No entries on this day.")}
+        </p>
+        <ol :if={@day_entries != []} class="mt-2 space-y-2">
+          <li
+            :for={entry <- @day_entries}
+            id={"day-entry-#{entry.id}"}
+            class="timeline-entry card card-border bg-base-100"
+          >
+            <.timeline_entry_card entry={entry} can_write?={@can_write?} />
+          </li>
+        </ol>
+      </div>
+    </div>
+    """
+  end
+
+  # A single day tile. Days with entries are keyboard-operable buttons that drill in; the
+  # count pill and (for a flagged day) an icon carry the clinical cue — never colour alone.
+  attr :date, Date, required: true
+  attr :month, Date, required: true
+  attr :buckets, :map, required: true
+  attr :selected_day, Date, default: nil
+  attr :today, Date, required: true
+
+  defp cal_cell(assigns) do
+    in_month =
+      assigns.date.month == assigns.month.month and assigns.date.year == assigns.month.year
+
+    assigns =
+      assign(assigns,
+        in_month: in_month,
+        info: (in_month && Map.get(assigns.buckets, assigns.date)) || nil,
+        today?: assigns.date == assigns.today,
+        selected?: assigns.date == assigns.selected_day
+      )
+
+    ~H"""
+    <button
+      :if={@info}
+      type="button"
+      id={"cal-day-#{Date.to_iso8601(@date)}"}
+      phx-click="select_day"
+      phx-value-day={Date.to_iso8601(@date)}
+      aria-current={(@selected? && "true") || (@today? && "date") || nil}
+      aria-label={day_cell_aria(@date, @info)}
+      class={[
+        "cal-day flex h-full w-full flex-col justify-between p-1 text-left hover:bg-base-200",
+        @selected? && "bg-base-300",
+        @today? && "ring-primary ring-2 ring-inset"
+      ]}
+    >
+      <span class="text-xs">{@date.day}</span>
+      <span class="flex items-center gap-1" aria-hidden="true">
+        <span class={["badge badge-sm", cal_count_class(@info.level)]}>{@info.count}</span>
+        <.icon
+          :if={@info.level == :urgent}
+          name="hero-exclamation-triangle"
+          class="text-error size-4"
+        />
+        <.icon :if={@info.level == :watch} name="hero-exclamation-circle" class="text-warning size-4" />
+      </span>
+    </button>
+    <div
+      :if={!@info}
+      aria-current={(@today? && "date") || nil}
+      class={[
+        "cal-day flex h-full flex-col p-1",
+        !@in_month && "text-base-content/30",
+        @today? && "ring-primary ring-2 ring-inset"
+      ]}
+    >
+      <span class="text-xs">{@date.day}</span>
+    </div>
+    """
+  end
 
   attr :pet, :map, required: true
   attr :role, :string, default: nil
@@ -554,6 +842,29 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   defp quicklog_fields(assigns), do: ~H""
+
+  # The (already-loaded) month entries that fall on the picked day, UTC-bucketed like the grid.
+  defp selected_day_entries(_entries, nil), do: []
+
+  defp selected_day_entries(entries, %Date{} = day) do
+    Enum.filter(entries, &(DateTime.to_date(&1.occurred_at) == day))
+  end
+
+  defp day_cell_aria(date, %{count: count, level: level}) do
+    base =
+      day_label(date) <>
+        ": " <> ngettext("%{count} entry", "%{count} entries", count, count: count)
+
+    case level do
+      :urgent -> base <> ", " <> gettext("urgent")
+      :watch -> base <> ", " <> gettext("worth watching")
+      _ -> base
+    end
+  end
+
+  defp cal_count_class(:urgent), do: "badge-error"
+  defp cal_count_class(:watch), do: "badge-warning"
+  defp cal_count_class(_), do: "badge-ghost"
 
   # A subtle colour tint for clinically-urgent entry types.
   defp entry_tone(%{type: "vomit"}), do: "text-warning"

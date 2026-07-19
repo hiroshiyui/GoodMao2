@@ -145,6 +145,75 @@ defmodule Goodmao2Web.PetLiveTest do
     end
   end
 
+  describe "Show timeline calendar view" do
+    test "toggles between the list and the calendar", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # List is the default.
+      assert has_element?(lv, "#timeline")
+      refute has_element?(lv, "#timeline-calendar")
+
+      lv |> element("#view-calendar") |> render_click()
+      assert has_element?(lv, "#timeline-calendar")
+      refute has_element?(lv, "#timeline")
+
+      lv |> element("#view-list") |> render_click()
+      assert has_element?(lv, "#timeline")
+      refute has_element?(lv, "#timeline-calendar")
+    end
+
+    test "a day with entries is selectable and drills into that day", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      today = Date.utc_today() |> Date.to_iso8601()
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#view-calendar") |> render_click()
+
+      assert has_element?(lv, "#cal-day-#{today}")
+      refute has_element?(lv, "#cal-day-detail")
+
+      lv |> element("#cal-day-#{today}") |> render_click()
+      assert has_element?(lv, "#cal-day-detail")
+      assert has_element?(lv, "#cal-day-detail .timeline-entry-type", "Food")
+
+      lv |> element("#cal-day-clear") |> render_click()
+      refute has_element?(lv, "#cal-day-detail")
+    end
+
+    test "an urgent clinical day is flagged in its cell", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+
+      log_entry_fixture(user, pet, %{
+        "type" => "bathroom",
+        "data" => %{"kind" => "urine", "straining" => true}
+      })
+
+      today = Date.utc_today() |> Date.to_iso8601()
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#view-calendar") |> render_click()
+
+      # The urgency rides in the accessible name, not colour alone.
+      assert has_element?(lv, "#cal-day-#{today}[aria-label*='urgent']")
+    end
+
+    test "month navigation moves off the current month", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      today = Date.utc_today() |> Date.to_iso8601()
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#view-calendar") |> render_click()
+      assert has_element?(lv, "#cal-day-#{today}")
+
+      # The previous month's grid doesn't contain today, so the day cell disappears.
+      lv |> element("#cal-prev") |> render_click()
+      refute has_element?(lv, "#cal-day-#{today}")
+    end
+  end
+
   describe "authorization" do
     test "accessing another user's pet is reported as not found", %{conn: conn} do
       other = user_fixture()

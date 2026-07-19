@@ -180,6 +180,61 @@ defmodule Goodmao2Web.Helpers do
   def format_date(%DateTime{} = dt), do: Calendar.strftime(dt, "%Y-%m-%d")
   def format_date(%Date{} = d), do: Calendar.strftime(d, "%Y-%m-%d")
 
+  ## Calendar (month-grid timeline view)
+
+  @doc """
+  The clinical urgency an entry contributes to its calendar day cell, or `nil`.
+
+  Ported from GoodMao's `clinicalFlags`: bathroom blood or straining is `:urgent`; any
+  vomiting is `:watch`. The day cell pairs this with an icon, so the tint is never the
+  sole carrier of meaning.
+  """
+  def clinical_level(%{type: "bathroom", data: data}) when is_map(data) do
+    if data["has_blood"] == true or data["straining"] == true, do: :urgent
+  end
+
+  def clinical_level(%{type: "vomit"}), do: :watch
+  def clinical_level(_), do: nil
+
+  @doc "The more severe of two clinical levels (`:urgent` > `:watch` > `nil`)."
+  def escalate(:urgent, _), do: :urgent
+  def escalate(_, :urgent), do: :urgent
+  def escalate(:watch, _), do: :watch
+  def escalate(_, :watch), do: :watch
+  def escalate(_, _), do: nil
+
+  @doc "Localized long month label for a `Date`, e.g. \"July 2026\" / \"2026年7月\"."
+  def month_label(%Date{year: year, month: month}) do
+    gettext("%{month} %{year}", month: month_name(month), year: year)
+  end
+
+  @doc "Localized full-date label for a `Date`, e.g. \"July 18, 2026\" / \"2026年7月18日\"."
+  def day_label(%Date{year: year, month: month, day: day}) do
+    gettext("%{month} %{day}, %{year}", month: month_name(month), day: day, year: year)
+  end
+
+  def month_name(1), do: gettext("January")
+  def month_name(2), do: gettext("February")
+  def month_name(3), do: gettext("March")
+  def month_name(4), do: gettext("April")
+  def month_name(5), do: gettext("May")
+  def month_name(6), do: gettext("June")
+  def month_name(7), do: gettext("July")
+  def month_name(8), do: gettext("August")
+  def month_name(9), do: gettext("September")
+  def month_name(10), do: gettext("October")
+  def month_name(11), do: gettext("November")
+  def month_name(12), do: gettext("December")
+
+  @doc "Short weekday name, Sunday-first (`0` = Sunday .. `6` = Saturday)."
+  def weekday_short(0), do: gettext("Sun")
+  def weekday_short(1), do: gettext("Mon")
+  def weekday_short(2), do: gettext("Tue")
+  def weekday_short(3), do: gettext("Wed")
+  def weekday_short(4), do: gettext("Thu")
+  def weekday_short(5), do: gettext("Fri")
+  def weekday_short(6), do: gettext("Sat")
+
   ## Private
 
   defp translate_food_amount("full"), do: gettext("Ate fully")

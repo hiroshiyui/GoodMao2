@@ -44,6 +44,8 @@ defmodule Goodmao2.Logs do
 
     * `:type` — restrict to a single log type (string), or `nil`/`"all"` for all
     * `:limit` — cap the number of rows (default 200)
+    * `:from` / `:to` — inclusive `DateTime` bounds on `occurred_at` (either optional);
+      used by the calendar view to fetch just the visible month's entries
   """
   def list_entries(%User{} = user, %Pet{} = pet, opts \\ []) do
     if pet.history_hidden do
@@ -60,10 +62,22 @@ defmodule Goodmao2.Logs do
 
       query
       |> filter_by_type(Keyword.get(opts, :type))
+      |> filter_by_range(Keyword.get(opts, :from), Keyword.get(opts, :to))
       |> filter_by_visibility(role, user.id)
       |> Repo.all()
     end
   end
+
+  defp filter_by_range(query, nil, nil), do: query
+
+  defp filter_by_range(query, %DateTime{} = from, nil),
+    do: from(e in query, where: e.occurred_at >= ^from)
+
+  defp filter_by_range(query, nil, %DateTime{} = to),
+    do: from(e in query, where: e.occurred_at <= ^to)
+
+  defp filter_by_range(query, %DateTime{} = from, %DateTime{} = to),
+    do: from(e in query, where: e.occurred_at >= ^from and e.occurred_at <= ^to)
 
   defp filter_by_type(query, type) when is_binary(type) and type != "all",
     do: from(e in query, where: e.type == ^type)

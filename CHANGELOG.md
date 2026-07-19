@@ -10,6 +10,13 @@ skill).
 
 ### Added
 
+- **Calendar view for the pet timeline** — read the timeline as a month grid alongside the
+  chronological list, toggled with a segmented control by the type filter. Each day cell
+  shows its entry count plus an urgent/watch clinical cue (icon **and** colour, never colour
+  alone); picking a day expands that day's entries below the grid. Prev/next month navigation
+  and the active type filter are preserved, and the grid stays live over PubSub. Days are
+  bucketed in UTC to match the list's server-side time rendering. Localized in en / 台灣漢語 /
+  日本語 with locale-aware month and weekday labels. (Ports GoodMao's calendar to LiveView.)
 - **Trilingual UI (English / 台灣漢語 / 日本語)** — per-request locale resolution
   (cookie → `Accept-Language` → default) via a browser plug and a LiveView `on_mount`, a
   header language switcher that persists the choice, `<html lang>` reflection, and a

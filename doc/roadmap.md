@@ -76,7 +76,9 @@ carries authority rather than being anonymous advice.
       **and** read-side `private` filtering (reads + live PubSub; see
       [ADR-0004](adr/0004-log-visibility.md))
 - [x] Vet-authored `vet_note` entries (vet-only)
-- [x] Live, type-filterable timeline via Phoenix PubSub
+- [x] Live, type-filterable timeline via Phoenix PubSub — as a chronological list **or** a
+      month **calendar view** (per-day counts, urgent/watch cues, day drill-down; ports
+      GoodMao's calendar to LiveView)
 - [x] Soft-delete of entries (`deleted_at`)
 - [x] Gettext throughout; `en` populated, `zh_TW` / `ja_JP` scaffolded
 - [x] Test suite (context + LiveView) and `mix precommit` gate; dev seed data
@@ -170,8 +172,8 @@ rejects *and* the legitimate case still passes).
 - [ ] **Oban** for background jobs (janitor, reminders, async media, notification fan-out)
       — deferred until a job actually needs it (supersedes the original's ADR-0006; Phase 1/2)
 - [ ] Weight-unit-aware display + richer `Species` enum (`rabbit` / `bird`); 5-minute
-      clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline
-      `from` / `to` / `offset` query params for the calendar/report views
+      clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline `offset`
+      paging for report views (the `from` / `to` range now backs the shipped calendar view)
 
 ## 10. Engineering & ops maturity
 
