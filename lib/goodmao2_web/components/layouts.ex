@@ -68,7 +68,7 @@ defmodule Goodmao2Web.Layouts do
                 </.link>
               </li>
               <%= if @current_scope.user.is_admin do %>
-                <li>
+                <li class="flex items-center">
                   <span
                     id="nav-admin-badge"
                     class="badge badge-secondary badge-sm"
