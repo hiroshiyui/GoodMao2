@@ -10,6 +10,14 @@ skill).
 
 ### Added
 
+- **Administrator site-overview page** — a standalone, admin-only `/admin` LiveView gated by a
+  new `:require_admin` on_mount that silently redirects non-admins home (IDOR-hidden, never
+  "forbidden"). It shows a read-only overview: the administrator's identity, the registered-user
+  count (`Accounts.count_users/0`), and the first-registration gate status (open vs pinned to a
+  configured site-owner email). The previously decorative nav "Admin" badge is now the link to
+  it (shield icon, shown only to admins). This establishes the admin surface that future
+  oversight features attach to; administration remains a global role that grants no pet-data
+  access. Localized in en / 台灣漢語 / 日本語.
 - **Background jobs (Oban) + a token janitor** — Oban (Postgres-backed) is now supervised
   after the repo, with `Oban.Plugins.Cron` for scheduled work. Its first workload is a daily
   cron (`Goodmao2.Accounts.TokenJanitor`) that prunes expired auth tokens — session (>14d),

@@ -139,13 +139,14 @@ defmodule Goodmao2Web.Layouts do
       </li>
       <%= if @current_scope.user.is_admin do %>
         <li class="flex items-center">
-          <span
+          <.link
+            navigate={~p"/admin"}
             id={"#{@id_prefix}nav-admin-badge"}
-            class="badge badge-secondary badge-sm"
-            title={gettext("Administrator")}
+            class="badge badge-secondary badge-sm gap-1"
+            title={gettext("Administration")}
           >
-            {gettext("Admin")}
-          </span>
+            <.icon name="hero-shield-check" class="size-3" /> {gettext("Admin")}
+          </.link>
         </li>
       <% end %>
       <li>

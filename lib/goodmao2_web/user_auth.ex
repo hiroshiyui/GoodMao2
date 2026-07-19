@@ -193,6 +193,10 @@ defmodule Goodmao2Web.UserAuth do
       on user_token.
       Redirects to login page if there's no logged user.
 
+    * `:require_admin` - Requires the current user to be the global
+      administrator (`is_admin`). Silently redirects non-admins home
+      (IDOR-hidden), so it must run after `:require_authenticated`.
+
   ## Examples
 
   Use the `on_mount` lifecycle macro in LiveViews to mount or authenticate
@@ -242,6 +246,19 @@ defmodule Goodmao2Web.UserAuth do
         |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
 
       {:halt, socket}
+    end
+  end
+
+  def on_mount(:require_admin, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+    user = socket.assigns.current_scope && socket.assigns.current_scope.user
+
+    if user && user.is_admin do
+      {:cont, socket}
+    else
+      # IDOR-hidden: never confirm the admin area exists to a non-admin — just send
+      # them home, no "forbidden" flash (mirrors the pets not-found boundary).
+      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/")}
     end
   end
 

@@ -68,6 +68,10 @@ defmodule Goodmao2Web.Router do
       live "/users/settings/password", UserLive.PasswordSettings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
 
+      # Admin-only site overview; gated per-LiveView by the :require_admin on_mount
+      # (IDOR-hidden — non-admins are redirected home).
+      live "/admin", AdminLive, :index
+
       live "/pets", PetLive.Index, :index
       # A quiet, memorial surface for pets whose care has ended — reached by a subtle
       # link from settings, deliberately kept off the active list (ADR-0003).

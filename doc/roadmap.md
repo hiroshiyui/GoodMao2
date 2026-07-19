@@ -63,6 +63,9 @@ carries authority rather than being anonymous advice.
 ## 4. Shipped — MVP core
 
 - [x] Scope-based auth (`phx.gen.auth`), first user → administrator, editable `@handle`
+- [x] Administrator site-overview page (`/admin`, `:require_admin`-gated, IDOR-hidden) — a
+      read-only oversight surface (user count, admin identity, first-registration gate status);
+      the seam future admin features attach to
 - [x] Pets: create / list / view / edit, coat colour, weight unit
 - [x] Owner-only end-of-care lifecycle (status transition, backdatable `ended_at`, reversible)
 - [x] `history_hidden` opt-in flag — schema, changeset, **and** read/write enforcement

@@ -94,12 +94,12 @@ msgstr ""
 msgid "Add note, time, or visibility"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:147
+#: lib/goodmao2_web/components/layouts.ex:148
 #, elixir-autogen, elixir-format
 msgid "Admin"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:145
+#: lib/goodmao2_web/live/admin_live.ex:27
 #, elixir-autogen, elixir-format
 msgid "Administrator"
 msgstr ""
@@ -126,8 +126,8 @@ msgstr ""
 msgid "Ate partially"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:213
-#: lib/goodmao2_web/components/layouts.ex:225
+#: lib/goodmao2_web/components/layouts.ex:214
+#: lib/goodmao2_web/components/layouts.ex:226
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
@@ -318,7 +318,7 @@ msgstr ""
 msgid "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:182
+#: lib/goodmao2_web/components/layouts.ex:183
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr ""
@@ -373,7 +373,7 @@ msgstr ""
 msgid "Log %{type}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:173
+#: lib/goodmao2_web/components/layouts.ex:174
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
@@ -382,7 +382,7 @@ msgstr ""
 msgid "Log in"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:167
+#: lib/goodmao2_web/components/layouts.ex:168
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr ""
@@ -676,7 +676,7 @@ msgstr ""
 msgid "Sharing %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:220
+#: lib/goodmao2_web/components/layouts.ex:221
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
@@ -770,7 +770,7 @@ msgstr ""
 msgid "Water"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:208
+#: lib/goodmao2_web/components/layouts.ex:209
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
@@ -866,25 +866,25 @@ msgstr ""
 msgid "until %{t}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:343
 #: lib/goodmao2_web/components/layouts.ex:344
+#: lib/goodmao2_web/components/layouts.ex:345
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:106
+#: lib/goodmao2_web/components/layouts.ex:102
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:333
 #: lib/goodmao2_web/components/layouts.ex:334
+#: lib/goodmao2_web/components/layouts.ex:335
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:323
 #: lib/goodmao2_web/components/layouts.ex:324
+#: lib/goodmao2_web/components/layouts.ex:325
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr ""
@@ -989,7 +989,7 @@ msgstr ""
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:247
+#: lib/goodmao2_web/components/layouts.ex:248
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr ""
@@ -1187,19 +1187,19 @@ msgstr ""
 msgid "to your account now."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:290
 #: lib/goodmao2_web/components/layouts.ex:291
+#: lib/goodmao2_web/components/layouts.ex:292
 #, elixir-autogen, elixir-format
 msgid "Decrease text size"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:300
 #: lib/goodmao2_web/components/layouts.ex:301
+#: lib/goodmao2_web/components/layouts.ex:302
 #, elixir-autogen, elixir-format
 msgid "Increase text size"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:283
+#: lib/goodmao2_web/components/layouts.ex:284
 #, elixir-autogen, elixir-format
 msgid "Text size"
 msgstr ""
@@ -1409,4 +1409,50 @@ msgstr ""
 #: lib/goodmao2_web/components/layouts.ex:65
 #, elixir-autogen, elixir-format
 msgid "Menu"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:146
+#: lib/goodmao2_web/live/admin_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Administration"
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:57
+#, elixir-autogen, elixir-format
+msgid "Administration is a global role. It grants no access to any pet's data."
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:44
+#, elixir-autogen, elixir-format
+msgid "Only %{email} may create the first account."
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:47
+#, elixir-autogen, elixir-format
+msgid "Open"
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:22
+#, elixir-autogen, elixir-format
+msgid "Platform overview and site status."
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "Registered users"
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:39
+#, elixir-autogen, elixir-format
+msgid "Registration"
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:42
+#, elixir-autogen, elixir-format
+msgid "Restricted"
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:49
+#, elixir-autogen, elixir-format
+msgid "The first account to register becomes the administrator."
 msgstr ""

@@ -93,12 +93,12 @@ msgstr "ペットを追加"
 msgid "Add note, time, or visibility"
 msgstr "メモ・時刻・公開範囲を追加"
 
-#: lib/goodmao2_web/components/layouts.ex:147
+#: lib/goodmao2_web/components/layouts.ex:148
 #, elixir-autogen, elixir-format
 msgid "Admin"
 msgstr "管理者"
 
-#: lib/goodmao2_web/components/layouts.ex:145
+#: lib/goodmao2_web/live/admin_live.ex:27
 #, elixir-autogen, elixir-format
 msgid "Administrator"
 msgstr "管理者"
@@ -125,8 +125,8 @@ msgstr "完食"
 msgid "Ate partially"
 msgstr "一部食べた"
 
-#: lib/goodmao2_web/components/layouts.ex:213
-#: lib/goodmao2_web/components/layouts.ex:225
+#: lib/goodmao2_web/components/layouts.ex:214
+#: lib/goodmao2_web/components/layouts.ex:226
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "再接続を試みています"
@@ -317,7 +317,7 @@ msgstr "食事"
 msgid "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
 msgstr "食事・水・トイレ・体重・投薬——長い文章ではなく、ワンタップで構造化された記録を。"
 
-#: lib/goodmao2_web/components/layouts.ex:182
+#: lib/goodmao2_web/components/layouts.ex:183
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr "はじめる"
@@ -372,7 +372,7 @@ msgstr "限定"
 msgid "Log %{type}"
 msgstr "%{type}を記録"
 
-#: lib/goodmao2_web/components/layouts.ex:173
+#: lib/goodmao2_web/components/layouts.ex:174
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
@@ -381,7 +381,7 @@ msgstr "%{type}を記録"
 msgid "Log in"
 msgstr "ログイン"
 
-#: lib/goodmao2_web/components/layouts.ex:167
+#: lib/goodmao2_web/components/layouts.ex:168
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr "ログアウト"
@@ -675,7 +675,7 @@ msgstr "共有"
 msgid "Sharing %{name}"
 msgstr "%{name}を共有"
 
-#: lib/goodmao2_web/components/layouts.ex:220
+#: lib/goodmao2_web/components/layouts.ex:221
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "問題が発生しました！"
@@ -769,7 +769,7 @@ msgstr "嘔吐"
 msgid "Water"
 msgstr "水"
 
-#: lib/goodmao2_web/components/layouts.ex:208
+#: lib/goodmao2_web/components/layouts.ex:209
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "インターネットに接続できません"
@@ -865,25 +865,25 @@ msgstr "いきみ ⚠"
 msgid "until %{t}"
 msgstr "%{t}まで"
 
-#: lib/goodmao2_web/components/layouts.ex:343
 #: lib/goodmao2_web/components/layouts.ex:344
+#: lib/goodmao2_web/components/layouts.ex:345
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr "ダークテーマ"
 
-#: lib/goodmao2_web/components/layouts.ex:106
+#: lib/goodmao2_web/components/layouts.ex:102
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr "グッドマオ — 大切なペットのための、共有できる健康タイムライン。"
 
-#: lib/goodmao2_web/components/layouts.ex:333
 #: lib/goodmao2_web/components/layouts.ex:334
+#: lib/goodmao2_web/components/layouts.ex:335
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr "ライトテーマ"
 
-#: lib/goodmao2_web/components/layouts.ex:323
 #: lib/goodmao2_web/components/layouts.ex:324
+#: lib/goodmao2_web/components/layouts.ex:325
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr "システムに合わせる"
@@ -988,7 +988,7 @@ msgstr "あなたのペットへ戻る"
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr "ケアを終えたパートナーたち。その記録とタイムラインは、ここにずっと保管されます。"
 
-#: lib/goodmao2_web/components/layouts.ex:247
+#: lib/goodmao2_web/components/layouts.ex:248
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr "言語を切り替える"
@@ -1186,19 +1186,19 @@ msgstr "メールボックスページ"
 msgid "to your account now."
 msgstr "にログインしましょう。"
 
-#: lib/goodmao2_web/components/layouts.ex:290
 #: lib/goodmao2_web/components/layouts.ex:291
+#: lib/goodmao2_web/components/layouts.ex:292
 #, elixir-autogen, elixir-format
 msgid "Decrease text size"
 msgstr "文字を小さく"
 
-#: lib/goodmao2_web/components/layouts.ex:300
 #: lib/goodmao2_web/components/layouts.ex:301
+#: lib/goodmao2_web/components/layouts.ex:302
 #, elixir-autogen, elixir-format
 msgid "Increase text size"
 msgstr "文字を大きく"
 
-#: lib/goodmao2_web/components/layouts.ex:283
+#: lib/goodmao2_web/components/layouts.ex:284
 #, elixir-autogen, elixir-format
 msgid "Text size"
 msgstr "文字サイズ"
@@ -1408,3 +1408,49 @@ msgstr "水曜日"
 #, elixir-autogen, elixir-format
 msgid "Menu"
 msgstr "メニュー"
+
+#: lib/goodmao2_web/components/layouts.ex:146
+#: lib/goodmao2_web/live/admin_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Administration"
+msgstr "サイト管理"
+
+#: lib/goodmao2_web/live/admin_live.ex:57
+#, elixir-autogen, elixir-format
+msgid "Administration is a global role. It grants no access to any pet's data."
+msgstr "管理はサイト全体の役割です。ペットのデータへのアクセス権は付与されません。"
+
+#: lib/goodmao2_web/live/admin_live.ex:44
+#, elixir-autogen, elixir-format
+msgid "Only %{email} may create the first account."
+msgstr "最初のアカウントを作成できるのは %{email} のみです。"
+
+#: lib/goodmao2_web/live/admin_live.ex:47
+#, elixir-autogen, elixir-format
+msgid "Open"
+msgstr "開放"
+
+#: lib/goodmao2_web/live/admin_live.ex:22
+#, elixir-autogen, elixir-format
+msgid "Platform overview and site status."
+msgstr "プラットフォームの概要とサイトの状態。"
+
+#: lib/goodmao2_web/live/admin_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "Registered users"
+msgstr "登録ユーザー数"
+
+#: lib/goodmao2_web/live/admin_live.ex:39
+#, elixir-autogen, elixir-format
+msgid "Registration"
+msgstr "登録"
+
+#: lib/goodmao2_web/live/admin_live.ex:42
+#, elixir-autogen, elixir-format
+msgid "Restricted"
+msgstr "制限あり"
+
+#: lib/goodmao2_web/live/admin_live.ex:49
+#, elixir-autogen, elixir-format
+msgid "The first account to register becomes the administrator."
+msgstr "最初に登録したアカウントが管理者になります。"

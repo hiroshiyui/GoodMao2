@@ -41,6 +41,10 @@ defmodule Goodmao2.AccountsFixtures do
     user
   end
 
+  def admin_fixture(attrs \\ %{}) do
+    Goodmao2.Repo.update!(Accounts.User.admin_changeset(user_fixture(attrs)))
+  end
+
   def user_scope_fixture do
     user = user_fixture()
     user_scope_fixture(user)

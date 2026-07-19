@@ -60,6 +60,23 @@ defmodule Goodmao2.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  ## Administration (site overview)
+
+  @doc "Total number of registered users — for the admin site overview."
+  def count_users, do: Repo.aggregate(User, :count)
+
+  @doc """
+  The configured site-owner email that gates first-account registration, or `nil`
+  when registration is open (the first account to register becomes the administrator).
+  Mirrors the check in `authorize_first_registration/2`.
+  """
+  def site_owner_email do
+    case Application.get_env(:goodmao2, :site_owner_email) do
+      owner when is_binary(owner) and owner != "" -> owner
+      _ -> nil
+    end
+  end
+
   ## User registration
 
   @doc """
