@@ -122,10 +122,11 @@ rejects *and* the legitimate case still passes).
       — preserve: 9-edit cap (refuse the 10th), only a *real* change consumes a life, snapshot
       **excludes the share token**, readable by any entry-reader, survives soft-delete, type
       immutable on edit
-- [ ] **Clinical flag chips** (urgent / watch pills) in the timeline — surface the highest-signal
-      cues (feline urinary blood/straining, anorexia, repeated vomiting) as scannable chips
-      carried by **icon + text + shape, not colour alone** (WCAG 1.4.1); add a `clinical_flags/1`
-      helper rather than burying them in the summary string
+- [x] **Clinical flag chips** (urgent / watch pills) in the timeline — surface the highest-signal
+      cues (feline urinary blood/straining, not eating, repeated vomiting, a severe symptom) as
+      scannable chips carried by **icon + text + shape, not colour alone** (WCAG 1.4.1). A
+      `Helpers.clinical_flags/1` is the single source of truth; the calendar's `clinical_level/1`
+      day-cell tint is derived from it, so the two can never disagree
 - [ ] **One-tap QuickLog buttons** — make each common value its own submit button (Food:
       Full / Partial / Refused), advanced context in a disclosure, instead of the current
       tab-then-fill flow (fewer taps for the common case)

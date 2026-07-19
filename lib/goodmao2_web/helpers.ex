@@ -180,21 +180,68 @@ defmodule Goodmao2Web.Helpers do
   def format_date(%DateTime{} = dt), do: Calendar.strftime(dt, "%Y-%m-%d")
   def format_date(%Date{} = d), do: Calendar.strftime(d, "%Y-%m-%d")
 
+  ## Clinical flags
+
+  @doc """
+  The clinical concern "chips" an entry should surface, most-severe first (or `[]`).
+
+  Each flag is a `%{level: :urgent | :watch, icon: <heroicon>, label: <localized>}`. These
+  are the high-signal cues worth scanning for — feline urinary blood/straining, not eating,
+  repeated vomiting, a severe symptom — each meant to be carried by icon **and** text **and**
+  shape, never colour alone (WCAG 1.4.1).
+
+  This is the **single source of truth** for clinical urgency: `clinical_level/1` (the
+  calendar day-cell tint) is derived from it, so the timeline chips and the calendar can
+  never disagree.
+  """
+  def clinical_flags(%{type: type, data: data}), do: clinical_flags(type, data || %{})
+  def clinical_flags(_), do: []
+
+  def clinical_flags("bathroom", data) when is_map(data) do
+    [
+      data["has_blood"] == true &&
+        %{level: :urgent, icon: "hero-exclamation-triangle", label: gettext("Blood")},
+      data["straining"] == true &&
+        %{level: :urgent, icon: "hero-exclamation-triangle", label: gettext("Straining")}
+    ]
+    |> Enum.filter(& &1)
+  end
+
+  def clinical_flags("food", %{"amount" => "refused"}),
+    do: [%{level: :watch, icon: "hero-exclamation-circle", label: gettext("Not eating")}]
+
+  def clinical_flags("vomit", data) when is_map(data) do
+    # A single episode is common; repeated vomiting is the red flag.
+    if is_number(data["count"]) and data["count"] >= 3 do
+      [%{level: :urgent, icon: "hero-exclamation-triangle", label: gettext("Repeated vomiting")}]
+    else
+      [%{level: :watch, icon: "hero-exclamation-circle", label: gettext("Vomiting")}]
+    end
+  end
+
+  def clinical_flags("symptom", data) when is_map(data) do
+    if is_number(data["severity"]) and data["severity"] >= 4 do
+      [%{level: :urgent, icon: "hero-exclamation-triangle", label: gettext("Severe symptom")}]
+    else
+      []
+    end
+  end
+
+  def clinical_flags(_type, _data), do: []
+
   ## Calendar (month-grid timeline view)
 
   @doc """
-  The clinical urgency an entry contributes to its calendar day cell, or `nil`.
+  The single clinical urgency level for an entry (`:urgent` > `:watch` > `nil`).
 
-  Clinical urgency: bathroom blood or straining is `:urgent`; any
-  vomiting is `:watch`. The day cell pairs this with an icon, so the tint is never the
-  sole carrier of meaning.
+  The most severe of the entry's `clinical_flags/1`. The calendar day cell pairs this with
+  an icon, so the tint is never the sole carrier of meaning.
   """
-  def clinical_level(%{type: "bathroom", data: data}) when is_map(data) do
-    if data["has_blood"] == true or data["straining"] == true, do: :urgent
+  def clinical_level(entry) do
+    entry
+    |> clinical_flags()
+    |> Enum.reduce(nil, fn %{level: level}, acc -> escalate(acc, level) end)
   end
-
-  def clinical_level(%{type: "vomit"}), do: :watch
-  def clinical_level(_), do: nil
 
   @doc "The more severe of two clinical levels (`:urgent` > `:watch` > `nil`)."
   def escalate(:urgent, _), do: :urgent

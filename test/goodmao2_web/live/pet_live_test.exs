@@ -130,6 +130,30 @@ defmodule Goodmao2Web.PetLiveTest do
       refute has_element?(lv, ".timeline-entry-type")
     end
 
+    test "an urgent entry carries a clinical-flag chip on the timeline", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+
+      log_entry_fixture(user, pet, %{
+        "type" => "bathroom",
+        "data" => %{"kind" => "urine", "straining" => true}
+      })
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # The chip carries the concern in text, not colour alone.
+      assert has_element?(lv, ".timeline-entry .clinical-flag", "Straining")
+    end
+
+    test "a benign entry carries no clinical-flag chip", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      assert has_element?(lv, ".timeline-entry-type", "Food")
+      refute has_element?(lv, ".timeline-entry .clinical-flag")
+    end
+
     test "hidden history shows a notice instead of the timeline and QuickLog", %{
       conn: conn,
       user: user

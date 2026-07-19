@@ -10,6 +10,13 @@ skill).
 
 ### Added
 
+- **Clinical flag chips on the timeline** — high-signal clinical cues now surface as scannable
+  urgent/watch chips on each timeline entry: urinary blood and straining (the feline urinary
+  emergency), not eating, repeated vomiting, and a severe symptom. Each chip carries an icon
+  **and** text **and** a level-specific shape (triangle for urgent, circle for watch), never
+  colour alone (WCAG 1.4.1). A single `Helpers.clinical_flags/1` is the source of truth, from
+  which the calendar's day-cell urgency tint (`clinical_level/1`) is derived, so the timeline
+  and the calendar can never disagree. Localized in en / 台灣漢語 / 日本語.
 - **License — AGPL-3.0-or-later** — GoodMao is now released under the GNU Affero General
   Public License, version 3 or later. Added the full license text as `LICENSE`, a License
   section in the README (with the "or later" notice and a note that the vendored Roboto Slab

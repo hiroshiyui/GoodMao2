@@ -450,14 +450,28 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :can_write?, :boolean, default: false
 
   defp timeline_entry_card(assigns) do
+    assigns = assign(assigns, :flags, clinical_flags(assigns.entry))
+
     ~H"""
     <div class="card-body flex-row items-start gap-3 p-3">
       <span class={"timeline-entry-icon mt-0.5 shrink-0 rounded-full bg-base-200 p-2 " <> entry_tone(@entry)}>
         <.icon name={log_type_icon(@entry.type)} class="size-4" />
       </span>
       <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <span class="timeline-entry-type font-medium">{log_type_label(@entry.type)}</span>
+          <ul
+            :if={@flags != []}
+            class="clinical-flags flex flex-wrap gap-1"
+            aria-label={gettext("Clinical flags")}
+          >
+            <li
+              :for={flag <- @flags}
+              class={["clinical-flag badge badge-sm gap-1", clinical_flag_class(flag.level)]}
+            >
+              <.icon name={flag.icon} class="size-3" /> {flag.label}
+            </li>
+          </ul>
           <span
             :if={@entry.visibility != "limited"}
             class="timeline-entry-visibility badge badge-ghost badge-xs"
@@ -871,6 +885,11 @@ defmodule Goodmao2Web.PetLive.Show do
   defp cal_count_class(:urgent), do: "badge-error"
   defp cal_count_class(:watch), do: "badge-warning"
   defp cal_count_class(_), do: "badge-ghost"
+
+  # Clinical-flag chip colour by level. Paired in the markup with a level-specific icon shape
+  # (triangle = urgent, circle = watch) and the flag's text, so colour is never the sole cue.
+  defp clinical_flag_class(:urgent), do: "badge-error"
+  defp clinical_flag_class(:watch), do: "badge-warning"
 
   # A subtle colour tint for clinically-urgent entry types.
   defp entry_tone(%{type: "vomit"}), do: "text-warning"
