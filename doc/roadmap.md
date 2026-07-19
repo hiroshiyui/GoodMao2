@@ -156,8 +156,10 @@ rejects *and* the legitimate case still passes).
       under `priv/static/fonts/`, within the CSP `font-src 'self'`) for the Latin/numeric
       wordmark, with an explicit `PingFang TC` / `Noto Sans TC` / `Hiragino Sans` / … fallback
       chain for CJK (`font-display: swap`).
-- [ ] **Localize the `phx.gen.auth` LiveViews** — login / register / confirmation still carry
-      generator-default English not wrapped in `gettext()`, so they are not yet in the catalogs.
+- [x] **Localized the `phx.gen.auth` LiveViews** — log-in / register / confirmation (and the
+      session controller's auth flashes) now route every string through `gettext()`, translated
+      for `zh_TW` and `ja_JP`; a regression test asserts these pages render in the negotiated
+      locale.
 
 ## 9. Platform & data model (deferred)
 

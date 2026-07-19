@@ -374,6 +374,9 @@ msgstr "記錄%{type}"
 
 #: lib/goodmao2_web/components/layouts.ex:99
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
+#: lib/goodmao2_web/live/user_live/confirmation.ex:50
+#: lib/goodmao2_web/live/user_live/login.ex:13
+#: lib/goodmao2_web/live/user_live/registration.ex:18
 #, elixir-autogen, elixir-format
 msgid "Log in"
 msgstr "登入"
@@ -932,6 +935,9 @@ msgstr "請先確認目前的密碼，才能設定新密碼。"
 msgid "Current password"
 msgstr "目前密碼"
 
+#: lib/goodmao2_web/live/user_live/login.ex:49
+#: lib/goodmao2_web/live/user_live/login.ex:74
+#: lib/goodmao2_web/live/user_live/registration.ex:29
 #: lib/goodmao2_web/live/user_live/settings.ex:52
 #, elixir-autogen, elixir-format
 msgid "Email"
@@ -986,3 +992,196 @@ msgstr "已結束照護的夥伴。牠們的紀錄與時間軸，永遠保存在
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr "切換語言"
+
+#: lib/goodmao2_web/live/user_live/registration.ex:16
+#, elixir-autogen, elixir-format
+msgid "Already registered?"
+msgstr "已經有帳號了嗎？"
+
+#: lib/goodmao2_web/live/user_live/registration.ex:71
+#, elixir-autogen, elixir-format
+msgid "An email was sent to %{email}, please access it to confirm your account."
+msgstr "一封電子郵件已寄至 %{email}，請前往查收以確認您的帳號。"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:34
+#, elixir-autogen, elixir-format
+msgid "Confirm and log in only this time"
+msgstr "確認並僅此次登入"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:31
+#, elixir-autogen, elixir-format
+msgid "Confirm and stay logged in"
+msgstr "確認並保持登入"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:28
+#: lib/goodmao2_web/live/user_live/confirmation.ex:33
+#, elixir-autogen, elixir-format
+msgid "Confirming..."
+msgstr "確認中…"
+
+#: lib/goodmao2_web/live/user_live/registration.ex:37
+#, elixir-autogen, elixir-format
+msgid "Create an account"
+msgstr "建立帳號"
+
+#: lib/goodmao2_web/live/user_live/registration.ex:36
+#, elixir-autogen, elixir-format
+msgid "Creating account..."
+msgstr "建立帳號中…"
+
+#: lib/goodmao2_web/controllers/user_session_controller.ex:67
+#, elixir-autogen, elixir-format
+msgid "Current password is not valid, or the new password is invalid."
+msgstr "目前的密碼不正確，或新密碼不符合規則。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:18
+#, elixir-autogen, elixir-format
+msgid "Don't have an account?"
+msgstr "還沒有帳號嗎？"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:105
+#, elixir-autogen, elixir-format
+msgid "Email change link is invalid or it has expired."
+msgstr "電子郵件變更連結無效或已過期。"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:102
+#, elixir-autogen, elixir-format
+msgid "Email changed successfully."
+msgstr "電子郵件已成功變更。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:123
+#, elixir-autogen, elixir-format
+msgid "If your email is in our system, you will receive instructions for logging in shortly."
+msgstr "如果您的電子郵件在我們的系統中，您很快就會收到登入指示。"
+
+#: lib/goodmao2_web/controllers/user_session_controller.ex:43
+#, elixir-autogen, elixir-format
+msgid "Invalid email or password"
+msgstr "電子郵件或密碼不正確"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:59
+#, elixir-autogen, elixir-format
+msgid "Keep me logged in on this device"
+msgstr "在這台裝置上保持登入"
+
+#: lib/goodmao2_web/live/user_live/login.ex:87
+#, elixir-autogen, elixir-format
+msgid "Log in and stay logged in"
+msgstr "登入並保持登入"
+
+#: lib/goodmao2_web/live/user_live/login.ex:90
+#, elixir-autogen, elixir-format
+msgid "Log in only this time"
+msgstr "僅此次登入"
+
+#: lib/goodmao2_web/live/user_live/login.ex:56
+#, elixir-autogen, elixir-format
+msgid "Log in with email"
+msgstr "使用電子郵件登入"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:62
+#, elixir-autogen, elixir-format
+msgid "Log me in only this time"
+msgstr "僅這次登入"
+
+#: lib/goodmao2_web/controllers/user_session_controller.ex:74
+#, elixir-autogen, elixir-format
+msgid "Logged out successfully."
+msgstr "已成功登出。"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:49
+#: lib/goodmao2_web/live/user_live/confirmation.ex:56
+#: lib/goodmao2_web/live/user_live/confirmation.ex:61
+#, elixir-autogen, elixir-format
+msgid "Logging in..."
+msgstr "登入中…"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:85
+#, elixir-autogen, elixir-format
+msgid "Magic link is invalid or it has expired."
+msgstr "魔術連結無效或已過期。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:82
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr "密碼"
+
+#: lib/goodmao2_web/controllers/user_session_controller.ex:63
+#, elixir-autogen, elixir-format
+msgid "Password updated successfully!"
+msgstr "密碼已成功更新！"
+
+#: lib/goodmao2_web/live/user_live/registration.ex:14
+#, elixir-autogen, elixir-format
+msgid "Register for an account"
+msgstr "註冊帳號"
+
+#: lib/goodmao2_web/live/user_live/registration.ex:85
+#, elixir-autogen, elixir-format
+msgid "Registration is restricted to the site owner for the first account."
+msgstr "第一個帳號僅限站長註冊。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:22
+#, elixir-autogen, elixir-format
+msgid "Sign up"
+msgstr "註冊"
+
+#: lib/goodmao2_web/controllers/user_session_controller.ex:27
+#, elixir-autogen, elixir-format
+msgid "The link is invalid or it has expired."
+msgstr "此連結無效或已過期。"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:68
+#, elixir-autogen, elixir-format
+msgid "Tip: If you prefer passwords, you can enable them in the user settings."
+msgstr "提示：如果您偏好使用密碼，可以在使用者設定中啟用。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:33
+#, elixir-autogen, elixir-format
+msgid "To see sent emails, visit"
+msgstr "若要查看已寄出的郵件，請前往"
+
+#: lib/goodmao2_web/controllers/user_session_controller.ex:8
+#, elixir-autogen, elixir-format
+msgid "User confirmed successfully."
+msgstr "使用者已成功確認。"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:12
+#, elixir-autogen, elixir-format
+msgid "Welcome %{email}"
+msgstr "歡迎，%{email}"
+
+#: lib/goodmao2_web/controllers/user_session_controller.ex:12
+#, elixir-autogen, elixir-format
+msgid "Welcome back!"
+msgstr "歡迎回來！"
+
+#: lib/goodmao2_web/live/user_live/login.ex:31
+#, elixir-autogen, elixir-format
+msgid "You are running the local mail adapter."
+msgstr "您正在使用本機郵件轉接器。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:16
+#, elixir-autogen, elixir-format
+msgid "You need to reauthenticate to perform sensitive actions on your account."
+msgstr "您需要重新驗證身分，才能對帳號執行敏感操作。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:22
+#, elixir-autogen, elixir-format
+msgid "for an account now."
+msgstr "來註冊一個帳號吧。"
+
+#: lib/goodmao2_web/live/user_live/login.ex:60
+#, elixir-autogen, elixir-format
+msgid "or"
+msgstr "或"
+
+#: lib/goodmao2_web/live/user_live/login.ex:33
+#, elixir-autogen, elixir-format
+msgid "the mailbox page"
+msgstr "信箱頁面"
+
+#: lib/goodmao2_web/live/user_live/registration.ex:20
+#, elixir-autogen, elixir-format
+msgid "to your account now."
+msgstr "登入您的帳號。"

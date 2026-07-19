@@ -35,6 +35,32 @@ defmodule Goodmao2Web.LocaleTest do
     end
   end
 
+  describe "phx.gen.auth LiveViews localize" do
+    test "the log-in page renders in Japanese under an Accept-Language header", %{conn: conn} do
+      body =
+        conn
+        |> put_req_header("accept-language", "ja")
+        |> get(~p"/users/log-in")
+        |> html_response(200)
+
+      assert body =~ "メールでログイン"
+      refute body =~ "Log in with email"
+    end
+
+    test "the registration page renders in Traditional Chinese from the locale cookie", %{
+      conn: conn
+    } do
+      body =
+        conn
+        |> Plug.Test.put_req_cookie("locale", "zh_TW")
+        |> get(~p"/users/register")
+        |> html_response(200)
+
+      assert body =~ "註冊帳號"
+      refute body =~ "Register for an account"
+    end
+  end
+
   describe "language switcher" do
     test "renders every shipped locale by its autonym", %{conn: conn} do
       body = conn |> get(~p"/") |> html_response(200)

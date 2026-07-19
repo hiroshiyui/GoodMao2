@@ -15,7 +15,9 @@ skill).
   header language switcher that persists the choice, `<html lang>` reflection, and a
   Gettext-backed brand wordmark (`GoodMao` / `顧毛` / `グッドマオ`, ADR-0002). The `zh_TW` and
   `ja_JP` catalogs are now fully populated (UI strings + Ecto errors), culturally localized
-  rather than transliterated.
+  rather than transliterated. The `phx.gen.auth` LiveViews (log-in / register / confirmation)
+  and the session controller's auth flashes are now fully localized too, closing the last
+  generator-default-English gap.
 - **CJK-aware font stack** — the brand wordmark uses Roboto Slab (vendored, self-hosted,
   Apache-2.0), and body text falls through an explicit Traditional-Chinese / Japanese
   fallback chain so CJK renders in a proper face instead of a browser default.
