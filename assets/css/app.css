@@ -101,15 +101,18 @@
 
 /* --- Typography -------------------------------------------------------------
    Roboto Slab (vendored under Apache-2.0 in priv/static/fonts/, served self-hosted
-   so it stays within the CSP `font-src 'self'`) is the brand slab-serif for the
-   Latin/numeric wordmark. Body text uses the platform UI sans followed by an explicit
-   Traditional-Chinese and Japanese fallback chain, so CJK renders in a proper face
-   instead of a browser default (ADR-0002). The CJK families are system fonts, not
-   vendored; `font-display: swap` avoids blocking on the brand face. */
+   so it stays within the CSP `font-src 'self'`) is the general alphanumeric face for
+   the whole UI — body text and the wordmark alike. Its `unicode-range` covers only
+   Latin/latin-ext, so the browser uses it for alphanumeric glyphs and falls through to
+   the explicit Traditional-Chinese and Japanese chain for CJK, which renders in a proper
+   Han face instead of a browser default (ADR-0002). The CJK families are system fonts,
+   not vendored. The two faces are the same variable font (`wght` axis 100–900), so the
+   descriptor spans the full range and every UI weight (400 body → 700 bold) is honoured;
+   `font-display: swap` avoids blocking first paint on the vendored face. */
 @font-face {
   font-family: "Roboto Slab";
   font-style: normal;
-  font-weight: 500 700;
+  font-weight: 100 900;
   font-display: swap;
   src: url("/fonts/roboto-slab-latin.woff2") format("woff2");
   unicode-range:
@@ -120,7 +123,7 @@
 @font-face {
   font-family: "Roboto Slab";
   font-style: normal;
-  font-weight: 500 700;
+  font-weight: 100 900;
   font-display: swap;
   src: url("/fonts/roboto-slab-latin-ext.woff2") format("woff2");
   unicode-range:
@@ -130,14 +133,16 @@
 }
 
 @theme {
-  /* Platform UI sans, then the Traditional-Chinese and Japanese fallback chains,
-     then emoji. Defining --font-sans here makes it the app-wide base font. */
+  /* Roboto Slab for alphanumeric glyphs (its Latin-only unicode-range makes CJK fall
+     through), then the platform UI sans, the Traditional-Chinese and Japanese chains,
+     and emoji. Defining --font-sans here makes it the app-wide base font. */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
-  /* Brand slab-serif for the wordmark; CJK forms fall through to a serif Han face. */
+    "Roboto Slab", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei",
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP",
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  /* The wordmark shares the Roboto Slab Latin face but falls through to a serif Han face
+     for CJK, keeping the brand distinct from body text where scripts diverge. */
   --font-brand:
     "Roboto Slab", ui-serif, Georgia, "Noto Serif TC", "Songti TC",
     "Hiragino Mincho ProN", serif;

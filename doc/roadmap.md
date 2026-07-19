@@ -162,9 +162,11 @@ rejects *and* the legitimate case still passes).
       message translated for `zh_TW` and `ja_JP`, localized to each culture (ADR-0002), with
       the locale-parity test green.
 - [x] **Vendored Roboto Slab + CJK-aware font stack** — Roboto Slab (Apache-2.0, self-hosted
-      under `priv/static/fonts/`, within the CSP `font-src 'self'`) for the Latin/numeric
-      wordmark, with an explicit `PingFang TC` / `Noto Sans TC` / `Hiragino Sans` / … fallback
-      chain for CJK (`font-display: swap`).
+      under `priv/static/fonts/`, within the CSP `font-src 'self'`) is the general alphanumeric
+      face for the whole UI (body text and the wordmark); its Latin-only `unicode-range` lets
+      CJK fall through to an explicit `PingFang TC` / `Noto Sans TC` / `Hiragino Sans` / …
+      chain. The `@font-face` spans the full variable `wght` axis (100–900) so every UI weight
+      renders true (`font-display: swap`).
 - [x] **Localized the `phx.gen.auth` LiveViews** — log-in / register / confirmation (and the
       session controller's auth flashes) now route every string through `gettext()`, translated
       for `zh_TW` and `ja_JP`; a regression test asserts these pages render in the negotiated

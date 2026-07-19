@@ -71,9 +71,12 @@ skill).
   control sits beside the theme toggle in the primary nav. The chosen size persists in
   `localStorage` and is applied before first paint (no flash), mirroring the theme
   preference. Clamped to 100–175%.
-- **CJK-aware font stack** — the brand wordmark uses Roboto Slab (vendored, self-hosted,
-  Apache-2.0), and body text falls through an explicit Traditional-Chinese / Japanese
-  fallback chain so CJK renders in a proper face instead of a browser default.
+- **Roboto Slab as the general alphanumeric font + CJK-aware fallback** — Roboto Slab
+  (vendored, self-hosted, Apache-2.0) is the general alphanumeric face for the whole UI —
+  body text and the wordmark alike. Its Latin-only `unicode-range` lets CJK fall through to
+  an explicit Traditional-Chinese / Japanese chain, so Han and Kana render in a proper face
+  instead of a browser default. The `@font-face` spans the full variable weight axis
+  (100–900) so normal body text renders at a true 400 rather than a clamped bold.
 
 - **Daily-life logs (`life` type) as text notes** — any caretaker can now author a
   daily-life entry from QuickLog; its required caption is the base `note`. This completes
