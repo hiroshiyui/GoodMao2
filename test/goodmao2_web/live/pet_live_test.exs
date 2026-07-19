@@ -73,6 +73,31 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, ".timeline-entry-type", "Food")
     end
 
+    test "a one-tap button logs a common value immediately", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # Food is the default type; one tap on "Refused" logs it with no further input.
+      assert has_element?(lv, "#quicktap-food-refused")
+      lv |> element("#quicktap-food-refused") |> render_click()
+
+      assert has_element?(lv, ".timeline-entry-type", "Food")
+      assert has_element?(lv, ".timeline-entry-summary", "Refused food")
+    end
+
+    test "a type needing input shows the manual form with no one-tap buttons", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      lv |> element("#quicklog-type-weight") |> render_click()
+
+      refute has_element?(lv, "#quicktap-buttons")
+      assert has_element?(lv, "#quicklog-form")
+    end
+
     test "logs a text-only daily-life note", %{conn: conn, user: user} do
       pet = pet_fixture(user)
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")

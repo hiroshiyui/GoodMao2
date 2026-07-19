@@ -10,6 +10,13 @@ skill).
 
 ### Added
 
+- **One-tap QuickLog** — the common log values are now each their own submit button, logging
+  in a single tap instead of the tab-then-fill flow: Food (Ate fully / partially / Refused),
+  Water intake (Normal / Low / High), Bathroom (Urine / Stool), and Vomited. The full manual
+  form — all structured fields plus the note / time / visibility context — moves into a "More
+  options" disclosure; types that need real input (weight, energy, medication, symptom, daily
+  life) keep the form shown directly. Button labels double as their accessible names. Localized
+  in en / 台灣漢語 / 日本語.
 - **Clinical flag chips on the timeline** — high-signal clinical cues now surface as scannable
   urgent/watch chips on each timeline entry: urinary blood and straining (the feline urinary
   emergency), not eating, repeated vomiting, and a severe symptom. Each chip carries an icon

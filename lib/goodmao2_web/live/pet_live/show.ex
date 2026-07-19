@@ -250,6 +250,8 @@ defmodule Goodmao2Web.PetLive.Show do
 
   @impl true
   def render(assigns) do
+    assigns = assign(assigns, :presets, quicktap_presets(assigns.quicklog_type))
+
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <.pet_header pet={@pet} role={@role} can_manage?={@can_manage?} />
@@ -305,54 +307,48 @@ defmodule Goodmao2Web.PetLive.Show do
 
           <p :if={@quick_error} id="quicklog-error" class="text-error mt-3 text-sm">{@quick_error}</p>
 
-          <.form
-            for={@quick_form}
-            id="quicklog-form"
-            phx-change="quicklog_change"
-            phx-submit="quicklog"
-            class="mt-3 space-y-3"
+          <%!-- Fast path: each common value is its own button that logs in a single tap. --%>
+          <div
+            :if={@presets != []}
+            id="quicktap-buttons"
+            class="mt-3 flex flex-wrap gap-2"
+            role="group"
+            aria-label={gettext("Quick log shortcuts")}
           >
-            <.quicklog_fields type={@quicklog_type} form={@quick_form} />
-
-            <details class="quicklog-more">
-              <summary class="cursor-pointer text-sm text-base-content/70">
-                {gettext("Add note, time, or visibility")}
-              </summary>
-              <div class="mt-3 space-y-3">
-                <%!-- A life log's note is its primary caption above, so skip the duplicate here. --%>
-                <.input
-                  :if={@quicklog_type != "life"}
-                  field={@quick_form[:note]}
-                  type="textarea"
-                  label={gettext("Note")}
-                  rows="2"
-                />
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <.input
-                    field={@quick_form[:occurred_at]}
-                    type="datetime-local"
-                    label={gettext("When")}
-                  />
-                  <.input
-                    :if={@role == "owner"}
-                    field={@quick_form[:visibility]}
-                    type="select"
-                    label={gettext("Visibility")}
-                    options={Enum.map(LogEntry.visibilities(), &{translate_visibility(&1), &1})}
-                  />
-                </div>
-              </div>
-            </details>
-
-            <.button
-              type="submit"
-              id="quicklog-submit"
-              class="btn btn-primary"
+            <button
+              :for={preset <- @presets}
+              type="button"
+              id={"quicktap-#{@quicklog_type}-#{preset.key}"}
+              phx-click="quicktap"
+              phx-value-type={@quicklog_type}
+              {quicktap_value_attrs(preset.data)}
               phx-disable-with={gettext("Saving…")}
+              class="quicktap-btn btn btn-sm btn-primary btn-outline"
             >
-              {gettext("Log %{type}", type: log_type_label(@quicklog_type))}
-            </.button>
-          </.form>
+              {preset.label}
+            </button>
+          </div>
+
+          <%!-- Manual path: full fields + note/time/visibility. Behind a disclosure when a
+               fast path exists, shown directly for types that need real input. --%>
+          <details :if={@presets != []} class="quicklog-more-options mt-3">
+            <summary class="cursor-pointer text-sm text-base-content/70">
+              {gettext("More options")}
+            </summary>
+            <.quicklog_form
+              type={@quicklog_type}
+              form={@quick_form}
+              role={@role}
+              collapse_extras={false}
+            />
+          </details>
+
+          <.quicklog_form
+            :if={@presets == []}
+            type={@quicklog_type}
+            form={@quick_form}
+            role={@role}
+          />
         </div>
       </section>
 
@@ -862,6 +858,116 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   defp quicklog_fields(assigns), do: ~H""
+
+  # The full manual log form: the type's structured fields, its extra context (note / time /
+  # visibility), and the submit button. `collapse_extras` tucks the extras behind their own
+  # disclosure when the form itself is already shown directly (types with no one-tap path);
+  # inside the "More options" disclosure it shows them inline to avoid nested disclosures.
+  attr :type, :string, required: true
+  attr :form, :map, required: true
+  attr :role, :string, required: true
+  attr :collapse_extras, :boolean, default: true
+
+  defp quicklog_form(assigns) do
+    ~H"""
+    <.form
+      for={@form}
+      id="quicklog-form"
+      phx-change="quicklog_change"
+      phx-submit="quicklog"
+      class="mt-3 space-y-3"
+    >
+      <.quicklog_fields type={@type} form={@form} />
+
+      <details :if={@collapse_extras} class="quicklog-more">
+        <summary class="cursor-pointer text-sm text-base-content/70">
+          {gettext("Add note, time, or visibility")}
+        </summary>
+        <div class="mt-3 space-y-3">
+          <.quicklog_extras type={@type} form={@form} role={@role} />
+        </div>
+      </details>
+      <div :if={not @collapse_extras} class="space-y-3">
+        <.quicklog_extras type={@type} form={@form} role={@role} />
+      </div>
+
+      <.button
+        type="submit"
+        id="quicklog-submit"
+        class="btn btn-primary"
+        phx-disable-with={gettext("Saving…")}
+      >
+        {gettext("Log %{type}", type: log_type_label(@type))}
+      </.button>
+    </.form>
+    """
+  end
+
+  # The optional context every log type can carry: a free-text note, a backdated time, and
+  # (owners only) a visibility override.
+  attr :type, :string, required: true
+  attr :form, :map, required: true
+  attr :role, :string, required: true
+
+  defp quicklog_extras(assigns) do
+    ~H"""
+    <%!-- A life log's note is its primary caption above, so skip the duplicate here. --%>
+    <.input
+      :if={@type != "life"}
+      field={@form[:note]}
+      type="textarea"
+      label={gettext("Note")}
+      rows="2"
+    />
+    <div class="grid gap-3 sm:grid-cols-2">
+      <.input field={@form[:occurred_at]} type="datetime-local" label={gettext("When")} />
+      <.input
+        :if={@role == "owner"}
+        field={@form[:visibility]}
+        type="select"
+        label={gettext("Visibility")}
+        options={Enum.map(LogEntry.visibilities(), &{translate_visibility(&1), &1})}
+      />
+    </div>
+    """
+  end
+
+  # One-tap presets: the common values for a type, each logged immediately as its own button.
+  # Types needing real input (weight, energy, medication, symptom, life) have none and fall
+  # back to the manual form. Labels are self-descriptive so they work as accessible names.
+  defp quicktap_presets("food") do
+    [
+      %{key: "full", label: gettext("Ate fully"), data: %{"amount" => "full"}},
+      %{key: "partial", label: gettext("Ate partially"), data: %{"amount" => "partial"}},
+      %{key: "refused", label: gettext("Refused"), data: %{"amount" => "refused"}}
+    ]
+  end
+
+  defp quicktap_presets("water") do
+    [
+      %{key: "normal", label: gettext("Normal intake"), data: %{"amount" => "normal"}},
+      %{key: "low", label: gettext("Low intake"), data: %{"amount" => "low"}},
+      %{key: "high", label: gettext("High intake"), data: %{"amount" => "high"}}
+    ]
+  end
+
+  defp quicktap_presets("bathroom") do
+    [
+      %{key: "urine", label: gettext("Urine"), data: %{"kind" => "urine"}},
+      %{key: "stool", label: gettext("Stool"), data: %{"kind" => "stool"}}
+    ]
+  end
+
+  defp quicktap_presets("vomit") do
+    [%{key: "one", label: gettext("Vomited"), data: %{"count" => "1"}}]
+  end
+
+  defp quicktap_presets(_type), do: []
+
+  # Spreads a preset's data map into the `phx-value-*` attributes the `quicktap` handler reads.
+  defp quicktap_value_attrs(data) do
+    Map.new(data, fn {key, value} -> {"phx-value-#{key}", value} end)
+  end
 
   # The (already-loaded) month entries that fall on the picked day, UTC-bucketed like the grid.
   defp selected_day_entries(_entries, nil), do: []

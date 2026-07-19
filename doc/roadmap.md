@@ -127,9 +127,11 @@ rejects *and* the legitimate case still passes).
       scannable chips carried by **icon + text + shape, not colour alone** (WCAG 1.4.1). A
       `Helpers.clinical_flags/1` is the single source of truth; the calendar's `clinical_level/1`
       day-cell tint is derived from it, so the two can never disagree
-- [ ] **One-tap QuickLog buttons** — make each common value its own submit button (Food:
-      Full / Partial / Refused), advanced context in a disclosure, instead of the current
-      tab-then-fill flow (fewer taps for the common case)
+- [x] **One-tap QuickLog buttons** — each common value is its own submit button (Food:
+      Ate fully / partially / Refused; Water intake; Urine / Stool; Vomited), logging in a
+      single tap via the `quicktap` handler. The full manual form (all fields + note / time /
+      visibility) moves into a "More options" disclosure; types needing real input (weight,
+      energy, medication, symptom, life) keep the form shown directly
 
 ## 7. Sharing, notifications & vet workflow (deferred)
 
