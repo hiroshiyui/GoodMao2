@@ -68,6 +68,39 @@ defmodule Goodmao2.Logs do
     end
   end
 
+  @doc """
+  The pet's weight measurements the caller may read, **oldest-first**, as
+  `%{at: DateTime, grams: number}`.
+
+  Powers the weight-trend chart. Applies the same hidden-history (ADR-0003) and per-entry
+  visibility (ADR-0004) rules as `list_entries/3`; entries whose payload lacks a numeric
+  `weight_grams` are skipped. `:limit` caps the number of points (default 200).
+  """
+  def weight_series(%User{} = user, %Pet{} = pet, opts \\ []) do
+    if pet.history_hidden do
+      []
+    else
+      role = Pets.effective_role(pet, user)
+      limit = Keyword.get(opts, :limit, 200)
+
+      query =
+        from e in LogEntry,
+          where: e.pet_id == ^pet.id and e.type == "weight" and is_nil(e.deleted_at),
+          order_by: [asc: e.occurred_at, asc: e.id],
+          limit: ^limit
+
+      query
+      |> filter_by_visibility(role, user.id)
+      |> Repo.all()
+      |> Enum.flat_map(fn entry ->
+        case entry.data["weight_grams"] do
+          grams when is_number(grams) -> [%{at: entry.occurred_at, grams: grams}]
+          _ -> []
+        end
+      end)
+    end
+  end
+
   defp filter_by_range(query, nil, nil), do: query
 
   defp filter_by_range(query, %DateTime{} = from, nil),

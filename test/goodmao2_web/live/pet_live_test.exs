@@ -179,6 +179,32 @@ defmodule Goodmao2Web.PetLiveTest do
       refute has_element?(lv, ".timeline-entry .clinical-flag")
     end
 
+    test "the weight-trend chart appears once there are two or more measurements", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+      earlier = DateTime.utc_now() |> DateTime.add(-2, :day) |> DateTime.truncate(:second)
+
+      log_entry_fixture(user, pet, %{
+        "type" => "weight",
+        "data" => %{"weight_grams" => 4200},
+        "occurred_at" => earlier
+      })
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      # One measurement is not yet a trend.
+      refute has_element?(lv, "#weight-trend")
+
+      log_entry_fixture(user, pet, %{"type" => "weight", "data" => %{"weight_grams" => 4350}})
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      assert has_element?(lv, "#weight-trend")
+      assert has_element?(lv, "#weight-latest", "4.35 kg")
+      # The gain is stated in text (with a sign), not colour alone.
+      assert has_element?(lv, "#weight-change", "+0.15 kg")
+    end
+
     test "hidden history shows a notice instead of the timeline and QuickLog", %{
       conn: conn,
       user: user

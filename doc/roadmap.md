@@ -114,7 +114,10 @@ rejects *and* the legitimate case still passes).
 
 ## 6. Clinical logging & timeline (deferred)
 
-- [ ] Weight / trend charts (Phase 1)
+- [x] Weight trend chart (Phase 1) — an inline, CSP-safe SVG line chart of the pet's weight over
+      time on the pet page, with the latest value and its signed change since the first
+      measurement (arrow + sign, not colour alone) and an sr-only data table for assistive tech.
+      Fed by `Logs.weight_series/3` (visibility- and hidden-history-aware) and live over PubSub
 - [ ] Medication schedules + reminders; the "did anyone give the pill?" coordination (Phase 1/3)
 - [ ] LifeLog media (photos/videos) with EXIF-stripping purification — the `image` lib +
       `life` type is scaffolded ([ADR-0005](adr/0005-media-storage.md); Phase 1)

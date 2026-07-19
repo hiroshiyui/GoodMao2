@@ -126,6 +126,48 @@ defmodule Goodmao2.LogsTest do
     end
   end
 
+  describe "weight_series/3" do
+    test "returns weight measurements oldest-first as at/grams", %{owner: owner, pet: pet} do
+      earlier = DateTime.utc_now() |> DateTime.add(-2, :day) |> DateTime.truncate(:second)
+
+      log_entry_fixture(owner, pet, %{
+        "type" => "weight",
+        "data" => %{"weight_grams" => 4200},
+        "occurred_at" => earlier
+      })
+
+      log_entry_fixture(owner, pet, %{"type" => "weight", "data" => %{"weight_grams" => 4350}})
+
+      # Non-weight entries are ignored.
+      log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      series = Logs.weight_series(owner, pet)
+      assert Enum.map(series, & &1.grams) == [4200, 4350]
+      assert DateTime.compare(hd(series).at, List.last(series).at) == :lt
+    end
+
+    test "applies per-entry visibility (ADR-0004)", %{owner: owner, pet: pet} do
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+
+      {:ok, _private} =
+        Logs.create_entry(owner, pet, %{
+          "type" => "weight",
+          "data" => %{"weight_grams" => 4200},
+          "visibility" => "private"
+        })
+
+      assert Logs.weight_series(viewer, pet) == []
+      assert [%{grams: 4200}] = Logs.weight_series(owner, pet)
+    end
+
+    test "is empty when history is hidden (ADR-0003)", %{owner: owner, pet: pet} do
+      log_entry_fixture(owner, pet, %{"type" => "weight", "data" => %{"weight_grams" => 4200}})
+      {:ok, hidden} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      assert Logs.weight_series(owner, hidden) == []
+    end
+  end
+
   describe "history_hidden (ADR-0003)" do
     setup %{owner: owner, pet: pet} do
       log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})

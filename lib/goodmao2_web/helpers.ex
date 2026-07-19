@@ -307,10 +307,11 @@ defmodule Goodmao2Web.Helpers do
   defp severity(nil), do: nil
   defp severity(s), do: gettext("severity %{s}/5", s: s)
 
-  defp format_kg(grams) when is_number(grams),
+  @doc "Formats a weight in grams as a two-decimal kilogram string (`4200` → `\"4.20\"`)."
+  def format_kg(grams) when is_number(grams),
     do: :erlang.float_to_binary(grams / 1000, decimals: 2)
 
-  defp format_kg(other), do: other
+  def format_kg(other), do: other
 
   defp compact_join(parts) do
     parts

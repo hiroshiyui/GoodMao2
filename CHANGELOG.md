@@ -10,6 +10,14 @@ skill).
 
 ### Added
 
+- **Weight trend chart** — the pet page now shows the pet's weight over time as an inline SVG
+  line chart (server-rendered, CSP-safe, no JavaScript), appearing once there are two or more
+  measurements. It headlines the latest weight and the signed change since the first reading
+  (a trend arrow **and** a +/− value, never colour alone), plots each measurement by real
+  elapsed time, and ships a visually-hidden data table so assistive tech gets every point. The
+  series comes from `Logs.weight_series/3`, which honours per-entry visibility and hidden
+  history, and the chart updates live over PubSub as weight entries are logged, edited, or
+  removed. Localized in en / 台灣漢語 / 日本語.
 - **One-tap QuickLog** — the common log values are now each their own submit button, logging
   in a single tap instead of the tab-then-fill flow: Food (Ate fully / partially / Refused),
   Water intake (Normal / Low / High), Bathroom (Urine / Stool), and Vomited. The full manual
