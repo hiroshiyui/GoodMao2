@@ -141,20 +141,23 @@ rejects *and* the legitimate case still passes).
       **verified `VetProfile`** exists, on grant *and* re-grant; the report share token carries
       an **expiry** (unlike log tokens)
 
-## 8. Localization & typography (deferred)
+## 8. Localization & typography
 
-- [ ] **Locale switcher + per-request locale**: resolve cookie → `Accept-Language` → default,
-      call `Gettext.put_locale` in a plug + LiveView `on_mount`, reflect `lang` on `<html>`
-      (today hard-coded `en`), and route the **brand wordmark** through Gettext per
-      [ADR-0002](adr/0002-culture-first-localization.md) (autonym menu labels:
-      `English` / `台灣漢語` / `日本語`). This unlocks the already-maintained `zh_TW` / `ja_JP`
-      catalogs, which are currently unreachable by users (Phase 1)
-- [ ] **Trilingual translations populated** for `zh_TW` / `ja_JP`, and full localization of the
-      `phx.gen.auth` LiveViews (login/register/settings still carry generator-default English)
-- [ ] **Vendored Roboto Slab + CJK-aware font stack** — a brand slab-serif for Latin/numeric
-      text with an explicit `PingFang TC` / `Noto Sans TC` / `Hiragino Sans` / … fallback chain,
-      so a trilingual app renders Traditional-Chinese/Japanese correctly instead of leaving it to
-      browser defaults (`unicode-range` + `font-display: swap`)
+- [x] **Locale switcher + per-request locale** — `Goodmao2Web.Plugs.Locale` resolves
+      cookie → `Accept-Language` → default and `Gettext.put_locale`s it; a LiveView
+      `on_mount` mirrors it into live views; `<html lang>` reflects it; a header switcher
+      (autonyms `English` / `台灣漢語` / `日本語`) persists the choice via `LocaleController`.
+      The **brand wordmark** routes through `brand_name/0` per
+      [ADR-0002](adr/0002-culture-first-localization.md) (`GoodMao` / `顧毛` / `グッドマオ`).
+- [x] **Trilingual catalogs populated** — every `default` UI string and Ecto `errors`
+      message translated for `zh_TW` and `ja_JP`, localized to each culture (ADR-0002), with
+      the locale-parity test green.
+- [x] **Vendored Roboto Slab + CJK-aware font stack** — Roboto Slab (Apache-2.0, self-hosted
+      under `priv/static/fonts/`, within the CSP `font-src 'self'`) for the Latin/numeric
+      wordmark, with an explicit `PingFang TC` / `Noto Sans TC` / `Hiragino Sans` / … fallback
+      chain for CJK (`font-display: swap`).
+- [ ] **Localize the `phx.gen.auth` LiveViews** — login / register / confirmation still carry
+      generator-default English not wrapped in `gettext()`, so they are not yet in the catalogs.
 
 ## 9. Platform & data model (deferred)
 

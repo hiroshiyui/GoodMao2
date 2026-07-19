@@ -10,6 +10,16 @@ skill).
 
 ### Added
 
+- **Trilingual UI (English / 台灣漢語 / 日本語)** — per-request locale resolution
+  (cookie → `Accept-Language` → default) via a browser plug and a LiveView `on_mount`, a
+  header language switcher that persists the choice, `<html lang>` reflection, and a
+  Gettext-backed brand wordmark (`GoodMao` / `顧毛` / `グッドマオ`, ADR-0002). The `zh_TW` and
+  `ja_JP` catalogs are now fully populated (UI strings + Ecto errors), culturally localized
+  rather than transliterated.
+- **CJK-aware font stack** — the brand wordmark uses Roboto Slab (vendored, self-hosted,
+  Apache-2.0), and body text falls through an explicit Traditional-Chinese / Japanese
+  fallback chain so CJK renders in a proper face instead of a browser default.
+
 - **Daily-life logs (`life` type) as text notes** — any caretaker can now author a
   daily-life entry from QuickLog; its required caption is the base `note`. This completes
   the last log type that had no user-facing authoring path (photo/video enrichment remains
