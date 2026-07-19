@@ -366,6 +366,38 @@ defmodule Goodmao2Web.PetLiveTest do
     end
   end
 
+  describe "LifeLog media (ADR-0005)" do
+    test "uploads a purified photo with a daily-life note", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+
+      src = Path.join(System.tmp_dir!(), "gm_up_#{System.unique_integer([:positive])}.png")
+
+      {_, 0} =
+        System.cmd(
+          "ffmpeg",
+          ~w(-hide_banner -v error -f lavfi -i color=c=green:s=16x16 -frames:v 1 -y) ++ [src]
+        )
+
+      content = File.read!(src)
+      File.rm(src)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#quicklog-type-life") |> render_click()
+
+      photo =
+        file_input(lv, "#quicklog-form", :media, [
+          %{name: "cat.png", content: content, type: "image/png"}
+        ])
+
+      render_upload(photo, "cat.png")
+
+      lv |> form("#quicklog-form", log: %{note: "Nap in the sun"}) |> render_submit()
+
+      assert has_element?(lv, ".timeline-entry-type", "Daily life")
+      assert has_element?(lv, ".timeline-media img")
+    end
+  end
+
   describe "authorization" do
     test "accessing another user's pet is reported as not found", %{conn: conn} do
       other = user_fixture()

@@ -72,8 +72,14 @@ defmodule Goodmao2.Logs do
       |> filter_by_type(Keyword.get(opts, :type))
       |> filter_by_range(Keyword.get(opts, :from), Keyword.get(opts, :to))
       |> filter_by_visibility(role, user.id)
+      |> preload(media_assets: ^media_preload_query())
       |> Repo.all()
     end
+  end
+
+  # Non-deleted media of an entry, id-ordered, for rendering life-log photos/videos inline.
+  defp media_preload_query do
+    from m in Goodmao2.Media.MediaAsset, where: is_nil(m.deleted_at), order_by: m.id
   end
 
   @doc """
@@ -146,7 +152,8 @@ defmodule Goodmao2.Logs do
       entry =
         Repo.one(
           from e in LogEntry,
-            where: e.id == ^id and e.pet_id == ^pet.id and is_nil(e.deleted_at)
+            where: e.id == ^id and e.pet_id == ^pet.id and is_nil(e.deleted_at),
+            preload: [media_assets: ^media_preload_query()]
         )
 
       if entry && can_view_entry?(entry, user.id, role), do: entry, else: nil
@@ -194,6 +201,7 @@ defmodule Goodmao2.Logs do
 
       case result do
         {:ok, entry} ->
+          entry = Repo.preload(entry, media_assets: media_preload_query())
           broadcast(pet, {:entry_created, entry})
           {:ok, entry}
 
@@ -276,6 +284,7 @@ defmodule Goodmao2.Logs do
     |> Repo.transaction()
     |> case do
       {:ok, %{entry: updated}} ->
+        updated = Repo.preload(updated, media_assets: media_preload_query())
         broadcast(pet, {:entry_updated, updated})
         {:ok, updated}
 

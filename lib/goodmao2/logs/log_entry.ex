@@ -40,6 +40,7 @@ defmodule Goodmao2.Logs.LogEntry do
 
     belongs_to :pet, Goodmao2.Pets.Pet
     has_many :revisions, Goodmao2.Logs.LogEntryRevision
+    has_many :media_assets, Goodmao2.Media.MediaAsset
 
     timestamps(type: :utc_datetime)
   end

@@ -62,6 +62,16 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
 
+  # LifeLog media storage (ADR-0005): a writable, backed-up path *outside* any served
+  # directory. Fail fast if it is unset — media must never fall back to a served location.
+  config :goodmao2, Goodmao2.Media,
+    storage_dir:
+      System.get_env("MEDIA_STORAGE_DIR") ||
+        raise("""
+        environment variable MEDIA_STORAGE_DIR is missing.
+        Set it to a writable, backed-up directory outside any served path, e.g. /var/lib/goodmao/media
+        """)
+
   config :goodmao2, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :goodmao2, Goodmao2Web.Endpoint,

@@ -104,3 +104,6 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# LifeLog media stored under a git-ignored dir at the project root (outside priv/static).
+config :goodmao2, Goodmao2.Media, storage_dir: Path.expand("../media", __DIR__)

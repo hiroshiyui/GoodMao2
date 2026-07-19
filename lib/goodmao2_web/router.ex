@@ -19,6 +19,18 @@ defmodule Goodmao2Web.Router do
     plug :accepts, ["json"]
   end
 
+  # Authenticated byte serving for purified media (ADR-0005): a session + current scope, but
+  # no HTML content negotiation, layout, or CSRF — the controller sets its own hardened,
+  # locked-down response headers.
+  pipeline :serve_media do
+    plug :fetch_session
+    plug :fetch_flash
+    # The route is GET-only, but keep CSRF protection in the stack anyway (it is a no-op for
+    # safe methods) so no future unsafe verb can be added here unguarded.
+    plug :protect_from_forgery
+    plug :fetch_current_scope_for_user
+  end
+
   scope "/", Goodmao2Web do
     pipe_through :browser
 
@@ -30,6 +42,13 @@ defmodule Goodmao2Web.Router do
   # content negotiation to get in a monitor's way).
   scope "/", Goodmao2Web do
     get "/health", HealthController, :index
+  end
+
+  # Purified life-log media, served only to callers authorized to read the parent entry.
+  scope "/", Goodmao2Web do
+    pipe_through [:serve_media, :require_authenticated_user]
+
+    get "/media/:id", MediaController, :show
   end
 
   # Other scopes may use custom stacks.

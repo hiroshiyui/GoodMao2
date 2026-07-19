@@ -7,7 +7,7 @@ defmodule Goodmao2Web.PetLive.Show do
   """
   use Goodmao2Web, :live_view
 
-  alias Goodmao2.{Logs, Pets}
+  alias Goodmao2.{Logs, Media, Pets}
   alias Goodmao2.Logs.LogEntry
   alias Goodmao2Web.CalendarGrid
 
@@ -39,6 +39,11 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:quick_form, to_form(%{}, as: :log))
          |> assign(:quick_error, nil)
          |> assign(:weight_series, [])
+         |> allow_upload(:media,
+           accept: ~w(.jpg .jpeg .png .gif .webp .mp4 .webm),
+           max_entries: Media.config(:max_entries),
+           max_file_size: Media.config(:max_video_bytes)
+         )
          |> load_entries()
          |> load_weight()}
 
@@ -143,7 +148,15 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   def handle_event("quicklog", %{"log" => params}, socket) do
-    save_quicklog(socket, socket.assigns.quicklog_type, params)
+    if socket.assigns.quicklog_type == "life" do
+      save_life_log(socket, params)
+    else
+      save_quicklog(socket, socket.assigns.quicklog_type, params)
+    end
+  end
+
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :media, ref)}
   end
 
   # One-tap shortcut: submit immediately with a preset data payload.
@@ -196,6 +209,82 @@ defmodule Goodmao2Web.PetLive.Show do
         {:noreply, put_flash(socket, :error, gettext("You are not allowed to log for this pet."))}
     end
   end
+
+  # A daily-life log may carry purified photos/videos (ADR-0005). Consume + purify every
+  # uploaded file, then create the entry and its media atomically. Purified temp files are
+  # always cleaned up; if any file fails purification, nothing is created.
+  # sobelow_skip ["Traversal.FileModule"]
+  # The only File.rm here targets `purified.path` — temp files the purifier itself generated,
+  # never a user-controlled path.
+  defp save_life_log(socket, params) do
+    pet = socket.assigns.pet
+    user = socket.assigns.current_scope.user
+
+    attrs =
+      %{
+        "note" => blank_to_nil(Map.get(params, "note")),
+        "visibility" => Map.get(params, "visibility") || "limited"
+      }
+      |> maybe_put("occurred_at", blank_to_nil(Map.get(params, "occurred_at")))
+
+    results =
+      consume_uploaded_entries(socket, :media, fn %{path: path}, _entry ->
+        {:ok, Media.purify(path)}
+      end)
+
+    purified = for {:ok, p} <- results, do: p
+    failed? = Enum.any?(results, &match?({:error, _}, &1))
+
+    if failed? do
+      Enum.each(purified, &File.rm(&1.path))
+
+      {:noreply,
+       assign(
+         socket,
+         :quick_error,
+         gettext("A file couldn't be processed — check the format and size.")
+       )}
+    else
+      result = Media.create_life_log_with_media(user, pet, attrs, purified)
+      Enum.each(purified, &File.rm(&1.path))
+      handle_life_result(socket, result)
+    end
+  end
+
+  defp handle_life_result(socket, {:ok, _entry}) do
+    {:noreply,
+     socket
+     |> put_flash(:info, gettext("Logged."))
+     |> assign(:quick_form, to_form(%{}, as: :log))
+     |> assign(:quick_error, nil)}
+  end
+
+  defp handle_life_result(socket, {:error, :rate_limited}) do
+    {:noreply,
+     put_flash(
+       socket,
+       :error,
+       gettext("You've uploaded a lot recently — please try again later.")
+     )}
+  end
+
+  defp handle_life_result(socket, {:error, :unauthorized}) do
+    {:noreply, put_flash(socket, :error, gettext("You are not allowed to log for this pet."))}
+  end
+
+  defp handle_life_result(socket, {:error, :storage_failed}) do
+    {:noreply, put_flash(socket, :error, gettext("Couldn't store the media. Please try again."))}
+  end
+
+  defp handle_life_result(socket, {:error, %Ecto.Changeset{} = changeset}) do
+    {:noreply, assign(socket, :quick_error, changeset_error_message(changeset))}
+  end
+
+  @doc false
+  def upload_error_to_string(:too_large), do: gettext("File is too large.")
+  def upload_error_to_string(:too_many_files), do: gettext("Too many files.")
+  def upload_error_to_string(:not_accepted), do: gettext("That file type isn't accepted.")
+  def upload_error_to_string(_), do: gettext("That file can't be used.")
 
   @impl true
   def handle_info({:entry_created, entry}, socket) do
@@ -366,6 +455,7 @@ defmodule Goodmao2Web.PetLive.Show do
             type={@quicklog_type}
             form={@quick_form}
             role={@role}
+            uploads={@uploads}
           />
         </div>
       </section>
@@ -505,6 +595,7 @@ defmodule Goodmao2Web.PetLive.Show do
         >
           {@entry.note}
         </p>
+        <.media_grid :if={@entry.media_assets != []} assets={@entry.media_assets} />
         <p class="timeline-entry-time text-base-content/50 mt-1 text-xs">
           <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
             {format_datetime(@entry.occurred_at)}
@@ -765,6 +856,7 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :form, :map, required: true
   attr :role, :string, required: true
   attr :collapse_extras, :boolean, default: true
+  attr :uploads, :any, default: nil
 
   defp quicklog_form(assigns) do
     ~H"""
@@ -776,6 +868,38 @@ defmodule Goodmao2Web.PetLive.Show do
       class="mt-3 space-y-3"
     >
       <.log_fields type={@type} form={@form} />
+
+      <div :if={@type == "life" and @uploads} id="life-media-upload" class="space-y-2">
+        <label for={@uploads.media.ref} class="fieldset-label text-sm">
+          {gettext("Photos or video")}
+        </label>
+        <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
+        <p class="text-base-content/50 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
+        <ul class="space-y-1">
+          <li
+            :for={entry <- @uploads.media.entries}
+            id={"upload-entry-#{entry.ref}"}
+            class="flex items-center gap-2 text-sm"
+          >
+            <span class="min-w-0 flex-1 truncate">{entry.client_name}</span>
+            <button
+              type="button"
+              phx-click="cancel_upload"
+              phx-value-ref={entry.ref}
+              class="btn btn-ghost btn-xs"
+              aria-label={gettext("Remove file")}
+            >
+              <.icon name="hero-x-mark" class="size-4" />
+            </button>
+            <span :for={err <- upload_errors(@uploads.media, entry)} class="text-error text-xs">
+              {upload_error_to_string(err)}
+            </span>
+          </li>
+        </ul>
+        <p :for={err <- upload_errors(@uploads.media)} class="text-error text-xs">
+          {upload_error_to_string(err)}
+        </p>
+      </div>
 
       <details :if={@collapse_extras} class="quicklog-more">
         <summary class="cursor-pointer text-sm text-base-content/70">

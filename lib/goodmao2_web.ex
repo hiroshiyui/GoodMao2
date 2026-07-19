@@ -88,6 +88,8 @@ defmodule Goodmao2Web do
       import Goodmao2Web.CoreComponents
       # Per-type log entry input fields (shared by QuickLog and the entry editor)
       import Goodmao2Web.LogFields
+      # Life-log media rendering (shared by the timeline and the entry page)
+      import Goodmao2Web.MediaComponents
       # App-wide view helpers (label translations, log summaries, formatting)
       import Goodmao2Web.Helpers
 

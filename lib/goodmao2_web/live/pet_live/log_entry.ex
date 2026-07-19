@@ -151,6 +151,12 @@ defmodule Goodmao2Web.PetLive.LogEntry do
           <p :if={@entry.note} class="log-entry-note text-base-content/70 text-sm break-words">
             {@entry.note}
           </p>
+          <.media_grid
+            :if={@entry.media_assets != []}
+            assets={@entry.media_assets}
+            class="mt-1 flex flex-wrap gap-2"
+            media_class="max-h-64"
+          />
           <p class="text-base-content/50 flex flex-wrap items-center gap-2 text-xs">
             <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
               {format_datetime(@entry.occurred_at)}

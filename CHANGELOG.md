@@ -10,6 +10,18 @@ skill).
 
 ### Added
 
+- **LifeLog media — purified photos & videos (ADR-0005)** — a daily-life log can now carry
+  images (JPEG/PNG/GIF/WEBP) and video (MP4/WEBM), uploaded through the app and **actively
+  purified**, never merely validated: the content type is taken from magic bytes (SVG and
+  anything off the allow-list is rejected), images are decoded and re-encoded to strip all
+  EXIF/GPS metadata, and video is probed against a codec allow-list + duration cap then remuxed
+  to strip container GPS/metadata and non-A/V streams — all via ffmpeg. Media is stored as
+  opaque objects keyed by id under a configured storage dir (outside any served path; prod
+  fails fast if unset), created atomically with the log entry, and served only through an
+  authorized, IDOR-hidden `GET /media/:id` that re-applies the parent log's read authorization,
+  supports `Range`, and sends hardened headers (`nosniff`, a `default-src 'none'` sandbox CSP,
+  `inline`). Uploads are rate-limited per user. The timeline and entry page render the media
+  inline. New CI/deploy dependency: ffmpeg on `PATH`. Localized in en / 台灣漢語 / 日本語.
 - **Log editing with an audited revision trail (ADR-0009)** — log entries can now be edited on
   a dedicated entry page (`/pets/:pet_id/logs/:id`), and every real edit records an immutable
   snapshot of the entry's prior state (type, data, note, time, visibility — never the share

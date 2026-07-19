@@ -16,6 +16,10 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   core. Authorization is computed per request from an *effective* grant, never global.
 - **Logs** (`logs.ex`) — structured log entries, the timeline query (soft-delete-aware),
   and real-time broadcasts over PubSub.
+- **Media** (`media.ex`) — purified photos/videos attached to `life` logs (ADR-0005):
+  ffmpeg-based purification (`Media.Purifier`), an id-keyed storage seam (`Media.Storage`),
+  atomic create with the log, an upload rate limiter (`Media.RateLimiter`), and the
+  authorization for the serving endpoint.
 
 Each context owns its schemas under `lib/goodmao2/<context>/`.
 
@@ -78,6 +82,16 @@ insert time, plus a denormalized `pet_id` for scoping. Rows are never edited or 
 ride the parent entry's soft-delete. History uses the **same read authorization as the entry**
 (any effective grant, private-entry and hidden-history rules apply).
 
+### `media_assets` (Media.MediaAsset) — purified life-log media
+
+Metadata for a purified photo/video attached to a `life` log ([ADR-0005](adr/0005-media-storage.md)):
+`log_entry_id` (FK, cascade), a **denormalized `pet_id`** (the authorization anchor — there
+is no `pet_id` in the serving URL to forge), `kind` (image/video), the magic-byte-validated
+`content_type`, `byte_size`, uploader, optional caption. **The physical path is derived from
+the id and never stored** (path-traversal-proof). Bytes are re-encoded/remuxed by ffmpeg to
+strip EXIF/GPS/metadata, written under a configured `storage_dir` outside any served path, and
+inserted with the log in one transaction. Soft-deleted via `deleted_at`.
+
 ## Authorization logic
 
 `Goodmao2.Pets.can?(pet, user, level)` where `level` ∈ `:read | :write | :manage`:
@@ -129,6 +143,12 @@ LiveViews under `live/pet_live/`: `Index` (active / past pets), `Form` (new & ed
 history, ADR-0009), `Access` (sharing/grants), `EndOfCare` (owner-only lifecycle). Routes live
 in the `:require_authenticated_user` live_session in `router.ex`.
 The `Show` LiveView subscribes to the pet's PubSub topic and streams entries.
+
+Purified life-log media is served by `MediaController` at `GET /media/:id` (a dedicated
+`:serve_media` pipeline — session + scope, no HTML negotiation), which re-applies the parent
+log's read authorization, hides existence with `not_found`, sets hardened headers, and
+supports `Range`. Uploads flow through `PetLive.Show` (LiveView `allow_upload`) and never hand
+the browser a direct storage URL.
 
 ### Conventions carried from `baudrate`
 

@@ -119,8 +119,14 @@ rejects *and* the legitimate case still passes).
       measurement (arrow + sign, not colour alone) and an sr-only data table for assistive tech.
       Fed by `Logs.weight_series/3` (visibility- and hidden-history-aware) and live over PubSub
 - [ ] Medication schedules + reminders; the "did anyone give the pill?" coordination (Phase 1/3)
-- [ ] LifeLog media (photos/videos) with EXIF-stripping purification — the `image` lib +
-      `life` type is scaffolded ([ADR-0005](adr/0005-media-storage.md); Phase 1)
+- [x] LifeLog media (photos/videos) with active purification ([ADR-0005](adr/0005-media-storage.md);
+      Phase 1) — a `life` log can carry JPEG/PNG/GIF/WEBP images and MP4/WEBM video, uploaded
+      through the app and **actively purified with ffmpeg** (magic-byte typing; images decoded
+      and re-encoded to strip EXIF/GPS; video probed against a codec allow-list + duration cap
+      and remuxed). Stored as opaque objects keyed by id under a configured `storage_dir`,
+      created atomically with the log, and served only via an authorized, IDOR-hidden
+      `GET /media/:id` with `Range` support and hardened headers. Uploads are rate-limited.
+      Follow-ups: async (Oban) processing, an orphan-object janitor, share-token media serving
 - [x] Log **edit revisions** audit trail + edit-count cap ([ADR-0009](adr/0009-log-edit-revisions.md); Phase 1)
       — each real edit snapshots the prior state into `log_entry_revisions` and bumps a
       denormalized `edit_count`; the 10th edit is refused; a no-op consumes no life; the snapshot

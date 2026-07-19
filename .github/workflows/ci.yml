@@ -39,6 +39,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # The media purification toolchain (ADR-0005): ffmpeg/ffprobe re-encode images and
+      # remux video to strip EXIF/GPS. The suite generates real test clips (needs libx264).
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       # Pin Erlang/Elixir to the versions in .tool-versions.
       - name: Set up Elixir
         uses: erlef/setup-beam@v1

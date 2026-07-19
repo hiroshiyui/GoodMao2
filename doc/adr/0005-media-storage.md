@@ -1,12 +1,15 @@
 # 5. Purified media for life logs
 
-- **Status:** Proposed _(deferred — requirements captured ahead of implementation)_
+- **Status:** Accepted _(shipped — images + video)_
 - **Date:** 2026-07-10
 - **Deciders:** GoodMao maintainers
 
-> _This ADR reduces to the stack-agnostic **security requirements** for media. The Elixir
-> implementation will use the `image`/`vix` libraries behind a storage seam. This ADR is
-> the spec to satisfy when media work begins — see the roadmap._
+> _Shipped. Purification uses **ffmpeg/ffprobe** (images decoded and re-encoded, videos
+> probed against a codec allow-list + duration cap and remuxed) behind the `Goodmao2.Media`
+> storage seam — `image`/`vix` was the original suggestion, but ffmpeg covers both images and
+> video with no extra native library. Objects are stored by id under a configured
+> `storage_dir` (fail-fast in prod) and served only through `GET /media/:id`. The async-Oban
+> pipeline, the orphan-object janitor, and share-token media serving remain follow-ups._
 
 ## Context
 

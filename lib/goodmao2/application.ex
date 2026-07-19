@@ -13,6 +13,8 @@ defmodule Goodmao2.Application do
       {Oban, Application.fetch_env!(:goodmao2, Oban)},
       {DNSCluster, query: Application.get_env(:goodmao2, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Goodmao2.PubSub},
+      # Owns the media-upload rate-limit ETS table (ADR-0005).
+      Goodmao2.Media.RateLimiter,
       # Start a worker by calling: Goodmao2.Worker.start_link(arg)
       # {Goodmao2.Worker, arg},
       # Start to serve requests, typically the last entry

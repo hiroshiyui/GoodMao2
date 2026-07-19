@@ -46,3 +46,9 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# Isolated media dir for tests; a permissive rate limit so the upload flow never trips it
+# (the limiter's own logic is unit-tested directly).
+config :goodmao2, Goodmao2.Media,
+  storage_dir: Path.expand("../tmp/media_test", __DIR__),
+  rate_limit_per_hour: 1_000_000

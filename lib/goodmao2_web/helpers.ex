@@ -74,6 +74,10 @@ defmodule Goodmao2Web.Helpers do
   def log_type_label("life"), do: gettext("Daily life")
   def log_type_label(other), do: other
 
+  @doc "Accessible alt text for a life-log image — its caption, or a localized default."
+  def media_alt(%{caption: caption}) when is_binary(caption) and caption != "", do: caption
+  def media_alt(_asset), do: gettext("Life log photo")
+
   @doc "A heroicon name that visually represents a log type."
   def log_type_icon("food"), do: "hero-cake"
   def log_type_icon("water"), do: "hero-beaker"

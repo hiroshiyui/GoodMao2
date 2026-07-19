@@ -93,6 +93,17 @@ config :goodmao2, Oban,
      ]}
   ]
 
+# LifeLog media (ADR-0005). Uploads are purified with ffmpeg (images re-encoded, videos
+# remuxed to strip EXIF/GPS/metadata) and stored as opaque objects keyed by id, served only
+# through an authorized endpoint. `storage_dir` is set per-environment (a writable path
+# *outside* any served directory); prod fails fast if it is unset (see runtime.exs).
+config :goodmao2, Goodmao2.Media,
+  max_image_bytes: 15_000_000,
+  max_video_bytes: 100_000_000,
+  max_video_seconds: 60,
+  max_entries: 4,
+  rate_limit_per_hour: 30
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
