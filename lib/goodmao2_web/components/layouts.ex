@@ -101,7 +101,15 @@ defmodule Goodmao2Web.Layouts do
             <span aria-hidden="true">🐾</span>
             {gettext("GoodMao — a shareable health timeline for the pets you love.")}
           </p>
-          <p>© {brand_name()}</p>
+          <p id="site-copyright">
+            © 2026 Hui-Hong You ·
+            <.link
+              href="https://www.gnu.org/licenses/agpl-3.0.html"
+              class="underline hover:text-base-content/80"
+            >
+              AGPL-3.0-or-later
+            </.link>
+          </p>
           <.locale_switcher
             locale={Gettext.get_locale(Goodmao2Web.Gettext)}
             class="dropdown-top dropdown-end"

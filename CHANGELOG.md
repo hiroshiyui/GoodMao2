@@ -10,6 +10,10 @@ skill).
 
 ### Added
 
+- **License — AGPL-3.0-or-later** — GoodMao2 is now released under the GNU Affero General
+  Public License, version 3 or later. Added the full license text as `LICENSE`, a License
+  section in the README (with the "or later" notice and a note that the vendored Roboto Slab
+  font stays under Apache-2.0), and a `licenses: ["AGPL-3.0-or-later"]` entry in `mix.exs`.
 - **Administrator site-overview page** — a standalone, admin-only `/admin` LiveView gated by a
   new `:require_admin` on_mount that silently redirects non-admins home (IDOR-hidden, never
   "forbidden"). It shows a read-only overview: the administrator's identity, the registered-user

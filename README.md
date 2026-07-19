@@ -86,3 +86,24 @@ lib/goodmao2_web/
 doc/architecture.md      # contexts, schema, authorization, GoodMao→Phoenix mapping
 doc/roadmap.md           # what's built and what's deferred
 ```
+
+## License
+
+Copyright (C) 2026 Hui-Hong You &lt;hiroshi@ghostsinthelab.org&gt;
+
+GoodMao2 is free software, licensed under the **GNU Affero General Public License,
+version 3 or (at your option) any later version** (`AGPL-3.0-or-later`).
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the [`LICENSE`](LICENSE) file for the full text, or
+<https://www.gnu.org/licenses/agpl-3.0.html>.
+
+Because the AGPL covers use over a network, if you run a modified version of
+GoodMao2 as a network service, you must offer its users the corresponding source.
+
+### Bundled third-party assets
+
+- **Roboto Slab** (`priv/static/fonts/`) — © Google, licensed under the
+  [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). Its terms apply
+  to the font files independently of the project's AGPL license.
