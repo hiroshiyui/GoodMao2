@@ -148,9 +148,17 @@
     "Hiragino Mincho ProN", serif;
 }
 
-/* Applied to the brand wordmark (and any surface that should carry the brand face). */
+/* Applied to the brand wordmark (and any surface that should carry the brand face).
+   Now that Roboto Slab is also the body face, the Latin wordmark is set apart by
+   treatment rather than typeface: all-small-caps, a heavier 800 weight (true, since the
+   variable @font-face spans 100–900), and open tracking. `font-variant-caps` affects only
+   bicameral scripts, so the CJK wordmarks (顧毛 / グッドマオ) are untouched. The rendered
+   text is unchanged ("GoodMao"), so screen readers and the page title read it normally. */
 .gm-brand {
   font-family: var(--font-brand);
+  font-weight: 800;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
 }
 
 /* GoodMao "Pastel / Macaron" surface tints — light, natural fills meant to CARRY

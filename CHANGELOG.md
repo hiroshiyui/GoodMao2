@@ -76,7 +76,9 @@ skill).
   body text and the wordmark alike. Its Latin-only `unicode-range` lets CJK fall through to
   an explicit Traditional-Chinese / Japanese chain, so Han and Kana render in a proper face
   instead of a browser default. The `@font-face` spans the full variable weight axis
-  (100–900) so normal body text renders at a true 400 rather than a clamped bold.
+  (100–900) so normal body text renders at a true 400 rather than a clamped bold. The brand
+  wordmark, now sharing the body face, is set apart in Latin by treatment rather than
+  typeface — all-small-caps, an 800 weight, and open tracking (CJK wordmarks are unaffected).
 
 - **Daily-life logs (`life` type) as text notes** — any caretaker can now author a
   daily-life entry from QuickLog; its required caption is the base `note`. This completes
