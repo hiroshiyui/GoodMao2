@@ -26,6 +26,10 @@ config :goodmao2, Goodmao2Web.Endpoint,
 # In test we don't send emails
 config :goodmao2, Goodmao2.Mailer, adapter: Swoosh.Adapters.Test
 
+# In test, Oban neither runs queues nor fires cron — jobs are exercised with
+# Oban.Testing (perform_job/2) for deterministic, sandbox-friendly tests.
+config :goodmao2, Oban, testing: :manual
+
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 

@@ -16,7 +16,7 @@ web app.
 | EF Core 10 + PostgreSQL | **Ecto + PostgreSQL** | `jsonb` for species-specific / typed payloads |
 | Log entries via TPH (one table, discriminator) | **one `log_entries` table + `type` + `jsonb data`** | typed validation in the schema, not TPH classes |
 | Resource-based authorization handlers | **`Goodmao2.Pets` capability functions + LiveView mount checks** | `can?/3`, effective-grant resolution |
-| Custom DB-backed background-job queue | **(deferred — Oban when needed)** | not required by the MVP core |
+| Custom DB-backed background-job queue | **Oban** (Postgres-backed) | supervised after the repo; first job is a daily token-janitor cron; more workloads deferred |
 | Notifications polling + BFF relay | **Phoenix PubSub** | live timeline today; notification feed deferred |
 | Paraglide i18n (two tiers) | **Gettext** | `en` / `zh_TW` / `ja_JP` |
 | UIkit (Less) + Roboto Slab | **Tailwind v4 + daisyUI** | from the `phx.new` scaffold |

@@ -169,8 +169,11 @@ rejects *and* the legitimate case still passes).
 
 ## 9. Platform & data model (deferred)
 
-- [ ] **Oban** for background jobs (janitor, reminders, async media, notification fan-out)
-      — deferred until a job actually needs it (supersedes the original's ADR-0006; Phase 1/2)
+- [~] **Oban** for background jobs (supersedes the original's ADR-0006; Phase 1/2). The
+      foundation is in (Oban + `Oban.Plugins.Cron`, supervised after the repo), and the first
+      workload ships: a daily **token janitor** cron that prunes expired auth tokens
+      (`Goodmao2.Accounts.TokenJanitor` → `Accounts.delete_expired_tokens/0`). Still deferred
+      until each is needed: reminders, async media, notification fan-out.
 - [ ] Weight-unit-aware display + richer `Species` enum (`rabbit` / `bird`); 5-minute
       clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline `offset`
       paging for report views (the `from` / `to` range now backs the shipped calendar view)

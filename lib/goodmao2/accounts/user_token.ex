@@ -153,4 +153,24 @@ defmodule Goodmao2.Accounts.UserToken do
   defp by_token_and_context_query(token, context) do
     from UserToken, where: [token: ^token, context: ^context]
   end
+
+  @doc """
+  Query matching auth tokens past their per-context validity window.
+
+  Reuses the same validity windows the verify queries enforce at read time
+  (`@session_validity_in_days` / `@magic_link_validity_in_minutes` /
+  `@change_email_validity_in_days`), so the janitor and the read path can never
+  disagree. Only the three known contexts are matched — an unknown context is never
+  swept.
+  """
+  def expired_tokens_query do
+    from t in UserToken,
+      where:
+        (t.context == "session" and
+           t.inserted_at < ago(@session_validity_in_days, "day")) or
+          (t.context == "login" and
+             t.inserted_at < ago(^@magic_link_validity_in_minutes, "minute")) or
+          (like(t.context, "change:%") and
+             t.inserted_at < ago(@change_email_validity_in_days, "day"))
+  end
 end

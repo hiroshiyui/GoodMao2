@@ -10,6 +10,7 @@ defmodule Goodmao2.Application do
     children = [
       Goodmao2Web.Telemetry,
       Goodmao2.Repo,
+      {Oban, Application.fetch_env!(:goodmao2, Oban)},
       {DNSCluster, query: Application.get_env(:goodmao2, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Goodmao2.PubSub},
       # Start a worker by calling: Goodmao2.Worker.start_link(arg)

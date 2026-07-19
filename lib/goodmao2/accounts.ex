@@ -367,6 +367,18 @@ defmodule Goodmao2.Accounts do
     :ok
   end
 
+  @doc """
+  Deletes auth tokens past their validity window; returns the count deleted.
+
+  Tokens are only checked for expiry at read time, and are otherwise deleted only on
+  a specific user action (logout, email/password change) — so expired rows accumulate.
+  The `Goodmao2.Accounts.TokenJanitor` Oban cron calls this daily to sweep them.
+  """
+  def delete_expired_tokens do
+    {count, _} = Repo.delete_all(UserToken.expired_tokens_query())
+    count
+  end
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do

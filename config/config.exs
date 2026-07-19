@@ -80,6 +80,19 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Background jobs (Oban). Today it runs a single daily cron — the token janitor that
+# prunes expired auth tokens (Accounts.delete_expired_tokens/0); more workloads
+# (reminders, async media, notification fan-out) are deferred (doc/roadmap.md).
+config :goodmao2, Oban,
+  repo: Goodmao2.Repo,
+  queues: [default: 10],
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"30 3 * * *", Goodmao2.Accounts.TokenJanitor}
+     ]}
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

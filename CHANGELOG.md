@@ -10,6 +10,13 @@ skill).
 
 ### Added
 
+- **Background jobs (Oban) + a token janitor** — Oban (Postgres-backed) is now supervised
+  after the repo, with `Oban.Plugins.Cron` for scheduled work. Its first workload is a daily
+  cron (`Goodmao2.Accounts.TokenJanitor`) that prunes expired auth tokens — session (>14d),
+  magic-link (>15m), and change-email (>7d) rows that were previously only checked at read time
+  and so accumulated forever. The pruning logic lives in `Accounts.delete_expired_tokens/0`
+  (reusing the token schema's own validity windows), so the worker is a thin shell. This is the
+  foundation for the deferred reminder / async-media / notification-fan-out workloads.
 - **Calendar view for the pet timeline** — read the timeline as a month grid alongside the
   chronological list, toggled with a segmented control by the type filter. Each day cell
   shows its entry count plus an urgent/watch clinical cue (icon **and** colour, never colour

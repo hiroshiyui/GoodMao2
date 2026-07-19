@@ -499,4 +499,58 @@ defmodule Goodmao2.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "delete_expired_tokens/0" do
+    setup do
+      %{user: user_fixture()}
+    end
+
+    defp insert_token(user, context, inserted_at) do
+      %UserToken{
+        token: :crypto.strong_rand_bytes(32),
+        context: context,
+        sent_to: user.email,
+        user_id: user.id
+      }
+      |> Repo.insert!()
+      |> Ecto.Changeset.change(inserted_at: inserted_at)
+      |> Repo.update!()
+    end
+
+    test "keeps tokens still inside their validity window", %{user: user} do
+      now = DateTime.utc_now(:second)
+      insert_token(user, "session", DateTime.add(now, -13, :day))
+      insert_token(user, "login", DateTime.add(now, -10, :minute))
+      insert_token(user, "change:new@example.com", DateTime.add(now, -6, :day))
+
+      assert Accounts.delete_expired_tokens() == 0
+      assert Repo.aggregate(UserToken, :count) == 3
+    end
+
+    test "deletes tokens past their per-context window, keeps the rest", %{user: user} do
+      now = DateTime.utc_now(:second)
+
+      # Expired: session > 14d, login > 15m, change:* > 7d.
+      insert_token(user, "session", DateTime.add(now, -15, :day))
+      insert_token(user, "login", DateTime.add(now, -16, :minute))
+      insert_token(user, "change:new@example.com", DateTime.add(now, -8, :day))
+
+      # Fresh — must survive.
+      fresh = insert_token(user, "session", DateTime.add(now, -1, :day))
+
+      assert Accounts.delete_expired_tokens() == 3
+      assert [survivor] = Repo.all(UserToken)
+      assert survivor.id == fresh.id
+    end
+
+    test "never sweeps an unknown context", %{user: user} do
+      now = DateTime.utc_now(:second)
+      insert_token(user, "session", DateTime.add(now, -30, :day))
+      other = insert_token(user, "api", DateTime.add(now, -30, :day))
+
+      assert Accounts.delete_expired_tokens() == 1
+      assert [survivor] = Repo.all(UserToken)
+      assert survivor.id == other.id
+    end
+  end
 end
