@@ -5,6 +5,8 @@ defmodule Goodmao2Web.Layouts do
   """
   use Goodmao2Web, :html
 
+  alias Goodmao2Web.Locale
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -54,7 +56,7 @@ defmodule Goodmao2Web.Layouts do
             class="flex w-fit items-center gap-2 text-lg font-semibold"
           >
             <span aria-hidden="true">🐾</span>
-            <span>GoodMao <span class="text-base-content/50 text-sm font-normal">顧毛</span></span>
+            <span class="gm-brand">{brand_name()}</span>
           </.link>
         </div>
         <nav id="site-nav" aria-label={gettext("Primary")} class="flex-none">
@@ -104,6 +106,9 @@ defmodule Goodmao2Web.Layouts do
               </li>
             <% end %>
             <li>
+              <.locale_switcher locale={Gettext.get_locale(Goodmao2Web.Gettext)} />
+            </li>
+            <li>
               <.theme_toggle />
             </li>
           </ul>
@@ -122,7 +127,7 @@ defmodule Goodmao2Web.Layouts do
             <span aria-hidden="true">🐾</span>
             {gettext("GoodMao — a shareable health timeline for the pets you love.")}
           </p>
-          <p>© {gettext("GoodMao")} 顧毛</p>
+          <p>© {brand_name()}</p>
         </div>
       </footer>
     </div>
@@ -180,6 +185,37 @@ defmodule Goodmao2Web.Layouts do
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
     </div>
+    """
+  end
+
+  @doc """
+  Language switcher. Each locale is labelled with its own autonym (ADR-0002) so it is
+  recognisable whatever the active UI language is. Switching is a plain GET navigation to
+  `LocaleController`, which persists the choice in the `locale` cookie and reloads — no
+  inline JS, so it stays within the Content-Security-Policy.
+  """
+  attr :locale, :string, required: true
+
+  def locale_switcher(assigns) do
+    ~H"""
+    <details class="dropdown dropdown-end" id="locale-switcher">
+      <summary class="btn btn-ghost btn-sm" aria-label={gettext("Change language")}>
+        <.icon name="hero-language" class="size-4" />
+        <span class="hidden sm:inline">{Locale.label(@locale)}</span>
+      </summary>
+      <ul class="menu dropdown-content z-40 mt-2 w-40 rounded-box border border-base-200 bg-base-100 p-2 shadow">
+        <li :for={code <- Locale.known()}>
+          <.link
+            href={~p"/locale/#{code}"}
+            id={"locale-option-#{code}"}
+            class={code == @locale && "menu-active font-semibold"}
+            aria-current={(code == @locale && "true") || nil}
+          >
+            {Locale.label(code)}
+          </.link>
+        </li>
+      </ul>
+    </details>
     """
   end
 

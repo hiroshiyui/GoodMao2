@@ -24,6 +24,13 @@ config :goodmao2,
   ecto_repos: [Goodmao2.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Internationalization. `en` is the base/reference locale; `zh_TW` and `ja_JP` are
+# the shipped translations (ADR-0002). The per-request locale is resolved by
+# Goodmao2Web.Plugs.Locale (cookie → Accept-Language → default).
+config :goodmao2, Goodmao2Web.Gettext,
+  default_locale: "en",
+  locales: ~w(en zh_TW ja_JP)
+
 # Configure the endpoint
 config :goodmao2, Goodmao2Web.Endpoint,
   url: [host: "localhost"],

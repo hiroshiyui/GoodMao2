@@ -6,6 +6,7 @@ defmodule Goodmao2Web.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug Goodmao2Web.Plugs.Locale
     plug :fetch_live_flash
     plug :put_root_layout, html: {Goodmao2Web.Layouts, :root}
     plug :protect_from_forgery
@@ -22,6 +23,7 @@ defmodule Goodmao2Web.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/locale/:locale", LocaleController, :update
   end
 
   # Unauthenticated liveness/readiness probe (no pipeline: no session, CSRF, or
@@ -58,7 +60,10 @@ defmodule Goodmao2Web.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      on_mount: [{Goodmao2Web.UserAuth, :require_authenticated}] do
+      on_mount: [
+        {Goodmao2Web.UserAuth, :require_authenticated},
+        {Goodmao2Web.UserLocale, :put_locale}
+      ] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/password", UserLive.PasswordSettings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
@@ -81,7 +86,10 @@ defmodule Goodmao2Web.Router do
     pipe_through [:browser]
 
     live_session :current_user,
-      on_mount: [{Goodmao2Web.UserAuth, :mount_current_scope}] do
+      on_mount: [
+        {Goodmao2Web.UserAuth, :mount_current_scope},
+        {Goodmao2Web.UserLocale, :put_locale}
+      ] do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new

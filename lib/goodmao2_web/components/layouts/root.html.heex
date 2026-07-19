@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang={Goodmao2Web.Locale.html_lang(Gettext.get_locale(Goodmao2Web.Gettext))}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,7 +10,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🐾</text></svg>"
     />
-    <.live_title default="GoodMao 顧毛" suffix=" · GoodMao">
+    <.live_title default={brand_name()} suffix={" · " <> brand_name()}>
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />

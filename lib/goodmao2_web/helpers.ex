@@ -8,6 +8,13 @@ defmodule Goodmao2Web.Helpers do
   """
   use Gettext, backend: Goodmao2Web.Gettext
 
+  @doc """
+  The brand wordmark, rendered through Gettext so it varies per locale (ADR-0002):
+  `GoodMao` (en) / `顧毛` (zh_TW) / `グッドマオ` (ja_JP). Never hard-code the wordmark —
+  call this so every surface stays consistent and adding a locale needs no code change.
+  """
+  def brand_name, do: gettext("GoodMao")
+
   ## Enum label translations
 
   def translate_role("owner"), do: gettext("Owner")

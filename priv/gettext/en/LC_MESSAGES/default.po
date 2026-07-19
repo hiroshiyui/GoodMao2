@@ -11,19 +11,19 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/goodmao2_web/helpers.ex:130
+#: lib/goodmao2_web/helpers.ex:137
 #, elixir-autogen, elixir-format
 msgid "%{count} episode"
 msgid_plural "%{count} episodes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/goodmao2_web/helpers.ex:184
+#: lib/goodmao2_web/helpers.ex:191
 #, elixir-autogen, elixir-format
 msgid "%{g} g"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:138
+#: lib/goodmao2_web/helpers.ex:145
 #, elixir-autogen, elixir-format
 msgid "%{kg} kg"
 msgstr ""
@@ -33,7 +33,7 @@ msgstr ""
 msgid "%{name} added."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:187
+#: lib/goodmao2_web/helpers.ex:194
 #, elixir-autogen, elixir-format
 msgid "%{v} ml"
 msgstr ""
@@ -78,7 +78,7 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:34
+#: lib/goodmao2_web/helpers.ex:41
 #, elixir-autogen, elixir-format
 msgid "Active"
 msgstr ""
@@ -94,12 +94,12 @@ msgstr ""
 msgid "Add note, time, or visibility"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:75
+#: lib/goodmao2_web/components/layouts.ex:77
 #, elixir-autogen, elixir-format
 msgid "Admin"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:73
+#: lib/goodmao2_web/components/layouts.ex:75
 #, elixir-autogen, elixir-format
 msgid "Administrator"
 msgstr ""
@@ -114,20 +114,20 @@ msgstr ""
 msgid "Amount"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:178
+#: lib/goodmao2_web/helpers.ex:185
 #: lib/goodmao2_web/live/pet_live/show.ex:433
 #, elixir-autogen, elixir-format
 msgid "Ate fully"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:179
+#: lib/goodmao2_web/helpers.ex:186
 #: lib/goodmao2_web/live/pet_live/show.ex:434
 #, elixir-autogen, elixir-format
 msgid "Ate partially"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:167
-#: lib/goodmao2_web/components/layouts.ex:179
+#: lib/goodmao2_web/components/layouts.ex:172
+#: lib/goodmao2_web/components/layouts.ex:184
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
@@ -143,8 +143,8 @@ msgstr ""
 msgid "Back to pets"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:60
-#: lib/goodmao2_web/helpers.ex:113
+#: lib/goodmao2_web/helpers.ex:67
+#: lib/goodmao2_web/helpers.ex:120
 #, elixir-autogen, elixir-format
 msgid "Bathroom"
 msgstr ""
@@ -170,12 +170,12 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:19
+#: lib/goodmao2_web/helpers.ex:26
 #, elixir-autogen, elixir-format
 msgid "Cat"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:14
+#: lib/goodmao2_web/helpers.ex:21
 #, elixir-autogen, elixir-format
 msgid "Co-caretaker"
 msgstr ""
@@ -210,8 +210,8 @@ msgstr ""
 msgid "Could not revoke that grant."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:67
-#: lib/goodmao2_web/helpers.ex:159
+#: lib/goodmao2_web/helpers.ex:74
+#: lib/goodmao2_web/helpers.ex:166
 #, elixir-autogen, elixir-format
 msgid "Daily life"
 msgstr ""
@@ -221,7 +221,7 @@ msgstr ""
 msgid "Display name"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:20
+#: lib/goodmao2_web/helpers.ex:27
 #, elixir-autogen, elixir-format
 msgid "Dog"
 msgstr ""
@@ -261,12 +261,12 @@ msgstr ""
 msgid "End of care · %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:63
+#: lib/goodmao2_web/helpers.ex:70
 #, elixir-autogen, elixir-format
 msgid "Energy"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:144
+#: lib/goodmao2_web/helpers.ex:151
 #, elixir-autogen, elixir-format
 msgid "Energy %{level}/5"
 msgstr ""
@@ -296,7 +296,7 @@ msgstr ""
 msgid "Family and sitters coordinate in real time; grant a vet time-boxed access for a visit."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:25
+#: lib/goodmao2_web/helpers.ex:32
 #, elixir-autogen, elixir-format
 msgid "Female"
 msgstr ""
@@ -306,8 +306,8 @@ msgstr ""
 msgid "Filter by type"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:58
-#: lib/goodmao2_web/helpers.ex:181
+#: lib/goodmao2_web/helpers.ex:65
+#: lib/goodmao2_web/helpers.ex:188
 #: lib/goodmao2_web/live/pet_live/show.ex:438
 #, elixir-autogen, elixir-format
 msgid "Food"
@@ -318,13 +318,12 @@ msgstr ""
 msgid "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:102
+#: lib/goodmao2_web/components/layouts.ex:104
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:125
-#: lib/goodmao2_web/controllers/page_html/home.html.heex:5
+#: lib/goodmao2_web/helpers.ex:16
 #, elixir-autogen, elixir-format
 msgid "GoodMao"
 msgstr ""
@@ -344,7 +343,7 @@ msgstr ""
 msgid "High"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:101
+#: lib/goodmao2_web/helpers.ex:108
 #, elixir-autogen, elixir-format
 msgid "High intake"
 msgstr ""
@@ -364,7 +363,7 @@ msgstr ""
 msgid "Kind"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:52
+#: lib/goodmao2_web/helpers.ex:59
 #, elixir-autogen, elixir-format
 msgid "Limited"
 msgstr ""
@@ -374,13 +373,13 @@ msgstr ""
 msgid "Log %{type}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:97
+#: lib/goodmao2_web/components/layouts.ex:99
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #, elixir-autogen, elixir-format
 msgid "Log in"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:91
+#: lib/goodmao2_web/components/layouts.ex:93
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr ""
@@ -395,7 +394,7 @@ msgstr ""
 msgid "Logged."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:37
+#: lib/goodmao2_web/helpers.ex:44
 #, elixir-autogen, elixir-format
 msgid "Lost"
 msgstr ""
@@ -405,17 +404,17 @@ msgstr ""
 msgid "Low"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:100
+#: lib/goodmao2_web/helpers.ex:107
 #, elixir-autogen, elixir-format
 msgid "Low intake"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:24
+#: lib/goodmao2_web/helpers.ex:31
 #, elixir-autogen, elixir-format
 msgid "Male"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:64
+#: lib/goodmao2_web/helpers.ex:71
 #: lib/goodmao2_web/live/pet_live/show.ex:524
 #, elixir-autogen, elixir-format
 msgid "Medication"
@@ -426,7 +425,7 @@ msgstr ""
 msgid "Mood"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:65
+#: lib/goodmao2_web/components/layouts.ex:67
 #: lib/goodmao2_web/live/pet_live/index.ex:26
 #: lib/goodmao2_web/live/pet_live/index.ex:42
 #, elixir-autogen, elixir-format
@@ -473,7 +472,7 @@ msgstr ""
 msgid "Normal"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:99
+#: lib/goodmao2_web/helpers.ex:106
 #, elixir-autogen, elixir-format
 msgid "Normal intake"
 msgstr ""
@@ -498,18 +497,18 @@ msgstr ""
 msgid "One-tap logging"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:21
-#: lib/goodmao2_web/helpers.ex:38
+#: lib/goodmao2_web/helpers.ex:28
+#: lib/goodmao2_web/helpers.ex:45
 #, elixir-autogen, elixir-format
 msgid "Other"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:13
+#: lib/goodmao2_web/helpers.ex:20
 #, elixir-autogen, elixir-format
 msgid "Owner"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:35
+#: lib/goodmao2_web/helpers.ex:42
 #, elixir-autogen, elixir-format
 msgid "Passed away"
 msgstr ""
@@ -544,12 +543,12 @@ msgstr ""
 msgid "Portion (g)"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:60
+#: lib/goodmao2_web/components/layouts.ex:62
 #, elixir-autogen, elixir-format
 msgid "Primary"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:51
+#: lib/goodmao2_web/helpers.ex:58
 #, elixir-autogen, elixir-format
 msgid "Private"
 msgstr ""
@@ -559,7 +558,7 @@ msgstr ""
 msgid "Profile updated."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:53
+#: lib/goodmao2_web/helpers.ex:60
 #, elixir-autogen, elixir-format
 msgid "Public"
 msgstr ""
@@ -579,12 +578,12 @@ msgstr ""
 msgid "Refused"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:180
+#: lib/goodmao2_web/helpers.ex:187
 #, elixir-autogen, elixir-format
 msgid "Refused food"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:36
+#: lib/goodmao2_web/helpers.ex:43
 #, elixir-autogen, elixir-format
 msgid "Rehomed"
 msgstr ""
@@ -674,7 +673,7 @@ msgstr ""
 msgid "Sharing %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:174
+#: lib/goodmao2_web/components/layouts.ex:179
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
@@ -694,7 +693,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:112
+#: lib/goodmao2_web/helpers.ex:119
 #: lib/goodmao2_web/live/pet_live/show.ex:465
 #, elixir-autogen, elixir-format
 msgid "Stool"
@@ -705,7 +704,7 @@ msgstr ""
 msgid "Straining (⚠ cat emergency)"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:65
+#: lib/goodmao2_web/helpers.ex:72
 #: lib/goodmao2_web/live/pet_live/show.ex:533
 #, elixir-autogen, elixir-format
 msgid "Symptom"
@@ -721,28 +720,28 @@ msgstr ""
 msgid "Tip: give a veterinarian a time-boxed expiry so their access ends after the visit."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:26
+#: lib/goodmao2_web/helpers.ex:33
 #, elixir-autogen, elixir-format
 msgid "Unknown"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:111
+#: lib/goodmao2_web/helpers.ex:118
 #: lib/goodmao2_web/live/pet_live/show.ex:465
 #, elixir-autogen, elixir-format
 msgid "Urine"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:66
+#: lib/goodmao2_web/helpers.ex:73
 #, elixir-autogen, elixir-format
 msgid "Vet note"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:16
+#: lib/goodmao2_web/helpers.ex:23
 #, elixir-autogen, elixir-format
 msgid "Veterinarian"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:15
+#: lib/goodmao2_web/helpers.ex:22
 #, elixir-autogen, elixir-format
 msgid "Viewer"
 msgstr ""
@@ -757,24 +756,24 @@ msgstr ""
 msgid "Volume (ml)"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:61
+#: lib/goodmao2_web/helpers.ex:68
 #, elixir-autogen, elixir-format
 msgid "Vomiting"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:59
-#: lib/goodmao2_web/helpers.ex:102
+#: lib/goodmao2_web/helpers.ex:66
+#: lib/goodmao2_web/helpers.ex:109
 #, elixir-autogen, elixir-format
 msgid "Water"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:162
+#: lib/goodmao2_web/components/layouts.ex:167
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:62
-#: lib/goodmao2_web/helpers.ex:137
+#: lib/goodmao2_web/helpers.ex:69
+#: lib/goodmao2_web/helpers.ex:144
 #, elixir-autogen, elixir-format
 msgid "Weight"
 msgstr ""
@@ -824,7 +823,7 @@ msgstr ""
 msgid "Your handle lets others invite you to a pet by @handle."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:119
+#: lib/goodmao2_web/helpers.ex:126
 #, elixir-autogen, elixir-format
 msgid "blood"
 msgstr ""
@@ -834,27 +833,27 @@ msgstr ""
 msgid "close"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:29
+#: lib/goodmao2_web/helpers.ex:36
 #, elixir-autogen, elixir-format
 msgid "grams"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:30
+#: lib/goodmao2_web/helpers.ex:37
 #, elixir-autogen, elixir-format
 msgid "kilograms"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:31
+#: lib/goodmao2_web/helpers.ex:38
 #, elixir-autogen, elixir-format
 msgid "pounds"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:190
+#: lib/goodmao2_web/helpers.ex:197
 #, elixir-autogen, elixir-format
 msgid "severity %{s}/5"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:120
+#: lib/goodmao2_web/helpers.ex:127
 #, elixir-autogen, elixir-format
 msgid "straining ⚠"
 msgstr ""
@@ -864,30 +863,30 @@ msgstr ""
 msgid "until %{t}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:220
-#: lib/goodmao2_web/components/layouts.ex:221
+#: lib/goodmao2_web/components/layouts.ex:256
+#: lib/goodmao2_web/components/layouts.ex:257
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:123
+#: lib/goodmao2_web/components/layouts.ex:128
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:210
-#: lib/goodmao2_web/components/layouts.ex:211
+#: lib/goodmao2_web/components/layouts.ex:246
+#: lib/goodmao2_web/components/layouts.ex:247
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:200
-#: lib/goodmao2_web/components/layouts.ex:201
+#: lib/goodmao2_web/components/layouts.ex:236
+#: lib/goodmao2_web/components/layouts.ex:237
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:43
+#: lib/goodmao2_web/components/layouts.ex:45
 #, elixir-autogen, elixir-format
 msgid "Skip to content"
 msgstr ""
@@ -982,4 +981,9 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/index.ex:56
 #, elixir-autogen, elixir-format
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:202
+#, elixir-autogen, elixir-format
+msgid "Change language"
 msgstr ""
