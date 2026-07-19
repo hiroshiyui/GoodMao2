@@ -1,16 +1,15 @@
 defmodule Mix.Tasks.Goodmao.Doctor do
-  @shortdoc "Preflight: verify the local dev prerequisites for GoodMao2"
+  @shortdoc "Preflight: verify the local dev prerequisites for GoodMao"
 
   @moduledoc """
-  Environment preflight / onboarding check for GoodMao2.
+  Environment preflight / onboarding check for GoodMao.
 
   Runs a series of defensive checks against the local development environment and
   prints one `PASS` / `WARN` / `FAIL` line per check, then a summary. The task exits
   non-zero only if a *hard* check FAILED — warnings never fail the run, they just flag
   things a new contributor probably wants to fix before `mix setup`.
 
-  It mirrors the `doctor` verb from the original GoodMao CLI, adapted to this
-  Elixir/Phoenix stack:
+  A preflight `doctor` task for this Elixir/Phoenix stack:
 
     * Runtime versions (Erlang/OTP + Elixir) against `.tool-versions` — WARN on mismatch.
     * PostgreSQL reachability using the configured `Goodmao2.Repo` credentials — FAIL if
@@ -40,7 +39,7 @@ defmodule Mix.Tasks.Goodmao.Doctor do
 
   @impl Mix.Task
   def run(_args) do
-    banner("GoodMao2 doctor — environment preflight")
+    banner("GoodMao doctor — environment preflight")
 
     results =
       [

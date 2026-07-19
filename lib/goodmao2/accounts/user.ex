@@ -3,7 +3,7 @@ defmodule Goodmao2.Accounts.User do
   import Ecto.Changeset
 
   # Reserved handles that may not be claimed by a user (routes, roles, support names,
-  # impersonation bait). Kept in parity with the original GoodMao's reserved set.
+  # impersonation bait).
   @reserved_handles ~w(admin administrator superuser sysadmin operator moderator mod system
                        root support help about auth login logout register settings account
                        user users owner staff official team goodmao pets vet vets vetprofile

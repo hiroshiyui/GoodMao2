@@ -1,19 +1,17 @@
-# GoodMao2 — Glossary
+# GoodMao — Glossary
 
 Shared vocabulary for the project. Keep it current as concepts are added or change.
 Deeper detail lives in [`architecture.md`](architecture.md) and [`roadmap.md`](roadmap.md);
 the reasoning behind cross-cutting decisions lives in [`adr/`](adr/).
 
-The **product and domain** are inherited unchanged from the original
-[GoodMao](../../GoodMao/doc/glossary.md); only the **architecture and tech** terms differ
-(Phoenix/LiveView/Ecto/Gettext instead of the two-tier SvelteKit + ASP.NET Core stack).
+The **Product & domain** terms below describe what GoodMao is; the **Architecture & tech**
+terms name its Phoenix/LiveView/Ecto/Gettext stack.
 
 ## Product & domain
 
 - **GoodMao (顧毛)** — the product. From 「照顧毛小孩」, "take care of your pets"
   (English; the zh-TW 毛小孩 endearment is localized per culture — see _Culture-first
   localization_). Warm, owner-first framing; the clinical timeline is the payoff.
-  GoodMao2 is the **Phoenix/LiveView rendering** of the same product.
 - **Pet** — an animal a user cares for. Species-aware (cat-first). Ownership is a
   role, not a column (see _Owner_).
 - **Owner** — a `pet_accesses` role granting full control of a pet: manage grants,
@@ -28,10 +26,10 @@ The **product and domain** are inherited unchanged from the original
   deferred), distinct from per-pet roles.
 - **VetProfile** — the account-level record proving veterinarian status
   (license, clinic, verification status). Vet capabilities require it to be verified.
-  _Deferred_ (Phase 4) — not yet modeled in GoodMao2.
+  _Deferred_ (Phase 4) — not yet modeled in GoodMao.
 - **Administrator** — the one **global** (non-per-pet) role, for platform oversight
   (e.g. vet verification). It deliberately **does not** bypass resource-based pet
-  authorization — no backdoor to a user's pet health data. In GoodMao2 the **first
+  authorization — no backdoor to a user's pet health data. In GoodMao the **first
   registered account** is bootstrapped as the sole administrator (`users.is_admin`).
 - **Handle (`@handle`)** — every account's **public** identifier (e.g. `@johndoe`) — the
   thing you mention or invite a user by. Lowercase-canonical, case-insensitively unique
@@ -61,9 +59,8 @@ The **product and domain** are inherited unchanged from the original
 - **Structured logging** — the principle that entries are one-tap, typed, and
   clinically queryable, never free-text blobs. The heart of the product.
 - **One-table logs** — all log-entry subtypes share **one `log_entries` table** with a
-  `type` discriminator and a `jsonb` `data` payload (GoodMao2's equivalent of the
-  original's EF Core Table-Per-Hierarchy). Per-type field validation lives in
-  `LogEntry.changeset/2`.
+  `type` discriminator and a `jsonb` `data` payload — one table for all log subtypes.
+  Per-type field validation lives in `LogEntry.changeset/2`.
 - **Timeline** — the chronological view of a pet's log entries; becomes the clinical
   record a vet reads. Rendered live in `PetLive.Show` and updated over PubSub.
 - **Pet lifecycle status** — where a pet is in its life with the household:
@@ -120,16 +117,14 @@ The **product and domain** are inherited unchanged from the original
 
 ## Architecture & tech
 
-- **Monolith / single tier** — GoodMao2 is one **Phoenix** application: server-rendered
-  **LiveView** pages call the domain **contexts** directly. There is no separate frontend,
-  no JSON API, and no BFF — the two-tier boundary of the original collapses into one
-  deployable.
+- **Monolith / single tier** — GoodMao is one **Phoenix** application: server-rendered
+  **LiveView** pages call the domain **contexts** directly. There is no separate frontend
+  and no JSON API — the whole app is one deployable.
 - **Context** — an Elixir/Phoenix bounded module owning a slice of the domain and its
-  Ecto schemas. GoodMao2 has three: **`Accounts`**, **`Pets`** (the authorization core),
+  Ecto schemas. GoodMao has three: **`Accounts`**, **`Pets`** (the authorization core),
   and **`Logs`**. Web LiveViews are thin and call into them.
 - **Scope-based auth** — `phx.gen.auth`'s pattern where the caller is
-  `socket.assigns.current_scope.user`. Replaces the original's ASP.NET Core Identity +
-  BFF session cookie; magic-link + password login.
+  `socket.assigns.current_scope.user`; magic-link + password login.
 - **Resource-based authorization** — deciding access from the caller's *relationship to
   a specific pet* (their effective `pet_accesses` grant), not just "is logged in." Guards
   against IDOR on health data. Computed per request by `Goodmao2.Pets.can?/3` and
@@ -137,21 +132,19 @@ The **product and domain** are inherited unchanged from the original
 - **Capability level** — the access tier an action requires: `:read`, `:write`, or
   `:manage`. A role maps to a set of levels; `Pets.can?(pet, user, level)` is the check.
 - **PubSub** — Phoenix.PubSub, the real-time backbone. `Logs` broadcasts create/update/
-  delete on a pet's topic so `PetLive.Show` streams live timeline updates. Replaces the
-  original's polling + BFF relay.
+  delete on a pet's topic so `PetLive.Show` streams live timeline updates.
 - **Ecto** — the Elixir data-mapping/query library over PostgreSQL. `jsonb` carries the
-  per-type log `data` payload and species-specific fields. Replaces EF Core.
+  per-type log `data` payload and species-specific fields.
 - **Audit reference** — a plain user-id column stored **without an FK navigation**
   (`recorded_by_user_id`, `granted_by_user_id`, `created_by_user_id`). Deliberate: avoids
-  the multiple-cascade-path problem, exactly as the original decided.
+  the multiple-cascade-path problem.
 - **Gettext** — the i18n library. Message IDs extract to `priv/gettext/default.pot` and
-  merge into per-locale `.po` catalogs. Replaces Paraglide. Locales: **English** (`en`,
+  merge into per-locale `.po` catalogs. Locales: **English** (`en`,
   default/reference), **台灣漢語** (`zh_TW`), **Japanese** (`ja_JP`). Enum-label
   translations and log summaries live in `Goodmao2Web.Helpers`.
-- **Tailwind v4 + daisyUI** — the styling stack from the `phx.new` scaffold. Replaces the
-  original's UIkit-from-Less + vendored Roboto Slab.
-- **Oban** — the durable, DB-backed background-job library GoodMao2 will adopt **when a
-  job actually needs it** (media janitor, reminders, notification fan-out). Replaces the
-  original's bespoke queue; deferred until required. See [ADR-0006 (superseded)](adr/README.md).
+- **Tailwind v4 + daisyUI** — the styling stack from the `phx.new` scaffold.
+- **Oban** — the durable, DB-backed background-job library GoodMao will adopt **when a
+  job actually needs it** (media janitor, reminders, notification fan-out); deferred until
+  required. See [ADR-0006 (superseded)](adr/README.md).
 - **`mix precommit`** — the single gate (compile with warnings-as-errors + unused-deps
   check + format + full test suite) that humans and agents run before finishing.

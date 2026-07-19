@@ -1,6 +1,6 @@
 ---
 name: docs-engineering
-description: Audit and update all GoodMao2 project documentation to stay in sync with the current development status.
+description: Audit and update all GoodMao project documentation to stay in sync with the current development status.
 ---
 
 When performing documentation engineering, always follow these steps:
@@ -9,10 +9,9 @@ When performing documentation engineering, always follow these steps:
    review scope must include — without exception:
    - `README.md` — feature list ("What's built"), prerequisites, setup, demo accounts
    - `CLAUDE.md` — commands, architecture-in-one-screen, non-obvious conventions
-   - `AGENTS.md` — the **GoodMao2 section** (invariants to preserve); keep it in step with
+   - `AGENTS.md` — the **GoodMao section** (invariants to preserve); keep it in step with
      the code (authorization boundary, one-table logs, soft-delete, a11y, Gettext rules)
-   - `doc/architecture.md` — contexts, data model, authorization table, GoodMao→GoodMao2
-     technology mapping
+   - `doc/architecture.md` — contexts, data model, authorization table
    - `doc/roadmap.md` — shipped vs. deferred; move items from "Deferred" to "Shipped" as
      they land
    - `@moduledoc` and `@doc` strings in changed or related modules (the `Pets` authorization

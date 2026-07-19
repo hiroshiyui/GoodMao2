@@ -1,14 +1,13 @@
-# GoodMao2 — Roadmap
+# GoodMao — Roadmap
 
 _Last updated: 2026-07-18_
 
-The Phoenix edition was built **depth-first from the core**: the heart of the product
+GoodMao was built **depth-first from the core**: the heart of the product
 (effortless structured logging → shareable, authorized timeline) ships first and fully.
-This tracks what's done and what's intentionally deferred. Feature framing follows the
-original [GoodMao roadmap](../../GoodMao/doc/roadmap.md).
+This tracks what's done and what's intentionally deferred.
 
-> A **GoodMao parity audit** (2026-07-18) compared this port against the mature original
-> across backend/domain, UI/UX/a11y, and tooling. It fed the **Near-term hardening**,
+> A **hardening audit** (2026-07-18) reviewed the app across backend/domain, UI/UX/a11y,
+> and tooling. It fed the **Near-term hardening**,
 > **Engineering & ops maturity**, and **Accessibility & UX polish** sections below, and
 > surfaced several rules that are *modeled but not yet enforced* — tracked as hardening,
 > not treated as done.
@@ -80,15 +79,14 @@ carries authority rather than being anonymous advice.
       [ADR-0004](adr/0004-log-visibility.md))
 - [x] Vet-authored `vet_note` entries (vet-only)
 - [x] Live, type-filterable timeline via Phoenix PubSub — as a chronological list **or** a
-      month **calendar view** (per-day counts, urgent/watch cues, day drill-down; ports
-      GoodMao's calendar to LiveView)
+      month **calendar view** (per-day counts, urgent/watch cues, day drill-down)
 - [x] Soft-delete of entries (`deleted_at`)
 - [x] Gettext throughout; `en` populated, `zh_TW` / `ja_JP` scaffolded
 - [x] Test suite (context + LiveView) and `mix precommit` gate; dev seed data
 
 ## 5. Near-term hardening — enforcement gaps
 
-**Closed (2026-07-18).** The GoodMao parity audit found these rules **modeled in the schema
+**Closed (2026-07-18).** The hardening audit found these rules **modeled in the schema
 but not enforced in code** — correctness/security defects in shipped areas. All seven are now
 enforced at the context boundary, each with a both-directions regression test (the gate
 rejects *and* the legitimate case still passes).
@@ -109,7 +107,7 @@ rejects *and* the legitimate case still passes).
       (env `GOODMAO_SITE_OWNER_EMAIL`); when set, only that address may create the first
       (admin) account (`lib/goodmao2/accounts.ex`).
 - [x] **Handle-rule parity** — the handle must start with a letter or number (leading `_`
-      rejected) and the reserved-word set is expanded to GoodMao's (`lib/goodmao2/accounts/user.ex`).
+      rejected) and the reserved-word set is expanded (`lib/goodmao2/accounts/user.ex`).
 - [x] **Row-locked owner invariant** — owner-grant mutations run in a transaction that takes
       `FOR UPDATE` on the pet's owner rows, so concurrent revokes/demotes can't write-skew into
       an ownerless pet (`lib/goodmao2/pets.ex`).
@@ -172,7 +170,8 @@ rejects *and* the legitimate case still passes).
 
 ## 9. Platform & data model (deferred)
 
-- [~] **Oban** for background jobs (supersedes the original's ADR-0006; Phase 1/2). The
+- [~] **Oban** for background jobs (supersedes the deferred bespoke-job-queue plan, ADR-0006;
+      Phase 1/2). The
       foundation is in (Oban + `Oban.Plugins.Cron`, supervised after the repo), and the first
       workload ships: a daily **token janitor** cron that prunes expired auth tokens
       (`Goodmao2.Accounts.TokenJanitor` → `Accounts.delete_expired_tokens/0`). Still deferred
@@ -183,9 +182,9 @@ rejects *and* the legitimate case still passes).
 
 ## 10. Engineering & ops maturity
 
-Drawn from the parity audit. Fully shipped over two 2026-07-18 tranches: first CI + dependabot
+Drawn from the hardening audit. Fully shipped over two 2026-07-18 tranches: first CI + dependabot
 + security scanners + `/health` + seed fencing + CHANGELOG, then CSP + `mix goodmao.doctor` +
-the locale-parity test + the ported `a11y-engineering` skill.
+the locale-parity test + the `a11y-engineering` skill.
 
 - [x] **CI** (`.github/workflows/ci.yml`) — a `mix` job on a `postgres` service, Erlang/Elixir
       pinned from `.tool-versions`, running unused-deps + compile-warnings + format + audit +
@@ -206,14 +205,14 @@ the locale-parity test + the ported `a11y-engineering` skill.
 - [x] **`mix goodmao.doctor` preflight task** — checks Erlang/Elixir vs `.tool-versions`, Postgres
       reachability + the `CREATEDB` privilege, deps fetched, asset installers, and (under
       `MIX_ENV=prod`) required secrets; PASS/WARN/FAIL per line, non-zero exit only on a hard FAIL
-      (`lib/mix/tasks/goodmao.doctor.ex`). Ports only the `doctor` verb (`mix` is the entry point).
+      (`lib/mix/tasks/goodmao.doctor.ex`). A single `doctor` verb (`mix` is the entry point).
 - [x] **Locale-parity test** across `en` / `zh_TW` / `ja_JP` (`test/goodmao2/locale_parity_test.exs`)
       — asserts *structural* parity: identical domain and msgid sets across locales, no `#, fuzzy`
       entries, and `.pot` templates fully merged. (Translation *completeness* stays deferred with the
       locale switcher below; the scaffolded catalogs are intentionally untranslated.)
-- [x] Ported the **`a11y-engineering` skill** (`.claude/skills/a11y-engineering/SKILL.md`) —
-      rewritten for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
-      invariant `AGENTS.md` states; completes GoodMao's seven-skill set.
+- [x] The **`a11y-engineering` skill** (`.claude/skills/a11y-engineering/SKILL.md`) —
+      written for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
+      invariant `AGENTS.md` states; completes the project's seven-skill set.
 
 ## 11. Accessibility & UX polish
 
@@ -240,16 +239,15 @@ and a `PointerGlow` hook in `assets/js/app.js`.
 - [x] **Reveal pointer-glow** — the `PointerGlow` LiveView hook + `.gm-glow` surface; the hook
       never attaches its listener under `prefers-reduced-motion`.
 
-**Explicitly not porting** (tied to the SvelteKit/PWA architecture, antithetical to a LiveView
-monolith): PWA / service worker / offline; no-JS progressive-enhancement form fallbacks;
-SvelteKit routing/preload; re-vendoring Lucide icons (Phoenix hero-icons already satisfy
-[ADR-0010's](adr/README.md) self-hosted/SSR-safe/tree-shaken requirements). Note GoodMao2's
-light/dark/system theme toggle is **ahead** of GoodMao, which has no dark theme.
+**Explicitly out of scope** (antithetical to a LiveView monolith): PWA / service worker /
+offline; no-JS progressive-enhancement form fallbacks. Phoenix hero-icons already satisfy
+[ADR-0010's](adr/README.md) self-hosted/SSR-safe/tree-shaken requirements, so no separate
+icon vendoring is needed. GoodMao ships a light/dark/system theme toggle.
 
 ## 12. Notes / follow-ups
 
 - User references that are audit-only (`recorded_by_user_id`, `granted_by_user_id`,
-  `created_by_user_id`) are stored without FK navigations, mirroring the original's
+  `created_by_user_id`) are stored without FK navigations, a deliberate
   cascade-path decision.
 - The `life` log type ships as a **text-only** daily-life note (authored from QuickLog,
   caption required); only its photo/video enrichment is deferred with the media work above.

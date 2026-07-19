@@ -4,11 +4,9 @@
 - **Date:** 2026-07-09
 - **Deciders:** GoodMao maintainers
 
-> _Ported from GoodMao ADR-0002, adapted for the GoodMao2 Gettext stack._
-
 ## Context
 
-GoodMao2 ships in three locales — **en** (base), **zh-TW**, and **ja-JP** — and
+GoodMao ships in three locales — **en** (base), **zh-TW**, and **ja-JP** — and
 its brand is deliberately warm: **顧毛** is a coined Han-character name meaning
 **照顧毛小孩** ("care for your fluffy kids"), where 毛小孩 ("fluffy kids") is a
 Taiwanese term of endearment for pets.

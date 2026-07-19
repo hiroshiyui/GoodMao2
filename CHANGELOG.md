@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to GoodMao2 are recorded here. The format follows
+All notable changes to GoodMao are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to adhere
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The version of record is
 the `version:` in `mix.exs`; a release tags it as `vX.Y.Z` (see the `release-engineering`
@@ -10,7 +10,7 @@ skill).
 
 ### Added
 
-- **License — AGPL-3.0-or-later** — GoodMao2 is now released under the GNU Affero General
+- **License — AGPL-3.0-or-later** — GoodMao is now released under the GNU Affero General
   Public License, version 3 or later. Added the full license text as `LICENSE`, a License
   section in the README (with the "or later" notice and a note that the vendored Roboto Slab
   font stays under Apache-2.0), and a `licenses: ["AGPL-3.0-or-later"]` entry in `mix.exs`.
@@ -35,7 +35,7 @@ skill).
   alone); picking a day expands that day's entries below the grid. Prev/next month navigation
   and the active type filter are preserved, and the grid stays live over PubSub. Days are
   bucketed in UTC to match the list's server-side time rendering. Localized in en / 台灣漢語 /
-  日本語 with locale-aware month and weekday labels. (Ports GoodMao's calendar to LiveView.)
+  日本語 with locale-aware month and weekday labels.
 - **Trilingual UI (English / 台灣漢語 / 日本語)** — per-request locale resolution
   (cookie → `Accept-Language` → default) via a browser plug and a LiveView `on_mount`, a
   header language switcher that persists the choice, `<html lang>` reflection, and a
@@ -81,7 +81,7 @@ skill).
 - **`a11y-engineering` Claude skill** — accessibility auditing/fixing workflow for the
   Phoenix/LiveView layer, completing GoodMao's seven-skill set.
 - **Project documentation** — glossary, ADRs, a common-practices reference, and expanded
-  roadmap sections, ported from and adapted to the Phoenix stack.
+  roadmap sections.
 - **Brand theme** — GoodMao's "Terracotta + Teal" identity as daisyUI light/dark themes
   (WCAG-verified contrast).
 
@@ -120,7 +120,7 @@ skill).
 
 ## [0.1.0] - 2026-07-18
 
-Initial GoodMao2 baseline — the Phoenix/LiveView port's MVP core: scope-based
+Initial GoodMao baseline — the Phoenix/LiveView MVP core: scope-based
 authentication with a public `@handle`, pets with an end-of-care lifecycle, resource-based
 per-pet authorization, structured one-table log entries, and a live, filterable timeline
 over Phoenix PubSub. Trilingual Gettext scaffolding (`en` / `zh_TW` / `ja_JP`) and the

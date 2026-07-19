@@ -1,10 +1,8 @@
 # 3. Pet lifecycle: end-of-care is a status transition, not a deletion
 
-- **Status:** Accepted _(shipped in GoodMao2)_
+- **Status:** Accepted _(shipped)_
 - **Date:** 2026-07-10
 - **Deciders:** GoodMao maintainers
-
-> _Ported from GoodMao ADR-0003, adapted for the GoodMao2 Phoenix/Ecto stack._
 
 ## Context
 

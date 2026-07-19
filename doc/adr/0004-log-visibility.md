@@ -1,10 +1,8 @@
 # 4. Log entry visibility scopes
 
-- **Status:** Accepted _(schema shipped in GoodMao2; anonymous read + owner UI deferred)_
+- **Status:** Accepted _(schema shipped; anonymous read + owner UI deferred)_
 - **Date:** 2026-07-10
 - **Deciders:** GoodMao maintainers
-
-> _Ported from GoodMao ADR-0004, adapted for the GoodMao2 Phoenix/Ecto stack._
 
 ## Context
 
@@ -57,7 +55,7 @@ grant-scoped reads.**
   history also kills its outstanding links.
 - New surface to maintain: a unique filtered index on the share token, exposed in views
   only to owners (never to plain viewers/vets).
-- **GoodMao2 status:** the `visibility` enum and the owner-only change rule are
+- **GoodMao status:** the `visibility` enum and the owner-only change rule are
   **shipped**; the `public` scope + share token are **modeled in the schema**, but the
   anonymous read route and the owner-facing share-link/scope-selector UI are **deferred**
   (roadmap Phase 3). Per-recipient sharing (grant one external vet a scoped link) is out

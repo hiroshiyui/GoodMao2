@@ -4,11 +4,9 @@
 - **Date:** 2026-07-14
 - **Deciders:** GoodMao maintainers
 
-> _Ported from GoodMao ADR-0007, adapted for the GoodMao2 Phoenix/LiveView/Gettext stack._
-
 ## Context
 
-GoodMao2 is an internet-facing service handling sensitive pet health data, and it is
+GoodMao is an internet-facing service handling sensitive pet health data, and it is
 meant to meet people honestly and graciously. Those two pulls collide precisely at
 error reporting:
 

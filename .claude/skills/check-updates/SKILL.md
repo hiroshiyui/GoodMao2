@@ -1,9 +1,9 @@
 ---
 name: check-updates
-description: Check for available updates and security advisories across the dependency ecosystems GoodMao2 uses — Elixir/Hex packages and the esbuild/Tailwind/daisyUI frontend toolchain — then report what is outdated, what is blocked by a version constraint, and what is retired/insecure, grouped by risk. Reports findings; does not upgrade without confirmation.
+description: Check for available updates and security advisories across the dependency ecosystems GoodMao uses — Elixir/Hex packages and the esbuild/Tailwind/daisyUI frontend toolchain — then report what is outdated, what is blocked by a version constraint, and what is retired/insecure, grouped by risk. Reports findings; does not upgrade without confirmation.
 ---
 
-GoodMao2 spans two dependency ecosystems (Elixir/Hex and the vendored/CLI frontend
+GoodMao spans two dependency ecosystems (Elixir/Hex and the vendored/CLI frontend
 tooling), so a complete update check must cover both — `mix hex.outdated` alone
 misses the JS/CSS toolchain.
 

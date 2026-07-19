@@ -1,6 +1,6 @@
 ---
 name: release-engineering
-description: Manage the full GoodMao2 release process, including version bumps, changelogs, Git tags, and GitHub releases.
+description: Manage the full GoodMao release process, including version bumps, changelogs, Git tags, and GitHub releases.
 ---
 
 When performing release engineering, always follow these steps:

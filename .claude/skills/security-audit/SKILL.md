@@ -1,9 +1,9 @@
 ---
 name: security-audit
-description: Perform a dedicated, project-wide security audit of GoodMao2 — resource-based per-pet authorization, injection/output encoding, authentication/session management, secrets, configuration/logging, and dependency advisories — mapped to the OWASP Top 10, then report findings by severity and fix critical issues.
+description: Perform a dedicated, project-wide security audit of GoodMao — resource-based per-pet authorization, injection/output encoding, authentication/session management, secrets, configuration/logging, and dependency advisories — mapped to the OWASP Top 10, then report findings by severity and fix critical issues.
 ---
 
-GoodMao2 handles **sensitive pet health data** shared across multiple caretakers and vets.
+GoodMao handles **sensitive pet health data** shared across multiple caretakers and vets.
 The dominant risk is **broken access control**: one user reading or writing another's pet
 timeline. Conduct a **full project-wide security sweep**; treat every fetch-by-id and every
 write as a potential authorization bypass until proven scoped.
@@ -14,7 +14,7 @@ This skill audits security only. For correctness, tests, docs, and a11y, use `co
 
 ## Step 1 — Orient and Threat-Model
 
-- Read `CLAUDE.md`, `AGENTS.md` (GoodMao2 section), and `doc/architecture.md` (the
+- Read `CLAUDE.md`, `AGENTS.md` (GoodMao section), and `doc/architecture.md` (the
   authorization table).
 - Enumerate trust boundaries, most-exposed first:
   1. **Authenticated user input** — pets, access grants, log entries, profile/handle.

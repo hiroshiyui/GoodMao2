@@ -16,21 +16,17 @@ decided stack and the invariants to preserve.
 
 ## Provenance
 
-GoodMao2 is the Phoenix/LiveView rendering of the original **GoodMao** (a two-tier
-SvelteKit + ASP.NET Core app). The **product and design decisions** carry over
-unchanged, so these ADRs are **ported from GoodMao's ADRs**, adapted to name Ecto /
-LiveView / Gettext instead of EF Core / SvelteKit / Paraglide. Each file keeps its
-original number and decision date for 1:1 cross-reference with the source project,
-and its `Status` reflects what GoodMao2 has actually shipped vs. deferred.
+These are GoodMao's own architecture decision records. Each file keeps a stable number and
+decision date, and its `Status` reflects what GoodMao has actually shipped vs. deferred.
 
-Two of GoodMao's ADRs are **not ported**, because their decision does not apply to a
-Phoenix monolith — the numbers are intentionally skipped so the surviving
-cross-references (e.g. ADR-0004 → ADR-0003) stay valid:
+Two numbers are **intentionally skipped**, because their decision does not apply to a
+Phoenix monolith — the gaps keep the surviving cross-references (e.g. ADR-0004 → ADR-0003)
+valid:
 
-- **ADR-0006 (durable background-job queue)** — *superseded by Oban.* GoodMao2 will use
+- **ADR-0006 (durable background-job queue)** — *superseded by Oban.* GoodMao will use
   [Oban](https://hexdocs.pm/oban) (retry/backoff/uniqueness/cron out of the box) when a
   job first needs it, rather than a bespoke queue.
-- **ADR-0010 (self-hosted inline SVG icons)** — *not applicable.* GoodMao2 uses Phoenix's
+- **ADR-0010 (self-hosted inline SVG icons)** — *not applicable.* GoodMao uses Phoenix's
   built-in `<.icon>` hero-icons; the general "self-host, no CDN on the render path"
   principle is already covered by the project's asset-bundling rules.
 
@@ -53,7 +49,7 @@ cross-references (e.g. ADR-0004 → ADR-0003) stay valid:
 | [0003](0003-pet-lifecycle.md) | Pet lifecycle: end-of-care is a status transition, not a deletion | Accepted |
 | [0004](0004-log-visibility.md) | Log-entry visibility scopes | Accepted (schema; UI deferred) |
 | [0005](0005-media-storage.md) | Purified media for life logs | Proposed (deferred) |
-| ~~0006~~ | ~~Durable background-job queue~~ | Superseded by Oban (not ported) |
+| ~~0006~~ | ~~Durable background-job queue~~ | Superseded by Oban |
 | [0007](0007-error-reporting.md) | Explicit error reporting without exposing sensitive information | Accepted |
 | [0008](0008-soft-delete.md) | Deletion is always soft — never a permanent removal | Accepted |
 | [0009](0009-log-edit-revisions.md) | Log-entry edit history, capped at nine edits | Proposed (deferred) |

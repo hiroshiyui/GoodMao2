@@ -4,8 +4,7 @@
 - **Date:** 2026-07-18
 - **Deciders:** GoodMao maintainers
 
-> _Ported from GoodMao ADR-0011, adapted for the GoodMao2 Phoenix/LiveView/PubSub/Oban
-> stack. Neither surface is built yet — this is the spec to satisfy (roadmap Phase 3)._
+> _Neither surface is built yet — this is the spec to satisfy (roadmap Phase 3)._
 
 ## Context
 
@@ -15,7 +14,7 @@ new log recorded, a platform announcement). Two related surfaces are wanted: an 
 notification feed** and a **private mailbox** for user-to-user messages, each message
 capped at **2,000 characters**.
 
-Because GoodMao2 is a public, internet-facing service handling sensitive data, messaging
+Because GoodMao is a public, internet-facing service handling sensitive data, messaging
 must not become a spam/harassment vector, and error copy must stay honest without leaking
 (see [ADR-0007](0007-error-reporting.md)). Web Push delivery is wanted too, but it depends
 on an SSRF-safe outbound client — so it is deferred to a second stage.
@@ -48,10 +47,9 @@ many-recipient fan-out runs through Oban. Web Push is a separate, later stage.**
 - **Copy is rendered, not stored.** Notifications store a stable `type` + a denormalized
   `jsonb` payload (pet/actor names, role, announcement title/body) snapshotted at event
   time; the **display sentence is rendered through Gettext** (a `Goodmao2Web.Helpers`
-  function, like the enum-label and log-summary helpers) from that `type` + payload. This
-  is the one place the original's two-tier "notification copy lives in the frontend" rule
-  simplifies: in a monolith, copy is composed at render time from stable data, localized
-  in every locale.
+  function, like the enum-label and log-summary helpers) from that `type` + payload. In a
+  monolith, copy is composed at render time from stable data, localized in every locale —
+  never stored as rendered strings.
 
 - **Fan-out via Oban.** Single-recipient events (access grant/revoke) create a
   notification inline. Many-recipient events — a new log to every other follower, an admin

@@ -1,4 +1,4 @@
-# GoodMao 顧毛 · Phoenix edition
+# GoodMao 顧毛
 
 > 「照顧毛小孩」— take care of your pets.
 
@@ -6,11 +6,8 @@ A pet health-care web app. Owners log **structured daily activity** for their pe
 and share it with followers — family, co-caretakers, and **veterinarians**. Everyday
 logs become a **clinical timeline** the moment a pet gets sick.
 
-This is a **Phoenix/LiveView** rendering of the original
-[GoodMao](../GoodMao) (a decoupled SvelteKit-BFF + ASP.NET-Core-API product). Where
-the original splits UI and API across two tiers, this edition is a single real-time
-LiveView monolith. See [`doc/architecture.md`](doc/architecture.md) for the full
-technology mapping and design.
+GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
+[`doc/architecture.md`](doc/architecture.md) for the design.
 
 ## What's built (MVP core)
 
@@ -83,7 +80,7 @@ lib/goodmao2_web/
   live/pet_live/         #   Index · Form · Show(QuickLog+timeline) · Access · EndOfCare
   helpers.ex             #   enum-label translations + log summaries
   components/layouts.ex  #   app shell / nav
-doc/architecture.md      # contexts, schema, authorization, GoodMao→Phoenix mapping
+doc/architecture.md      # contexts, schema, authorization
 doc/roadmap.md           # what's built and what's deferred
 ```
 
@@ -91,7 +88,7 @@ doc/roadmap.md           # what's built and what's deferred
 
 Copyright (C) 2026 Hui-Hong You &lt;hiroshi@ghostsinthelab.org&gt;
 
-GoodMao2 is free software, licensed under the **GNU Affero General Public License,
+GoodMao is free software, licensed under the **GNU Affero General Public License,
 version 3 or (at your option) any later version** (`AGPL-3.0-or-later`).
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -100,7 +97,7 @@ PARTICULAR PURPOSE. See the [`LICENSE`](LICENSE) file for the full text, or
 <https://www.gnu.org/licenses/agpl-3.0.html>.
 
 Because the AGPL covers use over a network, if you run a modified version of
-GoodMao2 as a network service, you must offer its users the corresponding source.
+GoodMao as a network service, you must offer its users the corresponding source.
 
 ### Bundled third-party assets
 

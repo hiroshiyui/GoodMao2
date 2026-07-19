@@ -185,7 +185,7 @@ defmodule Goodmao2Web.Helpers do
   @doc """
   The clinical urgency an entry contributes to its calendar day cell, or `nil`.
 
-  Ported from GoodMao's `clinicalFlags`: bathroom blood or straining is `:urgent`; any
+  Clinical urgency: bathroom blood or straining is `:urgent`; any
   vomiting is `:watch`. The day cell pairs this with an icon, so the tint is never the
   sole carrier of meaning.
   """

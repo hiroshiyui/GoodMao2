@@ -1,12 +1,12 @@
 This is a web application written using the Phoenix web framework.
 
-## GoodMao2 — what this app is
+## GoodMao — what this app is
 
-GoodMao2 (顧毛, "take care of your pets") is a pet health-care app: owners log
+GoodMao (顧毛, "take care of your pets") is a pet health-care app: owners log
 **structured daily activity** and share a **clinical timeline** with family,
-co-caretakers, and vets. It is the **Phoenix/LiveView** rendering of the original
-two-tier GoodMao. Full design in [`doc/architecture.md`](doc/architecture.md);
-scope in [`doc/roadmap.md`](doc/roadmap.md).
+co-caretakers, and vets. It is a single **Phoenix/LiveView** monolith
+(LiveView + Ecto + PostgreSQL + Gettext). Full design in
+[`doc/architecture.md`](doc/architecture.md); scope in [`doc/roadmap.md`](doc/roadmap.md).
 
 **Contexts** (`lib/goodmao2/`): `Accounts` (auth + `@handle` + first-user-admin),
 `Pets` (pets, access grants, resource authorization), `Logs` (structured entries +

@@ -4,22 +4,21 @@
 - **Date:** 2026-07-10
 - **Deciders:** GoodMao maintainers
 
-> _Ported from GoodMao ADR-0005, reduced to the stack-agnostic **security requirements**.
-> GoodMao's .NET pipeline (Magick.NET, ffmpeg, `IMediaStore`, S3 provider) is dropped;
-> the Elixir implementation will use the `image`/`vix` libraries behind a storage seam.
-> This ADR is the spec to satisfy when media work begins — see the roadmap._
+> _This ADR reduces to the stack-agnostic **security requirements** for media. The Elixir
+> implementation will use the `image`/`vix` libraries behind a storage seam. This ADR is
+> the spec to satisfy when media work begins — see the roadmap._
 
 ## Context
 
 The `life` log subtype (`LogEntry` with `type: "life"`) lets caretakers share the
 everyday, non-clinical moments of a pet's life as **photos and videos** (its caption
-reuses the base `note`). GoodMao2 models the `life` type but stores no binary media yet:
+reuses the base `note`). GoodMao models the `life` type but stores no binary media yet:
 there is no upload, no storage backend, no serving path, no size or content-type limits.
 
 Media is the highest-risk surface we can add: file uploads invite content-type
 spoofing, polyglot files, decompression bombs, path traversal, metadata leakage
 (EXIF **GPS** on a pet photo can reveal the owner's home), and IDOR on the served
-bytes. Security is GoodMao2's overriding constraint, and the requirement is explicit:
+bytes. Security is GoodMao's overriding constraint, and the requirement is explicit:
 **every uploaded byte must be actively purified, not merely validated.** The design must
 also respect the existing resource-based authorization (effective grant → role,
 IDOR-hidden `not_found`) and the per-entry `visibility` / share-token model of

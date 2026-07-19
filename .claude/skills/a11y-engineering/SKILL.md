@@ -1,12 +1,12 @@
 ---
 name: a11y-engineering
-description: Perform project-wide accessibility (a11y) engineering across GoodMao2's Phoenix/LiveView web layer — auditing and fixing semantic HEEx, WAI-ARIA roles/states/names, keyboard operability and focus management, forms, colour contrast against the WCAG-verified Terracotta+Teal palette, colour-not-alone signalling for clinical flags, reduced-motion, live regions, and localized accessible names — then report findings by severity, apply fixes, and verify with mix precommit.
+description: Perform project-wide accessibility (a11y) engineering across GoodMao's Phoenix/LiveView web layer — auditing and fixing semantic HEEx, WAI-ARIA roles/states/names, keyboard operability and focus management, forms, colour contrast against the WCAG-verified Terracotta+Teal palette, colour-not-alone signalling for clinical flags, reduced-motion, live regions, and localized accessible names — then report findings by severity, apply fixes, and verify with mix precommit.
 ---
 
 Accessibility is a **hard product invariant, not a nicety** — AGENTS.md states it directly:
 "**Accessibility-first:** every meaningful element carries a stable, semantic `id`/`class`."
 This skill **formalizes that invariant**. Use semantic HTML, correct roles/states/properties,
-keyboard operability, and accessible names so GoodMao2 works for assistive technology, and so
+keyboard operability, and accessible names so GoodMao works for assistive technology, and so
 the LiveView tests (which locate elements by their stable semantic `id`/`class`) keep passing.
 A11y is also a **care** issue here: people log the health of pets they love and sometimes
 grieve — the interface must never become a barrier at a hard moment.
@@ -25,7 +25,7 @@ a11y — an `aria-label` that is an English literal is both an i18n bug and an a
 
 ## Step 1 — Orient
 
-- Read `CLAUDE.md`, the **GoodMao2 section of `AGENTS.md`** (the accessibility-first and Gettext
+- Read `CLAUDE.md`, the **GoodMao section of `AGENTS.md`** (the accessibility-first and Gettext
   invariants), and skim `doc/roadmap.md` for role/UX intent. The clinical-flag log types and the
   gentle end-of-care path are the a11y-sensitive surfaces.
 - Inventory the surfaces to audit — every HEEx template and component:

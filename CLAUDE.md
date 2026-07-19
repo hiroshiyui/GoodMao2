@@ -5,16 +5,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Read these first
 
 - **`AGENTS.md`** — the authoritative Elixir/Phoenix/LiveView/Ecto coding rules for this
-  repo, plus a **GoodMao2 section** stating the invariants to preserve (authorization
+  repo, plus a **GoodMao section** stating the invariants to preserve (authorization
   boundary, one-table logs, soft-delete, a11y, Gettext). Follow it.
 - **`doc/architecture.md`** — contexts, data model (incl. per-`type` log payload fields),
-  authorization table, deferred entities, and the GoodMao → GoodMao2 technology mapping.
+  authorization table, and deferred entities.
 - **`doc/roadmap.md`** — the product vision, the structured-logging core principle, and
   what's shipped vs. intentionally deferred.
 - **`doc/glossary.md`** — the shared product/domain vocabulary (and its Phoenix tech terms).
 - **`doc/adr/`** — Architecture Decision Records: the *why* behind the invariants
   (pet-lifecycle, log-visibility, error-reporting, soft-delete, localization, deferred
-  media/revisions/notifications). Ported from GoodMao and adapted to this stack.
+  media/revisions/notifications).
 - **`doc/web-application-development-common-practices.md`** — product-agnostic engineering
   lessons (security/data-modeling/testing/ops), each with the failure mode behind it.
 
@@ -47,7 +47,7 @@ Postgres: dev and test both use a **`goodmao2`** role (password `goodmao2`) need
 
 ## Architecture in one screen
 
-GoodMao2 is a **single Phoenix/LiveView monolith** (no separate API/frontend). Domain
+GoodMao is a **single Phoenix/LiveView monolith** (no separate API/frontend). Domain
 logic lives in three contexts under `lib/goodmao2/`; the web layer is thin LiveViews that
 call them.
 

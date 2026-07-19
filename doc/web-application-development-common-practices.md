@@ -1,16 +1,12 @@
 # Web Application Development — Common Practices
 
-Product-agnostic engineering and operational practices, distilled from real development
-history on GoodMao and carried into GoodMao2. Each practice is stated generally, with the
+Product-agnostic engineering and operational practices, distilled from GoodMao's
+development history. Each practice is stated generally, with the
 failure mode that motivates it — the reasoning matters more than the rule.
 
-> **Provenance.** Ported from GoodMao's
-> [`web-application-development-common-practices.md`](../../GoodMao/doc/web-application-development-common-practices.md).
-> GoodMao was a decoupled two-tier app (SvelteKit BFF + ASP.NET Core API); GoodMao2 is a
-> **Phoenix/LiveView monolith**. The two-tier-only lessons (a machine-checked API contract
-> as a build artifact, a BFF cookie relay, cross-tier string ownership) are dropped or
-> folded in; everything else applies directly, re-flavored for Phoenix/Ecto/Gettext.
-> Where a practice is already enforced in this repo, it is cross-referenced.
+> These are GoodMao's engineering practices, re-flavored for its
+> Phoenix/Ecto/Gettext stack. Where a practice is already enforced in this repo, it is
+> cross-referenced.
 
 ## 1. Architecture and boundaries
 
@@ -21,8 +17,8 @@ failure mode that motivates it — the reasoning matters more than the rule.
   LiveView is one refactor away from being bypassed by another entry point (a task, a
   test, a second LiveView). The context is the boundary that must hold.
 - **A monolith is not an excuse to skip seams.** Inject the clock, route background work
-  through a queue interface, keep PubSub topics explicit — the seams that make a two-tier
-  app testable make a monolith testable too (see §9).
+  through a queue interface, keep PubSub topics explicit — the seams that keep any
+  app testable keep a monolith testable too (see §9).
 
 ## 2. Security: design it in, then test both directions
 

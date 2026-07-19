@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Perform a project-wide full-scope code review of GoodMao2 covering correctness, security (resource-based authorization), test coverage, locale sync, documentation quality, code smells, and UI/UX accessibility, then report findings and fix critical issues.
+description: Perform a project-wide full-scope code review of GoodMao covering correctness, security (resource-based authorization), test coverage, locale sync, documentation quality, code smells, and UI/UX accessibility, then report findings and fix critical issues.
 ---
 
 When performing a code review, conduct a **full project-wide sweep** — do not limit scope
@@ -11,7 +11,7 @@ to recent changes. Read broadly across the codebase and apply every check below.
 ## Step 1 — Orient and Plan
 
 Before reviewing, understand the system's current shape:
-- Read `CLAUDE.md`, `AGENTS.md` (GoodMao2 section), and `doc/architecture.md` for
+- Read `CLAUDE.md`, `AGENTS.md` (GoodMao section), and `doc/architecture.md` for
   architecture, conventions, and the invariants to preserve.
 - Skim `lib/goodmao2/` (contexts: `Accounts`, `Pets`, `Logs`) and
   `lib/goodmao2_web/live/` (LiveViews).
@@ -43,7 +43,7 @@ Before reviewing, understand the system's current shape:
 
 ## Step 3 — Security (authorization is the core)
 
-GoodMao2 holds **sensitive health data**. The security boundary is **resource-based
+GoodMao holds **sensitive health data**. The security boundary is **resource-based
 per-pet authorization** in `Goodmao2.Pets`. Audit it hard:
 
 - **Every LiveView mount that touches a pet** resolves it via `Pets.fetch_pet(user, id,
@@ -102,7 +102,7 @@ For a dedicated deep pass, use the `security-audit` skill.
 
 - `@moduledoc` present and accurate for every context and schema; `@doc` on public functions
   with non-obvious behaviour (the authorization functions especially).
-- `README.md`, `CLAUDE.md`, `AGENTS.md` (GoodMao2 section), `doc/architecture.md`, and
+- `README.md`, `CLAUDE.md`, `AGENTS.md` (GoodMao section), `doc/architecture.md`, and
   `doc/roadmap.md` match the current code (contexts, schema, authorization table, deferred list).
 - No commented-out dead code in place of proper documentation.
 

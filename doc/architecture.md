@@ -1,25 +1,10 @@
-# GoodMao2 — Architecture
+# GoodMao — Architecture
 
 _Last updated: 2026-07-18_
 
-GoodMao2 is the **Phoenix/LiveView** rendering of GoodMao. The product is unchanged
-— effortless structured daily logging that becomes a shareable clinical timeline —
-but the architecture is idiomatic Elixir/Phoenix rather than a decoupled two-tier
-web app.
-
-## Technology mapping (GoodMao → GoodMao2)
-
-| GoodMao (original) | GoodMao2 (Phoenix) | Notes |
-|---|---|---|
-| SvelteKit BFF + ASP.NET Core JSON API | **Phoenix LiveView** monolith | one tier, server-rendered, real-time |
-| ASP.NET Core Identity + cookie BFF | **`phx.gen.auth`** scope-based auth | `current_scope.user`; magic-link + password |
-| EF Core 10 + PostgreSQL | **Ecto + PostgreSQL** | `jsonb` for species-specific / typed payloads |
-| Log entries via TPH (one table, discriminator) | **one `log_entries` table + `type` + `jsonb data`** | typed validation in the schema, not TPH classes |
-| Resource-based authorization handlers | **`Goodmao2.Pets` capability functions + LiveView mount checks** | `can?/3`, effective-grant resolution |
-| Custom DB-backed background-job queue | **Oban** (Postgres-backed) | supervised after the repo; first job is a daily token-janitor cron; more workloads deferred |
-| Notifications polling + BFF relay | **Phoenix PubSub** | live timeline today; notification feed deferred |
-| Paraglide i18n (two tiers) | **Gettext** | `en` / `zh_TW` / `ja_JP` |
-| UIkit (Less) + Roboto Slab | **Tailwind v4 + daisyUI** | from the `phx.new` scaffold |
+GoodMao is a single **Phoenix/LiveView** application: effortless structured daily
+logging that becomes a shareable clinical timeline, built as an idiomatic
+Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + PostgreSQL.
 
 ## Contexts (`lib/goodmao2/`)
 
@@ -102,7 +87,7 @@ just type. See [`glossary.md`](glossary.md) for the domain terms.
 
 ## Deferred / future entities
 
-Modeled in the original GoodMao and planned for later phases; **not yet in GoodMao2's
+Planned for later phases; **not yet in GoodMao's
 schema**. Recorded here so the payload/relationship shapes are known when the work lands
 (see [`roadmap.md`](roadmap.md) and the linked ADRs).
 

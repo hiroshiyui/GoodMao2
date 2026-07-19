@@ -1,14 +1,12 @@
 # 8. Deletion is always soft — never a permanent removal
 
-- **Status:** Accepted _(shipped for log entries in GoodMao2)_
+- **Status:** Accepted _(shipped for log entries)_
 - **Date:** 2026-07-14
 - **Deciders:** GoodMao maintainers
 
-> _Ported from GoodMao ADR-0008, adapted for the GoodMao2 Ecto stack._
-
 ## Context
 
-GoodMao2's data is a **pet's health history** — everyday logs that become a **clinical
+GoodMao's data is a **pet's health history** — everyday logs that become a **clinical
 timeline** the moment a pet gets sick, plus (later) the photos and videos of a life.
 That data is sensitive, sometimes sentimental, and occasionally the subject of a
 shared-care disagreement (owner, co-caretakers, a vet). A destructive action on it
@@ -28,7 +26,7 @@ irreversible, and inconsistent with the rest of the system.
 
 ## Decision
 
-**Every delete in GoodMao2 is a soft delete: it hides the record, but preserves the row
+**Every delete in GoodMao is a soft delete: it hides the record, but preserves the row
 (and any bytes) so it can be restored. Permanent removal is never the behaviour of a
 user-facing delete.**
 

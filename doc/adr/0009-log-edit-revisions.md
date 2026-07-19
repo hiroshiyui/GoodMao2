@@ -4,8 +4,8 @@
 - **Date:** 2026-07-14
 - **Deciders:** GoodMao maintainers
 
-> _Ported from GoodMao ADR-0009, adapted for the GoodMao2 Ecto stack. Editing and its
-> revision trail are not yet built — this is the spec to satisfy when they are._
+> _Editing and its revision trail are not yet built — this is the spec to satisfy when
+> they are._
 
 ## Context
 
@@ -57,7 +57,7 @@ the entry.**
 ## Alternatives considered
 
 - **No history (silent edits)** — simplest, but unacceptable for a clinical record.
-- **Admin-only history** — the original instinct, but the people who most need to trust
+- **Admin-only history** — an instinct we rejected, because the people who most need to trust
   the timeline (co-caretakers, vets) aren't admins; scoping it to log-readers serves the
   actual need.
 - **Unlimited edits** — no natural bound; invites indefinite rewriting and unbounded
