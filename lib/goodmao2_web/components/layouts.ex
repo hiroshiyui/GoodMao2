@@ -119,13 +119,13 @@ defmodule Goodmao2Web.Layouts do
       </header>
 
       <main id="main-content" tabindex="-1" class="flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-3xl space-y-4">
+        <div class="mx-auto max-w-4xl space-y-4">
           {render_slot(@inner_block)}
         </div>
       </main>
 
       <footer id="site-footer" class="border-t border-base-200 px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto flex max-w-3xl flex-col items-center gap-1 text-center text-sm text-base-content/60">
+        <div class="mx-auto flex max-w-4xl flex-col items-center gap-1 text-center text-sm text-base-content/60">
           <p>
             <span aria-hidden="true">🐾</span>
             {gettext("GoodMao — a shareable health timeline for the pets you love.")}
