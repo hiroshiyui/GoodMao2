@@ -64,6 +64,7 @@ defmodule Goodmao2Web.AdminLive do
   def mount(_params, _session, socket) do
     socket =
       socket
+      |> assign(:page_title, gettext("Administration"))
       |> assign(:user_count, Accounts.count_users())
       |> assign(:site_owner_email, Accounts.site_owner_email())
 

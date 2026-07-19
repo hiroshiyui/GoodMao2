@@ -69,6 +69,7 @@ msgid "Access revoked."
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/settings.ex:14
+#: lib/goodmao2_web/live/user_live/settings.ex:118
 #, elixir-autogen, elixir-format
 msgid "Account settings"
 msgstr ""
@@ -377,6 +378,7 @@ msgstr ""
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
+#: lib/goodmao2_web/live/user_live/login.ex:106
 #: lib/goodmao2_web/live/user_live/registration.ex:18
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -556,7 +558,7 @@ msgstr ""
 msgid "Private"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/settings.ex:143
+#: lib/goodmao2_web/live/user_live/settings.ex:144
 #, elixir-autogen, elixir-format
 msgid "Profile updated."
 msgstr ""
@@ -899,7 +901,7 @@ msgstr ""
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/settings.ex:184
+#: lib/goodmao2_web/live/user_live/settings.ex:185
 #, elixir-autogen, elixir-format
 msgid "A link to confirm your email change has been sent to the new address."
 msgstr ""
@@ -910,6 +912,7 @@ msgid "Change Email"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:23
+#: lib/goodmao2_web/live/user_live/password_settings.ex:88
 #: lib/goodmao2_web/live/user_live/settings.ex:78
 #, elixir-autogen, elixir-format
 msgid "Change password"
@@ -999,7 +1002,7 @@ msgstr ""
 msgid "Already registered?"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/registration.ex:71
+#: lib/goodmao2_web/live/user_live/registration.ex:74
 #, elixir-autogen, elixir-format
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr ""
@@ -1097,7 +1100,7 @@ msgstr ""
 msgid "Logging in..."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:91
+#: lib/goodmao2_web/live/user_live/confirmation.ex:96
 #, elixir-autogen, elixir-format
 msgid "Magic link is invalid or it has expired."
 msgstr ""
@@ -1113,11 +1116,12 @@ msgid "Password updated successfully!"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/registration.ex:14
+#: lib/goodmao2_web/live/user_live/registration.ex:56
 #, elixir-autogen, elixir-format
 msgid "Register for an account"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/registration.ex:85
+#: lib/goodmao2_web/live/user_live/registration.ex:88
 #, elixir-autogen, elixir-format
 msgid "Registration is restricted to the site owner for the first account."
 msgstr ""
@@ -1413,6 +1417,7 @@ msgstr ""
 
 #: lib/goodmao2_web/components/layouts.ex:146
 #: lib/goodmao2_web/live/admin_live.ex:21
+#: lib/goodmao2_web/live/admin_live.ex:67
 #, elixir-autogen, elixir-format
 msgid "Administration"
 msgstr ""
@@ -1455,4 +1460,14 @@ msgstr ""
 #: lib/goodmao2_web/live/admin_live.ex:49
 #, elixir-autogen, elixir-format
 msgid "The first account to register becomes the administrator."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:91
+#, elixir-autogen, elixir-format
+msgid "Confirm sign-in"
+msgstr ""
+
+#: lib/goodmao2_web/controllers/page_controller.ex:14
+#, elixir-autogen, elixir-format
+msgid "Health timeline for the pets you love"
 msgstr ""

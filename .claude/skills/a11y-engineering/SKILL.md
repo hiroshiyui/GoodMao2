@@ -57,6 +57,12 @@ derive an id from the record, e.g. `id={"log-#{entry.id}"}`).
 - **Headings**: one `<h1>` per page (the `<.header>` component renders `<h1>`), no skipped
   levels (`h1→h2→h3`), headings describe sections — not styled `<div>`s. The timeline's date
   groups and the pet list are heading-worthy.
+- **Page title** (WCAG 2.4.2): every route assigns a localized `page_title` — in a LiveView's
+  `mount` or before a controller's `render/2` — usually matching the page's `<.header>` text.
+  The root layout's `<.live_title>` appends the ` · GoodMao` suffix *unconditionally*, so an
+  untitled page reads `GoodMao · GoodMao`; never leave a real page untitled or assign the bare
+  brand. A missing/duplicated title is both an orientation bug for screen-reader/tab users and
+  an i18n bug when hardcoded.
 - **Lists are lists**: the timeline and pet list render as `<ul>/<li>` (or `<ol>` where order
   is meaningful), each entry ideally an `<article>`/`<li>` with an accessible name (the log
   type + time). The `<.list>` and `<.table>` core components already emit real list/table

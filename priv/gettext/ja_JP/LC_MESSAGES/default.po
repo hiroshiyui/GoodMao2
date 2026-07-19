@@ -68,6 +68,7 @@ msgid "Access revoked."
 msgstr "アクセスを取り消しました。"
 
 #: lib/goodmao2_web/live/user_live/settings.ex:14
+#: lib/goodmao2_web/live/user_live/settings.ex:118
 #, elixir-autogen, elixir-format
 msgid "Account settings"
 msgstr "アカウント設定"
@@ -376,6 +377,7 @@ msgstr "%{type}を記録"
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
+#: lib/goodmao2_web/live/user_live/login.ex:106
 #: lib/goodmao2_web/live/user_live/registration.ex:18
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -555,7 +557,7 @@ msgstr "メイン"
 msgid "Private"
 msgstr "非公開"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:143
+#: lib/goodmao2_web/live/user_live/settings.ex:144
 #, elixir-autogen, elixir-format
 msgid "Profile updated."
 msgstr "プロフィールを更新しました。"
@@ -898,7 +900,7 @@ msgstr "本文へスキップ"
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
 msgstr "このペットの履歴は非表示です。飼い主が「編集」から再表示するまで、タイムラインは利用できません。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:184
+#: lib/goodmao2_web/live/user_live/settings.ex:185
 #, elixir-autogen, elixir-format
 msgid "A link to confirm your email change has been sent to the new address."
 msgstr "メール変更を確認するリンクを新しいアドレスに送信しました。"
@@ -909,6 +911,7 @@ msgid "Change Email"
 msgstr "メールアドレスを変更"
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:23
+#: lib/goodmao2_web/live/user_live/password_settings.ex:88
 #: lib/goodmao2_web/live/user_live/settings.ex:78
 #, elixir-autogen, elixir-format
 msgid "Change password"
@@ -998,7 +1001,7 @@ msgstr "言語を切り替える"
 msgid "Already registered?"
 msgstr "すでに登録済みですか？"
 
-#: lib/goodmao2_web/live/user_live/registration.ex:71
+#: lib/goodmao2_web/live/user_live/registration.ex:74
 #, elixir-autogen, elixir-format
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr "%{email} に確認メールを送信しました。メールを開いてアカウントを確認してください。"
@@ -1096,7 +1099,7 @@ msgstr "ログアウトしました。"
 msgid "Logging in..."
 msgstr "ログインしています…"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:91
+#: lib/goodmao2_web/live/user_live/confirmation.ex:96
 #, elixir-autogen, elixir-format
 msgid "Magic link is invalid or it has expired."
 msgstr "マジックリンクが無効か、有効期限が切れています。"
@@ -1112,11 +1115,12 @@ msgid "Password updated successfully!"
 msgstr "パスワードを更新しました！"
 
 #: lib/goodmao2_web/live/user_live/registration.ex:14
+#: lib/goodmao2_web/live/user_live/registration.ex:56
 #, elixir-autogen, elixir-format
 msgid "Register for an account"
 msgstr "アカウントを登録"
 
-#: lib/goodmao2_web/live/user_live/registration.ex:85
+#: lib/goodmao2_web/live/user_live/registration.ex:88
 #, elixir-autogen, elixir-format
 msgid "Registration is restricted to the site owner for the first account."
 msgstr "最初のアカウントの登録はサイト管理者に限られます。"
@@ -1411,6 +1415,7 @@ msgstr "メニュー"
 
 #: lib/goodmao2_web/components/layouts.ex:146
 #: lib/goodmao2_web/live/admin_live.ex:21
+#: lib/goodmao2_web/live/admin_live.ex:67
 #, elixir-autogen, elixir-format
 msgid "Administration"
 msgstr "サイト管理"
@@ -1454,3 +1459,13 @@ msgstr "制限あり"
 #, elixir-autogen, elixir-format
 msgid "The first account to register becomes the administrator."
 msgstr "最初に登録したアカウントが管理者になります。"
+
+#: lib/goodmao2_web/live/user_live/confirmation.ex:91
+#, elixir-autogen, elixir-format
+msgid "Confirm sign-in"
+msgstr "サインインの確認"
+
+#: lib/goodmao2_web/controllers/page_controller.ex:14
+#, elixir-autogen, elixir-format
+msgid "Health timeline for the pets you love"
+msgstr "大切なペットのための健康タイムライン"

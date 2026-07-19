@@ -91,6 +91,10 @@ Shared view helpers (enum-label translations, log summaries) are in
 - Every user-visible string goes through `gettext()`; keep `en` / `zh_TW` / `ja_JP` in
   sync. Every meaningful template element carries a stable semantic `id`/`class` (loop items
   derive an id from the record) — this is used by the LiveView tests.
+- **Every route assigns a `page_title`** (localized, bare). The root layout's `<.live_title>`
+  appends the ` · GoodMao` suffix *unconditionally*, so a page without a title renders
+  `GoodMao · GoodMao`. Set it in `mount` (LiveView) or before `render/2` (controller), usually
+  matching the page's `<.header>` text; never assign the bare brand as the title.
 - Tests mirror `lib/` under `test/`: `use Goodmao2.DataCase` for contexts, `use
   Goodmao2Web.ConnCase` (+ `setup :register_and_log_in_user`) for LiveViews. Pet/log test
   data comes from `Goodmao2.PetsFixtures`.

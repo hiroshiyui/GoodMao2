@@ -30,6 +30,13 @@ timeline + PubSub). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
 - **All user-visible copy goes through `gettext()`** (flash, templates, `aria-*`). Enum
   label translations and log summaries belong in `Goodmao2Web.Helpers`. Keep `en` /
   `zh_TW` / `ja_JP` in sync; run `mix gettext.extract && mix gettext.merge priv/gettext`.
+- **Every route sets a page title** (WCAG 2.4.2). The root layout's `<.live_title>` appends
+  the ` · GoodMao` suffix, so assign the localized, bare title — typically the page's own
+  `<.header>` text: `assign(socket, :page_title, gettext("Account settings"))` in a LiveView's
+  `mount`, or `assign(conn, :page_title, gettext("…"))` before `render/2` in a controller. The
+  suffix is unconditional, so a page with **no** title renders `GoodMao · GoodMao` — give every
+  real page an explicit title (only a transient redirect-only mount may skip it). Never set the
+  bare brand as a page title (it would double).
 - Run **`mix precommit`** before finishing. Tests mirror `lib/` under `test/`
   (`DataCase` for contexts, `ConnCase` for LiveViews); test DB uses the `goodmao2` role.
 

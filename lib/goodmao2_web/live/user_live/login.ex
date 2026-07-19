@@ -103,7 +103,7 @@ defmodule Goodmao2Web.UserLive.Login do
 
     form = to_form(%{"email" => email}, as: "user")
 
-    {:ok, assign(socket, form: form, trigger_submit: false)}
+    {:ok, assign(socket, form: form, trigger_submit: false, page_title: gettext("Log in"))}
   end
 
   @impl true

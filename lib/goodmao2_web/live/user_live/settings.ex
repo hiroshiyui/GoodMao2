@@ -115,6 +115,7 @@ defmodule Goodmao2Web.UserLive.Settings do
 
     socket =
       socket
+      |> assign(:page_title, gettext("Account settings"))
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:email_form_current_password, nil)
       |> assign(:profile_form, to_form(profile_changeset))

@@ -85,6 +85,7 @@ defmodule Goodmao2Web.UserLive.PasswordSettings do
 
     socket =
       socket
+      |> assign(:page_title, gettext("Change password"))
       |> assign(:current_email, user.email)
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
