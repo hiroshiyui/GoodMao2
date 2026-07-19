@@ -235,6 +235,15 @@ defmodule Goodmao2Web.Helpers do
   def weekday_short(5), do: gettext("Fri")
   def weekday_short(6), do: gettext("Sat")
 
+  @doc "Full weekday name (the accessible expansion of `weekday_short/1`), Sunday-first."
+  def weekday_long(0), do: gettext("Sunday")
+  def weekday_long(1), do: gettext("Monday")
+  def weekday_long(2), do: gettext("Tuesday")
+  def weekday_long(3), do: gettext("Wednesday")
+  def weekday_long(4), do: gettext("Thursday")
+  def weekday_long(5), do: gettext("Friday")
+  def weekday_long(6), do: gettext("Saturday")
+
   ## Private
 
   defp translate_food_amount("full"), do: gettext("Ate fully")

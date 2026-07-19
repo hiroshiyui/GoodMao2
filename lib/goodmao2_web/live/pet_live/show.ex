@@ -473,7 +473,9 @@ defmodule Goodmao2Web.PetLive.Show do
           {@entry.note}
         </p>
         <p class="timeline-entry-time text-base-content/50 mt-1 text-xs">
-          {format_datetime(@entry.occurred_at)}
+          <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
+            {format_datetime(@entry.occurred_at)}
+          </time>
         </p>
       </div>
       <button
@@ -543,7 +545,7 @@ defmodule Goodmao2Web.PetLive.Show do
               scope="col"
               class="text-base-content/60 p-1 text-center text-xs font-semibold"
             >
-              {weekday_short(i)}
+              <abbr title={weekday_long(i)} class="no-underline">{weekday_short(i)}</abbr>
             </th>
           </tr>
         </thead>
@@ -567,7 +569,9 @@ defmodule Goodmao2Web.PetLive.Show do
 
       <div :if={@selected_day} id="cal-day-detail" class="mt-4">
         <div class="flex items-center justify-between gap-2">
-          <h3 id="cal-day-heading" class="font-semibold">{day_label(@selected_day)}</h3>
+          <h3 id="cal-day-heading" class="font-semibold">
+            <time datetime={Date.to_iso8601(@selected_day)}>{day_label(@selected_day)}</time>
+          </h3>
           <button type="button" id="cal-day-clear" phx-click="clear_day" class="btn btn-ghost btn-xs">
             {gettext("Back to month")}
           </button>
@@ -687,7 +691,9 @@ defmodule Goodmao2Web.PetLive.Show do
         >
           <.icon name={lifecycle_icon(@pet.lifecycle_status)} class="size-4" />
           {translate_lifecycle(@pet.lifecycle_status)}
-          <span :if={@pet.ended_at}>· {format_date(@pet.ended_at)}</span>
+          <span :if={@pet.ended_at}>
+            · <time datetime={DateTime.to_iso8601(@pet.ended_at)}>{format_date(@pet.ended_at)}</time>
+          </span>
         </p>
       </div>
 
