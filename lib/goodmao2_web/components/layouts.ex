@@ -60,54 +60,25 @@ defmodule Goodmao2Web.Layouts do
           </.link>
         </div>
         <nav id="site-nav" aria-label={gettext("Primary")} class="flex-none">
-          <ul class="flex items-center gap-2 sm:gap-3">
-            <%= if @current_scope && @current_scope.user do %>
-              <li>
-                <.link navigate={~p"/pets"} id="nav-pets" class="btn btn-ghost btn-sm">
-                  {gettext("My pets")}
-                </.link>
-              </li>
-              <%= if @current_scope.user.is_admin do %>
-                <li class="flex items-center">
-                  <span
-                    id="nav-admin-badge"
-                    class="badge badge-secondary badge-sm"
-                    title={gettext("Administrator")}
-                  >
-                    {gettext("Admin")}
-                  </span>
-                </li>
-              <% end %>
-              <li>
-                <.link navigate={~p"/users/settings"} id="nav-settings" class="btn btn-ghost btn-sm">
-                  {account_label(@current_scope.user)}
-                </.link>
-              </li>
-              <li>
-                <.link
-                  href={~p"/users/log-out"}
-                  method="delete"
-                  id="nav-logout"
-                  class="btn btn-ghost btn-sm"
-                >
-                  {gettext("Log out")}
-                </.link>
-              </li>
-            <% else %>
-              <li>
-                <.link navigate={~p"/users/log-in"} id="nav-login" class="btn btn-ghost btn-sm">
-                  {gettext("Log in")}
-                </.link>
-              </li>
-              <li>
-                <.link navigate={~p"/users/register"} id="nav-register" class="btn btn-primary btn-sm">
-                  {gettext("Get started")}
-                </.link>
-              </li>
-            <% end %>
-            <li>
-              <.locale_switcher locale={Gettext.get_locale(Goodmao2Web.Gettext)} />
-            </li>
+          <%!-- Mobile: everything collapses into a hamburger disclosure (CSP-safe, no JS). --%>
+          <details id="nav-menu" class="dropdown dropdown-end lg:hidden">
+            <summary id="nav-menu-toggle" class="btn btn-ghost btn-sm" aria-label={gettext("Menu")}>
+              <.icon name="hero-bars-3" class="size-5" />
+            </summary>
+            <div class="dropdown-content z-40 mt-2 w-56 rounded-box border border-base-200 bg-base-100 p-2 shadow">
+              <ul class="menu w-full gap-1">
+                <.nav_links current_scope={@current_scope} id_prefix="m-" />
+              </ul>
+              <div class="mt-2 flex items-center justify-between gap-2 border-t border-base-200 px-1 pt-3">
+                <.font_size_controls id_prefix="m-" />
+                <.theme_toggle />
+              </div>
+            </div>
+          </details>
+
+          <%!-- Desktop: the full inline bar (canonical, test-anchored ids). --%>
+          <ul class="hidden items-center gap-2 sm:gap-3 lg:flex">
+            <.nav_links current_scope={@current_scope} />
             <li>
               <.font_size_controls />
             </li>
@@ -125,12 +96,16 @@ defmodule Goodmao2Web.Layouts do
       </main>
 
       <footer id="site-footer" class="border-t border-base-200 px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto flex max-w-4xl flex-col items-center gap-1 text-center text-sm text-base-content/60">
+        <div class="mx-auto flex max-w-4xl flex-col items-center gap-2 text-center text-sm text-base-content/60">
           <p>
             <span aria-hidden="true">🐾</span>
             {gettext("GoodMao — a shareable health timeline for the pets you love.")}
           </p>
           <p>© {brand_name()}</p>
+          <.locale_switcher
+            locale={Gettext.get_locale(Goodmao2Web.Gettext)}
+            class="dropdown-top dropdown-end"
+          />
         </div>
       </footer>
     </div>
@@ -146,6 +121,69 @@ defmodule Goodmao2Web.Layouts do
       is_binary(user.display_name) and user.display_name != "" -> user.display_name
       true -> user.email
     end
+  end
+
+  # The primary navigation links (and the admin badge), rendered as `<li>` items. Shared by
+  # the desktop inline bar and the mobile hamburger menu, so `id_prefix` keeps their element
+  # ids unique across the two copies (the desktop copy keeps the canonical, test-anchored ids).
+  attr :current_scope, :map, default: nil
+  attr :id_prefix, :string, default: ""
+
+  defp nav_links(assigns) do
+    ~H"""
+    <%= if @current_scope && @current_scope.user do %>
+      <li>
+        <.link navigate={~p"/pets"} id={"#{@id_prefix}nav-pets"} class="btn btn-ghost btn-sm">
+          {gettext("My pets")}
+        </.link>
+      </li>
+      <%= if @current_scope.user.is_admin do %>
+        <li class="flex items-center">
+          <span
+            id={"#{@id_prefix}nav-admin-badge"}
+            class="badge badge-secondary badge-sm"
+            title={gettext("Administrator")}
+          >
+            {gettext("Admin")}
+          </span>
+        </li>
+      <% end %>
+      <li>
+        <.link
+          navigate={~p"/users/settings"}
+          id={"#{@id_prefix}nav-settings"}
+          class="btn btn-ghost btn-sm"
+        >
+          {account_label(@current_scope.user)}
+        </.link>
+      </li>
+      <li>
+        <.link
+          href={~p"/users/log-out"}
+          method="delete"
+          id={"#{@id_prefix}nav-logout"}
+          class="btn btn-ghost btn-sm"
+        >
+          {gettext("Log out")}
+        </.link>
+      </li>
+    <% else %>
+      <li>
+        <.link navigate={~p"/users/log-in"} id={"#{@id_prefix}nav-login"} class="btn btn-ghost btn-sm">
+          {gettext("Log in")}
+        </.link>
+      </li>
+      <li>
+        <.link
+          navigate={~p"/users/register"}
+          id={"#{@id_prefix}nav-register"}
+          class="btn btn-primary btn-sm"
+        >
+          {gettext("Get started")}
+        </.link>
+      </li>
+    <% end %>
+    """
   end
 
   @doc """
@@ -199,9 +237,13 @@ defmodule Goodmao2Web.Layouts do
   """
   attr :locale, :string, required: true
 
+  attr :class, :string,
+    default: "dropdown-end",
+    doc: "extra classes on the dropdown (e.g. `dropdown-top` to open upward from the footer)"
+
   def locale_switcher(assigns) do
     ~H"""
-    <details class="dropdown dropdown-end" id="locale-switcher">
+    <details class={["dropdown", @class]} id="locale-switcher">
       <summary class="btn btn-ghost btn-sm" aria-label={gettext("Change language")}>
         <.icon name="hero-language" class="size-4" />
         <span class="hidden sm:inline">{Locale.label(@locale)}</span>
@@ -229,16 +271,20 @@ defmodule Goodmao2Web.Layouts do
   `app.js`, which clamps and persists the root font-size in localStorage. See the
   pre-paint guard in root.html.heex which applies a stored size before first paint.
   """
+  attr :id_prefix, :string,
+    default: "",
+    doc: "prefix for element ids so the control can render twice (desktop + mobile menu)"
+
   def font_size_controls(assigns) do
     ~H"""
     <div
-      id="font-size-controls"
+      id={"#{@id_prefix}font-size-controls"}
       role="group"
       aria-label={gettext("Text size")}
       class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full"
     >
       <button
-        id="font-size-decrease"
+        id={"#{@id_prefix}font-size-decrease"}
         class="flex p-2 cursor-pointer"
         phx-click={JS.dispatch("phx:font-size-decrease")}
         aria-label={gettext("Decrease text size")}
@@ -248,7 +294,7 @@ defmodule Goodmao2Web.Layouts do
       </button>
 
       <button
-        id="font-size-increase"
+        id={"#{@id_prefix}font-size-increase"}
         class="flex p-2 cursor-pointer"
         phx-click={JS.dispatch("phx:font-size-increase")}
         aria-label={gettext("Increase text size")}

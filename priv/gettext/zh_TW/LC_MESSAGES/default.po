@@ -93,12 +93,12 @@ msgstr "新增寵物"
 msgid "Add note, time, or visibility"
 msgstr "新增備註、時間或可見範圍"
 
-#: lib/goodmao2_web/components/layouts.ex:77
+#: lib/goodmao2_web/components/layouts.ex:147
 #, elixir-autogen, elixir-format
 msgid "Admin"
 msgstr "管理者"
 
-#: lib/goodmao2_web/components/layouts.ex:75
+#: lib/goodmao2_web/components/layouts.ex:145
 #, elixir-autogen, elixir-format
 msgid "Administrator"
 msgstr "系統管理者"
@@ -125,8 +125,8 @@ msgstr "吃光光"
 msgid "Ate partially"
 msgstr "吃了一部分"
 
-#: lib/goodmao2_web/components/layouts.ex:175
-#: lib/goodmao2_web/components/layouts.ex:187
+#: lib/goodmao2_web/components/layouts.ex:213
+#: lib/goodmao2_web/components/layouts.ex:225
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "正在嘗試重新連線"
@@ -317,7 +317,7 @@ msgstr "飲食"
 msgid "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
 msgstr "飲食、飲水、如廁、體重、用藥——一鍵完成結構化紀錄，不必寫一大段。"
 
-#: lib/goodmao2_web/components/layouts.ex:104
+#: lib/goodmao2_web/components/layouts.ex:182
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr "開始使用"
@@ -372,7 +372,7 @@ msgstr "限定"
 msgid "Log %{type}"
 msgstr "記錄%{type}"
 
-#: lib/goodmao2_web/components/layouts.ex:99
+#: lib/goodmao2_web/components/layouts.ex:173
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
@@ -381,7 +381,7 @@ msgstr "記錄%{type}"
 msgid "Log in"
 msgstr "登入"
 
-#: lib/goodmao2_web/components/layouts.ex:93
+#: lib/goodmao2_web/components/layouts.ex:167
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr "登出"
@@ -427,7 +427,7 @@ msgstr "用藥"
 msgid "Mood"
 msgstr "情緒"
 
-#: lib/goodmao2_web/components/layouts.ex:67
+#: lib/goodmao2_web/components/layouts.ex:137
 #: lib/goodmao2_web/live/pet_live/index.ex:26
 #: lib/goodmao2_web/live/pet_live/index.ex:42
 #, elixir-autogen, elixir-format
@@ -675,7 +675,7 @@ msgstr "分享"
 msgid "Sharing %{name}"
 msgstr "分享 %{name}"
 
-#: lib/goodmao2_web/components/layouts.ex:182
+#: lib/goodmao2_web/components/layouts.ex:220
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "發生錯誤！"
@@ -769,7 +769,7 @@ msgstr "嘔吐"
 msgid "Water"
 msgstr "飲水"
 
-#: lib/goodmao2_web/components/layouts.ex:170
+#: lib/goodmao2_web/components/layouts.ex:208
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "找不到網際網路連線"
@@ -865,25 +865,25 @@ msgstr "用力 ⚠"
 msgid "until %{t}"
 msgstr "至 %{t}"
 
-#: lib/goodmao2_web/components/layouts.ex:297
-#: lib/goodmao2_web/components/layouts.ex:298
+#: lib/goodmao2_web/components/layouts.ex:343
+#: lib/goodmao2_web/components/layouts.ex:344
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr "深色主題"
 
-#: lib/goodmao2_web/components/layouts.ex:131
+#: lib/goodmao2_web/components/layouts.ex:106
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr "顧毛 — 為你所愛的毛小孩打造、可分享的健康時間軸。"
 
-#: lib/goodmao2_web/components/layouts.ex:287
-#: lib/goodmao2_web/components/layouts.ex:288
+#: lib/goodmao2_web/components/layouts.ex:333
+#: lib/goodmao2_web/components/layouts.ex:334
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr "淺色主題"
 
-#: lib/goodmao2_web/components/layouts.ex:277
-#: lib/goodmao2_web/components/layouts.ex:278
+#: lib/goodmao2_web/components/layouts.ex:323
+#: lib/goodmao2_web/components/layouts.ex:324
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr "跟隨系統主題"
@@ -988,7 +988,7 @@ msgstr "返回你的寵物"
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr "已結束照護的夥伴。牠們的紀錄與時間軸，永遠保存在這裡。"
 
-#: lib/goodmao2_web/components/layouts.ex:205
+#: lib/goodmao2_web/components/layouts.ex:247
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr "切換語言"
@@ -1186,19 +1186,19 @@ msgstr "信箱頁面"
 msgid "to your account now."
 msgstr "登入您的帳號。"
 
-#: lib/goodmao2_web/components/layouts.ex:244
-#: lib/goodmao2_web/components/layouts.ex:245
+#: lib/goodmao2_web/components/layouts.ex:290
+#: lib/goodmao2_web/components/layouts.ex:291
 #, elixir-autogen, elixir-format
 msgid "Decrease text size"
 msgstr "縮小文字"
 
-#: lib/goodmao2_web/components/layouts.ex:254
-#: lib/goodmao2_web/components/layouts.ex:255
+#: lib/goodmao2_web/components/layouts.ex:300
+#: lib/goodmao2_web/components/layouts.ex:301
 #, elixir-autogen, elixir-format
 msgid "Increase text size"
 msgstr "放大文字"
 
-#: lib/goodmao2_web/components/layouts.ex:237
+#: lib/goodmao2_web/components/layouts.ex:283
 #, elixir-autogen, elixir-format
 msgid "Text size"
 msgstr "文字大小"
@@ -1403,3 +1403,8 @@ msgstr "星期二"
 #, elixir-autogen, elixir-format
 msgid "Wednesday"
 msgstr "星期三"
+
+#: lib/goodmao2_web/components/layouts.ex:65
+#, elixir-autogen, elixir-format
+msgid "Menu"
+msgstr "選單"

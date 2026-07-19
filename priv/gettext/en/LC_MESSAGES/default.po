@@ -94,12 +94,12 @@ msgstr ""
 msgid "Add note, time, or visibility"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:77
+#: lib/goodmao2_web/components/layouts.ex:147
 #, elixir-autogen, elixir-format
 msgid "Admin"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:75
+#: lib/goodmao2_web/components/layouts.ex:145
 #, elixir-autogen, elixir-format
 msgid "Administrator"
 msgstr ""
@@ -126,8 +126,8 @@ msgstr ""
 msgid "Ate partially"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:175
-#: lib/goodmao2_web/components/layouts.ex:187
+#: lib/goodmao2_web/components/layouts.ex:213
+#: lib/goodmao2_web/components/layouts.ex:225
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
@@ -318,7 +318,7 @@ msgstr ""
 msgid "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:104
+#: lib/goodmao2_web/components/layouts.ex:182
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr ""
@@ -373,7 +373,7 @@ msgstr ""
 msgid "Log %{type}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:99
+#: lib/goodmao2_web/components/layouts.ex:173
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:13
@@ -382,7 +382,7 @@ msgstr ""
 msgid "Log in"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:93
+#: lib/goodmao2_web/components/layouts.ex:167
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr ""
@@ -428,7 +428,7 @@ msgstr ""
 msgid "Mood"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:67
+#: lib/goodmao2_web/components/layouts.ex:137
 #: lib/goodmao2_web/live/pet_live/index.ex:26
 #: lib/goodmao2_web/live/pet_live/index.ex:42
 #, elixir-autogen, elixir-format
@@ -676,7 +676,7 @@ msgstr ""
 msgid "Sharing %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:182
+#: lib/goodmao2_web/components/layouts.ex:220
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
@@ -770,7 +770,7 @@ msgstr ""
 msgid "Water"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:170
+#: lib/goodmao2_web/components/layouts.ex:208
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
@@ -866,25 +866,25 @@ msgstr ""
 msgid "until %{t}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:297
-#: lib/goodmao2_web/components/layouts.ex:298
+#: lib/goodmao2_web/components/layouts.ex:343
+#: lib/goodmao2_web/components/layouts.ex:344
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:131
+#: lib/goodmao2_web/components/layouts.ex:106
 #, elixir-autogen, elixir-format
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:287
-#: lib/goodmao2_web/components/layouts.ex:288
+#: lib/goodmao2_web/components/layouts.ex:333
+#: lib/goodmao2_web/components/layouts.ex:334
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:277
-#: lib/goodmao2_web/components/layouts.ex:278
+#: lib/goodmao2_web/components/layouts.ex:323
+#: lib/goodmao2_web/components/layouts.ex:324
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr ""
@@ -989,7 +989,7 @@ msgstr ""
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:205
+#: lib/goodmao2_web/components/layouts.ex:247
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr ""
@@ -1187,19 +1187,19 @@ msgstr ""
 msgid "to your account now."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:244
-#: lib/goodmao2_web/components/layouts.ex:245
+#: lib/goodmao2_web/components/layouts.ex:290
+#: lib/goodmao2_web/components/layouts.ex:291
 #, elixir-autogen, elixir-format
 msgid "Decrease text size"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:254
-#: lib/goodmao2_web/components/layouts.ex:255
+#: lib/goodmao2_web/components/layouts.ex:300
+#: lib/goodmao2_web/components/layouts.ex:301
 #, elixir-autogen, elixir-format
 msgid "Increase text size"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:237
+#: lib/goodmao2_web/components/layouts.ex:283
 #, elixir-autogen, elixir-format
 msgid "Text size"
 msgstr ""
@@ -1404,4 +1404,9 @@ msgstr ""
 #: lib/goodmao2_web/helpers.ex:242
 #, elixir-autogen, elixir-format
 msgid "Wednesday"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:65
+#, elixir-autogen, elixir-format
+msgid "Menu"
 msgstr ""

@@ -83,6 +83,15 @@ skill).
 
 ### Changed
 
+- **Responsive primary navigation** — on small screens the header menu (page links, admin
+  badge, and the text-size / theme controls) now collapses into a single hamburger disclosure,
+  leaving just the brand and the toggle; at `lg` and up it stays the inline bar. Built from a
+  shared `nav_links` component rendered twice (desktop keeps the canonical, test-anchored ids;
+  the mobile copy is `m-`-prefixed to stay unique), using the same CSP-safe `<details>` pattern
+  as the language switcher — no added JavaScript.
+- **Language switcher moved to the footer** — the locale chooser now lives at the foot of every
+  page (opening upward with `dropdown-top`) instead of the header nav, decluttering the top bar
+  on every viewport. It is a single instance again (no per-copy id prefix).
 - **Past pets moved off the active list** — ended companions are no longer shown as a tab
   beside living pets on `/pets`. They now have their own quiet memorial surface at
   `/pets/past` (a soft heart, a gentle intro, a "back to your pets" link), reached by a
