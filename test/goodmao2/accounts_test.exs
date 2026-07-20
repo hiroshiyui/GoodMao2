@@ -553,4 +553,66 @@ defmodule Goodmao2.AccountsTest do
       assert survivor.id == other.id
     end
   end
+
+  describe "vet profiles" do
+    test "submit_vet_profile creates a pending profile" do
+      user = user_fixture()
+      assert {:ok, profile} = Accounts.submit_vet_profile(user, valid_vet_profile_attributes())
+      assert profile.verification_status == "pending"
+      refute Accounts.verified_vet?(user)
+    end
+
+    test "verified_vet? is true only for a verified profile" do
+      user = user_fixture()
+      refute Accounts.verified_vet?(user)
+
+      vet_profile_fixture(user)
+      refute Accounts.verified_vet?(user)
+
+      verified_vet_profile_fixture(user)
+      assert Accounts.verified_vet?(user)
+    end
+
+    test "resubmitting a verified profile returns it to pending" do
+      user = user_fixture()
+      verified_vet_profile_fixture(user)
+      assert Accounts.verified_vet?(user)
+
+      assert {:ok, profile} =
+               Accounts.submit_vet_profile(
+                 user,
+                 valid_vet_profile_attributes(%{"clinic_name" => "New Clinic"})
+               )
+
+      assert profile.verification_status == "pending"
+      assert is_nil(profile.verified_at)
+      assert is_nil(profile.verified_by_admin_id)
+      refute Accounts.verified_vet?(user)
+    end
+
+    test "an admin can verify and reject; a non-admin cannot" do
+      admin = admin_fixture()
+      user = user_fixture()
+      profile = vet_profile_fixture(user)
+
+      assert Accounts.verify_vet_profile(user_fixture(), profile) == {:error, :unauthorized}
+
+      assert {:ok, verified} = Accounts.verify_vet_profile(admin, profile)
+      assert verified.verification_status == "verified"
+      assert verified.verified_by_admin_id == admin.id
+      assert verified.verified_at
+
+      assert {:ok, rejected} = Accounts.reject_vet_profile(admin, verified)
+      assert rejected.verification_status == "rejected"
+    end
+
+    test "list_pending_vet_profiles returns only pending profiles" do
+      pending_user = user_fixture()
+      pending = vet_profile_fixture(pending_user)
+      verified_vet_profile_fixture(user_fixture())
+
+      ids = Enum.map(Accounts.list_pending_vet_profiles(), & &1.id)
+      assert ids == [pending.id]
+    end
+  end
 end

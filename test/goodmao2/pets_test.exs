@@ -105,6 +105,7 @@ defmodule Goodmao2.PetsTest do
       {:ok, grantee} =
         Goodmao2.Accounts.update_user_profile(user_fixture(), %{"handle" => "dr_lin"})
 
+      verified_vet_profile_fixture(grantee)
       pet = pet_fixture(owner)
 
       assert {:ok, _} =
@@ -122,6 +123,56 @@ defmodule Goodmao2.PetsTest do
                "role" => "viewer"
              }) ==
                {:error, :grantee_not_found}
+    end
+
+    test "granting the vet role is refused unless the grantee has a verified profile" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grantee = user_fixture()
+
+      # No profile at all.
+      assert Pets.grant_access(owner, pet, %{"identifier" => grantee.email, "role" => "vet"}) ==
+               {:error, :vet_not_verified}
+
+      # A pending (unverified) profile is still not enough.
+      vet_profile_fixture(grantee)
+
+      assert Pets.grant_access(owner, pet, %{"identifier" => grantee.email, "role" => "vet"}) ==
+               {:error, :vet_not_verified}
+
+      refute Pets.effective_role(pet, grantee)
+    end
+
+    test "granting the vet role succeeds for a verified vet" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grantee = user_fixture()
+      verified_vet_profile_fixture(grantee)
+
+      assert {:ok, _} =
+               Pets.grant_access(owner, pet, %{"identifier" => grantee.email, "role" => "vet"})
+
+      assert Pets.effective_role(pet, grantee) == "vet"
+    end
+
+    test "promoting an existing grant to vet is gated too (re-grant path)" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grantee = user_fixture()
+      grant_fixture(pet, owner, grantee, "viewer")
+
+      # The re-grant (insert_or_update) path must also enforce verification.
+      assert Pets.grant_access(owner, pet, %{"identifier" => grantee.email, "role" => "vet"}) ==
+               {:error, :vet_not_verified}
+
+      assert Pets.effective_role(pet, grantee) == "viewer"
+
+      verified_vet_profile_fixture(grantee)
+
+      assert {:ok, _} =
+               Pets.grant_access(owner, pet, %{"identifier" => grantee.email, "role" => "vet"})
+
+      assert Pets.effective_role(pet, grantee) == "vet"
     end
 
     test "a non-manager cannot grant access" do

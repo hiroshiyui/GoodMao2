@@ -58,14 +58,17 @@ per-type `data` fields in [`architecture.md`](architecture.md):
 - Energy / mood (1–5 scale)
 - Medication given (timestamped — ties to multi-caretaker coordination)
 
-### 2. Vet access model (both planned)
+### 2. Vet access model (both shipped)
 
 1. **Time-boxed live access** — an owner grants a vet temporary read access to the pet's
-   live timeline for a visit ("share history with Dr. Lin"). The `pet_accesses` grant with
-   an `expires_at` already supports this; the vet-facing UI is Phase 4.
-2. **Health summary report** — a generated, point-in-time summary the vet reads once (also
-   useful for export / print). Deferred — see the deferred entities in
-   [`architecture.md`](architecture.md).
+   live timeline for a visit ("share history with Dr. Lin"). The `pet_accesses` grant with an
+   `expires_at` backs it; the `vet` role is granted only to a **verified `VetProfile`**
+   (credential submission → admin review on `/admin`), enforced on grant *and* re-grant
+   ([ADR-0012](adr/0012-vet-access-model.md)).
+2. **Health summary report** — a generated, point-in-time summary a vet reads once (also
+   useful for export / print). A **frozen snapshot** over a date range, viewable/printable by
+   any effective grant and shareable through an **expiring anonymous link**; private entries
+   are never included. See [ADR-0012](adr/0012-vet-access-model.md).
 
 Vets are **active, verified users** (professional credential verification), so their input
 carries authority rather than being anonymous advice.
@@ -163,10 +166,13 @@ rejects *and* the legitimate case still passes).
       self-notify, messages are not bell rows
 - [ ] Per-entry **share links** (public token) + anonymous shared timeline/media
       ([ADR-0004](adr/0004-log-visibility.md); Phase 3)
-- [ ] Verified **veterinarian accounts** (credential verification) + generated
-      **health-summary report** export (Phase 4) — preserve: reject `role: "vet"` unless a
-      **verified `VetProfile`** exists, on grant *and* re-grant; the report share token carries
-      an **expiry** (unlike log tokens)
+- [x] Verified **veterinarian accounts** (credential verification) + generated
+      **health-summary report** export ([ADR-0012](adr/0012-vet-access-model.md); Phase 4) —
+      `Accounts.VetProfile` (applicant page + admin review queue on `/admin`) gates the `vet`
+      role on grant *and* re-grant; `Reports` freezes a point-in-time snapshot (private entries
+      excluded) served to an authenticated grant or through an **expiring** anonymous share
+      token (`GET /reports/shared/:token`, existence-hidden). Follow-ups: per-entry public
+      share links, report media serving, timeline `offset` paging for long reports
 
 ### 7. Localization & typography
 

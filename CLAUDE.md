@@ -79,17 +79,28 @@ call them.
   `Media.Storage` writes id-keyed opaque objects under a configured `storage_dir` (the
   physical path is never stored — traversal-proof); assets are created atomically with the
   log and re-authorized per request. `Media.RateLimiter` throttles uploads.
+- **`Reports`** (`reports.ex`) — generated **health summary reports**
+  ([ADR-0012](doc/adr/0012-vet-access-model.md)). `generate_report/3` (`:manage`) freezes a
+  `jsonb` `content` snapshot over a date range built from `Logs.shareable_entries/3`, which
+  **excludes every `private` entry** so the snapshot is safe to share. Reading needs `:read`;
+  an optional **expiring** share link stores only the token's SHA-256 hash. Also:
+  **`Accounts.VetProfile`** — the `vet` role is grantable only to a user with a **verified**
+  profile (`Accounts.verified_vet?/1`), gated in `Pets.grant_access/3` on grant *and* re-grant.
 
 Web LiveViews (`lib/goodmao2_web/live/pet_live/`): `Index`, `Form` (new/edit), `Show`
 (QuickLog + live filterable timeline/calendar + weight trend), `LogEntry` (single entry:
-edit + revision history), `Access` (grant/revoke), `EndOfCare` (owner-only lifecycle).
-`AdminLive` (`live/admin_live.ex`) is the admin-only read-only `/admin` site overview.
+edit + revision history), `Access` (grant/revoke), `EndOfCare` (owner-only lifecycle),
+`Reports` (generate/list/view health summaries). `UserLive.VetProfile` (`/users/vet-profile`)
+submits vet credentials. `AdminLive` (`live/admin_live.ex`) is the admin-only read-only
+`/admin` site overview **and** the vet-credential review queue.
 They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on failure. Purified
 media is served by `MediaController` at `GET /media/:id` (re-applies the parent log's read
-authorization, IDOR-hidden, hardened headers, `Range` support). Routes are in the
-`:require_authenticated_user` `live_session` in `router.ex`. Shared view helpers
-(enum-label translations, log summaries, clinical flags) are in
-`lib/goodmao2_web/helpers.ex`, imported app-wide via `goodmao2_web.ex`.
+authorization, IDOR-hidden, hardened headers, `Range` support); anonymous shared reports by
+`ReportController` at `GET /reports/shared/:token` (unexpired-token-gated, existence-hidden).
+Routes are in the `:require_authenticated_user` `live_session` in `router.ex`. Shared view
+helpers (enum-label translations, log summaries, clinical flags) are in
+`lib/goodmao2_web/helpers.ex`; the health-report body + shared weight chart are in
+`lib/goodmao2_web/components/report_components.ex` — all imported app-wide via `goodmao2_web.ex`.
 
 ## Non-obvious conventions
 

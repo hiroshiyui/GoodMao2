@@ -47,6 +47,14 @@ defmodule Goodmao2Web.PetLive.Access do
       {:error, :grantee_not_found} ->
         {:noreply, put_flash(socket, :error, gettext("No account matches that handle or email."))}
 
+      {:error, :vet_not_verified} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Only a verified veterinarian can be given the vet role.")
+         )}
+
       {:error, :unauthorized} ->
         {:noreply, put_flash(socket, :error, gettext("You are not allowed to manage sharing."))}
 

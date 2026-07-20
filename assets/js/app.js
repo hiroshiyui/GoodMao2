@@ -43,6 +43,18 @@ const PointerGlow = {
   },
 }
 
+// Print: a CSP-safe way to trigger the browser print dialog from a button (inline
+// onclick handlers are blocked by the Content-Security-Policy). Used by the report page.
+const Print = {
+  mounted() {
+    this.onClick = () => window.print()
+    this.el.addEventListener("click", this.onClick)
+  },
+  destroyed() {
+    if (this.onClick) this.el.removeEventListener("click", this.onClick)
+  },
+}
+
 // Font-size zoom: persist the root font-size (as a percentage) in localStorage and
 // apply it to <html>. The whole UI is rem-based, so this scales everything. The
 // default (125% = 20px) matches the CSS baseline in app.css; the pre-paint guard
@@ -80,7 +92,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, PointerGlow},
+  hooks: {...colocatedHooks, PointerGlow, Print},
 })
 
 // Show progress bar on live navigation and form submits

@@ -22,11 +22,12 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
 - **Viewer** — a read-only follower; may see only curated highlights.
 - **Veterinarian (Vet)** — a **verified** professional account. As a per-pet role,
   a vet can read the full clinical timeline and author vet notes; vet access is
-  typically **time-boxed**. "Verified" is a global account attribute (a `VetProfile`,
-  deferred), distinct from per-pet roles.
+  typically **time-boxed**. "Verified" is a global account attribute (a `VetProfile`),
+  distinct from per-pet roles — the `vet` role is only grantable to a verified profile.
 - **VetProfile** — the account-level record proving veterinarian status
-  (license, clinic, verification status). Vet capabilities require it to be verified.
-  _Deferred_ (Phase 4) — not yet modeled in GoodMao.
+  (license, licensing body, region, clinic, verification status). The `vet` per-pet role
+  requires it to be **verified**; an administrator reviews submissions on `/admin`. See
+  [ADR-0012](adr/0012-vet-access-model.md).
 - **Administrator** — the one **global** (non-per-pet) role, for platform oversight
   (e.g. vet verification). It deliberately **does not** bypass resource-based pet
   authorization — no backdoor to a user's pet health data. In GoodMao the **first
@@ -96,7 +97,9 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
   actual administrations (backs the "did anyone give the pill?" coordination).
   _Deferred_ — administrations are loggable today; schedules/reminders are Phase 1/3.
 - **Health summary report** — a generated point-in-time export of a pet's logs for a
-  vet; may be shared via an expiring share token. _Deferred_ (Phase 4).
+  vet: a **frozen snapshot** over a date range (private entries excluded), viewable/printable
+  by any effective grant and shareable via an **expiring** anonymous token. See
+  [ADR-0012](adr/0012-vet-access-model.md).
 - **Notification** — an in-site event delivered to one user's **bell** feed
   (`access_granted`, `access_revoked`, `log_added`, `announcement`), with its own unread
   badge. _Deferred_ (Phase 3) — see [ADR-0011](adr/0011-notifications-and-messaging.md).

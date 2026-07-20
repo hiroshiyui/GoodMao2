@@ -60,6 +60,41 @@ defmodule Goodmao2Web.AdminLiveTest do
     end
   end
 
+  describe "vet verifications" do
+    setup %{conn: conn} do
+      %{conn: log_in_user(conn, admin_fixture())}
+    end
+
+    test "lists pending profiles and verifies one", %{conn: conn} do
+      applicant = user_fixture()
+      profile = vet_profile_fixture(applicant)
+
+      {:ok, lv, _html} = live(conn, ~p"/admin")
+      assert has_element?(lv, "#vet-profile-#{profile.id}")
+
+      lv |> element("#verify-#{profile.id}") |> render_click()
+
+      refute has_element?(lv, "#vet-profile-#{profile.id}")
+      assert Goodmao2.Accounts.verified_vet?(applicant)
+    end
+
+    test "rejects a profile", %{conn: conn} do
+      applicant = user_fixture()
+      profile = vet_profile_fixture(applicant)
+
+      {:ok, lv, _html} = live(conn, ~p"/admin")
+      lv |> element("#reject-#{profile.id}") |> render_click()
+
+      refute has_element?(lv, "#vet-profile-#{profile.id}")
+      refute Goodmao2.Accounts.verified_vet?(applicant)
+    end
+
+    test "shows an empty state with no pending profiles", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin")
+      assert has_element?(lv, "#pending-vet-profiles-empty")
+    end
+  end
+
   defp restore_env(key, nil), do: Application.delete_env(:goodmao2, key)
   defp restore_env(key, value), do: Application.put_env(:goodmao2, key, value)
 end

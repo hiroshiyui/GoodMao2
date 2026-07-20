@@ -460,7 +460,7 @@ defmodule Goodmao2Web.PetLive.Show do
         </div>
       </section>
 
-      <.weight_trend
+      <.weight_chart
         :if={not @history_hidden? and length(@weight_series) >= 2}
         series={@weight_series}
       />
@@ -832,15 +832,28 @@ defmodule Goodmao2Web.PetLive.Show do
         </p>
       </div>
 
-      <nav :if={@can_manage?} id="pet-actions" class="flex gap-2" aria-label={gettext("Pet actions")}>
+      <nav id="pet-actions" class="flex gap-2" aria-label={gettext("Pet actions")}>
         <.link
+          navigate={~p"/pets/#{@pet.id}/reports"}
+          id="pet-reports-link"
+          class="btn btn-ghost btn-sm"
+        >
+          <.icon name="hero-document-text" class="size-4" /> {gettext("Reports")}
+        </.link>
+        <.link
+          :if={@can_manage?}
           navigate={~p"/pets/#{@pet.id}/access"}
           id="pet-access-link"
           class="btn btn-ghost btn-sm"
         >
           <.icon name="hero-user-group" class="size-4" /> {gettext("Sharing")}
         </.link>
-        <.link navigate={~p"/pets/#{@pet.id}/edit"} id="pet-edit-link" class="btn btn-ghost btn-sm">
+        <.link
+          :if={@can_manage?}
+          navigate={~p"/pets/#{@pet.id}/edit"}
+          id="pet-edit-link"
+          class="btn btn-ghost btn-sm"
+        >
           <.icon name="hero-pencil-square" class="size-4" /> {gettext("Edit")}
         </.link>
       </nav>
@@ -990,145 +1003,6 @@ defmodule Goodmao2Web.PetLive.Show do
   defp quicktap_value_attrs(data) do
     Map.new(data, fn {key, value} -> {"phx-value-#{key}", value} end)
   end
-
-  # The weight-trend card: an inline (CSP-safe, no JS) SVG line chart of the pet's weight over
-  # time, the latest value and its change since the first measurement, and — for assistive tech
-  # — an sr-only data table. The SVG is decorative (`aria-hidden`); the table carries the data.
-  attr :series, :list, required: true
-
-  defp weight_trend(assigns) do
-    series = assigns.series
-    first = List.first(series)
-    last = List.last(series)
-    points = weight_points(series)
-    delta = last.grams - first.grams
-
-    assigns =
-      assign(assigns,
-        points: points,
-        polyline: Enum.map_join(points, " ", &"#{&1.x},#{&1.y}"),
-        last_point: List.last(points),
-        latest_kg: format_kg(last.grams),
-        delta_grams: delta,
-        delta_kg: format_kg(abs(delta)),
-        first_at: first.at,
-        last_at: last.at
-      )
-
-    ~H"""
-    <section
-      id="weight-trend"
-      aria-labelledby="weight-trend-heading"
-      class="card card-border bg-base-100 mt-6"
-    >
-      <div class="card-body p-4">
-        <div class="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="weight-trend-heading" class="text-lg font-semibold">{gettext("Weight trend")}</h2>
-          <p class="flex items-baseline gap-2">
-            <span id="weight-latest" class="text-2xl font-semibold">
-              {gettext("%{kg} kg", kg: @latest_kg)}
-            </span>
-            <span id="weight-change" class="text-base-content/60 flex items-center gap-0.5 text-sm">
-              <.icon name={weight_delta_icon(@delta_grams)} class="size-4" />
-              {weight_delta_label(@delta_grams, @delta_kg)}
-            </span>
-          </p>
-        </div>
-
-        <figure class="mt-3">
-          <svg viewBox="0 0 640 180" class="w-full" aria-hidden="true">
-            <polyline
-              points={@polyline}
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              vector-effect="non-scaling-stroke"
-              class="text-primary"
-            />
-            <circle
-              :for={p <- @points}
-              cx={p.x}
-              cy={p.y}
-              r="3"
-              fill="currentColor"
-              class="text-primary"
-            />
-            <circle
-              cx={@last_point.x}
-              cy={@last_point.y}
-              r="5"
-              fill="currentColor"
-              class="text-secondary"
-            />
-          </svg>
-          <div class="text-base-content/50 mt-1 flex justify-between text-xs" aria-hidden="true">
-            <time datetime={DateTime.to_iso8601(@first_at)}>{format_date(@first_at)}</time>
-            <time datetime={DateTime.to_iso8601(@last_at)}>{format_date(@last_at)}</time>
-          </div>
-          <figcaption class="sr-only">
-            <table>
-              <caption>{gettext("Weight measurements")}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">{gettext("Date")}</th>
-                  <th scope="col">{gettext("Weight")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr :for={p <- @series}>
-                  <td>
-                    <time datetime={DateTime.to_iso8601(p.at)}>{format_datetime(p.at)}</time>
-                  </td>
-                  <td>{gettext("%{kg} kg", kg: format_kg(p.grams))}</td>
-                </tr>
-              </tbody>
-            </table>
-          </figcaption>
-        </figure>
-      </div>
-    </section>
-    """
-  end
-
-  # Maps each measurement to an SVG coordinate in the 640×180 viewBox (6px horizontal, 10px
-  # vertical padding). X is placed by real elapsed time (falling back to even spacing when every
-  # point shares an instant); Y is the weight scaled between the series min and max, inverted so
-  # heavier is higher. A flat series sits on the mid-line.
-  defp weight_points(series) do
-    grams = Enum.map(series, & &1.grams)
-    gmin = Enum.min(grams)
-    gmax = Enum.max(grams)
-    t0 = series |> List.first() |> Map.fetch!(:at) |> DateTime.to_unix()
-    t1 = series |> List.last() |> Map.fetch!(:at) |> DateTime.to_unix()
-    n = length(series)
-
-    series
-    |> Enum.with_index()
-    |> Enum.map(fn {p, i} ->
-      fx =
-        cond do
-          t1 > t0 -> (DateTime.to_unix(p.at) - t0) / (t1 - t0)
-          n > 1 -> i / (n - 1)
-          true -> 0.0
-        end
-
-      fy = if gmax > gmin, do: (p.grams - gmin) / (gmax - gmin), else: 0.5
-
-      %{x: Float.round(6.0 + fx * 628.0, 1), y: Float.round(10.0 + (1.0 - fy) * 160.0, 1)}
-    end)
-  end
-
-  defp weight_delta_icon(delta) when delta > 0, do: "hero-arrow-trending-up"
-  defp weight_delta_icon(delta) when delta < 0, do: "hero-arrow-trending-down"
-  defp weight_delta_icon(_delta), do: "hero-minus"
-
-  # Direction rides in the arrow icon and the +/− sign, never colour — weight change is
-  # clinically neutral, so the chip stays a muted tone.
-  defp weight_delta_label(delta, kg) when delta > 0, do: gettext("+%{kg} kg", kg: kg)
-  defp weight_delta_label(delta, kg) when delta < 0, do: gettext("−%{kg} kg", kg: kg)
-  defp weight_delta_label(_delta, _kg), do: gettext("no change")
 
   # The (already-loaded) month entries that fall on the picked day, UTC-bucketed like the grid.
   defp selected_day_entries(_entries, nil), do: []
