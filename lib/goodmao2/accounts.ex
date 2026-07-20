@@ -6,7 +6,7 @@ defmodule Goodmao2.Accounts do
   import Ecto.Query, warn: false
   alias Goodmao2.Repo
 
-  alias Goodmao2.Accounts.{User, UserToken, UserNotifier}
+  alias Goodmao2.Accounts.{User, UserToken, UserNotifier, VetProfile}
 
   ## Database getters
 
@@ -161,6 +161,58 @@ defmodule Goodmao2.Accounts do
     |> User.profile_changeset(attrs)
     |> Repo.update()
   end
+
+  ## Veterinarian profiles
+
+  @doc "Returns the user's `VetProfile`, or `nil`."
+  def get_vet_profile(%User{id: user_id}), do: Repo.get_by(VetProfile, user_id: user_id)
+
+  @doc "Changeset for the vet-credentials submission form."
+  def change_vet_profile(%VetProfile{} = profile \\ %VetProfile{}, attrs \\ %{}),
+    do: VetProfile.submit_changeset(profile, attrs)
+
+  @doc """
+  Submits (or re-submits) the user's veterinarian credentials for review.
+
+  Any existing profile is updated in place; a re-submission returns it to `pending`.
+  """
+  def submit_vet_profile(%User{id: user_id} = user, attrs) do
+    (get_vet_profile(user) || %VetProfile{user_id: user_id})
+    |> VetProfile.submit_changeset(attrs)
+    |> Repo.insert_or_update()
+  end
+
+  @doc "Returns `true` if the user holds a **verified** veterinarian profile."
+  def verified_vet?(%User{} = user) do
+    case get_vet_profile(user) do
+      %VetProfile{verification_status: "verified"} -> true
+      _ -> false
+    end
+  end
+
+  def verified_vet?(_), do: false
+
+  @doc "Lists vet profiles awaiting administrator review, oldest first, user preloaded."
+  def list_pending_vet_profiles do
+    Repo.all(
+      from p in VetProfile,
+        where: p.verification_status == "pending",
+        order_by: [asc: p.inserted_at, asc: p.id],
+        preload: [:user]
+    )
+  end
+
+  @doc "Marks a vet profile verified. Requires the acting user to be the administrator."
+  def verify_vet_profile(%User{is_admin: true, id: admin_id}, %VetProfile{} = profile),
+    do: profile |> VetProfile.review_changeset("verified", admin_id) |> Repo.update()
+
+  def verify_vet_profile(_user, _profile), do: {:error, :unauthorized}
+
+  @doc "Marks a vet profile rejected. Requires the acting user to be the administrator."
+  def reject_vet_profile(%User{is_admin: true, id: admin_id}, %VetProfile{} = profile),
+    do: profile |> VetProfile.review_changeset("rejected", admin_id) |> Repo.update()
+
+  def reject_vet_profile(_user, _profile), do: {:error, :unauthorized}
 
   ## Settings
 

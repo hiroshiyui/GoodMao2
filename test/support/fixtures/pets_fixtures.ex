@@ -19,8 +19,14 @@ defmodule Goodmao2.PetsFixtures do
     pet
   end
 
-  @doc "Grants `grantee` a role on `pet`, performed by `granter` (defaults to an owner)."
+  @doc """
+  Grants `grantee` a role on `pet`, performed by `granter` (defaults to an owner).
+
+  The `vet` role requires a verified `VetProfile`, so one is provisioned for the grantee.
+  """
   def grant_fixture(pet, granter, grantee, role \\ "co_caretaker") do
+    if role == "vet", do: Goodmao2.AccountsFixtures.verified_vet_profile_fixture(grantee)
+
     {:ok, access} =
       Pets.grant_access(granter, pet, %{"identifier" => grantee.email, "role" => role})
 

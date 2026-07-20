@@ -115,6 +115,35 @@ defmodule Goodmao2.Logs do
     end
   end
 
+  @doc """
+  Lists the pet's **shareable** entries in a range, oldest-first — for report snapshots.
+
+  Unlike `list_entries/3`, this **excludes every `private` entry regardless of the caller's
+  role** (even an owner's own): a report may be handed to a vet or opened through an
+  anonymous share link, so it must never freeze in an entry that ADR-0004 keeps private.
+  Honors hidden-history (returns `[]`). Same `:type` / `:from` / `:to` / `:limit` options.
+  """
+  def shareable_entries(%User{} = _user, %Pet{} = pet, opts \\ []) do
+    if pet.history_hidden do
+      []
+    else
+      limit = Keyword.get(opts, :limit, 1000)
+
+      query =
+        from e in LogEntry,
+          where: e.pet_id == ^pet.id and is_nil(e.deleted_at),
+          where: e.visibility != "private",
+          order_by: [asc: e.occurred_at, asc: e.id],
+          limit: ^limit
+
+      query
+      |> filter_by_type(Keyword.get(opts, :type))
+      |> filter_by_range(Keyword.get(opts, :from), Keyword.get(opts, :to))
+      |> preload(media_assets: ^media_preload_query())
+      |> Repo.all()
+    end
+  end
+
   defp filter_by_range(query, nil, nil), do: query
 
   defp filter_by_range(query, %DateTime{} = from, nil),

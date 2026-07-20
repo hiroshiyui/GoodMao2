@@ -55,5 +55,6 @@ valid:
 | [0009](0009-log-edit-revisions.md) | Log-entry edit history, capped at nine edits | Proposed (deferred) |
 | ~~0010~~ | ~~Self-hosted inline SVG icons~~ | Not applicable (Phoenix hero-icons) |
 | [0011](0011-notifications-and-messaging.md) | In-site notifications and a private mailbox | Proposed (deferred) |
+| [0012](0012-vet-access-model.md) | Vet access model: verified profiles and frozen health-summary reports | Accepted |
 
 _Add a row per ADR as it lands._

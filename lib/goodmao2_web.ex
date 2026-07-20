@@ -90,6 +90,8 @@ defmodule Goodmao2Web do
       import Goodmao2Web.LogFields
       # Life-log media rendering (shared by the timeline and the entry page)
       import Goodmao2Web.MediaComponents
+      # Health-summary report rendering + the shared weight-trend chart
+      import Goodmao2Web.ReportComponents
       # App-wide view helpers (label translations, log summaries, formatting)
       import Goodmao2Web.Helpers
 

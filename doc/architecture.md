@@ -20,6 +20,10 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   ffmpeg-based purification (`Media.Purifier`), an id-keyed storage seam (`Media.Storage`),
   atomic create with the log, an upload rate limiter (`Media.RateLimiter`), and the
   authorization for the serving endpoint.
+- **Reports** (`reports.ex`) — generated, point-in-time **health summary reports** for a pet
+  ([ADR-0012](adr/0012-vet-access-model.md)): a frozen `content` snapshot over a date range
+  (built from `Logs.shareable_entries/3`, which **excludes every private entry**), read by any
+  effective grant, and optionally shared through an **expiring** anonymous token.
 
 Each context owns its schemas under `lib/goodmao2/<context>/`.
 
@@ -92,6 +96,23 @@ the id and never stored** (path-traversal-proof). Bytes are re-encoded/remuxed b
 strip EXIF/GPS/metadata, written under a configured `storage_dir` outside any served path, and
 inserted with the log in one transaction. Soft-deleted via `deleted_at`.
 
+### `vet_profiles` (Accounts.VetProfile) — veterinarian credential
+
+At most **one** per user: `license_number`, `licensing_body`, `region`, `clinic_name`,
+`specialty?`, `verification_status` (`pending` / `verified` / `rejected`), `verified_at?`,
+`verified_by_admin_id?` (audit ref, no FK navigation). A (re)submission returns the profile to
+`pending`. The per-pet `vet` role is granted only to a user with a **verified** profile —
+enforced in `Pets.grant_access/3` on grant *and* re-grant ([ADR-0012](adr/0012-vet-access-model.md)).
+
+### `health_summary_reports` (Reports.HealthSummaryReport) — generated summary
+
+Per pet: `period_start` / `period_end`, `generated_by_user_id` (audit ref), a `jsonb`
+**`content`** snapshot (frozen at generation — pet descriptor + shareable entries, private
+entries omitted), an optional `share_token_hash` (SHA-256 of the raw token, shown once) always
+paired with `share_expires_at`, and `deleted_at` (soft-delete). Generation/sharing/deletion
+require `:manage`; reading requires `:read`; the anonymous token path is gated only by an
+unexpired, matching token. See [ADR-0012](adr/0012-vet-access-model.md).
+
 ## Authorization logic
 
 `Goodmao2.Pets.can?(pet, user, level)` where `level` ∈ `:read | :write | :manage`:
@@ -106,6 +127,8 @@ inserted with the log in one transaction. Soft-deleted via `deleted_at`.
 - **Pet CRUD, lifecycle, and grant management require `:manage`** (owner).
 - **Log authoring requires `:write`**; `vet_note` additionally requires the `vet` role
   (enforced in `Logs`, the context boundary).
+- **The `vet` role is granted only to a verified `VetProfile`** (`Accounts.verified_vet?/1`),
+  on grant *and* re-grant ([ADR-0012](adr/0012-vet-access-model.md)).
 - **Changing a log's `visibility` requires `owner`.**
 - `Pets.fetch_pet/3` returns `{:error, :not_found}` (never "forbidden") for pets the
   caller cannot access — **IDOR-hidden**.
@@ -118,35 +141,30 @@ Planned for later phases; **not yet in GoodMao's
 schema**. Recorded here so the payload/relationship shapes are known when the work lands
 (see [`roadmap.md`](roadmap.md) and the linked ADRs).
 
-- **VetProfile** (0..1 per user) — the account-level proof of veterinarian status:
-  `license_number`, `licensing_body`, `region`, `clinic_name`, `specialty?`,
-  `verification_status` (`pending` / `verified` / `rejected`), `verified_at?`,
-  `verified_by_admin_id?` (audit ref). "Vet" as a per-pet role requires a verified
-  profile. _Phase 4._
 - **Medication** (per pet) — an ongoing prescription/schedule (`name`, `dose`, `route?`,
   `schedule` recurrence, `start_date`, `end_date?`, `prescribed_by_vet_id?` audit ref,
   `active`). `medication` log entries record actual administrations against it — the
   "did anyone give the pill?" coordination. _Phase 1/3._
-- **HealthSummaryReport** (per pet) — a generated point-in-time export of logs in a
-  range (`period_start`, `period_end`, `generated_by_user_id`), optionally shared via an
-  expiring share token. Content generated from `log_entries` (stored or regenerated —
-  open question). _Phase 4._
 - **Notifications** and the **mailbox** (`conversations` / `conversation_participants` /
   `messages`) are likewise deferred — see
-  [ADR-0011](adr/0011-notifications-and-messaging.md). (**Log-edit revisions** have shipped —
-  see the data model above and [ADR-0009](adr/0009-log-edit-revisions.md).)
+  [ADR-0011](adr/0011-notifications-and-messaging.md). (**Log-edit revisions**, **VetProfile**,
+  and **HealthSummaryReport** have shipped — see the data model above and
+  [ADR-0009](adr/0009-log-edit-revisions.md) / [ADR-0012](adr/0012-vet-access-model.md).)
 
 ## Web layer (`lib/goodmao2_web/`)
 
 LiveViews under `live/pet_live/`: `Index` (active / past pets), `Form` (new & edit),
 `Show` (QuickLog + live timeline + weight trend), `LogEntry` (a single entry: edit + revision
-history, ADR-0009), `Access` (sharing/grants), `EndOfCare` (owner-only lifecycle). Routes live
-in the `:require_authenticated_user` live_session in `router.ex`.
+history, ADR-0009), `Access` (sharing/grants), `EndOfCare` (owner-only lifecycle), `Reports`
+(generate/list/view health summaries, ADR-0012). `UserLive.VetProfile` (`/users/vet-profile`)
+is the applicant's credential-submission page. Routes live in the
+`:require_authenticated_user` live_session in `router.ex`.
 The `Show` LiveView subscribes to the pet's PubSub topic and streams entries.
 
 `AdminLive` (`live/admin_live.ex`, `GET /admin`) is a separate `:require_admin`-gated,
 read-only site-overview surface for the sole administrator (user count, admin identity,
-first-registration gate status). Admin is a global role only — it grants **no** access to
+first-registration gate status), plus the **veterinarian-credential review queue** (verify /
+reject pending `VetProfile`s). Admin is a global role only — it grants **no** access to
 pet data, so this page reads none.
 
 Purified life-log media is served by `MediaController` at `GET /media/:id` (a dedicated
@@ -154,6 +172,12 @@ Purified life-log media is served by `MediaController` at `GET /media/:id` (a de
 log's read authorization, hides existence with `not_found`, sets hardened headers, and
 supports `Range`. Uploads flow through `PetLive.Show` (LiveView `allow_upload`) and never hand
 the browser a direct storage URL.
+
+`ReportController` serves an anonymous, print-friendly health summary at
+`GET /reports/shared/:token` (the `:browser` pipeline, no authentication). It renders a report's
+frozen snapshot only for an unexpired, matching share token — a bad, expired, or revoked token
+is `not_found` (existence-hidden). The snapshot never contains private entries, so no per-pet
+authorization is needed to render it.
 
 ### Conventions carried from `baudrate`
 

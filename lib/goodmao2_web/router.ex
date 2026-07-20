@@ -36,6 +36,10 @@ defmodule Goodmao2Web.Router do
 
     get "/", PageController, :home
     get "/locale/:locale", LocaleController, :update
+
+    # Anonymous, tokenized health-summary report — readable by anyone holding an unexpired
+    # share link (no account). Existence-hidden on a bad/expired/revoked token (404).
+    get "/reports/shared/:token", ReportController, :show
   end
 
   # Unauthenticated liveness/readiness probe (no pipeline: no session, CSRF, or
@@ -86,6 +90,7 @@ defmodule Goodmao2Web.Router do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/password", UserLive.PasswordSettings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+      live "/users/vet-profile", UserLive.VetProfile, :edit
 
       # Admin-only site overview; gated per-LiveView by the :require_admin on_mount
       # (IDOR-hidden — non-admins are redirected home).
@@ -100,6 +105,8 @@ defmodule Goodmao2Web.Router do
       live "/pets/:id/edit", PetLive.Form, :edit
       live "/pets/:id/access", PetLive.Access, :index
       live "/pets/:id/end-of-care", PetLive.EndOfCare, :edit
+      live "/pets/:id/reports", PetLive.Reports, :index
+      live "/pets/:id/reports/:report_id", PetLive.Reports, :show
       live "/pets/:pet_id/logs/:id", PetLive.LogEntry, :show
     end
 

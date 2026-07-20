@@ -79,6 +79,17 @@ defmodule Goodmao2Web.UserLive.Settings do
         </.link>
       </div>
 
+      <div class="divider" />
+
+      <div id="vet-profile-link" class="text-center">
+        <p class="text-base-content/60 mb-2 text-sm">
+          {gettext("Are you a veterinarian? Submit your credentials to be verified.")}
+        </p>
+        <.link navigate={~p"/users/vet-profile"} class="btn btn-soft">
+          {gettext("Veterinarian credentials")}
+        </.link>
+      </div>
+
       <%!-- A subtle, memorial entry to the "past pets" surface (ADR-0003): companions
             whose care has ended are preserved and reachable, just kept off the active
             list rather than shown beside the living. --%>

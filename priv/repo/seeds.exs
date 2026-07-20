@@ -63,6 +63,22 @@ pet =
       pet
   end
 
+# The vet role requires a verified VetProfile (ADR-0012). Give Dr. Lin a verified one so the
+# grant below succeeds. Idempotent: submit upserts, then verify if not already verified.
+{:ok, vet_profile} =
+  Accounts.submit_vet_profile(vet, %{
+    "license_number" => "TW-VET-0001",
+    "licensing_body" => "Taiwan Veterinary Medical Association",
+    "region" => "Taiwan",
+    "clinic_name" => "Kindly Paws Animal Clinic",
+    "specialty" => "Feline medicine"
+  })
+
+unless Accounts.verified_vet?(vet) do
+  admin = Repo.one(from u in User, where: u.is_admin == true, limit: 1)
+  if admin, do: Accounts.verify_vet_profile(admin, vet_profile)
+end
+
 # Give the vet a time-boxed grant (typical of a real visit).
 Pets.grant_access(owner, pet, %{
   "identifier" => "dr_lin",

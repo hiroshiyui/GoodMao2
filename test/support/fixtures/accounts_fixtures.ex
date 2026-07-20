@@ -45,6 +45,28 @@ defmodule Goodmao2.AccountsFixtures do
     Goodmao2.Repo.update!(Accounts.User.admin_changeset(user_fixture(attrs)))
   end
 
+  def valid_vet_profile_attributes(attrs \\ %{}) do
+    Enum.into(attrs, %{
+      "license_number" => "VET-#{System.unique_integer([:positive])}",
+      "licensing_body" => "State Veterinary Board",
+      "region" => "Taiwan",
+      "clinic_name" => "Kindly Paws Clinic"
+    })
+  end
+
+  @doc "Creates a `pending` vet profile for `user`."
+  def vet_profile_fixture(user, attrs \\ %{}) do
+    {:ok, profile} = Accounts.submit_vet_profile(user, valid_vet_profile_attributes(attrs))
+    profile
+  end
+
+  @doc "Creates a **verified** vet profile for `user` (so they may be granted the vet role)."
+  def verified_vet_profile_fixture(user, attrs \\ %{}) do
+    profile = vet_profile_fixture(user, attrs)
+    {:ok, verified} = Accounts.verify_vet_profile(admin_fixture(), profile)
+    verified
+  end
+
   def user_scope_fixture do
     user = user_fixture()
     user_scope_fixture(user)

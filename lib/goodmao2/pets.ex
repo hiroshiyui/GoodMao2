@@ -12,6 +12,9 @@ defmodule Goodmao2.Pets do
     * `:write`  — owner, co_caretaker, vet   (log authoring)
     * `:manage` — owner only                 (edit pet, lifecycle, grants)
 
+  The `vet` role additionally requires the grantee to hold a **verified** `VetProfile`
+  (`Accounts.verified_vet?/1`), checked on grant *and* re-grant in `grant_access/3`.
+
   """
   import Ecto.Query, warn: false
   alias Goodmao2.Repo
@@ -187,7 +190,8 @@ defmodule Goodmao2.Pets do
   """
   def grant_access(%User{} = granter, %Pet{} = pet, %{"identifier" => identifier} = attrs) do
     with :ok <- require(pet, granter, :manage),
-         %User{} = grantee <- resolve_user(identifier) do
+         %User{} = grantee <- resolve_user(identifier),
+         :ok <- require_verified_vet(attrs["role"], grantee) do
       # This path doubles as the grant-*update* path (insert_or_update), so it must
       # honor the >=1-owner invariant when demoting or time-boxing an existing owner.
       with_owner_lock(pet, fn ->
@@ -267,6 +271,14 @@ defmodule Goodmao2.Pets do
   end
 
   defp guard_last_owner(_pet, _access), do: :ok
+
+  # The `vet` role is only granted to a user with a *verified* VetProfile. This sits on the
+  # shared grant/re-grant path, so promoting an existing grant to `vet` is gated too.
+  defp require_verified_vet("vet", grantee) do
+    if Accounts.verified_vet?(grantee), do: :ok, else: {:error, :vet_not_verified}
+  end
+
+  defp require_verified_vet(_role, _grantee), do: :ok
 
   defp resolve_user(identifier) do
     identifier = String.trim(identifier)
