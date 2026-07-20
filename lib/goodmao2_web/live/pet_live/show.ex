@@ -136,11 +136,18 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   def handle_event("select_type", %{"type" => type}, socket) do
-    {:noreply,
-     socket
-     |> assign(:quicklog_type, type)
-     |> assign(:quick_form, to_form(%{}, as: :log))
-     |> assign(:quick_error, nil)}
+    # Only honor a type this role may actually author, so a crafted event can't drop the
+    # form into, e.g., the vet-only `vet_note` state for a co-caretaker. Creation is still
+    # re-checked in `Logs.create_entry/3`.
+    if type in LogEntry.quicklog_types(socket.assigns.role) do
+      {:noreply,
+       socket
+       |> assign(:quicklog_type, type)
+       |> assign(:quick_form, to_form(%{}, as: :log))
+       |> assign(:quick_error, nil)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("quicklog_change", %{"log" => params}, socket) do
@@ -396,7 +403,7 @@ defmodule Goodmao2Web.PetLive.Show do
             aria-label={gettext("Log type")}
           >
             <button
-              :for={type <- LogEntry.quicklog_types()}
+              :for={type <- LogEntry.quicklog_types(@role)}
               type="button"
               id={"quicklog-type-#{type}"}
               phx-click="select_type"

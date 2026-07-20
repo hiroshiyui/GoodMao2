@@ -18,12 +18,24 @@ defmodule Goodmao2.Logs.LogEntry do
 
   # Types any caretaker can author from the pet page's QuickLog. `life` is a plain
   # daily-life note here — its caption is the base `note`; media enrichment is deferred.
-  # `vet_note` is excluded: it is vet-only and authored through its own gated path.
+  # `vet_note` is excluded here: it is vet-only, offered only through the role-gated path
+  # in `quicklog_types/1`.
   @quicklog_types ~w(food water bathroom vomit weight energy medication symptom life)
 
   def types, do: @types
   def quicklog_types, do: @quicklog_types
   def visibilities, do: @visibilities
+
+  @doc """
+  QuickLog types offered to a caretaker in the given effective role.
+
+  A `vet` additionally gets the vet-only `vet_note`; every other role gets the shared
+  caretaker set. This only gates the *UI affordance* — `Logs.create_entry/3` independently
+  re-checks that `vet_note` is authored by a vet (ADR-0009), so the two guards are defence
+  in depth.
+  """
+  def quicklog_types("vet"), do: @quicklog_types ++ ["vet_note"]
+  def quicklog_types(_role), do: @quicklog_types
 
   schema "log_entries" do
     field :recorded_by_user_id, :id

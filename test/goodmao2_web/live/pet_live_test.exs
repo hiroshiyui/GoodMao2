@@ -138,6 +138,48 @@ defmodule Goodmao2Web.PetLiveTest do
       refute has_element?(lv, "#quicklog-section")
     end
 
+    test "a vet is offered the vet-note chip and can leave a note", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grant_fixture(pet, owner, user, "vet")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # The vet-only chip is offered alongside the shared caretaker types.
+      assert has_element?(lv, "#quicklog-type-vet_note")
+      lv |> element("#quicklog-type-vet_note") |> render_click()
+
+      lv
+      |> form("#quicklog-form",
+        log: %{assessment: "Possible early cystitis.", recommendation: "Recheck in 3 days."}
+      )
+      |> render_submit()
+
+      assert has_element?(lv, ".timeline-entry-type", "Vet note")
+    end
+
+    test "a co-caretaker is not offered the vet-note chip", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grant_fixture(pet, owner, user, "co_caretaker")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # QuickLog is available (co-caretakers can write) but without the vet-only chip.
+      assert has_element?(lv, "#quicklog-type-food")
+      refute has_element?(lv, "#quicklog-type-vet_note")
+
+      # A crafted event can't drop the form into the vet-only state either.
+      lv |> render_hook("select_type", %{"type" => "vet_note"})
+      refute has_element?(lv, "#quicklog-form textarea[name='log[assessment]']")
+    end
+
+    test "the owner is not offered the vet-note chip", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      refute has_element?(lv, "#quicklog-type-vet_note")
+    end
+
     test "a private entry is hidden from a viewer on the timeline", %{conn: conn, user: user} do
       owner = user_fixture()
       pet = pet_fixture(owner)
