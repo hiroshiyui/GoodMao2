@@ -14,6 +14,11 @@ GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
 - **Accounts** — `phx.gen.auth` scope-based auth (magic-link + password). The first
   registered account becomes the sole **administrator** (with a read-only `/admin`
   site-overview page); every account has an editable public **`@handle`** used for invites.
+- **Two-factor authentication** — **TOTP** authenticator-app codes (with single-use recovery
+  codes) and **WebAuthn/FIDO2** hardware security keys as a second factor. A pending-2FA stage
+  gates every sign-in path (magic-link *and* password), so no session is issued until the factor
+  passes; **required for the administrator**, opt-in for everyone else. TOTP secrets are
+  encrypted at rest and recovery codes are hashed; managed self-service on `/users/settings/two-factor`.
 - **Pets** — create / list / view / edit, coat colour, and an owner-only **end-of-care**
   lifecycle transition (a status change, never a deletion — the record and timeline are
   preserved). An opt-in `history_hidden` flag exists-hides a pet's logs.

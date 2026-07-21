@@ -12,6 +12,12 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   extended with the editable public **`@handle`**, `display_name`, and the
   first-user-becomes-**administrator** rule (`is_admin`). The administrator is the sole
   global role; it is orthogonal to per-pet access and grants no backdoor to pet data.
+  Also the **second-factor** core ([ADR-0013](adr/0013-second-factor-authentication.md)):
+  `Accounts.TwoFactor` (TOTP + single-use HMAC-hashed recovery codes + the `login_next_step/1`
+  state machine), `Accounts.WebAuthn` (FIDO2 relying-party ceremonies via `wax_`, sign-count
+  regression enforced), the supervised single-use `Accounts.WebAuthnChallenges` ETS store, and
+  `Accounts.TotpVault` (AES-256-GCM secret-at-rest, keyed off `SECRET_KEY_BASE`). 2FA is
+  **required for the admin**, opt-in for everyone else.
 - **Pets** (`pets.ex`) — pets, access grants, and the **resource-based authorization**
   core. Authorization is computed per request from an *effective* grant, never global.
 - **Logs** (`logs.ex`) — structured log entries, the timeline query (soft-delete-aware),
@@ -48,6 +54,18 @@ Each context owns its schemas under `lib/goodmao2/<context>/`.
 
 ### `users` (Accounts.User — extends the phx.gen.auth table)
 `handle` (citext, unique), `display_name`, `is_admin`, plus the generated auth columns.
+Two-factor columns (ADR-0013): `totp_secret` (AES-256-GCM ciphertext, never plaintext) and
+`totp_confirmed_at` (nil ⇒ TOTP disabled).
+
+### `webauthn_credentials` (Accounts.WebAuthnCredential) — FIDO2 security keys
+One row per enrolled key: `credential_id` (unique — the lookup key), `public_key_cbor` (COSE
+key), `sign_count` (clone detection, must not regress), `aaguid`, `label`, `last_used_at`.
+**Hard-deleted** on removal (the soft-delete exception — a revoked credential must never
+authenticate). See [ADR-0013](adr/0013-second-factor-authentication.md).
+
+### `recovery_codes` (Accounts.RecoveryCode) — 2FA backup codes
+Ten single-use codes backing up TOTP. Stored only as an **HMAC-SHA256** `code_hash` (keyed off
+`SECRET_KEY_BASE`); `used_at` stamps consumption. Regenerating deletes the prior set.
 
 ### `pets` (Pets.Pet)
 Descriptive attributes (`name`, `species`, `breed`, `color`, `sex`, `birth_date`,
@@ -211,6 +229,17 @@ the bell feed, and `MessageLive.Index` / `MessageLive.Show` (`/messages`, `/mess
 the mailbox inbox and thread (ADR-0011). Routes live in the `:require_authenticated_user`
 live_session in `router.ex`.
 The `Show` LiveView subscribes to the pet's PubSub topic and streams entries.
+
+**Two-factor** ([ADR-0013](adr/0013-second-factor-authentication.md)):
+`UserLive.TwoFactorSettings` (`/users/settings/two-factor`, sudo-gated) manages the
+authenticator app, security keys, and recovery codes. The login-time challenge/setup pages
+(`UserLive.TwoFactor`, `TwoFactorSetup`, `TwoFactorRecovery`) live in a **separate
+`:two_factor` live_session** gated by the `:require_pending_2fa` on_mount — the user has passed
+primary auth but holds **no session token yet**. `UserTwoFactorController`
+(`POST /users/two-factor/{totp,recovery,webauthn,complete}`, `:browser` pipeline for CSRF)
+re-verifies each factor authoritatively, throttles/locks out attempts, and only then issues the
+token via `UserAuth.complete_2fa_login/2`. The `WebAuthn` JS hook (`assets/js/webauthn_hook.js`)
+drives `navigator.credentials.create`/`get`, sharing base64url helpers with the Web Push hook.
 
 Live **unread badges** in the nav come from a global `Goodmao2Web.UnreadBadges` `on_mount`
 hook on that live_session: it assigns the counts and `attach_hook(:handle_info, …)` updates

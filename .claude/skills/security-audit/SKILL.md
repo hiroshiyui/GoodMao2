@@ -75,6 +75,27 @@ This skill audits security only. For correctness, tests, docs, and a11y, use `co
   authenticated users. No sensitive route is reachable from the wrong pipeline.
 - Login/registration/reset responses don't create a user-enumeration oracle beyond the
   generator's design.
+- **Second factor (ADR-0013)** — the pending-2FA stage must not be skippable:
+  - **No session token before the factor passes.** Every primary-auth path funnels through
+    `UserAuth.log_in_or_challenge/3`; `login_next_step/1` decides `:authenticated` /
+    `:challenge` / `:setup_required`. A `"session"` token is issued **only** by
+    `complete_2fa_login/2`. Grep for any login path that calls `log_in_user` directly and
+    bypasses `login_next_step` (the `update_password` re-login is the one intended exception —
+    the user is already fully authenticated).
+  - **The completion controller re-verifies authoritatively.** `UserTwoFactorController`
+    re-loads the pending user and re-checks TOTP/recovery/WebAuthn server-side — a stale socket
+    or crafted POST cannot skip it. The `complete` (post-setup) action must refuse to issue a
+    token unless a factor is actually enrolled.
+  - **Brute force / replay.** Attempts are counted in the pending session and the session is
+    dropped after the cap; TOTP passes `since:` to reject same-window replay.
+  - **Secrets at rest.** TOTP secrets are AES-256-GCM-encrypted (`Accounts.TotpVault`), recovery
+    codes are HMAC-SHA256-hashed and single-use (atomic `Repo.update_all`). Confirm none are
+    logged or returned in plaintext, and that `redact: true` is set on `users.totp_secret`.
+  - **WebAuthn integrity.** Challenges are single-use, user-bound, server-side
+    (`Accounts.WebAuthnChallenges` — never in the cookie); sign-count regression is enforced by
+    `Wax.authenticate/6`; the RP id/origin come from `:wax_` config, not user input. Credentials
+    are **hard-deleted** (a removed key must never authenticate). Admins can't drop their last
+    factor (`can_remove_second_factor?/2`).
 
 ---
 

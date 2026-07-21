@@ -248,6 +248,13 @@ the locale-parity test + the `a11y-engineering` skill.
       socket, `img-src 'self' data:` for the inline favicon). Sobelow's static check only sees a
       CSP declared via `put_secure_browser_headers`, so `.sobelow-conf` still ignores `Config.CSP`
       as a documented blind spot, not a missing header.
+- [x] **Two-factor authentication** ([ADR-0013](adr/0013-second-factor-authentication.md)) —
+      TOTP authenticator codes (`nimble_totp` + `eqrcode` QR) with single-use HMAC-hashed recovery
+      codes, and WebAuthn/FIDO2 hardware security keys (`wax_` + `cbor`) as a second factor. A
+      pending-2FA login stage gates **every** primary-auth path (magic-link and password), issuing
+      no session token until the factor passes; **required for the admin**, opt-in for everyone
+      else; TOTP secrets AES-256-GCM-encrypted at rest; security keys hard-deleted; brute-force
+      lockout; sudo-gated self-service at `/users/settings/two-factor`.
 - [x] **`mix goodmao.doctor` preflight task** — checks Erlang/Elixir vs `.tool-versions`, Postgres
       reachability + the `CREATEDB` privilege, deps fetched, asset installers, and (under
       `MIX_ENV=prod`) required secrets; PASS/WARN/FAIL per line, non-zero exit only on a hard FAIL

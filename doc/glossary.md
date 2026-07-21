@@ -128,6 +128,18 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
 - **Push subscription** — the browser endpoint + encryption keys (`p256dh`/`auth`) a user
   registered for Web Push. The `endpoint` is browser-supplied, so it is SSRF-validated before
   storage; a `410 Gone` from the push service soft-deletes it.
+- **Second factor / two-factor authentication (2FA)** — an extra sign-in step beyond the
+  password/magic link (ADR-0013). Required for the Administrator, opt-in for everyone else.
+- **TOTP** — time-based one-time passwords (RFC 6238) from an authenticator app, enrolled by
+  scanning a QR code. The shared secret is AES-256-GCM-encrypted at rest (`Accounts.TotpVault`).
+- **WebAuthn / FIDO2 / security key** — a hardware (or platform) authenticator used as a second
+  factor. GoodMao is the **relying party** (via `wax_`); its **RP ID** is the site host. Each
+  key's **sign count** is checked for regression to detect clones.
+- **Recovery codes** — ten single-use backup codes shown once at TOTP setup, stored only as
+  HMAC-SHA256 hashes; the fallback when an authenticator is lost.
+- **Pending-2FA stage** — the state after primary auth succeeds but before the second factor
+  passes: a signed, short-lived session marker with **no session token yet**. The token is
+  issued only once the factor is verified (`UserAuth.complete_2fa_login/2`).
 - **毛小孩 (fur kid)** — affectionate Taiwanese term for a pet; the product's tone.
   Localized per culture, not transliterated (English "pets", Japanese ペット) — see
   _Culture-first localization_.

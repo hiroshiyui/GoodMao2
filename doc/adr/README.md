@@ -56,5 +56,6 @@ valid:
 | ~~0010~~ | ~~Self-hosted inline SVG icons~~ | Not applicable (Phoenix hero-icons) |
 | [0011](0011-notifications-and-messaging.md) | In-site notifications and a private mailbox | Accepted (Stage 1 + Web Push Stage 2 shipped) |
 | [0012](0012-vet-access-model.md) | Vet access model: verified profiles and frozen health-summary reports | Accepted |
+| [0013](0013-second-factor-authentication.md) | Second-factor authentication (TOTP + WebAuthn/FIDO2) | Accepted (shipped) |
 
 _Add a row per ADR as it lands._

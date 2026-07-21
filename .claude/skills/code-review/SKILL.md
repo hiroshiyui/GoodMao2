@@ -72,6 +72,12 @@ per-pet authorization** in `Goodmao2.Pets`. Audit it hard:
 - **Auth/session**: `/users/settings` and other sensitive actions sit behind
   `:require_sudo_mode`; the router's `live_session`/pipeline scoping is correct; magic-link
   and password-reset tokens are single-use/expiring (generated code — verify it's unchanged).
+- **Second factor (ADR-0013)**: no primary-auth path issues a session token without going
+  through `login_next_step/1` (the pending-2FA stage gates magic-link *and* password); the
+  `:two_factor` LiveViews use the `:require_pending_2fa` on_mount (never `:require_authenticated`);
+  the completion controller re-verifies each factor server-side and locks out after repeated
+  failures; TOTP secrets are encrypted and recovery codes hashed (never logged); security-key
+  credentials are hard-deleted; an admin can't remove their last factor.
 - Cross-check the **OWASP Top 10**, with A01 (Broken Access Control) and A03 (Injection) as
   the highest-yield categories here.
 

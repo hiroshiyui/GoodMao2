@@ -60,7 +60,14 @@ call them.
 - **`Accounts`** (`accounts.ex`) — `phx.gen.auth` scope-based auth (the caller is
   `socket.assigns.current_scope.user`), extended with a public `@handle`, `display_name`,
   and `is_admin` (the **first registered user** becomes the sole administrator). Admin is a
-  global role only; it grants **no access to pet data**.
+  global role only; it grants **no access to pet data**. Also the **second-factor** core
+  ([ADR-0013](doc/adr/0013-second-factor-authentication.md)): `Accounts.TwoFactor` (TOTP via
+  `nimble_totp` + `eqrcode`, single-use HMAC-hashed recovery codes, and `login_next_step/1`),
+  `Accounts.WebAuthn` (FIDO2 security keys via `wax_`/`cbor`, sign-count regression enforced),
+  the supervised single-use `Accounts.WebAuthnChallenges` ETS store, and `Accounts.TotpVault`
+  (AES-256-GCM, keyed off `SECRET_KEY_BASE`). 2FA is **required for the admin**, opt-in for
+  everyone else; secrets are encrypted/hashed at rest; security keys are **hard-deleted** (the
+  soft-delete exception). The `:wax_` config (RP id/origin) lives in `config/{dev,test,runtime}.exs`.
 - **`Pets`** (`pets.ex`) — pets, `pet_accesses` grants, and the **resource-based
   authorization core**. This is the security-critical module:
   - Authorization is *computed per request* from an **effective grant** (`status=active`
@@ -124,7 +131,13 @@ Web LiveViews (`lib/goodmao2_web/live/pet_live/`): `Index`, `Form` (new/edit), `
 (QuickLog + live filterable timeline/calendar + weight trend), `LogEntry` (single entry:
 edit + revision history), `Access` (grant/revoke), `EndOfCare` (owner-only lifecycle),
 `Reports` (generate/list/view health summaries). `UserLive.VetProfile` (`/users/vet-profile`)
-submits vet credentials. `NotificationLive.Index` (`/notifications`) is the bell feed;
+submits vet credentials. **Two-factor** ([ADR-0013](doc/adr/0013-second-factor-authentication.md)):
+`UserLive.TwoFactorSettings` (`/users/settings/two-factor`, sudo-gated) manages TOTP + security
+keys + recovery codes; the login challenge/setup pages (`UserLive.TwoFactor`,
+`TwoFactorSetup`, `TwoFactorRecovery`) live in the `:two_factor` live_session gated by the
+`:require_pending_2fa` on_mount (the user has passed primary auth but holds **no session token
+yet**); `UserTwoFactorController` authoritatively re-verifies each factor and only then issues the
+token (`POST /users/two-factor/{totp,recovery,webauthn,complete}`). `NotificationLive.Index` (`/notifications`) is the bell feed;
 `MessageLive.Index`/`Show` (`/messages`, `/messages/:id`) are the mailbox. Live nav **unread
 badges** come from the global `Goodmao2Web.UnreadBadges` `on_mount` hook (`attach_hook`) on the
 authenticated live_session — no per-LiveView code. `AdminLive` (`live/admin_live.ex`) is the
