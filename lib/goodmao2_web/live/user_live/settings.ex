@@ -44,6 +44,20 @@ defmodule Goodmao2Web.UserLive.Settings do
         <p class="text-base-content/60 text-xs">
           {gettext("Your handle lets others invite you to a pet by @handle.")}
         </p>
+        <.input
+          field={@profile_form[:timezone]}
+          type="select"
+          id="user-timezone-select"
+          label={gettext("Timezone")}
+          prompt={gettext("Use the site default")}
+          options={Goodmao2.Timezone.all()}
+          phx-hook="TimezoneDetect"
+        />
+        <p class="text-base-content/60 text-xs">
+          {gettext(
+            "Times you log and view are shown in this zone. Left blank, the site default is used."
+          )}
+        </p>
         <.button variant="primary" phx-disable-with={gettext("Saving...")}>
           {gettext("Save profile")}
         </.button>

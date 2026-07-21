@@ -47,4 +47,30 @@ defmodule Goodmao2Web.AdminLive.SettingsTest do
       assert Settings.get("vapid_subject") == "mailto:admin@example.com"
     end
   end
+
+  describe "System timezone card (ADR-0018)" do
+    setup %{conn: conn} do
+      # The DB row rolls back with the sandbox, but the Settings ETS cache is process-global —
+      # reset just the cache entry (no DB in on_exit) so the default doesn't leak into other tests.
+      on_exit(fn -> Goodmao2.Settings.Cache.put("default_timezone", nil) end)
+      %{conn: log_in_user(conn, admin_fixture())}
+    end
+
+    test "renders the timezone select seeded with the current default", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/settings")
+      assert html =~ ~s(id="system-timezone-select")
+      assert html =~ "Asia/Taipei"
+    end
+
+    test "saving a zone persists the system default", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/settings")
+
+      lv
+      |> form("#timezone-form", tz: %{timezone: "Asia/Tokyo"})
+      |> render_submit()
+
+      assert Settings.get("default_timezone") == "Asia/Tokyo"
+      assert Goodmao2.Timezone.system_default() == "Asia/Tokyo"
+    end
+  end
 end

@@ -13,13 +13,15 @@ defmodule Goodmao2Web.AdminLive.Settings do
 
   alias Goodmao2.Notifications.WebPush
   alias Goodmao2.Settings
+  alias Goodmao2.Timezone
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(:page_title, gettext("System settings"))
-     |> load_vapid()}
+     |> load_vapid()
+     |> load_timezone()}
   end
 
   @impl true
@@ -50,11 +52,30 @@ defmodule Goodmao2Web.AdminLive.Settings do
     end
   end
 
+  def handle_event("save_timezone", %{"tz" => %{"timezone" => tz}}, socket) do
+    if Timezone.known?(tz) do
+      case Settings.put("default_timezone", tz) do
+        {:ok, _} ->
+          {:noreply,
+           socket |> put_flash(:info, gettext("System timezone saved.")) |> load_timezone()}
+
+        _ ->
+          {:noreply, put_flash(socket, :error, gettext("Could not save the timezone."))}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("That is not a valid timezone."))}
+    end
+  end
+
   defp load_vapid(socket) do
     socket
     |> assign(:vapid_public_key, WebPush.public_key())
     |> assign(:vapid_configured, WebPush.vapid_configured?())
     |> assign(:subject_form, to_form(%{"subject" => WebPush.subject()}, as: :vapid))
+  end
+
+  defp load_timezone(socket) do
+    assign(socket, :timezone_form, to_form(%{"timezone" => Timezone.system_default()}, as: :tz))
   end
 
   @impl true
@@ -145,6 +166,36 @@ defmodule Goodmao2Web.AdminLive.Settings do
             >
               {if @vapid_configured, do: gettext("Regenerate keys"), else: gettext("Generate keys")}
             </button>
+          </div>
+        </section>
+
+        <section
+          id="timezone-card"
+          aria-labelledby="timezone-heading"
+          class="card card-border bg-base-100 mt-6"
+        >
+          <div class="card-body space-y-3 p-4">
+            <h2 id="timezone-heading" class="text-lg font-semibold">
+              {gettext("System timezone")}
+            </h2>
+            <p class="text-base-content/60 text-sm">
+              {gettext(
+                "The default timezone for displaying and entering times, used for anyone who has not set their own preference."
+              )}
+            </p>
+
+            <.form for={@timezone_form} id="timezone-form" phx-submit="save_timezone">
+              <.input
+                field={@timezone_form[:timezone]}
+                type="select"
+                id="system-timezone-select"
+                label={gettext("Default timezone")}
+                options={Timezone.all()}
+              />
+              <.button type="submit" id="timezone-submit" class="btn btn-sm mt-2">
+                {gettext("Save timezone")}
+              </.button>
+            </.form>
           </div>
         </section>
       </section>

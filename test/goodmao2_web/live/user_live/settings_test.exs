@@ -40,6 +40,45 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
     end
   end
 
+  describe "preferred timezone (ADR-0018)" do
+    test "renders the timezone select in the profile form", %{conn: conn} do
+      {:ok, _lv, html} = conn |> log_in_user(user_fixture()) |> live(~p"/users/settings")
+      assert html =~ ~s(id="user-timezone-select")
+      assert html =~ "Asia/Taipei"
+    end
+
+    test "saving a valid zone persists the preference", %{conn: conn} do
+      user = user_fixture()
+      {:ok, lv, _html} = conn |> log_in_user(user) |> live(~p"/users/settings")
+
+      lv
+      |> form("#profile_form", user: %{timezone: "Asia/Taipei"})
+      |> render_submit()
+
+      assert Accounts.get_user!(user.id).timezone == "Asia/Taipei"
+    end
+
+    test "a blank selection clears the preference back to the site default", %{conn: conn} do
+      {:ok, user} =
+        Accounts.update_user_profile(user_fixture(), %{"timezone" => "Asia/Taipei"})
+
+      {:ok, lv, _html} = conn |> log_in_user(user) |> live(~p"/users/settings")
+
+      lv |> form("#profile_form", user: %{timezone: ""}) |> render_submit()
+
+      assert Accounts.get_user!(user.id).timezone == nil
+    end
+
+    test "an invalid zone is rejected at the changeset boundary" do
+      # The <select> can only submit offered options, so junk can't arrive via the form; the
+      # context guard is the backstop for any other caller.
+      assert {:error, changeset} =
+               Accounts.update_user_profile(user_fixture(), %{"timezone" => "Bogus/Zone"})
+
+      assert {"is not a valid timezone", _} = changeset.errors[:timezone]
+    end
+  end
+
   describe "push notifications card" do
     test "is hidden when VAPID is not configured", %{conn: conn} do
       {:ok, _lv, html} = conn |> log_in_user(user_fixture()) |> live(~p"/users/settings")
