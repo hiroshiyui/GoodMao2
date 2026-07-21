@@ -52,6 +52,20 @@ defmodule Goodmao2.LogsTest do
       assert %{occurred_at: _} = errors_on(changeset)
     end
 
+    test "accepts an occurred_at within the 5-minute clock-skew tolerance", %{
+      owner: owner,
+      pet: pet
+    } do
+      just_ahead = DateTime.utc_now() |> DateTime.add(2, :minute) |> DateTime.truncate(:second)
+
+      assert {:ok, _entry} =
+               Logs.create_entry(owner, pet, %{
+                 "type" => "food",
+                 "data" => %{"amount" => "full"},
+                 "occurred_at" => just_ahead
+               })
+    end
+
     test "a viewer cannot write", %{owner: owner, pet: pet} do
       viewer = user_fixture()
       grant_fixture(pet, owner, viewer, "viewer")

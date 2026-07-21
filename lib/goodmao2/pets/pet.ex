@@ -119,10 +119,15 @@ defmodule Goodmao2.Pets.Pet do
     end
   end
 
+  # Allow a small clock-skew grace so a client a few minutes ahead of the server isn't rejected.
+  @future_skew_seconds 300
+
   defp validate_ended_at_not_future(changeset) do
     case get_field(changeset, :ended_at) do
       %DateTime{} = dt ->
-        if DateTime.after?(dt, DateTime.utc_now()) do
+        cutoff = DateTime.add(DateTime.utc_now(), @future_skew_seconds, :second)
+
+        if DateTime.after?(dt, cutoff) do
           add_error(changeset, :ended_at, "cannot be in the future")
         else
           changeset

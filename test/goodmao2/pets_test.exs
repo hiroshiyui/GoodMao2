@@ -279,5 +279,28 @@ defmodule Goodmao2.PetsTest do
       {:ok, revived} = Pets.update_pet_lifecycle(owner, ended, %{"lifecycle_status" => "active"})
       assert revived.ended_at == nil
     end
+
+    test "ended_at allows a small clock skew but rejects a clearly-future date (roadmap §8)" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+
+      just_ahead = DateTime.utc_now() |> DateTime.add(2, :minute) |> DateTime.truncate(:second)
+
+      assert {:ok, _} =
+               Pets.update_pet_lifecycle(owner, pet, %{
+                 "lifecycle_status" => "rehomed",
+                 "ended_at" => just_ahead
+               })
+
+      far_future = DateTime.utc_now() |> DateTime.add(1, :day) |> DateTime.truncate(:second)
+
+      assert {:error, changeset} =
+               Pets.update_pet_lifecycle(owner, pet, %{
+                 "lifecycle_status" => "rehomed",
+                 "ended_at" => far_future
+               })
+
+      assert %{ended_at: _} = errors_on(changeset)
+    end
   end
 end
