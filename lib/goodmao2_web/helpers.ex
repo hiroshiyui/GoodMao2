@@ -26,6 +26,11 @@ defmodule Goodmao2Web.Helpers do
 
   def translate_species("cat"), do: gettext("Cat")
   def translate_species("dog"), do: gettext("Dog")
+  def translate_species("rabbit"), do: gettext("Rabbit")
+  def translate_species("bird"), do: gettext("Bird")
+  def translate_species("hamster"), do: gettext("Hamster")
+  def translate_species("reptile"), do: gettext("Reptile")
+  def translate_species("fish"), do: gettext("Fish")
   def translate_species("other"), do: gettext("Other")
   def translate_species(other), do: other
 

@@ -21,6 +21,22 @@ defmodule Goodmao2.PetsTest do
       assert {:error, changeset} = Pets.create_pet(owner, %{"name" => ""})
       assert %{name: _} = errors_on(changeset)
     end
+
+    test "accepts the broadened species set (roadmap §8)" do
+      owner = user_fixture()
+
+      for species <- ~w(rabbit bird hamster reptile fish) do
+        assert {:ok, pet} =
+                 Pets.create_pet(owner, valid_pet_attributes(%{"species" => species}))
+
+        assert pet.species == species
+      end
+
+      assert {:error, changeset} =
+               Pets.create_pet(owner, valid_pet_attributes(%{"species" => "dragon"}))
+
+      assert %{species: _} = errors_on(changeset)
+    end
   end
 
   describe "authorization" do

@@ -12,7 +12,7 @@ defmodule Goodmao2.Pets.Pet do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @species ~w(cat dog other)
+  @species ~w(cat dog rabbit bird hamster reptile fish other)
   @sexes ~w(unknown male female)
   @weight_units ~w(grams kilograms pounds)
   @lifecycle_statuses ~w(active passed_away rehomed lost other)
