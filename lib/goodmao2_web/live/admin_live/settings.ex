@@ -11,6 +11,7 @@ defmodule Goodmao2Web.AdminLive.Settings do
 
   on_mount {Goodmao2Web.UserAuth, :require_admin}
 
+  alias Goodmao2.Media.Limits
   alias Goodmao2.Notifications.WebPush
   alias Goodmao2.Settings
   alias Goodmao2.Timezone
@@ -21,7 +22,8 @@ defmodule Goodmao2Web.AdminLive.Settings do
      socket
      |> assign(:page_title, gettext("System settings"))
      |> load_vapid()
-     |> load_timezone()}
+     |> load_timezone()
+     |> load_media_limits()}
   end
 
   @impl true
@@ -67,6 +69,37 @@ defmodule Goodmao2Web.AdminLive.Settings do
     end
   end
 
+  def handle_event("save_media_limits", %{"media" => params}, socket) do
+    case parse_media_limits(params) do
+      {:ok, values} ->
+        Enum.each(values, fn {field, value} ->
+          Settings.put(Limits.setting_key(field), Integer.to_string(value))
+        end)
+
+        {:noreply,
+         socket |> put_flash(:info, gettext("Media limits saved.")) |> load_media_limits()}
+
+      :error ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Every media limit must be a whole number of 0 or more (0 means no limit).")
+         )}
+    end
+  end
+
+  # Parse every field to a non-negative integer, all-or-nothing (a single bad value rejects the
+  # whole form, so a partial save can never leave the limits inconsistent).
+  defp parse_media_limits(params) do
+    Enum.reduce_while(Limits.fields(), {:ok, []}, fn field, {:ok, acc} ->
+      case params |> Map.get(Atom.to_string(field), "") |> String.trim() |> Integer.parse() do
+        {n, ""} when n >= 0 -> {:cont, {:ok, [{field, n} | acc]}}
+        _ -> {:halt, :error}
+      end
+    end)
+  end
+
   defp load_vapid(socket) do
     socket
     |> assign(:vapid_public_key, WebPush.public_key())
@@ -76,6 +109,15 @@ defmodule Goodmao2Web.AdminLive.Settings do
 
   defp load_timezone(socket) do
     assign(socket, :timezone_form, to_form(%{"timezone" => Timezone.system_default()}, as: :tz))
+  end
+
+  defp load_media_limits(socket) do
+    values =
+      Map.new(Limits.fields(), fn field ->
+        {Atom.to_string(field), to_string(Limits.get(field))}
+      end)
+
+    assign(socket, :media_form, to_form(values, as: :media))
   end
 
   @impl true
@@ -194,6 +236,116 @@ defmodule Goodmao2Web.AdminLive.Settings do
               />
               <.button type="submit" id="timezone-submit" class="btn btn-sm mt-2">
                 {gettext("Save timezone")}
+              </.button>
+            </.form>
+          </div>
+        </section>
+
+        <section
+          id="media-limits-card"
+          aria-labelledby="media-limits-heading"
+          class="card card-border bg-base-100 mt-6"
+        >
+          <div class="card-body space-y-3 p-4">
+            <h2 id="media-limits-heading" class="text-lg font-semibold">
+              {gettext("Media upload limits")}
+            </h2>
+            <p class="text-base-content/60 text-sm">
+              {gettext(
+                "Caps applied to purified LifeLog photos and videos. Sizes are in bytes and dimensions in pixels; set any field to 0 to lift that limit."
+              )}
+            </p>
+
+            <.form
+              for={@media_form}
+              id="media-limits-form"
+              phx-submit="save_media_limits"
+              class="space-y-4"
+            >
+              <fieldset class="space-y-2">
+                <legend class="text-sm font-medium">{gettext("Maximum file size (bytes)")}</legend>
+                <div class="grid grid-cols-2 gap-3">
+                  <.input
+                    field={@media_form[:max_image_bytes]}
+                    type="number"
+                    min="0"
+                    label={gettext("Image")}
+                  />
+                  <.input
+                    field={@media_form[:max_video_bytes]}
+                    type="number"
+                    min="0"
+                    label={gettext("Video")}
+                  />
+                </div>
+              </fieldset>
+
+              <fieldset class="space-y-2">
+                <legend class="text-sm font-medium">
+                  {gettext("Image dimensions (pixels)")}
+                </legend>
+                <div class="grid grid-cols-2 gap-3">
+                  <.input
+                    field={@media_form[:min_image_width]}
+                    type="number"
+                    min="0"
+                    label={gettext("Min width")}
+                  />
+                  <.input
+                    field={@media_form[:min_image_height]}
+                    type="number"
+                    min="0"
+                    label={gettext("Min height")}
+                  />
+                  <.input
+                    field={@media_form[:max_image_width]}
+                    type="number"
+                    min="0"
+                    label={gettext("Max width")}
+                  />
+                  <.input
+                    field={@media_form[:max_image_height]}
+                    type="number"
+                    min="0"
+                    label={gettext("Max height")}
+                  />
+                </div>
+              </fieldset>
+
+              <fieldset class="space-y-2">
+                <legend class="text-sm font-medium">
+                  {gettext("Video dimensions (pixels)")}
+                </legend>
+                <div class="grid grid-cols-2 gap-3">
+                  <.input
+                    field={@media_form[:min_video_width]}
+                    type="number"
+                    min="0"
+                    label={gettext("Min width")}
+                  />
+                  <.input
+                    field={@media_form[:min_video_height]}
+                    type="number"
+                    min="0"
+                    label={gettext("Min height")}
+                  />
+                  <.input
+                    field={@media_form[:max_video_width]}
+                    type="number"
+                    min="0"
+                    label={gettext("Max width")}
+                  />
+                  <.input
+                    field={@media_form[:max_video_height]}
+                    type="number"
+                    min="0"
+                    label={gettext("Max height")}
+                  />
+                </div>
+              </fieldset>
+
+              <.button type="submit" id="media-limits-submit" class="btn btn-sm">
+                {gettext("Save media limits")}
               </.button>
             </.form>
           </div>

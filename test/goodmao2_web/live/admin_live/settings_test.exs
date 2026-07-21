@@ -73,4 +73,68 @@ defmodule Goodmao2Web.AdminLive.SettingsTest do
       assert Goodmao2.Timezone.system_default() == "Asia/Tokyo"
     end
   end
+
+  describe "Media limits card (ADR-0005)" do
+    setup %{conn: conn} do
+      %{conn: log_in_user(conn, admin_fixture())}
+    end
+
+    test "seeds the fields with the current effective limits", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/settings")
+      assert html =~ ~s(id="media-limits-form")
+      # The config default for the image byte cap (8 MB) is pre-filled.
+      assert html =~ ~s(value="8000000")
+    end
+
+    test "saving valid limits persists every field as a settings row", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/settings")
+
+      lv
+      |> form("#media-limits-form",
+        media: %{
+          max_image_bytes: "5000000",
+          max_video_bytes: "20000000",
+          min_image_width: "800",
+          min_image_height: "600",
+          max_image_width: "0",
+          max_image_height: "0",
+          min_video_width: "0",
+          min_video_height: "0",
+          max_video_width: "0",
+          max_video_height: "0"
+        }
+      )
+      |> render_submit()
+
+      assert Goodmao2.Media.Limits.get(:max_image_bytes) == 5_000_000
+      assert Goodmao2.Media.Limits.get(:min_image_width) == 800
+      assert Settings.get("media_max_video_bytes") == "20000000"
+    end
+
+    test "a non-integer field rejects the whole form without saving", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/settings")
+
+      html =
+        lv
+        |> form("#media-limits-form",
+          media: %{
+            max_image_bytes: "oops",
+            max_video_bytes: "20000000",
+            min_image_width: "800",
+            min_image_height: "600",
+            max_image_width: "0",
+            max_image_height: "0",
+            min_video_width: "0",
+            min_video_height: "0",
+            max_video_width: "0",
+            max_video_height: "0"
+          }
+        )
+        |> render_submit()
+
+      assert html =~ "whole number"
+      # Nothing was persisted — not even the valid fields.
+      assert Settings.get("media_max_video_bytes") == nil
+    end
+  end
 end
