@@ -11,6 +11,10 @@ defmodule Goodmao2Web.PetLive.Show do
   alias Goodmao2.Logs.LogEntry
   alias Goodmao2Web.CalendarGrid
 
+  # The page sizes offered by the timeline's "per page" dropdown. The first is the default;
+  # any other value is rejected back to it, so a crafted select can't request an unbounded page.
+  @page_sizes [25, 50, 100]
+
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     user = socket.assigns.current_scope.user
@@ -30,6 +34,10 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:can_write?, Pets.can?(pet, user, :write))
          |> assign(:can_manage?, Pets.can?(pet, user, :manage))
          |> assign(:filter, "all")
+         |> assign(:page, 1)
+         |> assign(:page_size, hd(@page_sizes))
+         |> assign(:has_next?, false)
+         |> assign(:visible_ids, MapSet.new())
          |> assign(:view, "list")
          |> assign(:cal_month, CalendarGrid.month_of(Date.utc_today()))
          |> assign(:selected_day, nil)
@@ -55,13 +63,28 @@ defmodule Goodmao2Web.PetLive.Show do
     end
   end
 
+  # Load one page of the timeline. We over-fetch by one row to know whether a *next* page
+  # exists without a separate count query; `visible_ids` is the exact set of ids currently on
+  # the page, so live PubSub edits/deletes only touch entries actually shown (see handle_info).
   defp load_entries(socket) do
     user = socket.assigns.current_scope.user
-    entries = Logs.list_entries(user, socket.assigns.pet, type: socket.assigns.filter)
+    size = socket.assigns.page_size
+    offset = (socket.assigns.page - 1) * size
+
+    fetched =
+      Logs.list_entries(user, socket.assigns.pet,
+        type: socket.assigns.filter,
+        limit: size + 1,
+        offset: offset
+      )
+
+    entries = Enum.take(fetched, size)
 
     socket
     |> stream(:entries, entries, reset: true)
     |> assign(:entries_empty?, entries == [])
+    |> assign(:has_next?, length(fetched) > size)
+    |> assign(:visible_ids, MapSet.new(entries, & &1.id))
   end
 
   # The weight-trend series is independent of the timeline's type filter — it always shows
@@ -107,8 +130,21 @@ defmodule Goodmao2Web.PetLive.Show do
 
   @impl true
   def handle_event("filter", %{"type" => type}, socket) do
-    socket = socket |> assign(:filter, type) |> load_entries()
+    socket = socket |> assign(:filter, type) |> assign(:page, 1) |> load_entries()
     {:noreply, if(socket.assigns.view == "calendar", do: load_month(socket), else: socket)}
+  end
+
+  # The "per page" dropdown next to the filter — a new size restarts at page 1.
+  def handle_event("set_page_size", %{"size" => size}, socket) do
+    {:noreply,
+     socket
+     |> assign(:page_size, parse_page_size(size))
+     |> assign(:page, 1)
+     |> load_entries()}
+  end
+
+  def handle_event("timeline_page", %{"page" => page}, socket) do
+    {:noreply, socket |> assign(:page, parse_page(page, socket.assigns.page)) |> load_entries()}
   end
 
   # Switch between the chronological list and the month grid. Returning to the list
@@ -118,7 +154,12 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   def handle_event("set_view", %{"view" => _list}, socket) do
-    {:noreply, socket |> assign(:view, "list") |> assign(:selected_day, nil) |> load_entries()}
+    {:noreply,
+     socket
+     |> assign(:view, "list")
+     |> assign(:selected_day, nil)
+     |> assign(:page, 1)
+     |> load_entries()}
   end
 
   def handle_event("cal_month", %{"delta" => delta}, socket) do
@@ -296,11 +337,20 @@ defmodule Goodmao2Web.PetLive.Show do
   def upload_error_to_string(:not_accepted), do: gettext("That file type isn't accepted.")
   def upload_error_to_string(_), do: gettext("That file can't be used.")
 
+  # Live updates only mutate the streamed list on **page 1** in list view — a new entry belongs
+  # at the top of the newest page. Deeper pages are a stable offset slice, so a create there is
+  # ignored (it'll be seen by paging or on the next reset). Edits/deletes act only on entries in
+  # `visible_ids` — the ids actually on this page — so an edit to an off-page entry can't inject
+  # a stray row. The calendar and weight chart refresh regardless of the active page.
   @impl true
   def handle_info({:entry_created, entry}, socket) do
     socket =
-      if visible_here?(socket, entry) and matches_filter?(entry, socket.assigns.filter) do
-        socket |> stream_insert(:entries, entry, at: 0) |> assign(:entries_empty?, false)
+      if socket.assigns.view == "list" and socket.assigns.page == 1 and
+           visible_here?(socket, entry) and matches_filter?(entry, socket.assigns.filter) do
+        socket
+        |> stream_insert(:entries, entry, at: 0)
+        |> update(:visible_ids, &MapSet.put(&1, entry.id))
+        |> assign(:entries_empty?, false)
       else
         socket
       end
@@ -311,21 +361,33 @@ defmodule Goodmao2Web.PetLive.Show do
   def handle_info({:entry_updated, entry}, socket) do
     # An edit can flip visibility, so drop an entry this viewer may no longer see.
     socket =
-      if visible_here?(socket, entry) do
-        stream_insert(socket, :entries, entry)
-      else
-        stream_delete(socket, :entries, entry)
+      cond do
+        not MapSet.member?(socket.assigns.visible_ids, entry.id) ->
+          socket
+
+        visible_here?(socket, entry) ->
+          stream_insert(socket, :entries, entry)
+
+        true ->
+          socket
+          |> stream_delete(:entries, entry)
+          |> update(:visible_ids, &MapSet.delete(&1, entry.id))
       end
 
     {:noreply, socket |> maybe_refresh_month() |> maybe_refresh_weight(entry)}
   end
 
   def handle_info({:entry_deleted, entry}, socket) do
-    {:noreply,
-     socket
-     |> stream_delete(:entries, entry)
-     |> maybe_refresh_month()
-     |> maybe_refresh_weight(entry)}
+    socket =
+      if MapSet.member?(socket.assigns.visible_ids, entry.id) do
+        socket
+        |> stream_delete(:entries, entry)
+        |> update(:visible_ids, &MapSet.delete(&1, entry.id))
+      else
+        socket
+      end
+
+    {:noreply, socket |> maybe_refresh_month() |> maybe_refresh_weight(entry)}
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
@@ -379,6 +441,22 @@ defmodule Goodmao2Web.PetLive.Show do
   defp blank_to_nil(""), do: nil
   defp blank_to_nil(v), do: v
 
+  # Whitelist the page size to the offered set; anything else falls back to the default.
+  defp parse_page_size(size) do
+    case Integer.parse(to_string(size)) do
+      {n, ""} when n in @page_sizes -> n
+      _ -> hd(@page_sizes)
+    end
+  end
+
+  # A page must be a positive integer; a bad value keeps the current page.
+  defp parse_page(page, current) do
+    case Integer.parse(to_string(page)) do
+      {n, ""} when n >= 1 -> n
+      _ -> current
+    end
+  end
+
   defp changeset_error_message(changeset) do
     changeset
     |> Ecto.Changeset.traverse_errors(fn {msg, _opts} -> msg end)
@@ -390,7 +468,10 @@ defmodule Goodmao2Web.PetLive.Show do
 
   @impl true
   def render(assigns) do
-    assigns = assign(assigns, :presets, quicktap_presets(assigns.quicklog_type))
+    assigns =
+      assigns
+      |> assign(:presets, quicktap_presets(assigns.quicklog_type))
+      |> assign(:page_sizes, @page_sizes)
 
     ~H"""
     <Layouts.app
@@ -550,19 +631,36 @@ defmodule Goodmao2Web.PetLive.Show do
           </div>
         </div>
 
-        <form id="timeline-filter" phx-change="filter" class="mt-2">
-          <label for="timeline-filter-type" class="sr-only">{gettext("Filter by type")}</label>
-          <select
-            id="timeline-filter-type"
-            name="type"
-            class="select select-bordered select-sm w-auto"
-          >
-            <option value="all" selected={@filter == "all"}>{gettext("All types")}</option>
-            <option :for={type <- LogEntry.types()} value={type} selected={@filter == type}>
-              {log_type_label(type)}
-            </option>
-          </select>
-        </form>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <form id="timeline-filter" phx-change="filter">
+            <label for="timeline-filter-type" class="sr-only">{gettext("Filter by type")}</label>
+            <select
+              id="timeline-filter-type"
+              name="type"
+              class="select select-bordered select-sm w-auto"
+            >
+              <option value="all" selected={@filter == "all"}>{gettext("All types")}</option>
+              <option :for={type <- LogEntry.types()} value={type} selected={@filter == type}>
+                {log_type_label(type)}
+              </option>
+            </select>
+          </form>
+
+          <form :if={@view == "list"} id="timeline-page-size" phx-change="set_page_size">
+            <label for="timeline-page-size-select" class="sr-only">
+              {gettext("Entries per page")}
+            </label>
+            <select
+              id="timeline-page-size-select"
+              name="size"
+              class="select select-bordered select-sm w-auto"
+            >
+              <option :for={n <- @page_sizes} value={n} selected={@page_size == n}>
+                {gettext("%{count} per page", count: n)}
+              </option>
+            </select>
+          </form>
+        </div>
 
         <.log_calendar
           :if={@view == "calendar"}
@@ -592,6 +690,39 @@ defmodule Goodmao2Web.PetLive.Show do
             />
           </li>
         </ol>
+
+        <nav
+          :if={@view == "list" and (@page > 1 or @has_next?)}
+          id="timeline-pager"
+          class="mt-4 flex items-center justify-between gap-2 text-sm"
+          aria-label={gettext("Timeline pages")}
+        >
+          <button
+            type="button"
+            id="timeline-page-prev"
+            phx-click="timeline_page"
+            phx-value-page={@page - 1}
+            disabled={@page <= 1}
+            class="btn btn-ghost btn-sm"
+          >
+            <.icon name="hero-arrow-left" class="size-4" /> {gettext("Previous")}
+          </button>
+
+          <span id="timeline-page-status" class="text-base-content/60 tabular-nums">
+            {gettext("Page %{page}", page: @page)}
+          </span>
+
+          <button
+            type="button"
+            id="timeline-page-next"
+            phx-click="timeline_page"
+            phx-value-page={@page + 1}
+            disabled={not @has_next?}
+            class="btn btn-ghost btn-sm"
+          >
+            {gettext("Next")} <.icon name="hero-arrow-right" class="size-4" />
+          </button>
+        </nav>
       </section>
     </Layouts.app>
     """

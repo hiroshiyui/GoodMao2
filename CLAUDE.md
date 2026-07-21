@@ -155,7 +155,7 @@ call them.
   `WebPush.vapid_configured?/0` — messages write no bell row, so this is their only push path.
 
 Web LiveViews (`lib/goodmao2_web/live/pet_live/`): `Index`, `Form` (new/edit), `Show`
-(QuickLog + live filterable timeline/calendar + weight trend), `LogEntry` (single entry:
+(QuickLog + live filterable, page-sized timeline/calendar + weight trend), `LogEntry` (single entry:
 edit + revision history), `Access` (grant/revoke), `EndOfCare` (owner-only lifecycle),
 `Reports` (generate/list/view health summaries). `UserLive.VetProfile` (`/users/vet-profile`)
 submits vet credentials. **Two-factor** ([ADR-0013](doc/adr/0013-second-factor-authentication.md)):

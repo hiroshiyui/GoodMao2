@@ -408,6 +408,82 @@ defmodule Goodmao2Web.PetLiveTest do
     end
   end
 
+  describe "Show timeline pagination" do
+    # Seed `n` food entries whose notes are "entry-0" (newest) .. "entry-(n-1)" (oldest), spaced
+    # a minute apart so the desc timeline order is deterministic.
+    defp seed_timeline(user, pet, n) do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      for i <- 0..(n - 1) do
+        log_entry_fixture(user, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "note" => "entry-#{i}",
+          "occurred_at" => DateTime.add(now, -i * 60, :second)
+        })
+      end
+    end
+
+    test "defaults to 25 per page with a Next control and disabled Prev", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+      seed_timeline(user, pet, 30)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # Newest 25 shown; the 26th-newest (entry-25) is on the next page.
+      assert has_element?(lv, ".timeline-entry-note", "entry-0")
+      assert has_element?(lv, ".timeline-entry-note", "entry-24")
+      refute has_element?(lv, ".timeline-entry-note", "entry-25")
+
+      assert has_element?(lv, "#timeline-page-prev[disabled]")
+      refute has_element?(lv, "#timeline-page-next[disabled]")
+      assert has_element?(lv, "#timeline-page-status", "Page 1")
+    end
+
+    test "Next pages to the older slice and disables further paging", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      seed_timeline(user, pet, 30)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#timeline-page-next") |> render_click()
+
+      # Page 2 holds the oldest 5 only.
+      assert has_element?(lv, ".timeline-entry-note", "entry-25")
+      assert has_element?(lv, ".timeline-entry-note", "entry-29")
+      refute has_element?(lv, ".timeline-entry-note", "entry-0")
+
+      assert has_element?(lv, "#timeline-page-status", "Page 2")
+      refute has_element?(lv, "#timeline-page-prev[disabled]")
+      assert has_element?(lv, "#timeline-page-next[disabled]")
+    end
+
+    test "raising the per-page size shows more and hides the pager", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      seed_timeline(user, pet, 30)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      # At 25/page the pager is present; bumping to 100 fits all 30 and removes it.
+      assert has_element?(lv, "#timeline-pager")
+
+      lv |> form("#timeline-page-size") |> render_change(%{"size" => "100"})
+
+      assert has_element?(lv, ".timeline-entry-note", "entry-0")
+      assert has_element?(lv, ".timeline-entry-note", "entry-29")
+      refute has_element?(lv, "#timeline-pager")
+    end
+
+    test "no pager when entries fit one page", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      seed_timeline(user, pet, 3)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      refute has_element?(lv, "#timeline-pager")
+    end
+  end
+
   describe "Log entry page — edit + history (ADR-0009)" do
     test "the timeline links each entry to its detail page", %{conn: conn, user: user} do
       pet = pet_fixture(user)
