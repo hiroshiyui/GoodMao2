@@ -176,6 +176,14 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
   merge into per-locale `.po` catalogs. Locales: **English** (`en`,
   default/reference), **台灣漢語** (`zh_TW`), **Japanese** (`ja_JP`). Enum-label
   translations and log summaries live in `Goodmao2Web.Helpers`.
+- **Active timezone** — the IANA zone applied to the current viewer for showing and entering
+  times (ADR-0018). Resolved by `Goodmao2.Timezone.resolve/1` as **user `timezone` preference →
+  system default → `Etc/UTC`**, and process-scoped like the Gettext locale. Times are stored UTC
+  and shifted to this zone for display; wall-clock input is parsed *from* it back to UTC.
+- **System default timezone** — the fallback active timezone for anyone without a personal
+  preference (anonymous viewers, users who left it blank). An admin sets it on `/admin/settings`
+  (the `Settings` `default_timezone` key); it falls back to the configured `:default_timezone`
+  (`Etc/UTC`). Backed by the pure-Elixir **`tz`** database (no runtime HTTP).
 - **Tailwind v4 + daisyUI** — the styling stack from the `phx.new` scaffold.
 - **Oban** — the durable, DB-backed background-job library GoodMao will adopt **when a
   job actually needs it** (media janitor, reminders, notification fan-out); deferred until

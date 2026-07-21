@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`doc/adr/`** — Architecture Decision Records: the *why* behind the invariants
   (resource-based authorization, structured one-table logging, scope-based/first-user-admin
   auth, pet-lifecycle, log-visibility, error-reporting, soft-delete, second-factor auth,
-  localization, the Rust native boundary, deferred media/revisions/notifications).
+  localization, timezone display, the Rust native boundary, deferred media/revisions/notifications).
 - **`doc/web-application-development-common-practices.md`** — product-agnostic engineering
   lessons (security/data-modeling/testing/ops), each with the failure mode behind it.
 
@@ -119,9 +119,19 @@ call them.
   (`/api/push-subscriptions`, CSRF + rate-limited); `service_worker.js` + `push_manager_hook.js`
   drive display and opt-in (on `/users/settings`).
 - **`Settings`** (`settings.ex`) — a tiny admin-managed key/value system-settings store
-  (ETS-cached via `Settings.Cache`), first used for the **VAPID keypair**. An admin generates
-  keys on **`AdminLive.Settings`** (`/admin/settings`). Reads are unauthenticated; writes are
-  admin-gated at the LiveView boundary.
+  (ETS-cached via `Settings.Cache`), used for the **VAPID keypair** and the **system default
+  timezone** (`default_timezone`). An admin manages these on **`AdminLive.Settings`**
+  (`/admin/settings`). Reads are unauthenticated; writes are admin-gated at the LiveView boundary.
+- **`Timezone`** (`timezone.ex`) — timezone policy ([ADR-0018](doc/adr/0018-timezone-display-policy.md)).
+  Times are stored **UTC** but resolved to an **active zone per viewer** — `resolve/1`:
+  **user `timezone` preference → `Settings` `default_timezone` → `Etc/UTC`**. The active zone is
+  process-scoped like Gettext locale (`put_current/1` / `current/0`), established by
+  `Plugs.Timezone` (`:browser`, after scope fetch) and the `UserTimezone` `on_mount` (after the
+  scope hook, in each authed live_session). `format_datetime/1`/`format_date/1` shift UTC → local;
+  the log forms parse `occurred_at` wall-clock → UTC via `local_naive_to_utc/2` **before** the
+  changeset; the calendar buckets by **local** day (`grid_range/1` over-fetches ±1 day). Backed by
+  the pure-Elixir **`tz`** dep (no runtime HTTP; `config :elixir, :time_zone_database`). A user
+  picks their zone on `/users/settings` (browser-prefilled via the `TimezoneDetect` hook).
 - **`Messaging`** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](doc/adr/0011-notifications-and-messaging.md)).
   One conversation per unordered user pair (canonical `user_lo_id < user_hi_id`, DB `CHECK` +
   unique index). **Shared-pet gate:** `start_conversation/2` is allowed only between users with

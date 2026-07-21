@@ -211,6 +211,14 @@ rejects *and* the legitimate case still passes).
       (`html { font-size: 125% }`, scaling the rem-based UI), with a −/+ text-size control
       beside the theme toggle. The choice persists in `localStorage` (clamped 100–175%) and
       is applied before first paint, mirroring the theme-preference mechanism.
+- [x] **Timezone-aware display & input** ([ADR-0018](adr/0018-timezone-display-policy.md)) —
+      times are stored UTC but resolved to an **active zone per viewer** (user preference →
+      admin **system default** → `Etc/UTC`) via `Goodmao2.Timezone`, process-scoped like the
+      locale. Displayed times shift to the active zone; entered wall-clock times (log
+      `occurred_at`, report share expiry) are parsed *from* it back to UTC; the calendar buckets
+      by **local** day. A user sets their zone on `/users/settings` (browser-prefilled), an admin
+      the system default on `/admin/settings`. Backed by the pure-Elixir `tz` database (no runtime
+      HTTP). Follow-up: per-pet timezones (resolution is per-viewer today).
 
 ### 8. Platform & data model
 

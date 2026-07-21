@@ -43,7 +43,13 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   encrypts the private key. Browsers subscribe via `PushSubscriptionController`; a root-scope
   `service_worker.js` shows the notification.
 - **Settings** (`settings.ex`) — a tiny admin-managed key/value system-settings store (ETS-cached),
-  holding the Web Push VAPID keypair; keys are generated on `AdminLive.Settings` (`/admin/settings`).
+  holding the Web Push VAPID keypair and the **system default timezone**; managed on
+  `AdminLive.Settings` (`/admin/settings`).
+- **Timezone** (`timezone.ex`) — timezone policy ([ADR-0018](adr/0018-timezone-display-policy.md)):
+  resolves the active zone per viewer (**user preference → system default → `Etc/UTC`**),
+  process-scoped like locale via a `:browser` plug (`Plugs.Timezone`) and a LiveView `on_mount`
+  (`UserTimezone`). Times are stored UTC and shifted to the active zone for display / parsed from
+  it on input; backed by the pure-Elixir `tz` database (no runtime HTTP).
 - **Messaging** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](adr/0011-notifications-and-messaging.md)):
   one conversation per unordered user pair, gated by the **shared-pet rule** (`can_message?/2`,
   the effective-grant self-join) with a uniform non-leaking `:cannot_message`; thread reads
@@ -57,7 +63,8 @@ Each context owns its schemas under `lib/goodmao2/<context>/`.
 ### `users` (Accounts.User — extends the phx.gen.auth table)
 `handle` (citext, unique), `display_name`, `is_admin`, plus the generated auth columns.
 Two-factor columns (ADR-0013): `totp_secret` (AES-256-GCM ciphertext, never plaintext) and
-`totp_confirmed_at` (nil ⇒ TOTP disabled).
+`totp_confirmed_at` (nil ⇒ TOTP disabled). `timezone` (nullable IANA zone; nil ⇒ fall back to
+the admin system default, then `Etc/UTC` — [ADR-0018](adr/0018-timezone-display-policy.md)).
 
 ### `webauthn_credentials` (Accounts.WebAuthnCredential) — FIDO2 security keys
 One row per enrolled key: `credential_id` (unique — the lookup key), `public_key_cbor` (COSE
@@ -180,9 +187,10 @@ endpoint is soft-deleted on the next send). See [ADR-0011](adr/0011-notification
 ### `settings` (Settings.Setting) — admin-managed system settings
 
 A tiny global key/value store (`key` unique, `value` text) an administrator manages from
-`/admin/settings`; ETS-cached for reads. First occupant: the Web Push VAPID keypair —
+`/admin/settings`; ETS-cached for reads. Occupants: the Web Push VAPID keypair —
 `vapid_public_key` (plain), `vapid_private_key_encrypted` (AES-256-GCM via `WebPush.VapidVault`,
-keyed off `SECRET_KEY_BASE`), and `vapid_subject`.
+keyed off `SECRET_KEY_BASE`), `vapid_subject` — and `default_timezone`, the system default zone
+([ADR-0018](adr/0018-timezone-display-policy.md)).
 
 ## Authorization logic
 

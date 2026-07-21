@@ -35,7 +35,9 @@ mix hex.audit           # retired / deprecated / insecure packages (ALWAYS run �
   relying party — note its OTP **app key is literally `:wax_`**, and its config lives in
   `config/{dev,test,runtime}.exs`), `nimble_totp` (TOTP), `cbor` (COSE key encoding, pulled in
   by `wax_` and used directly), and `eqrcode` (enrollment QR). A `wax_` bump can also move its
-  transitive `x509`/`asn1_compiler` — re-run the WebAuthn tests after any bump.
+  transitive `x509`/`asn1_compiler` — re-run the WebAuthn tests after any bump. Also `tz`
+  (ADR-0018) — the pure-Elixir IANA timezone database (`config :elixir, :time_zone_database`);
+  a bump ships a newer IANA release, so re-run the timezone tests after one.
 
 ## Step 2 — Frontend toolchain
 
