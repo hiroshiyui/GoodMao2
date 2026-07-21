@@ -108,11 +108,16 @@ call them.
   **`medication_due`** bell + Web Push to effective `:write` caretakers, de-duped via `reminded_at`.
   Web UI: `PetLive.Medications` (`/pets/:pet_id/medications`), linked from the pet page.
 - **`Media`** (`media.ex`) — purified LifeLog photos/videos attached to `life` logs
-  ([ADR-0005](doc/adr/0005-media-storage.md)). `Media.Purifier` re-encodes/remuxes uploads
-  with **ffmpeg** (magic-byte typing, EXIF/GPS stripped, codec allow-list + duration cap);
-  `Media.Storage` writes id-keyed opaque objects under a configured `storage_dir` (the
-  physical path is never stored — traversal-proof); assets are created atomically with the
-  log and re-authorized per request. `Media.RateLimiter` throttles uploads.
+  ([ADR-0005](doc/adr/0005-media-storage.md)). Purification runs **off the request path**:
+  `create_life_log/4` **stages** the raw upload (`Media.Storage.stage/1`, a never-served
+  `_staging` tree) and creates the entry immediately, enqueuing a **`Media.PurifyWorker`** (Oban)
+  per file **transactionally**. The worker runs `Media.Purifier` (ffmpeg: magic-byte typing,
+  EXIF/GPS stripped, codec allow-list + duration cap), then `attach_purified_asset/2` inserts the
+  ready row + writes bytes and **re-broadcasts** so the media appears live; a classified failure
+  sends the uploader a **`media_failed`** bell. `Media.Storage` writes id-keyed opaque objects
+  under a configured `storage_dir` (physical path never stored — traversal-proof), served
+  IDOR-hidden per request. `Media.OrphanJanitor` (daily Oban cron → `delete_orphans/0`) reclaims
+  stray objects + stale staged uploads. `Media.RateLimiter` throttles uploads.
 - **`Reports`** (`reports.ex`) — generated **health summary reports**
   ([ADR-0012](doc/adr/0012-vet-access-model.md)). `generate_report/3` (`:manage`) freezes a
   `jsonb` `content` snapshot over a date range built from `Logs.shareable_entries/3`, which

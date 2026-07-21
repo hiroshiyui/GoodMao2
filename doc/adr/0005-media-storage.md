@@ -8,8 +8,12 @@
 > probed against a codec allow-list + duration cap and remuxed) behind the `Goodmao2.Media`
 > storage seam — `image`/`vix` was the original suggestion, but ffmpeg covers both images and
 > video with no extra native library. Objects are stored by id under a configured
-> `storage_dir` (fail-fast in prod) and served only through `GET /media/:id`. The async-Oban
-> pipeline, the orphan-object janitor, and share-token media serving remain follow-ups._
+> `storage_dir` (fail-fast in prod) and served only through `GET /media/:id`. Purification now
+> runs **off the request path** in `Media.PurifyWorker` (Oban): the upload is staged, the entry
+> is created immediately, and each file is purified + attached in the background (the media
+> appears live via PubSub; a failure sends the uploader a `media_failed` bell). A daily
+> `Media.OrphanJanitor` cron reclaims stray storage objects and stale staged uploads. Share-token
+> media serving also shipped with per-entry share links (ADR-0004)._
 
 ## Context
 
@@ -79,7 +83,9 @@ S3-compatible object store is a later option behind the same seam).
   (invisible, reclaimable) but never dangling rows. An orphan-object **janitor** (an Oban
   job) is a follow-up; deletes are **soft** ([ADR-0008](0008-soft-delete.md)) and keep the
   bytes, so reclamation belongs to that janitor.
-- **Follow-ups (not in v1):** the janitor sweep; "attach more media to an existing life
+- **Shipped since v1:** async purification (`Media.PurifyWorker`, staging + background attach),
+  the orphan-object **janitor** (`Media.OrphanJanitor`, daily cron), and share-token media serving.
+- **Follow-ups (not in v1):** "attach more media to an existing life
   log"; public **shared** media serving mirroring the ADR-0004 token route; antivirus
   scanning; async/background processing at scale (Oban); reusing the media pipeline for
   owner-uploaded pet avatars (today a bare URL string).

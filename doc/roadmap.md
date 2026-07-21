@@ -147,7 +147,12 @@ rejects *and* the legitimate case still passes).
       and remuxed). Stored as opaque objects keyed by id under a configured `storage_dir`,
       created atomically with the log, and served only via an authorized, IDOR-hidden
       `GET /media/:id` with `Range` support and hardened headers. Uploads are rate-limited.
-      Follow-ups: async (Oban) processing, an orphan-object janitor, share-token media serving
+      Purification runs **off the request path** (`Media.PurifyWorker`, Oban): the upload is
+      staged and the entry appears immediately, then each file is purified + attached in the
+      background (live via PubSub; a failure sends the uploader a `media_failed` bell). A daily
+      `Media.OrphanJanitor` reclaims stray objects + stale staged uploads, and share-token media
+      serving shipped with per-entry share links (ADR-0004). Follow-up: attach media to an
+      existing entry
 - [x] Log **edit revisions** audit trail + edit-count cap ([ADR-0009](adr/0009-log-edit-revisions.md); Phase 1)
       — each real edit snapshots the prior state into `log_entry_revisions` and bumps a
       denormalized `edit_count`; the 10th edit is refused; a no-op consumes no life; the snapshot
@@ -236,15 +241,14 @@ rejects *and* the legitimate case still passes).
 
 ### 8. Platform & data model
 
-- [~] **Oban** for background jobs (supersedes the deferred bespoke-job-queue plan, ADR-0006;
-      Phase 1/2). The foundation is in (Oban + `Oban.Plugins.Cron`, supervised after the repo),
-      and two workloads ship: a daily **token janitor** cron that prunes expired auth tokens
-      (`Goodmao2.Accounts.TokenJanitor` → `Accounts.delete_expired_tokens/0`), and the
-      **notification fan-out** workers (`Goodmao2.Notifications.LogFanoutWorker` /
-      `AnnouncementFanoutWorker`, ADR-0011), and the **Web Push dispatch** worker
-      (`Goodmao2.Notifications.PushDispatchWorker`, ADR-0011 Stage 2), and the **medication
-      reminder** cron (`Goodmao2.Medications.ReminderWorker`, `*/15`, ADR-0019). Still deferred
-      until needed: **async media** (ffmpeg purification runs synchronously in the request today).
+- [x] **Oban** for background jobs (supersedes the deferred bespoke-job-queue plan, ADR-0006;
+      Phase 1/2). Oban + `Oban.Plugins.Cron` are supervised after the repo. **Crons:** the daily
+      **token janitor** (`Goodmao2.Accounts.TokenJanitor`), the daily **media orphan janitor**
+      (`Goodmao2.Media.OrphanJanitor`), and the **medication reminder** worker
+      (`Goodmao2.Medications.ReminderWorker`, `*/15`, ADR-0019). **On-demand:** **notification
+      fan-out** (`LogFanoutWorker` / `AnnouncementFanoutWorker`, ADR-0011), **Web Push dispatch**
+      (`PushDispatchWorker`, ADR-0011 Stage 2), and **media purification**
+      (`Goodmao2.Media.PurifyWorker` — ffmpeg off the request path, ADR-0005).
 - [x] **Data-model polish bundle** — four refinements within the existing model (no new ADR):
       **weight-unit-aware input + display** (weight is entered and shown in the pet's `weight_unit`
       — g/kg/lb — while storage stays canonical grams; conversion is centralized in
@@ -359,12 +363,7 @@ unlock, not by size. Each is already scoped by an ADR or an existing section abo
    playbook** that provisions and releases it, mirroring Baudrate's approach so GoodMao and its
    siblings co-host under one repeatable playbook.
 
-2. **Async media pipeline** (closes the last `[~]` in §8) — move ffmpeg purification off the
-   request path into an **Oban** worker, and add the **orphan-object janitor** cron for storage
-   objects whose log never committed. Removes the synchronous-upload latency and the only
-   remaining "deferred until needed" Oban workload ([ADR-0005](adr/0005-media-storage.md)).
-
-3. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
+2. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
    escalation** and **dose-history retention GC** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md));
    **notification batching / digest** so bursts don't spam the bell + push
    ([ADR-0011](adr/0011-notifications-and-messaging.md)); and **per-pet timezones** (resolution
@@ -372,7 +371,8 @@ unlock, not by size. Each is already scoped by an ADR or an existing section abo
    ([ADR-0018](adr/0018-timezone-display-policy.md)).
 
 **Shipped since this list was first drafted:** per-entry public share links + anonymous
-shared-entry/media endpoints (ADR-0004) — the biggest remaining product surface, now done.
+shared-entry/media endpoints (ADR-0004), and the **async media pipeline** — off-request-path
+ffmpeg purification (`Media.PurifyWorker`) + the orphan-object janitor (ADR-0005), which closed
+the last `[~]` in §8.
 
-Deployment (1) and the async-media/janitor half of (2) are the true gates to a public v1.0.0;
-(3) is quality-of-life once the above land.
+Deployment (1) is now the true gate to a public v1.0.0; (2) is quality-of-life once it lands.
