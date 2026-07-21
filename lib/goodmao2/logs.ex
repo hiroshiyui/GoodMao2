@@ -61,12 +61,14 @@ defmodule Goodmao2.Logs do
     else
       role = Pets.effective_role(pet, user)
       limit = Keyword.get(opts, :limit, 200)
+      offset = Keyword.get(opts, :offset, 0)
 
       query =
         from e in LogEntry,
           where: e.pet_id == ^pet.id and is_nil(e.deleted_at),
           order_by: [desc: e.occurred_at, desc: e.id],
-          limit: ^limit
+          limit: ^limit,
+          offset: ^offset
 
       query
       |> filter_by_type(Keyword.get(opts, :type))
@@ -128,13 +130,15 @@ defmodule Goodmao2.Logs do
       []
     else
       limit = Keyword.get(opts, :limit, 1000)
+      offset = Keyword.get(opts, :offset, 0)
 
       query =
         from e in LogEntry,
           where: e.pet_id == ^pet.id and is_nil(e.deleted_at),
           where: e.visibility != "private",
           order_by: [asc: e.occurred_at, asc: e.id],
-          limit: ^limit
+          limit: ^limit,
+          offset: ^offset
 
       query
       |> filter_by_type(Keyword.get(opts, :type))

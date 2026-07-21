@@ -138,6 +138,26 @@ defmodule Goodmao2.LogsTest do
       types = Logs.list_entries(owner, pet, type: "water") |> Enum.map(& &1.type) |> Enum.uniq()
       assert types == ["water"]
     end
+
+    test "honors :limit and :offset for paging (roadmap §8)", %{owner: owner, pet: pet} do
+      for i <- 0..4 do
+        at = DateTime.utc_now() |> DateTime.add(-i, :hour) |> DateTime.truncate(:second)
+
+        log_entry_fixture(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "occurred_at" => at
+        })
+      end
+
+      all = Logs.list_entries(owner, pet) |> Enum.map(& &1.id)
+      page1 = Logs.list_entries(owner, pet, limit: 2, offset: 0) |> Enum.map(& &1.id)
+      page2 = Logs.list_entries(owner, pet, limit: 2, offset: 2) |> Enum.map(& &1.id)
+
+      assert page1 == Enum.take(all, 2)
+      assert page2 == all |> Enum.drop(2) |> Enum.take(2)
+      assert page1 -- page2 == page1
+    end
   end
 
   describe "weight_series/3" do
