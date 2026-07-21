@@ -40,6 +40,106 @@ defmodule Goodmao2Web.UserAuth do
     |> redirect(to: user_return_to || signed_in_path(conn))
   end
 
+  # How long a password-verified but 2FA-pending session may sit before the user must
+  # start the login over (seconds).
+  @pending_2fa_ttl_seconds 600
+
+  @doc """
+  Completes primary authentication for `user`, then either logs them in or interposes the
+  second-factor stage (ADR-0013).
+
+  Called from `Goodmao2Web.UserSessionController` after a magic-link or password login
+  verifies. It branches on `Accounts.login_next_step/1`:
+
+    * `:authenticated` — no second factor; issue the session immediately.
+    * `:challenge` — the user has a second factor; stash a pending marker (no session
+      token yet) and redirect to the challenge.
+    * `:setup_required` — the user (the admin) must enroll a factor first; redirect to setup.
+  """
+  def log_in_or_challenge(conn, user, params \\ %{}) do
+    case Accounts.login_next_step(user) do
+      :authenticated ->
+        log_in_user(conn, user, params)
+
+      :challenge ->
+        conn
+        |> put_pending_2fa(user, params)
+        |> redirect(to: ~p"/users/two-factor")
+
+      :setup_required ->
+        # Stash a fresh TOTP secret for the forced-enrollment page to render as a QR.
+        # It is set AFTER put_pending_2fa because that clears the session.
+        conn
+        |> put_pending_2fa(user, params)
+        |> put_session(:pending_2fa_setup_secret, Accounts.generate_totp_secret())
+        |> redirect(to: ~p"/users/two-factor/setup")
+    end
+  end
+
+  @doc """
+  Stores the password-verified-but-2FA-pending state in the session.
+
+  Renews the session (fixation guard) and records the pending user id, a timestamp (for
+  the TTL), and whether remember-me was requested — but issues **no** session token, so
+  the account is not yet logged in. Any `:user_return_to` is preserved for the eventual
+  `log_in_user`.
+  """
+  def put_pending_2fa(conn, user, params \\ %{}) do
+    return_to = get_session(conn, :user_return_to)
+    remember_me = params["remember_me"] == "true" || get_session(conn, :user_remember_me) == true
+
+    conn
+    |> renew_session(user)
+    |> put_session(:pending_2fa_user_id, user.id)
+    |> put_session(:pending_2fa_at, System.system_time(:second))
+    |> put_session(:pending_2fa_remember_me, remember_me)
+    |> maybe_put_return_to(return_to)
+  end
+
+  defp maybe_put_return_to(conn, nil), do: conn
+  defp maybe_put_return_to(conn, return_to), do: put_session(conn, :user_return_to, return_to)
+
+  @doc """
+  Loads the pending-2FA user from the session, enforcing the TTL.
+
+  Returns `{:ok, user}` when a non-expired pending marker is present and resolves to a
+  user, `:error` otherwise. Used by the completion controller before verifying a factor.
+  """
+  def fetch_pending_2fa_user(conn) do
+    with id when is_integer(id) <- get_session(conn, :pending_2fa_user_id),
+         at when is_integer(at) <- get_session(conn, :pending_2fa_at),
+         true <- System.system_time(:second) - at <= @pending_2fa_ttl_seconds,
+         %Accounts.User{} = user <- Accounts.get_user(id) do
+      {:ok, user}
+    else
+      _ -> :error
+    end
+  end
+
+  @doc "Clears the pending-2FA markers from the session."
+  def clear_pending_2fa(conn) do
+    conn
+    |> delete_session(:pending_2fa_user_id)
+    |> delete_session(:pending_2fa_at)
+    |> delete_session(:pending_2fa_remember_me)
+    |> delete_session(:pending_2fa_attempts)
+    |> delete_session(:pending_2fa_setup_secret)
+  end
+
+  @doc """
+  Finalizes login after the second factor succeeds: clears the pending markers and issues
+  the real session token via `log_in_user`, honouring the stashed remember-me and
+  `:user_return_to`. This is the single point at which a 2FA-guarded account gets a token.
+  """
+  def complete_2fa_login(conn, user) do
+    remember_me = get_session(conn, :pending_2fa_remember_me) == true
+    params = if remember_me, do: %{"remember_me" => "true"}, else: %{}
+
+    conn
+    |> clear_pending_2fa()
+    |> log_in_user(user, params)
+  end
+
   @doc """
   Logs the user out.
 
@@ -259,6 +359,26 @@ defmodule Goodmao2Web.UserAuth do
       # IDOR-hidden: never confirm the admin area exists to a non-admin — just send
       # them home, no "forbidden" flash (mirrors the pets not-found boundary).
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/")}
+    end
+  end
+
+  # `:require_pending_2fa` — for the second-factor challenge/setup LiveViews (ADR-0013).
+  # The user has passed primary auth but holds NO session token yet; a non-expired
+  # pending marker must be present. Assigns `@pending_2fa_user`.
+  def on_mount(:require_pending_2fa, _params, session, socket) do
+    with id when is_integer(id) <- session["pending_2fa_user_id"],
+         at when is_integer(at) <- session["pending_2fa_at"],
+         true <- System.system_time(:second) - at <= @pending_2fa_ttl_seconds,
+         %Accounts.User{} = user <- Accounts.get_user(id) do
+      {:cont, Phoenix.Component.assign(socket, :pending_2fa_user, user)}
+    else
+      _ ->
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(:error, "Your login attempt expired. Please try again.")
+          |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+
+        {:halt, socket}
     end
   end
 

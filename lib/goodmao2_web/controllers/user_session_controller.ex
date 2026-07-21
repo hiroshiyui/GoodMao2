@@ -20,7 +20,7 @@ defmodule Goodmao2Web.UserSessionController do
 
         conn
         |> put_flash(:info, info)
-        |> UserAuth.log_in_user(user, user_params)
+        |> UserAuth.log_in_or_challenge(user, user_params)
 
       _ ->
         conn
@@ -36,7 +36,7 @@ defmodule Goodmao2Web.UserSessionController do
     if user = Accounts.get_user_by_email_and_password(email, password) do
       conn
       |> put_flash(:info, info)
-      |> UserAuth.log_in_user(user, user_params)
+      |> UserAuth.log_in_or_challenge(user, user_params)
     else
       # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
       conn
@@ -46,7 +46,7 @@ defmodule Goodmao2Web.UserSessionController do
     end
   end
 
-  def update_password(conn, %{"user" => user_params} = params) do
+  def update_password(conn, %{"user" => user_params}) do
     user = conn.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
     current_password = user_params["current_password"]
@@ -54,13 +54,17 @@ defmodule Goodmao2Web.UserSessionController do
     # Authoritative gate: re-verify the current password here (not only in the
     # LiveView) so a direct POST can't bypass it.
     case Accounts.update_user_password(user, current_password, user_params) do
-      {:ok, {_user, expired_tokens}} ->
+      {:ok, {user, expired_tokens}} ->
         # disconnect all existing LiveViews with old sessions
         UserAuth.disconnect_sessions(expired_tokens)
 
+        # The user is already fully authenticated (they are in sudo mode and just
+        # re-entered their password), so re-issue the session directly rather than
+        # routing through the login flow — no fresh 2FA challenge here.
         conn
         |> put_session(:user_return_to, ~p"/users/settings")
-        |> create(params, gettext("Password updated successfully!"))
+        |> put_flash(:info, gettext("Password updated successfully!"))
+        |> UserAuth.log_in_user(user, user_params)
 
       {:error, _changeset} ->
         conn

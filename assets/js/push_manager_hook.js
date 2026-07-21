@@ -2,21 +2,7 @@
 // Registers the service worker, requests permission via pushManager.subscribe, and
 // POSTs/DELETEs the subscription to /api/push-subscriptions with the CSRF token.
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
-  const rawData = atob(base64)
-  const output = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; ++i) output[i] = rawData.charCodeAt(i)
-  return output
-}
-
-function arrayBufferToBase64Url(buffer) {
-  const bytes = new Uint8Array(buffer)
-  let binary = ""
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
-}
+import { urlBase64ToUint8Array, arrayBufferToBase64Url } from "./base64url.js"
 
 const PushManager = {
   mounted() {

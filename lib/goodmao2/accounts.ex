@@ -60,6 +60,9 @@ defmodule Goodmao2.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  @doc "Gets a user by id, or `nil` if none exists (non-raising)."
+  def get_user(id), do: Repo.get(User, id)
+
   @doc """
   Loads the given user ids as an `%{id => %User{}}` map.
 
@@ -491,6 +494,78 @@ defmodule Goodmao2.Accounts do
     {count, _} = Repo.delete_all(UserToken.expired_tokens_query())
     count
   end
+
+  ## Two-factor authentication (ADR-0013)
+  #
+  # The web layer calls these through `Accounts`; the logic lives in
+  # `Accounts.TwoFactor` (TOTP + recovery codes) and `Accounts.WebAuthn` (FIDO2).
+
+  alias Goodmao2.Accounts.{TwoFactor, WebAuthn}
+
+  @doc "See `Goodmao2.Accounts.TwoFactor.login_next_step/1`."
+  defdelegate login_next_step(user), to: TwoFactor
+
+  @doc "See `Goodmao2.Accounts.TwoFactor.totp_enabled?/1`."
+  defdelegate totp_enabled?(user), to: TwoFactor
+
+  defdelegate generate_totp_secret(), to: TwoFactor
+  defdelegate totp_uri(secret, account_name), to: TwoFactor
+  defdelegate totp_qr_data_uri(uri), to: TwoFactor
+  defdelegate valid_totp?(secret, code, opts \\ []), to: TwoFactor
+  defdelegate enable_totp(user, secret), to: TwoFactor
+  defdelegate decrypt_totp_secret(user), to: TwoFactor
+  defdelegate disable_totp(user), to: TwoFactor
+  defdelegate generate_recovery_codes(user), to: TwoFactor
+  defdelegate recovery_codes_remaining(user), to: TwoFactor
+  defdelegate verify_recovery_code(user, code), to: TwoFactor
+
+  @doc "See `Goodmao2.Accounts.WebAuthn.webauthn_enabled?/1`."
+  defdelegate webauthn_enabled?(user), to: WebAuthn
+
+  defdelegate list_webauthn_credentials(user), to: WebAuthn, as: :list_credentials
+  defdelegate webauthn_credential_count(user), to: WebAuthn, as: :credential_count
+  defdelegate create_webauthn_credential(user, attrs), to: WebAuthn, as: :create_credential
+  defdelegate delete_webauthn_credential(user, id), to: WebAuthn, as: :delete_credential
+  defdelegate begin_webauthn_registration(user), to: WebAuthn, as: :begin_registration
+
+  defdelegate finish_webauthn_registration(user, att_obj_b64, cdj_b64, challenge),
+    to: WebAuthn,
+    as: :finish_registration
+
+  defdelegate begin_webauthn_authentication(user), to: WebAuthn, as: :begin_authentication
+
+  defdelegate finish_webauthn_authentication(
+                user,
+                cid_b64,
+                ad_b64,
+                cdj_b64,
+                sig_b64,
+                challenge
+              ),
+              to: WebAuthn,
+              as: :finish_authentication
+
+  @doc """
+  Returns true if `user` may safely remove the given second factor.
+
+  The admin (the sole global role) must always retain at least one second factor, so a
+  removal that would leave an admin with zero factors is refused. `removing` is
+  `:totp` or `:webauthn` — the factor about to be removed.
+  """
+  @spec can_remove_second_factor?(User.t(), :totp | :webauthn) :: boolean()
+  def can_remove_second_factor?(%User{is_admin: false}, _removing), do: true
+
+  def can_remove_second_factor?(%User{is_admin: true} = user, removing) do
+    remaining =
+      case removing do
+        :totp -> WebAuthn.credential_count(user)
+        :webauthn -> WebAuthn.credential_count(user) - 1 + totp_factor_count(user)
+      end
+
+    remaining > 0
+  end
+
+  defp totp_factor_count(user), do: if(totp_enabled?(user), do: 1, else: 0)
 
   ## Token helper
 

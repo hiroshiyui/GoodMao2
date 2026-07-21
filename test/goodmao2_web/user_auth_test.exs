@@ -314,6 +314,76 @@ defmodule Goodmao2Web.UserAuthTest do
     end
   end
 
+  describe "pending 2FA (ADR-0013)" do
+    test "put_pending_2fa stashes markers without issuing a token", %{conn: conn, user: user} do
+      conn = UserAuth.put_pending_2fa(conn, user, %{})
+      assert get_session(conn, :pending_2fa_user_id) == user.id
+      assert is_integer(get_session(conn, :pending_2fa_at))
+      refute get_session(conn, :user_token)
+    end
+
+    test "put_pending_2fa records a remember-me request", %{conn: conn, user: user} do
+      conn = UserAuth.put_pending_2fa(conn, user, %{"remember_me" => "true"})
+      assert get_session(conn, :pending_2fa_remember_me) == true
+    end
+
+    test "fetch_pending_2fa_user returns the pending user", %{conn: conn, user: user} do
+      conn = UserAuth.put_pending_2fa(conn, user, %{})
+      assert {:ok, fetched} = UserAuth.fetch_pending_2fa_user(conn)
+      assert fetched.id == user.id
+    end
+
+    test "fetch_pending_2fa_user errors with no marker", %{conn: conn} do
+      assert :error = UserAuth.fetch_pending_2fa_user(conn)
+    end
+
+    test "fetch_pending_2fa_user errors once the marker is expired", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> UserAuth.put_pending_2fa(user, %{})
+        |> put_session(:pending_2fa_at, System.system_time(:second) - 601)
+
+      assert :error = UserAuth.fetch_pending_2fa_user(conn)
+    end
+
+    test "complete_2fa_login clears markers and issues a token", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> UserAuth.put_pending_2fa(user, %{})
+        |> UserAuth.complete_2fa_login(user)
+
+      assert get_session(conn, :user_token)
+      refute get_session(conn, :pending_2fa_user_id)
+    end
+  end
+
+  describe "on_mount :require_pending_2fa" do
+    setup do
+      socket = %LiveView.Socket{
+        endpoint: Goodmao2Web.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      %{socket: socket}
+    end
+
+    test "continues and assigns the pending user with a fresh marker", %{
+      conn: conn,
+      user: user,
+      socket: socket
+    } do
+      session = conn |> UserAuth.put_pending_2fa(user, %{}) |> get_session()
+
+      assert {:cont, updated} = UserAuth.on_mount(:require_pending_2fa, %{}, session, socket)
+      assert updated.assigns.pending_2fa_user.id == user.id
+    end
+
+    test "halts without a pending marker", %{conn: conn, socket: socket} do
+      session = get_session(conn)
+      assert {:halt, _socket} = UserAuth.on_mount(:require_pending_2fa, %{}, session, socket)
+    end
+  end
+
   describe "require_authenticated_user/2" do
     setup %{conn: conn} do
       %{conn: UserAuth.fetch_current_scope_for_user(conn, [])}

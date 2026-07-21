@@ -72,6 +72,12 @@ defmodule Goodmao2.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
+      # Two-factor authentication (ADR-0013). WebAuthn/FIDO2 relying party (note the
+      # `:wax_` app key), TOTP + QR for authenticator apps. `cbor` encodes stored COSE keys.
+      {:wax_, "~> 0.7"},
+      {:nimble_totp, "~> 1.0"},
+      {:cbor, "~> 1.0"},
+      {:eqrcode, "~> 0.2"},
       # Rust NIFs (native/goodmao2_native), toolchain pinned by rust-toolchain.toml.
       # Keep this in lockstep with the `rustler` crate version in the Cargo.toml.
       {:rustler, "~> 0.38"},

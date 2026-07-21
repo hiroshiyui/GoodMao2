@@ -23,6 +23,12 @@ defmodule Goodmao2.Accounts.User do
     # The sole global role — the first registered account. Not a per-pet role.
     field :is_admin, :boolean, default: false
 
+    # Two-factor authentication (ADR-0013). `totp_secret` holds the AES-256-GCM
+    # ciphertext of the shared secret (never the raw secret); `totp_confirmed_at` is
+    # set once the user proves possession with a valid code (nil ⇒ TOTP disabled).
+    field :totp_secret, :binary, redact: true
+    field :totp_confirmed_at, :utc_datetime
+
     timestamps(type: :utc_datetime)
   end
 
@@ -207,6 +213,17 @@ defmodule Goodmao2.Accounts.User do
       valid_password?(changeset.data, current_password) -> changeset
       true -> add_error(changeset, :current_password, "is not valid")
     end
+  end
+
+  @doc """
+  A changeset for enabling or disabling TOTP two-factor authentication.
+
+  Casts only the `totp_secret` (encrypted ciphertext) and `totp_confirmed_at` — the
+  caller (`Accounts.TwoFactor`) is responsible for encrypting the secret before it ever
+  reaches this changeset.
+  """
+  def totp_changeset(user, attrs) do
+    cast(user, attrs, [:totp_secret, :totp_confirmed_at])
   end
 
   @doc """

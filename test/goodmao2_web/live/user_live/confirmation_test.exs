@@ -7,6 +7,10 @@ defmodule Goodmao2Web.UserLive.ConfirmationTest do
   alias Goodmao2.Accounts
 
   setup do
+    # Take the admin seat first so the fixtures below are ordinary non-admin users — an
+    # admin with no second factor is forced into 2FA setup on login (ADR-0013), which the
+    # dedicated two-factor tests cover.
+    admin_fixture()
     %{unconfirmed_user: unconfirmed_user_fixture(), confirmed_user: user_fixture()}
   end
 

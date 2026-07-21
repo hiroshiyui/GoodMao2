@@ -25,6 +25,7 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/goodmao2"
 import topbar from "../vendor/topbar"
 import PushManager from "./push_manager_hook.js"
+import WebAuthn from "./webauthn_hook.js"
 
 // Reveal pointer-glow: track the cursor over an element marked phx-hook="PointerGlow"
 // (paired with the .gm-glow CSS) and expose its position as CSS custom properties.
@@ -93,7 +94,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, PointerGlow, Print, PushManager},
+  hooks: {...colocatedHooks, PointerGlow, Print, PushManager, WebAuthn},
 })
 
 // Show progress bar on live navigation and form submits

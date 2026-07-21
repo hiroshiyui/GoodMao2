@@ -67,6 +67,45 @@ defmodule Goodmao2.AccountsFixtures do
     verified
   end
 
+  @doc """
+  Creates a confirmed **non-admin** user.
+
+  The first-ever registered account becomes the sole admin, so this ensures another
+  account already exists (creating the admin seat if needed) before registering.
+  """
+  def regular_user_fixture(attrs \\ %{}) do
+    unless Accounts.count_users() > 0, do: admin_fixture()
+    user_fixture(attrs)
+  end
+
+  @doc """
+  Creates a user with TOTP enabled and returns `{user, raw_secret}` so the test can
+  generate valid codes with `NimbleTOTP.verification_code/1`.
+  """
+  def totp_user_fixture(attrs \\ %{}) do
+    user = user_fixture(attrs)
+    secret = Accounts.generate_totp_secret()
+    {:ok, user} = Accounts.enable_totp(user, secret)
+    {user, secret}
+  end
+
+  @doc """
+  Inserts a WebAuthn credential row for `user` directly (bypassing the ceremony). Enough
+  to exercise `webauthn_enabled?`, `login_next_step`, listing, and deletion.
+  """
+  def webauthn_credential_fixture(user, attrs \\ %{}) do
+    attrs =
+      Enum.into(attrs, %{
+        credential_id: :crypto.strong_rand_bytes(32),
+        public_key_cbor: :crypto.strong_rand_bytes(64),
+        sign_count: 0,
+        label: "Test key"
+      })
+
+    {:ok, credential} = Accounts.create_webauthn_credential(user, attrs)
+    credential
+  end
+
   def user_scope_fixture do
     user = user_fixture()
     user_scope_fixture(user)

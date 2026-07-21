@@ -85,6 +85,12 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  # WebAuthn/FIDO2 relying party (ADR-0013): the RP id is the site's host and the origin
+  # is its HTTPS URL. Both must match what the browser sees, so they derive from PHX_HOST.
+  config :wax_,
+    origin: "https://#{host}",
+    rp_id: host
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

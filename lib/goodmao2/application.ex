@@ -19,6 +19,8 @@ defmodule Goodmao2.Application do
       Goodmao2.Settings.Cache,
       # Owns the push-subscription write rate-limit ETS table.
       Goodmao2.Notifications.PushRateLimiter,
+      # Owns the single-use WebAuthn challenge ETS table (ADR-0013).
+      Goodmao2.Accounts.WebAuthnChallenges,
       # Start a worker by calling: Goodmao2.Worker.start_link(arg)
       # {Goodmao2.Worker, arg},
       # Start to serve requests, typically the last entry

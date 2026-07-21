@@ -85,6 +85,17 @@ defmodule Goodmao2Web.UserLive.Settings do
         </.link>
       </div>
 
+      <div class="divider" />
+
+      <div id="two-factor-settings-link" class="text-center">
+        <p class="text-base-content/60 mb-2 text-sm">
+          {gettext("Add a second step at sign-in with an authenticator app or a security key.")}
+        </p>
+        <.link navigate={~p"/users/settings/two-factor"} class="btn btn-soft btn-primary">
+          {gettext("Two-factor authentication")}
+        </.link>
+      </div>
+
       <div :if={@push_configured} class="divider" />
 
       <%!-- Web Push opt-in (ADR-0011 Stage 2). Only offered when the site has VAPID keys.

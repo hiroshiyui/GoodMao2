@@ -5,6 +5,10 @@ defmodule Goodmao2Web.UserSessionControllerTest do
   alias Goodmao2.Accounts
 
   setup do
+    # Take the admin seat first so the fixtures below are ordinary non-admin users — an
+    # admin with no second factor is forced into 2FA setup on login (ADR-0013), covered by
+    # the dedicated two-factor tests.
+    admin_fixture()
     %{unconfirmed_user: unconfirmed_user_fixture(), user: user_fixture()}
   end
 
@@ -114,6 +118,19 @@ defmodule Goodmao2Web.UserSessionControllerTest do
       assert response =~ user.email
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/users/log-out"
+    end
+
+    test "a user with 2FA is challenged, not logged in (no magic-link bypass)", %{conn: conn} do
+      {user, _secret} = totp_user_fixture()
+
+      {token, _hashed_token} = generate_user_magic_link_token(user)
+
+      conn = post(conn, ~p"/users/log-in", %{"user" => %{"token" => token}})
+
+      # No session token yet — the second factor still gates the login.
+      refute get_session(conn, :user_token)
+      assert get_session(conn, :pending_2fa_user_id) == user.id
+      assert redirected_to(conn) == ~p"/users/two-factor"
     end
 
     test "redirects to login page when magic link is invalid", %{conn: conn} do

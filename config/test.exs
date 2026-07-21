@@ -63,3 +63,9 @@ config :goodmao2, Goodmao2.Notifications.WebPush.SafeClient,
   bypass_ssrf_check: true,
   allow_http_localhost: true,
   req_test_options: [plug: {Req.Test, Goodmao2.Notifications.WebPush.SafeClient}]
+
+# WebAuthn/FIDO2 relying party for tests (ADR-0013). Matches the origin baked into the
+# wax_ test vectors / ceremony fixtures.
+config :wax_,
+  origin: "https://localhost:4001",
+  rp_id: "localhost"

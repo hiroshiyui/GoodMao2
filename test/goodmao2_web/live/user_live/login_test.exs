@@ -45,7 +45,9 @@ defmodule Goodmao2Web.UserLive.LoginTest do
 
   describe "user login - password" do
     test "redirects if user logs in with valid credentials", %{conn: conn} do
-      user = user_fixture() |> set_password()
+      # A non-admin user with no second factor: primary auth is sufficient (admins are
+      # forced through 2FA setup — see the two-factor tests).
+      user = regular_user_fixture() |> set_password()
 
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 

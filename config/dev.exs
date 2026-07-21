@@ -107,3 +107,10 @@ config :swoosh, :api_client, false
 
 # LifeLog media stored under a git-ignored dir at the project root (outside priv/static).
 config :goodmao2, Goodmao2.Media, storage_dir: Path.expand("../media", __DIR__)
+
+# WebAuthn/FIDO2 relying party (ADR-0013). The RP id is the effective domain and the
+# origin must match the browser's — dev runs over HTTPS on :4001 (WebAuthn needs a secure
+# context). Note the app key is literally `:wax_`.
+config :wax_,
+  origin: "https://localhost:4001",
+  rp_id: "localhost"

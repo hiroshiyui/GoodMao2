@@ -90,6 +90,7 @@ defmodule Goodmao2Web.Router do
       ] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/password", UserLive.PasswordSettings, :edit
+      live "/users/settings/two-factor", UserLive.TwoFactorSettings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       live "/users/vet-profile", UserLive.VetProfile, :edit
 
@@ -132,6 +133,30 @@ defmodule Goodmao2Web.Router do
 
     post "/push-subscriptions", PushSubscriptionController, :create
     delete "/push-subscriptions", PushSubscriptionController, :delete
+  end
+
+  # Second-factor challenge and forced setup (ADR-0013). The user has passed primary auth
+  # but holds NO session token yet, so these are gated by `:require_pending_2fa` — not
+  # `:require_authenticated`. The completion POSTs run through `:browser` for CSRF + session
+  # and re-verify the pending state authoritatively in the controller.
+  scope "/", Goodmao2Web do
+    pipe_through [:browser]
+
+    live_session :two_factor,
+      on_mount: [
+        {Goodmao2Web.UserAuth, :mount_current_scope},
+        {Goodmao2Web.UserAuth, :require_pending_2fa},
+        {Goodmao2Web.UserLocale, :put_locale}
+      ] do
+      live "/users/two-factor", UserLive.TwoFactor, :new
+      live "/users/two-factor/setup", UserLive.TwoFactorSetup, :new
+      live "/users/two-factor/recovery", UserLive.TwoFactorRecovery, :new
+    end
+
+    post "/users/two-factor/totp", UserTwoFactorController, :totp
+    post "/users/two-factor/recovery", UserTwoFactorController, :recovery
+    post "/users/two-factor/webauthn", UserTwoFactorController, :webauthn
+    post "/users/two-factor/complete", UserTwoFactorController, :complete
   end
 
   scope "/", Goodmao2Web do
