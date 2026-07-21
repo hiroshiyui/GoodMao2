@@ -1,6 +1,6 @@
 # GoodMao — Roadmap
 
-_Last updated: 2026-07-20_
+_Last updated: 2026-07-21_
 
 ## Overview
 
@@ -190,8 +190,8 @@ rejects *and* the legitimate case still passes).
       `Accounts.VetProfile` (applicant page + admin review queue on `/admin`) gates the `vet`
       role on grant *and* re-grant; `Reports` freezes a point-in-time snapshot (private entries
       excluded) served to an authenticated grant or through an **expiring** anonymous share
-      token (`GET /reports/shared/:token`, existence-hidden). Follow-ups: per-entry public
-      share links, report media serving, timeline `offset` paging for long reports
+      token (`GET /reports/shared/:token`, existence-hidden). Report bodies now **offset-page**
+      for long snapshots (roadmap §8). Follow-ups: per-entry public share links, report media serving
 
 ### 7. Localization & typography
 
@@ -235,8 +235,9 @@ rejects *and* the legitimate case still passes).
       (`Goodmao2.Accounts.TokenJanitor` → `Accounts.delete_expired_tokens/0`), and the
       **notification fan-out** workers (`Goodmao2.Notifications.LogFanoutWorker` /
       `AnnouncementFanoutWorker`, ADR-0011), and the **Web Push dispatch** worker
-      (`Goodmao2.Notifications.PushDispatchWorker`, ADR-0011 Stage 2). Still deferred until
-      each is needed: reminders, async media.
+      (`Goodmao2.Notifications.PushDispatchWorker`, ADR-0011 Stage 2), and the **medication
+      reminder** cron (`Goodmao2.Medications.ReminderWorker`, `*/15`, ADR-0019). Still deferred
+      until needed: **async media** (ffmpeg purification runs synchronously in the request today).
 - [x] **Data-model polish bundle** — four refinements within the existing model (no new ADR):
       **weight-unit-aware input + display** (weight is entered and shown in the pet's `weight_unit`
       — g/kg/lb — while storage stays canonical grams; conversion is centralized in
@@ -337,3 +338,39 @@ icon vendoring is needed. GoodMao ships a light/dark/system theme toggle.
   caption required); only its photo/video enrichment is deferred with the media work above.
   The `visibility` `public` + share-token concept is modeled in the schema but its
   UI/endpoints are deferred with the share-link work above.
+
+## What's next
+
+With the v1.0.0 core, hardening, clinical-timeline, localization, engineering/ops, and
+accessibility tranches shipped, these are the remaining threads — ordered by the value they
+unlock, not by size. Each is already scoped by an ADR or an existing section above.
+
+1. **Per-entry public share links** (highest value, most-referenced deferral) — the last
+   piece of the sharing story. A `public`-visibility entry can already be modeled; what's
+   deferred is the **share-token UI + anonymous endpoints** so an owner can hand a vet or
+   friend a single-entry (and, later, a filtered-timeline) link without an account, mirroring
+   the report share-token pattern (SHA-256-hashed token, existence-hidden, expiring). Unifies
+   the §6 share-link item, the Reports "per-entry public share links" follow-up, and the §11
+   note ([ADR-0004](adr/0004-log-visibility.md), Phase 3). **Then** extend token-gated serving
+   to **media** (share-token media serving) so a shared `life` entry's photos render anonymously.
+
+2. **Deployment: co-hosting runbook + Ansible** (ships v1.0.0 to a real host) — the two open
+   §9 items. Write the **co-hosting deploy note** (distinct `PORT` + Postgres role/db per app,
+   one reverse proxy terminating TLS on `443` and routing by hostname), then the **Ansible
+   playbook** that provisions and releases it, mirroring Baudrate's approach so GoodMao and its
+   siblings co-host under one repeatable playbook.
+
+3. **Async media pipeline** (closes the last `[~]` in §8) — move ffmpeg purification off the
+   request path into an **Oban** worker, and add the **orphan-object janitor** cron for storage
+   objects whose log never committed. Removes the synchronous-upload latency and the only
+   remaining "deferred until needed" Oban workload ([ADR-0005](adr/0005-media-storage.md)).
+
+4. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
+   escalation** and **dose-history retention GC** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md));
+   **notification batching / digest** so bursts don't spam the bell + push
+   ([ADR-0011](adr/0011-notifications-and-messaging.md)); and **per-pet timezones** (resolution
+   is per-viewer today) shared across medications and display
+   ([ADR-0018](adr/0018-timezone-display-policy.md)).
+
+Deployment (2) and the async-media/janitor half of (3) are the true gates to a public v1.0.0;
+(1) is the biggest remaining product surface; (4) is quality-of-life once the above land.
