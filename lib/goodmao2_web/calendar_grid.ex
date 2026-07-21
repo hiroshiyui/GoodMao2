@@ -2,10 +2,12 @@ defmodule Goodmao2Web.CalendarGrid do
   @moduledoc """
   Pure helpers for the month-grid ("calendar") view of a pet's timeline.
 
-  Days are bucketed in **UTC**, matching how the timeline already renders each entry's
-  time server-side (see `Goodmao2Web.Helpers.format_datetime/1`): a log's day cell is the
-  same day shown on its list row, so the two views never disagree. (A future
-  viewer-timezone refinement would change both together.)
+  Days are bucketed in the **viewer's timezone** (ADR-0018), matching how the timeline renders
+  each entry's time server-side (see `Goodmao2Web.Helpers.format_datetime/1`): a log's day cell
+  is the same day shown on its list row, so the two views never disagree. The bucketing itself
+  lives in `PetLive.Show` (which knows the active zone); `grid_range/1` here just widens the UTC
+  query window by a day on each side so entries near a local-midnight edge are still fetched to
+  bucket (any IANA offset is < 24h from UTC).
 
   The three shipping locales (en / zh_TW / ja_JP) all conventionally start the week on
   Sunday, so the grid is Sunday-first.
@@ -36,14 +38,16 @@ defmodule Goodmao2Web.CalendarGrid do
   end
 
   @doc """
-  The inclusive `{from, to}` UTC `DateTime` bounds spanning the whole visible grid — start
-  of the first cell to the end of the last — for the `Logs.list_entries/3` `:from`/`:to`
-  query. Because the grid spills into adjacent months, this covers the padding days too.
+  The inclusive `{from, to}` UTC `DateTime` bounds spanning the whole visible grid — for the
+  `Logs.list_entries/3` `:from`/`:to` query. Because the grid spills into adjacent months, this
+  covers the padding days too, and it is padded by an extra day on each side so entries whose
+  **local** day falls in the grid but whose UTC instant lands just outside it are still fetched
+  (viewer-timezone bucketing, ADR-0018).
   """
   def grid_range(%Date{} = month_first) do
     grid = month_grid(month_first)
-    first = grid |> List.first() |> List.first()
-    last = grid |> List.last() |> List.last()
+    first = grid |> List.first() |> List.first() |> Date.add(-1)
+    last = grid |> List.last() |> List.last() |> Date.add(1)
 
     {DateTime.new!(first, ~T[00:00:00.000], "Etc/UTC"),
      DateTime.new!(last, ~T[23:59:59.999999], "Etc/UTC")}

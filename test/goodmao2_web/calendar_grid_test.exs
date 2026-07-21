@@ -42,11 +42,13 @@ defmodule Goodmao2Web.CalendarGridTest do
   end
 
   describe "grid_range/1" do
-    test "spans the whole visible grid as inclusive UTC bounds" do
+    test "spans the whole visible grid, padded a day each side for local-day bucketing" do
       {from, to} = CalendarGrid.grid_range(~D[2026-07-01])
 
-      assert from == ~U[2026-06-28 00:00:00.000Z]
-      assert DateTime.to_date(to) == ~D[2026-08-08]
+      # The July 2026 grid runs 2026-06-28 .. 2026-08-08; grid_range pads ±1 day (ADR-0018) so
+      # entries near a local-midnight edge are fetched to bucket by the viewer's day.
+      assert from == ~U[2026-06-27 00:00:00.000Z]
+      assert DateTime.to_date(to) == ~D[2026-08-09]
       assert to.hour == 23 and to.minute == 59
       assert from.time_zone == "Etc/UTC"
     end

@@ -87,12 +87,15 @@ defmodule Goodmao2Web.PetLive.Show do
 
     socket
     |> assign(:month_entries, entries)
-    |> assign(:day_buckets, day_buckets(entries))
+    |> assign(:day_buckets, day_buckets(entries, socket.assigns.timezone))
   end
 
-  defp day_buckets(entries) do
+  # Bucket entries by their **local** calendar day (ADR-0018) so a cell counts what the viewer
+  # would call that day, matching the timeline rows. `grid_range/1` over-fetches by a day on each
+  # side so entries near a local-midnight edge are present to bucket.
+  defp day_buckets(entries, tz) do
     Enum.reduce(entries, %{}, fn entry, acc ->
-      day = DateTime.to_date(entry.occurred_at)
+      day = entry.occurred_at |> Goodmao2.Timezone.to_local(tz) |> DateTime.to_date()
       info = Map.get(acc, day, %{count: 0, level: nil})
 
       Map.put(acc, day, %{
@@ -199,7 +202,7 @@ defmodule Goodmao2Web.PetLive.Show do
         "note" => blank_to_nil(note),
         "visibility" => visibility || "limited"
       }
-      |> maybe_put("occurred_at", blank_to_nil(occurred_at))
+      |> put_local_occurred_at(occurred_at, socket.assigns.timezone)
 
     case Logs.create_entry(user, pet, attrs) do
       {:ok, _entry} ->
@@ -232,7 +235,7 @@ defmodule Goodmao2Web.PetLive.Show do
         "note" => blank_to_nil(Map.get(params, "note")),
         "visibility" => Map.get(params, "visibility") || "limited"
       }
-      |> maybe_put("occurred_at", blank_to_nil(Map.get(params, "occurred_at")))
+      |> put_local_occurred_at(Map.get(params, "occurred_at"), socket.assigns.timezone)
 
     results =
       consume_uploaded_entries(socket, :media, fn %{path: path}, _entry ->
@@ -346,8 +349,21 @@ defmodule Goodmao2Web.PetLive.Show do
   defp matches_filter?(_entry, "all"), do: true
   defp matches_filter?(entry, type), do: entry.type == type
 
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
+  # The datetime-local input carries a wall-clock value in the viewer's timezone; interpret it
+  # in `tz` and store the UTC instant (ADR-0018). A blank value is omitted (the changeset then
+  # defaults to now/UTC); an unparseable value is passed through so the changeset rejects it.
+  defp put_local_occurred_at(attrs, occurred_at, tz) do
+    case blank_to_nil(occurred_at) do
+      nil ->
+        attrs
+
+      str ->
+        case Goodmao2.Timezone.local_naive_to_utc(str, tz) do
+          {:ok, dt} -> Map.put(attrs, "occurred_at", dt)
+          :error -> Map.put(attrs, "occurred_at", str)
+        end
+    end
+  end
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
@@ -542,7 +558,7 @@ defmodule Goodmao2Web.PetLive.Show do
           buckets={@day_buckets}
           selected_day={@selected_day}
           today={Date.utc_today()}
-          day_entries={selected_day_entries(@month_entries, @selected_day)}
+          day_entries={selected_day_entries(@month_entries, @selected_day, @timezone)}
           can_write?={@can_write?}
         />
 
@@ -1016,11 +1032,14 @@ defmodule Goodmao2Web.PetLive.Show do
     Map.new(data, fn {key, value} -> {"phx-value-#{key}", value} end)
   end
 
-  # The (already-loaded) month entries that fall on the picked day, UTC-bucketed like the grid.
-  defp selected_day_entries(_entries, nil), do: []
+  # The (already-loaded) month entries that fall on the picked day, bucketed by **local** day
+  # like the grid (ADR-0018).
+  defp selected_day_entries(_entries, nil, _tz), do: []
 
-  defp selected_day_entries(entries, %Date{} = day) do
-    Enum.filter(entries, &(DateTime.to_date(&1.occurred_at) == day))
+  defp selected_day_entries(entries, %Date{} = day, tz) do
+    Enum.filter(entries, fn e ->
+      e.occurred_at |> Goodmao2.Timezone.to_local(tz) |> DateTime.to_date() == day
+    end)
   end
 
   defp day_cell_aria(date, %{count: count, level: level}) do

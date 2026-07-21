@@ -116,7 +116,7 @@ defmodule Goodmao2Web.PetLive.Reports do
   def handle_event("share", %{"share" => %{"expires_at" => expires_at}}, socket) do
     user = socket.assigns.current_scope.user
 
-    with {:ok, dt} <- parse_datetime(expires_at),
+    with {:ok, dt} <- parse_datetime(expires_at, socket.assigns.timezone),
          {:ok, {report, token}} <-
            Reports.create_share_token(user, socket.assigns.pet, socket.assigns.report, dt) do
       {:noreply,
@@ -162,15 +162,16 @@ defmodule Goodmao2Web.PetLive.Reports do
 
   defp parse_date(_), do: :invalid_date
 
-  # `datetime-local` inputs submit "YYYY-MM-DDTHH:MM" with no zone; treat as UTC.
-  defp parse_datetime(str) when is_binary(str) and str != "" do
-    case NaiveDateTime.from_iso8601(str <> ":00") do
-      {:ok, naive} -> {:ok, DateTime.from_naive!(naive, "Etc/UTC")}
-      _ -> :invalid_date
+  # `datetime-local` inputs submit "YYYY-MM-DDTHH:MM" with no zone; interpret the wall-clock in
+  # the viewer's timezone and store UTC (ADR-0018).
+  defp parse_datetime(str, tz) when is_binary(str) and str != "" do
+    case Goodmao2.Timezone.local_naive_to_utc(str, tz) do
+      {:ok, dt} -> {:ok, dt}
+      :error -> :invalid_date
     end
   end
 
-  defp parse_datetime(_), do: :invalid_date
+  defp parse_datetime(_, _tz), do: :invalid_date
 
   @impl true
   def render(%{live_action: :index} = assigns) do

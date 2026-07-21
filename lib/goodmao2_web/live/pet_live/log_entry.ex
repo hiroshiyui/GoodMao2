@@ -49,17 +49,21 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     |> assign(:at_limit?, entry.edit_count >= Logs.max_edits())
     |> assign(:revisions, revisions)
     |> assign(:editors, editors)
-    |> assign(:form, to_form(entry_params(entry), as: :log))
+    |> assign(:form, to_form(entry_params(entry, socket.assigns.timezone), as: :log))
     |> assign(:error, nil)
   end
 
   # Flatten the entry into form params: its structured `data` plus the shared note / time /
-  # visibility fields (time in the datetime-local input's shape).
-  defp entry_params(entry) do
+  # visibility fields (time shifted into the viewer's timezone for the datetime-local input —
+  # ADR-0018).
+  defp entry_params(entry, tz) do
     Map.merge(entry.data || %{}, %{
       "note" => entry.note,
       "occurred_at" =>
-        entry.occurred_at && Calendar.strftime(entry.occurred_at, "%Y-%m-%dT%H:%M"),
+        entry.occurred_at &&
+          entry.occurred_at
+          |> Goodmao2.Timezone.to_local(tz)
+          |> Calendar.strftime("%Y-%m-%dT%H:%M"),
       "visibility" => entry.visibility
     })
   end
@@ -80,7 +84,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
     attrs =
       %{"data" => data, "note" => blank_to_nil(note)}
-      |> maybe_put("occurred_at", blank_to_nil(occurred_at))
+      |> put_local_occurred_at(occurred_at, socket.assigns.timezone)
       |> maybe_put("visibility", visibility)
 
     case Logs.update_entry(user, pet, entry, attrs) do
@@ -104,6 +108,21 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  # Interpret the datetime-local wall-clock in the viewer's timezone and store UTC (ADR-0018);
+  # blank omits it (changeset keeps the prior time), unparseable passes through to be rejected.
+  defp put_local_occurred_at(attrs, occurred_at, tz) do
+    case blank_to_nil(occurred_at) do
+      nil ->
+        attrs
+
+      str ->
+        case Goodmao2.Timezone.local_naive_to_utc(str, tz) do
+          {:ok, dt} -> Map.put(attrs, "occurred_at", dt)
+          :error -> Map.put(attrs, "occurred_at", str)
+        end
+    end
+  end
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil

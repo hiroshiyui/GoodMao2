@@ -267,18 +267,32 @@ defmodule Goodmao2Web.Helpers do
   def log_summary(_type, _d), do: ""
 
   ## Formatting
+  #
+  # Datetimes are stored UTC (ADR-0018); these helpers shift into the viewer's active timezone
+  # (`Goodmao2.Timezone.current/0`, set per request/socket) before formatting. The `/2` arities
+  # take an explicit zone for callers that must override the process default. A `%Date{}` is
+  # zoneless and formatted as-is.
 
-  @doc "Formats a UTC datetime for display (date + short time)."
-  def format_datetime(nil), do: ""
+  @doc "Formats a UTC datetime for display (date + short time) in the active timezone."
+  def format_datetime(dt), do: format_datetime(dt, Goodmao2.Timezone.current())
 
-  def format_datetime(%DateTime{} = dt) do
-    Calendar.strftime(dt, "%Y-%m-%d %H:%M")
+  @doc "Formats a UTC datetime for display (date + short time) in `tz`."
+  def format_datetime(nil, _tz), do: ""
+
+  def format_datetime(%DateTime{} = dt, tz) do
+    dt |> Goodmao2.Timezone.to_local(tz) |> Calendar.strftime("%Y-%m-%d %H:%M")
   end
 
-  @doc "Formats a UTC datetime as a date only."
-  def format_date(nil), do: ""
-  def format_date(%DateTime{} = dt), do: Calendar.strftime(dt, "%Y-%m-%d")
-  def format_date(%Date{} = d), do: Calendar.strftime(d, "%Y-%m-%d")
+  @doc "Formats a UTC datetime (or a Date) as a date only, in the active timezone."
+  def format_date(dt), do: format_date(dt, Goodmao2.Timezone.current())
+
+  @doc "Formats a UTC datetime (or a Date) as a date only, in `tz`."
+  def format_date(nil, _tz), do: ""
+  def format_date(%Date{} = d, _tz), do: Calendar.strftime(d, "%Y-%m-%d")
+
+  def format_date(%DateTime{} = dt, tz) do
+    dt |> Goodmao2.Timezone.to_local(tz) |> Calendar.strftime("%Y-%m-%d")
+  end
 
   ## Clinical flags
 

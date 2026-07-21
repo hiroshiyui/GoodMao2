@@ -73,6 +73,29 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, ".timeline-entry-type", "Food")
     end
 
+    test "a submitted occurred_at is interpreted in the user's timezone (ADR-0018)", %{
+      conn: conn,
+      user: user
+    } do
+      # The user reads/enters times in Taipei (UTC+8, no DST).
+      {:ok, _} = Goodmao2.Accounts.update_user_profile(user, %{"timezone" => "Asia/Taipei"})
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      lv
+      |> form("#quicklog-form",
+        log: %{amount: "full", food_type: "Tuna", occurred_at: "2026-07-21T08:30"}
+      )
+      |> render_submit()
+
+      # 08:30 in Taipei is stored as 00:30 UTC...
+      [entry] = Goodmao2.Logs.list_entries(user, pet)
+      assert entry.occurred_at == ~U[2026-07-21 00:30:00Z]
+
+      # ...and renders back as the local 08:30 for this viewer.
+      assert has_element?(lv, ".timeline-entry-time", "2026-07-21 08:30")
+    end
+
     test "a one-tap button logs a common value immediately", %{conn: conn, user: user} do
       pet = pet_fixture(user)
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
@@ -297,6 +320,40 @@ defmodule Goodmao2Web.PetLiveTest do
 
       lv |> element("#cal-day-clear") |> render_click()
       refute has_element?(lv, "#cal-day-detail")
+    end
+
+    test "a day cell buckets an entry by the viewer's local day (ADR-0018)", %{
+      conn: conn,
+      user: user
+    } do
+      # Kiritimati is UTC+14, so a 20:00 UTC instant is 10:00 the *next* local day.
+      {:ok, _} =
+        Goodmao2.Accounts.update_user_profile(user, %{"timezone" => "Pacific/Kiritimati"})
+
+      pet = pet_fixture(user)
+
+      # A guaranteed-past instant at 20:00 UTC on the previous UTC day.
+      occurred = DateTime.new!(Date.add(Date.utc_today(), -1), ~T[20:00:00], "Etc/UTC")
+
+      log_entry_fixture(user, pet, %{
+        "type" => "food",
+        "data" => %{"amount" => "full"},
+        "occurred_at" => occurred
+      })
+
+      utc_day = DateTime.to_date(occurred)
+      local_day = occurred |> DateTime.shift_zone!("Pacific/Kiritimati") |> DateTime.to_date()
+      assert local_day == Date.add(utc_day, 1)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#view-calendar") |> render_click()
+
+      # The entry sits under its LOCAL day (a different date than the UTC day): only a cell with
+      # entries gets a `cal-day-*` id/button, so the UTC-day cell has none while the local-day
+      # cell drills into the entry.
+      refute has_element?(lv, "#cal-day-#{Date.to_iso8601(utc_day)}")
+      lv |> element("#cal-day-#{Date.to_iso8601(local_day)}") |> render_click()
+      assert has_element?(lv, "#cal-day-detail .timeline-entry-type", "Food")
     end
 
     test "an urgent clinical day is flagged in its cell", %{conn: conn, user: user} do
