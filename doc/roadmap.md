@@ -237,9 +237,14 @@ rejects *and* the legitimate case still passes).
       `AnnouncementFanoutWorker`, ADR-0011), and the **Web Push dispatch** worker
       (`Goodmao2.Notifications.PushDispatchWorker`, ADR-0011 Stage 2). Still deferred until
       each is needed: reminders, async media.
-- [ ] Weight-unit-aware display + richer `Species` enum (`rabbit` / `bird`); 5-minute
-      clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline `offset`
-      paging for report views (the `from` / `to` range now backs the shipped calendar view)
+- [x] **Data-model polish bundle** — four refinements within the existing model (no new ADR):
+      **weight-unit-aware input + display** (weight is entered and shown in the pet's `weight_unit`
+      — g/kg/lb — while storage stays canonical grams; conversion is centralized in
+      `Goodmao2Web.Helpers`); a **richer `Species` enum** (`rabbit` / `bird` / `hamster` /
+      `reptile` / `fish`, before the `other` catch-all); a **5-minute clock-skew tolerance** on the
+      `occurred_at` / `ended_at` future-guards; and **`:offset` paging** on `Logs.list_entries` /
+      `shareable_entries` with render-side **Prev/Next paging of long report bodies** (frozen
+      snapshot, `?page=N`, on both the authenticated and anonymous report pages)
 
 ### 9. Engineering & ops maturity
 
