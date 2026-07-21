@@ -54,7 +54,7 @@ valid:
 | [0008](0008-soft-delete.md) | Deletion is always soft — never a permanent removal | Accepted |
 | [0009](0009-log-edit-revisions.md) | Log-entry edit history, capped at nine edits | Proposed (deferred) |
 | ~~0010~~ | ~~Self-hosted inline SVG icons~~ | Not applicable (Phoenix hero-icons) |
-| [0011](0011-notifications-and-messaging.md) | In-site notifications and a private mailbox | Accepted (Stage 1 shipped; Web Push deferred) |
+| [0011](0011-notifications-and-messaging.md) | In-site notifications and a private mailbox | Accepted (Stage 1 + Web Push Stage 2 shipped) |
 | [0012](0012-vet-access-model.md) | Vet access model: verified profiles and frozen health-summary reports | Accepted |
 
 _Add a row per ADR as it lands._

@@ -93,10 +93,16 @@ defmodule Goodmao2.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind goodmao2", "esbuild goodmao2"],
+      "assets.build": [
+        "compile",
+        "tailwind goodmao2",
+        "esbuild goodmao2",
+        "esbuild service_worker"
+      ],
       "assets.deploy": [
         "tailwind goodmao2 --minify",
         "esbuild goodmao2 --minify",
+        "esbuild service_worker --minify",
         "phx.digest"
       ],
       precommit: [

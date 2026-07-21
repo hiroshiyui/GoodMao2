@@ -29,7 +29,13 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   stored). Single-recipient grant/revoke events are created **inline** by `Pets`;
   `log_added` (visibility-aware) and admin `announcement`s fan out via **Oban**
   (`LogFanoutWorker` / `AnnouncementFanoutWorker`). Every change broadcasts the recomputed
-  unread count over PubSub.
+  unread count over PubSub. **Web Push** (Stage 2) rides the same rows: `create/3` enqueues a
+  `PushDispatchWorker` when VAPID is configured. `WebPush` hand-rolls RFC 8291/8188/8292 on
+  `:crypto`; `WebPush.SafeClient` is the SSRF-safe, DNS-pinned outbound client; `WebPush.VapidVault`
+  encrypts the private key. Browsers subscribe via `PushSubscriptionController`; a root-scope
+  `service_worker.js` shows the notification.
+- **Settings** (`settings.ex`) — a tiny admin-managed key/value system-settings store (ETS-cached),
+  holding the Web Push VAPID keypair; keys are generated on `AdminLive.Settings` (`/admin/settings`).
 - **Messaging** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](adr/0011-notifications-and-messaging.md)):
   one conversation per unordered user pair, gated by the **shared-pet rule** (`can_message?/2`,
   the effective-grant self-join) with a uniform non-leaking `:cannot_message`; thread reads
@@ -143,6 +149,20 @@ per-participant **read cursor** `last_read_at` (a message is unread when it arri
 `deleted_at`. Starting a conversation is gated by the **shared-pet rule**; thread access
 requires participation. See [ADR-0011](adr/0011-notifications-and-messaging.md).
 
+### `push_subscriptions` (Notifications.PushSubscription) — Web Push endpoints
+
+Per browser/device: `user_id`, the push-service `endpoint` (browser-supplied — **SSRF-validated**
+to a public HTTPS host before storage; globally unique), the subscriber's `p256dh` (65 B) + `auth`
+(16 B) keys (raw binary, for RFC 8291 encryption), `user_agent?`, and `deleted_at` (a 410/410-gone
+endpoint is soft-deleted on the next send). See [ADR-0011](adr/0011-notifications-and-messaging.md) §Web Push.
+
+### `settings` (Settings.Setting) — admin-managed system settings
+
+A tiny global key/value store (`key` unique, `value` text) an administrator manages from
+`/admin/settings`; ETS-cached for reads. First occupant: the Web Push VAPID keypair —
+`vapid_public_key` (plain), `vapid_private_key_encrypted` (AES-256-GCM via `WebPush.VapidVault`,
+keyed off `SECRET_KEY_BASE`), and `vapid_subject`.
+
 ## Authorization logic
 
 `Goodmao2.Pets.can?(pet, user, level)` where `level` ∈ `:read | :write | :manage`:
@@ -175,11 +195,9 @@ schema**. Recorded here so the payload/relationship shapes are known when the wo
   `schedule` recurrence, `start_date`, `end_date?`, `prescribed_by_vet_id?` audit ref,
   `active`). `medication` log entries record actual administrations against it — the
   "did anyone give the pill?" coordination. _Phase 1/3._
-- **Web Push** (Stage 2 of [ADR-0011](adr/0011-notifications-and-messaging.md)) — a
-  push-subscription entity, VAPID keys, an SSRF-safe outbound client, and a dispatch job —
-  is deferred; the in-site notifications/mailbox core (Stage 1) has shipped. (**Log-edit
-  revisions**, **VetProfile**, **HealthSummaryReport**, **notifications**, and the **mailbox**
-  have shipped — see the data model above and [ADR-0009](adr/0009-log-edit-revisions.md) /
+- (**Log-edit revisions**, **VetProfile**, **HealthSummaryReport**, **notifications**, the
+  **mailbox**, and **Web Push** (ADR-0011 Stage 2) have all shipped — see the data model above
+  and [ADR-0009](adr/0009-log-edit-revisions.md) /
   [ADR-0011](adr/0011-notifications-and-messaging.md) / [ADR-0012](adr/0012-vet-access-model.md).)
 
 ## Web layer (`lib/goodmao2_web/`)

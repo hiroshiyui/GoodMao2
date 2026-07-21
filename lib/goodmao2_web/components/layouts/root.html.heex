@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
+    <meta name="vapid-public-key" content={Goodmao2.Settings.get("vapid_public_key") || ""} />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdf6ef" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#26201c" />
     <link

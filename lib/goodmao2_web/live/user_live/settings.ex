@@ -4,6 +4,7 @@ defmodule Goodmao2Web.UserLive.Settings do
   on_mount {Goodmao2Web.UserAuth, :require_sudo_mode}
 
   alias Goodmao2.Accounts
+  alias Goodmao2.Notifications.WebPush
 
   @impl true
   def render(assigns) do
@@ -84,6 +85,51 @@ defmodule Goodmao2Web.UserLive.Settings do
         </.link>
       </div>
 
+      <div :if={@push_configured} class="divider" />
+
+      <%!-- Web Push opt-in (ADR-0011 Stage 2). Only offered when the site has VAPID keys.
+            The PushManager hook reports browser support + current subscription state, and the
+            buttons dispatch DOM events it listens for (CSP-safe — no inline handlers). --%>
+      <section
+        :if={@push_configured}
+        id="push-manager"
+        phx-hook="PushManager"
+        aria-labelledby="push-heading"
+        class="text-center"
+      >
+        <h2 id="push-heading" class="font-semibold">{gettext("Push notifications")}</h2>
+        <p class="text-base-content/60 mt-1 mb-2 text-sm" aria-live="polite">
+          <%= cond do %>
+            <% not @push_supported -> %>
+              {gettext("This browser doesn't support push notifications.")}
+            <% @push_subscribed -> %>
+              {gettext("Push notifications are on for this device.")}
+            <% true -> %>
+              {gettext(
+                "Get notified about access changes, new logs, and announcements even when GoodMao is closed."
+              )}
+          <% end %>
+        </p>
+        <button
+          :if={@push_supported and not @push_subscribed}
+          type="button"
+          id="push-enable"
+          phx-click={JS.dispatch("push:subscribe", to: "#push-manager")}
+          class="btn btn-soft btn-primary"
+        >
+          {gettext("Enable push")}
+        </button>
+        <button
+          :if={@push_supported and @push_subscribed}
+          type="button"
+          id="push-disable"
+          phx-click={JS.dispatch("push:unsubscribe", to: "#push-manager")}
+          class="btn btn-soft"
+        >
+          {gettext("Disable push")}
+        </button>
+      </section>
+
       <div class="divider" />
 
       <div id="vet-profile-link" class="text-center">
@@ -135,6 +181,9 @@ defmodule Goodmao2Web.UserLive.Settings do
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:email_form_current_password, nil)
       |> assign(:profile_form, to_form(profile_changeset))
+      |> assign(:push_configured, WebPush.vapid_configured?())
+      |> assign(:push_supported, false)
+      |> assign(:push_subscribed, false)
 
     {:ok, socket}
   end
@@ -208,6 +257,39 @@ defmodule Goodmao2Web.UserLive.Settings do
          |> assign(:email_form, to_form(changeset, action: :insert))
          |> assign(:email_form_current_password, current_password)}
     end
+  end
+
+  ## Web Push (ADR-0011 Stage 2) — events pushed up by the PushManager JS hook.
+
+  def handle_event(
+        "push_support",
+        %{"supported" => supported, "subscribed" => subscribed},
+        socket
+      ) do
+    {:noreply, assign(socket, push_supported: supported, push_subscribed: subscribed)}
+  end
+
+  def handle_event("push_subscribed", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:push_subscribed, true)
+     |> put_flash(:info, gettext("Push notifications enabled for this device."))}
+  end
+
+  def handle_event("push_unsubscribed", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:push_subscribed, false)
+     |> put_flash(:info, gettext("Push notifications disabled for this device."))}
+  end
+
+  def handle_event("push_permission_denied", _params, socket) do
+    {:noreply, put_flash(socket, :error, gettext("Notification permission was denied."))}
+  end
+
+  def handle_event("push_subscribe_error", _params, socket) do
+    {:noreply,
+     put_flash(socket, :error, gettext("Couldn't update push notifications. Please try again."))}
   end
 
   # (Password change moved to Goodmao2Web.UserLive.PasswordSettings — gated by the

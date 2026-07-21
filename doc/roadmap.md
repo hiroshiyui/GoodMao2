@@ -168,8 +168,13 @@ rejects *and* the legitimate case still passes).
       **user-pair** key (DB `CHECK` + unique index), the 2 000-codepoint cap, a per-participant
       **read cursor**, don't self-notify, and messages are **not** bell rows. Single-recipient
       grant/revoke notify **inline** from `Pets`; `log_added` (visibility-aware) and admin
-      **announcements** fan out via **Oban** (`Log`/`AnnouncementFanoutWorker`). Follow-up:
-      **Web Push (Stage 2)** stays deferred behind its SSRF-safe-client prerequisite; batching/digest
+      **announcements** fan out via **Oban** (`Log`/`AnnouncementFanoutWorker`).
+- [x] **Web Push** ([ADR-0011](adr/0011-notifications-and-messaging.md) Stage 2) — OS-level push
+      of the same bell events. An `SSRF-safe`, DNS-pinned outbound client; RFC 8291/8188/8292
+      crypto hand-rolled on `:crypto` (no external lib); an Oban `PushDispatchWorker` hooked at the
+      single `Notifications.create/3` choke point; a service worker + opt-in on `/users/settings`.
+      **VAPID keys are admin-generated in the Web UI** (`/admin/settings`), the private key encrypted
+      at rest. Follow-up: push for new mailbox messages; notification batching/digest.
 - [ ] Per-entry **share links** (public token) + anonymous shared timeline/media
       ([ADR-0004](adr/0004-log-visibility.md); Phase 3)
 - [x] Verified **veterinarian accounts** (credential verification) + generated
@@ -213,8 +218,9 @@ rejects *and* the legitimate case still passes).
       and two workloads ship: a daily **token janitor** cron that prunes expired auth tokens
       (`Goodmao2.Accounts.TokenJanitor` → `Accounts.delete_expired_tokens/0`), and the
       **notification fan-out** workers (`Goodmao2.Notifications.LogFanoutWorker` /
-      `AnnouncementFanoutWorker`, ADR-0011). Still deferred until each is needed: reminders,
-      async media, Web Push dispatch.
+      `AnnouncementFanoutWorker`, ADR-0011), and the **Web Push dispatch** worker
+      (`Goodmao2.Notifications.PushDispatchWorker`, ADR-0011 Stage 2). Still deferred until
+      each is needed: reminders, async media.
 - [ ] Weight-unit-aware display + richer `Species` enum (`rabbit` / `bird`); 5-minute
       clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline `offset`
       paging for report views (the `from` / `to` range now backs the shipped calendar view)

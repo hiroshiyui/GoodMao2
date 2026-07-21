@@ -23,6 +23,9 @@ defmodule Goodmao2.Notifications do
   alias Goodmao2.Repo
   alias Goodmao2.Accounts.User
   alias Goodmao2.Notifications.Notification
+  alias Goodmao2.Notifications.PushDispatchWorker
+  alias Goodmao2.Notifications.PushSubscription
+  alias Goodmao2.Notifications.WebPush
 
   @default_limit 50
 
@@ -130,10 +133,90 @@ defmodule Goodmao2.Notifications do
     |> case do
       {:ok, notification} ->
         broadcast_count(user_id)
+        maybe_enqueue_push(notification)
         {:ok, notification}
 
       error ->
         error
+    end
+  end
+
+  ## Web Push (ADR-0011 Stage 2)
+
+  # Every bell row funnels through create/3, so one enqueue here covers all four types —
+  # the inline grant/revoke notifiers and both fan-out workers. Gated on VAPID config so the
+  # feature stays dormant (dev/test default) until an admin generates keys on /admin/settings.
+  defp maybe_enqueue_push(%Notification{id: id}) do
+    if WebPush.vapid_configured?() do
+      %{"notification_id" => id}
+      |> PushDispatchWorker.new()
+      |> Oban.insert()
+    end
+  end
+
+  @doc """
+  Delivers a stored notification to its recipient's browsers as Web Push.
+
+  The `PushDispatchWorker` entry point: loads the (live) notification and the recipient's
+  live subscriptions, renders the payload once, and sends to each. No-op if the notification
+  is gone or the user has no subscriptions.
+  """
+  def dispatch_web_push(notification_id) do
+    with %Notification{} = notification <- Repo.get(Notification, notification_id),
+         [_ | _] = subscriptions <- live_push_subscriptions(notification.user_id) do
+      payload = notification |> WebPush.build_payload() |> Jason.encode!()
+      Enum.each(subscriptions, &WebPush.send_web_push(&1, payload))
+      :ok
+    else
+      _ -> :ok
+    end
+  end
+
+  defp live_push_subscriptions(user_id) do
+    Repo.all(
+      from s in PushSubscription,
+        where: s.user_id == ^user_id and is_nil(s.deleted_at)
+    )
+  end
+
+  @doc """
+  Registers (or refreshes) a browser push subscription for `user`.
+
+  Endpoints are globally unique. If the endpoint is new, it is inserted; if it already
+  belongs to `user`, its keys are refreshed and any soft-delete is reversed (re-subscribe);
+  if it belongs to **another** user, `{:error, :endpoint_conflict}`. The endpoint is
+  SSRF-validated by the changeset before it can be stored.
+  """
+  def upsert_push_subscription(%User{} = user, attrs) do
+    attrs = Map.put(attrs, :user_id, user.id)
+
+    case Repo.get_by(PushSubscription, endpoint: attrs.endpoint) do
+      nil ->
+        %PushSubscription{}
+        |> PushSubscription.changeset(attrs)
+        |> Repo.insert()
+
+      %PushSubscription{user_id: uid} = existing when uid == user.id ->
+        existing
+        |> PushSubscription.changeset(attrs)
+        |> Ecto.Changeset.put_change(:deleted_at, nil)
+        |> Repo.update()
+
+      %PushSubscription{} ->
+        {:error, :endpoint_conflict}
+    end
+  end
+
+  @doc "Soft-deletes `user`'s subscription for `endpoint`, or `{:error, :not_found}`."
+  def delete_push_subscription(%User{} = user, endpoint) when is_binary(endpoint) do
+    case Repo.get_by(PushSubscription, endpoint: endpoint, user_id: user.id) do
+      nil ->
+        {:error, :not_found}
+
+      %PushSubscription{} = subscription ->
+        subscription
+        |> Ecto.Changeset.change(deleted_at: now())
+        |> Repo.update()
     end
   end
 

@@ -39,7 +39,7 @@ msgstr "%{name}を追加しました。"
 msgid "%{v} ml"
 msgstr "%{v} ml"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:123
+#: lib/goodmao2_web/live/pet_live/access.ex:128
 #, elixir-autogen, elixir-format
 msgid "@handle or email"
 msgstr "@ハンドル または メールアドレス"
@@ -54,7 +54,7 @@ msgstr "診療タイムライン"
 msgid "A pet must keep at least one owner."
 msgstr "ペットには少なくとも1人の飼い主が必要です。"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:136
+#: lib/goodmao2_web/live/pet_live/access.ex:141
 #, elixir-autogen, elixir-format
 msgid "Access expires (optional)"
 msgstr "アクセス期限（任意）"
@@ -69,8 +69,8 @@ msgstr "アクセスを許可しました。"
 msgid "Access revoked."
 msgstr "アクセスを取り消しました。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:14
-#: lib/goodmao2_web/live/user_live/settings.ex:129
+#: lib/goodmao2_web/live/user_live/settings.ex:20
+#: lib/goodmao2_web/live/user_live/settings.ex:180
 #, elixir-autogen, elixir-format
 msgid "Account settings"
 msgstr "アカウント設定"
@@ -86,12 +86,12 @@ msgid "Active"
 msgstr "ケア中"
 
 #: lib/goodmao2_web/live/pet_live/form.ex:20
-#: lib/goodmao2_web/live/pet_live/index.ex:51
+#: lib/goodmao2_web/live/pet_live/index.ex:56
 #, elixir-autogen, elixir-format
 msgid "Add a pet"
 msgstr "ペットを追加"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:926
+#: lib/goodmao2_web/live/pet_live/show.ex:931
 #, elixir-autogen, elixir-format
 msgid "Add note, time, or visibility"
 msgstr "メモ・時刻・公開範囲を追加"
@@ -101,12 +101,12 @@ msgstr "メモ・時刻・公開範囲を追加"
 msgid "Admin"
 msgstr "管理者"
 
-#: lib/goodmao2_web/live/admin_live.ex:27
+#: lib/goodmao2_web/live/admin_live.ex:32
 #, elixir-autogen, elixir-format
 msgid "Administrator"
 msgstr "管理者"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:526
+#: lib/goodmao2_web/live/pet_live/show.ex:531
 #, elixir-autogen, elixir-format
 msgid "All types"
 msgstr "すべての種類"
@@ -118,14 +118,14 @@ msgstr "量"
 
 #: lib/goodmao2_web/components/log_fields.ex:26
 #: lib/goodmao2_web/helpers.ex:369
-#: lib/goodmao2_web/live/pet_live/show.ex:982
+#: lib/goodmao2_web/live/pet_live/show.ex:987
 #, elixir-autogen, elixir-format
 msgid "Ate fully"
 msgstr "完食"
 
 #: lib/goodmao2_web/components/log_fields.ex:27
 #: lib/goodmao2_web/helpers.ex:370
-#: lib/goodmao2_web/live/pet_live/show.ex:983
+#: lib/goodmao2_web/live/pet_live/show.ex:988
 #, elixir-autogen, elixir-format
 msgid "Ate partially"
 msgstr "一部食べた"
@@ -136,17 +136,18 @@ msgstr "一部食べた"
 msgid "Attempting to reconnect"
 msgstr "再接続を試みています"
 
-#: lib/goodmao2_web/live/admin_live/announcements.ex:54
-#: lib/goodmao2_web/live/message_live/show.ex:85
-#: lib/goodmao2_web/live/pet_live/access.ex:103
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:69
-#: lib/goodmao2_web/live/pet_live/reports.ex:185
-#: lib/goodmao2_web/live/pet_live/reports.ex:272
+#: lib/goodmao2_web/live/admin_live/announcements.ex:63
+#: lib/goodmao2_web/live/admin_live/settings.ex:75
+#: lib/goodmao2_web/live/message_live/show.ex:94
+#: lib/goodmao2_web/live/pet_live/access.ex:108
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:74
+#: lib/goodmao2_web/live/pet_live/reports.ex:190
+#: lib/goodmao2_web/live/pet_live/reports.ex:282
 #, elixir-autogen, elixir-format
 msgid "Back"
 msgstr "戻る"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:815
+#: lib/goodmao2_web/live/pet_live/show.ex:820
 #, elixir-autogen, elixir-format
 msgid "Back to pets"
 msgstr "ペット一覧へ戻る"
@@ -157,7 +158,7 @@ msgstr "ペット一覧へ戻る"
 msgid "Bathroom"
 msgstr "トイレ"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:127
+#: lib/goodmao2_web/live/pet_live/form.ex:132
 #, elixir-autogen, elixir-format
 msgid "Birth date"
 msgstr "誕生日"
@@ -167,14 +168,14 @@ msgstr "誕生日"
 msgid "Blood present"
 msgstr "血あり"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:122
+#: lib/goodmao2_web/live/pet_live/form.ex:127
 #, elixir-autogen, elixir-format
 msgid "Breed"
 msgstr "品種"
 
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:112
-#: lib/goodmao2_web/live/pet_live/form.ex:152
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:224
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:117
+#: lib/goodmao2_web/live/pet_live/form.ex:157
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:229
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr "キャンセル"
@@ -189,7 +190,7 @@ msgstr "猫"
 msgid "Co-caretaker"
 msgstr "共同ケアラー"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:123
+#: lib/goodmao2_web/live/pet_live/form.ex:128
 #, elixir-autogen, elixir-format
 msgid "Coat colour"
 msgstr "毛色"
@@ -225,7 +226,7 @@ msgstr "そのアクセス権を取り消せませんでした。"
 msgid "Daily life"
 msgstr "日常"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:28
+#: lib/goodmao2_web/live/user_live/settings.ex:34
 #, elixir-autogen, elixir-format
 msgid "Display name"
 msgstr "表示名"
@@ -240,7 +241,7 @@ msgstr "犬"
 msgid "Dose"
 msgstr "用量"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:864
+#: lib/goodmao2_web/live/pet_live/show.ex:869
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "編集"
@@ -255,12 +256,12 @@ msgstr "%{name}を編集"
 msgid "Effortless structured daily logging that turns everyday care into a shareable health timeline your vet can actually use."
 msgstr "手軽な構造化された毎日の記録で、日々のお世話を、獣医が実際に活用できる共有可能な健康タイムラインに変えます。"
 
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:73
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:78
 #, elixir-autogen, elixir-format
 msgid "End of care"
 msgstr "ケアの終了"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:163
+#: lib/goodmao2_web/live/pet_live/form.ex:168
 #, elixir-autogen, elixir-format
 msgid "End of care for %{name}…"
 msgstr "%{name}のケアを終了…"
@@ -310,7 +311,7 @@ msgstr "家族やペットシッターがリアルタイムで連携。受診時
 msgid "Female"
 msgstr "メス"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:520
+#: lib/goodmao2_web/live/pet_live/show.ex:525
 #, elixir-autogen, elixir-format
 msgid "Filter by type"
 msgstr "種類で絞り込む"
@@ -337,7 +338,7 @@ msgstr "はじめる"
 msgid "GoodMao"
 msgstr "グッドマオ"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:145
+#: lib/goodmao2_web/live/pet_live/access.ex:150
 #, elixir-autogen, elixir-format
 msgid "Grant access"
 msgstr "アクセスを許可"
@@ -353,7 +354,7 @@ msgid "High"
 msgstr "多め"
 
 #: lib/goodmao2_web/helpers.ex:181
-#: lib/goodmao2_web/live/pet_live/show.ex:992
+#: lib/goodmao2_web/live/pet_live/show.ex:997
 #, elixir-autogen, elixir-format
 msgid "High intake"
 msgstr "水分多め"
@@ -363,7 +364,7 @@ msgstr "水分多め"
 msgid "Intake"
 msgstr "水分摂取"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:119
+#: lib/goodmao2_web/live/pet_live/access.ex:124
 #, elixir-autogen, elixir-format
 msgid "Invite someone"
 msgstr "誰かを招待"
@@ -378,7 +379,7 @@ msgstr "種類"
 msgid "Limited"
 msgstr "限定"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:942
+#: lib/goodmao2_web/live/pet_live/show.ex:947
 #, elixir-autogen, elixir-format
 msgid "Log %{type}"
 msgstr "%{type}を記録"
@@ -398,7 +399,7 @@ msgstr "ログイン"
 msgid "Log out"
 msgstr "ログアウト"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:403
+#: lib/goodmao2_web/live/pet_live/show.ex:408
 #, elixir-autogen, elixir-format
 msgid "Log type"
 msgstr "記録の種類"
@@ -420,7 +421,7 @@ msgid "Low"
 msgstr "少なめ"
 
 #: lib/goodmao2_web/helpers.ex:180
-#: lib/goodmao2_web/live/pet_live/show.ex:991
+#: lib/goodmao2_web/live/pet_live/show.ex:996
 #, elixir-autogen, elixir-format
 msgid "Low intake"
 msgstr "水分少なめ"
@@ -443,17 +444,17 @@ msgstr "機嫌"
 
 #: lib/goodmao2_web/components/layouts.ex:164
 #: lib/goodmao2_web/live/pet_live/index.ex:26
-#: lib/goodmao2_web/live/pet_live/index.ex:42
+#: lib/goodmao2_web/live/pet_live/index.ex:47
 #, elixir-autogen, elixir-format
 msgid "My pets"
 msgstr "マイペット"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:104
+#: lib/goodmao2_web/live/pet_live/form.ex:109
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "名前"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:136
+#: lib/goodmao2_web/live/pet_live/form.ex:141
 #, elixir-autogen, elixir-format
 msgid "Neutered / spayed"
 msgstr "去勢・避妊済み"
@@ -463,22 +464,22 @@ msgstr "去勢・避妊済み"
 msgid "No account matches that handle or email."
 msgstr "そのハンドルまたはメールに一致するアカウントがありません。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:546
+#: lib/goodmao2_web/live/pet_live/show.ex:551
 #, elixir-autogen, elixir-format
 msgid "No entries yet. Use Quick log above to start recording."
 msgstr "まだ記録がありません。上のクイックログから記録を始めましょう。"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:155
+#: lib/goodmao2_web/live/pet_live/access.ex:160
 #, elixir-autogen, elixir-format
 msgid "No one else has access yet."
 msgstr "まだ他の人はアクセスできません。"
 
-#: lib/goodmao2_web/live/pet_live/index.ex:64
+#: lib/goodmao2_web/live/pet_live/index.ex:69
 #, elixir-autogen, elixir-format
 msgid "No past pets. Records of pets whose care has ended appear here."
 msgstr "過去のペットはいません。ケアを終えたペットの記録がここに表示されます。"
 
-#: lib/goodmao2_web/live/pet_live/index.ex:66
+#: lib/goodmao2_web/live/pet_live/index.ex:71
 #, elixir-autogen, elixir-format
 msgid "No pets yet. Add your first companion to start their timeline."
 msgstr "まだペットがいません。最初のパートナーを追加して、タイムラインを始めましょう。"
@@ -489,7 +490,7 @@ msgid "Normal"
 msgstr "普通"
 
 #: lib/goodmao2_web/helpers.ex:179
-#: lib/goodmao2_web/live/pet_live/show.ex:990
+#: lib/goodmao2_web/live/pet_live/show.ex:995
 #, elixir-autogen, elixir-format
 msgid "Normal intake"
 msgstr "水分は普通"
@@ -499,13 +500,13 @@ msgstr "水分は普通"
 msgid "Not allowed."
 msgstr "許可されていません。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:200
-#: lib/goodmao2_web/live/pet_live/show.ex:961
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:205
+#: lib/goodmao2_web/live/pet_live/show.ex:966
 #, elixir-autogen, elixir-format
 msgid "Note"
 msgstr "メモ"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:396
+#: lib/goodmao2_web/live/pet_live/show.ex:401
 #, elixir-autogen, elixir-format
 msgid "One tap to record what just happened."
 msgstr "今起きたことをワンタップで記録。"
@@ -532,18 +533,18 @@ msgid "Passed away"
 msgstr "他界"
 
 #: lib/goodmao2_web/live/pet_live/index.ex:26
-#: lib/goodmao2_web/live/pet_live/index.ex:40
-#: lib/goodmao2_web/live/user_live/settings.ex:101
+#: lib/goodmao2_web/live/pet_live/index.ex:45
+#: lib/goodmao2_web/live/user_live/settings.ex:152
 #, elixir-autogen, elixir-format
 msgid "Past pets"
 msgstr "これまでのペット"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:151
+#: lib/goodmao2_web/live/pet_live/access.ex:156
 #, elixir-autogen, elixir-format
 msgid "People with access"
 msgstr "アクセスできる人"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:842
+#: lib/goodmao2_web/live/pet_live/show.ex:847
 #, elixir-autogen, elixir-format
 msgid "Pet actions"
 msgstr "ペットの操作"
@@ -572,7 +573,7 @@ msgstr "メイン"
 msgid "Private"
 msgstr "非公開"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:155
+#: lib/goodmao2_web/live/user_live/settings.ex:209
 #, elixir-autogen, elixir-format
 msgid "Profile updated."
 msgstr "プロフィールを更新しました。"
@@ -582,18 +583,18 @@ msgstr "プロフィールを更新しました。"
 msgid "Public"
 msgstr "公開"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:33
+#: lib/goodmao2_web/live/user_live/settings.ex:39
 #, elixir-autogen, elixir-format
 msgid "Public @handle"
 msgstr "公開ハンドル"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:394
+#: lib/goodmao2_web/live/pet_live/show.ex:399
 #, elixir-autogen, elixir-format
 msgid "Quick log"
 msgstr "クイックログ"
 
 #: lib/goodmao2_web/components/log_fields.ex:28
-#: lib/goodmao2_web/live/pet_live/show.ex:984
+#: lib/goodmao2_web/live/pet_live/show.ex:989
 #, elixir-autogen, elixir-format
 msgid "Refused"
 msgstr "拒否"
@@ -608,38 +609,38 @@ msgstr "食事を拒否"
 msgid "Rehomed"
 msgstr "里親へ"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:630
+#: lib/goodmao2_web/live/pet_live/show.ex:635
 #, elixir-autogen, elixir-format
 msgid "Remove entry"
 msgstr "記録を削除"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:628
+#: lib/goodmao2_web/live/pet_live/show.ex:633
 #, elixir-autogen, elixir-format
 msgid "Remove this entry?"
 msgstr "この記録を削除しますか？"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:182
+#: lib/goodmao2_web/live/pet_live/access.ex:187
 #, elixir-autogen, elixir-format
 msgid "Revoke"
 msgstr "取り消す"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:179
+#: lib/goodmao2_web/live/pet_live/access.ex:184
 #, elixir-autogen, elixir-format
 msgid "Revoke access for this person?"
 msgstr "この人のアクセスを取り消しますか？"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:130
+#: lib/goodmao2_web/live/pet_live/access.ex:135
 #, elixir-autogen, elixir-format
 msgid "Role"
 msgstr "役割"
 
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:109
-#: lib/goodmao2_web/live/pet_live/form.ex:145
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:114
+#: lib/goodmao2_web/live/pet_live/form.ex:150
 #, elixir-autogen, elixir-format
 msgid "Save"
 msgstr "保存"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:42
+#: lib/goodmao2_web/live/user_live/settings.ex:48
 #, elixir-autogen, elixir-format
 msgid "Save profile"
 msgstr "プロフィールを保存"
@@ -654,18 +655,18 @@ msgstr "保存しました。"
 msgid "Saved. %{name}'s record is preserved."
 msgstr "保存しました。%{name}の記録は保持されています。"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:67
-#: lib/goodmao2_web/live/user_live/settings.ex:41
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:99
+#: lib/goodmao2_web/live/user_live/password_settings.ex:72
+#: lib/goodmao2_web/live/user_live/settings.ex:47
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:104
 #, elixir-autogen, elixir-format
 msgid "Saving..."
 msgstr "保存中..."
 
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:107
-#: lib/goodmao2_web/live/pet_live/form.ex:143
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:219
-#: lib/goodmao2_web/live/pet_live/show.ex:439
-#: lib/goodmao2_web/live/pet_live/show.ex:940
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:112
+#: lib/goodmao2_web/live/pet_live/form.ex:148
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:224
+#: lib/goodmao2_web/live/pet_live/show.ex:444
+#: lib/goodmao2_web/live/pet_live/show.ex:945
 #, elixir-autogen, elixir-format
 msgid "Saving…"
 msgstr "保存中…"
@@ -675,7 +676,7 @@ msgstr "保存中…"
 msgid "Severity"
 msgstr "重症度"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:116
+#: lib/goodmao2_web/live/pet_live/form.ex:121
 #, elixir-autogen, elixir-format
 msgid "Sex"
 msgstr "性別"
@@ -685,13 +686,13 @@ msgstr "性別"
 msgid "Shared care"
 msgstr "共同ケア"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:856
+#: lib/goodmao2_web/live/pet_live/show.ex:861
 #, elixir-autogen, elixir-format
 msgid "Sharing"
 msgstr "共有"
 
 #: lib/goodmao2_web/live/pet_live/access.ex:20
-#: lib/goodmao2_web/live/pet_live/access.ex:108
+#: lib/goodmao2_web/live/pet_live/access.ex:113
 #, elixir-autogen, elixir-format
 msgid "Sharing %{name}"
 msgstr "%{name}を共有"
@@ -701,7 +702,7 @@ msgstr "%{name}を共有"
 msgid "Something went wrong!"
 msgstr "問題が発生しました！"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:110
+#: lib/goodmao2_web/live/pet_live/form.ex:115
 #, elixir-autogen, elixir-format
 msgid "Species"
 msgstr "種別"
@@ -711,14 +712,14 @@ msgstr "種別"
 msgid "Start caring"
 msgstr "ケアを始める"
 
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:93
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:98
 #, elixir-autogen, elixir-format
 msgid "Status"
 msgstr "ステータス"
 
 #: lib/goodmao2_web/components/log_fields.ex:58
 #: lib/goodmao2_web/helpers.ex:192
-#: lib/goodmao2_web/live/pet_live/show.ex:999
+#: lib/goodmao2_web/live/pet_live/show.ex:1004
 #, elixir-autogen, elixir-format
 msgid "Stool"
 msgstr "便"
@@ -735,12 +736,12 @@ msgid "Symptom"
 msgstr "症状"
 
 #: lib/goodmao2_web/components/report_components.ex:185
-#: lib/goodmao2_web/live/pet_live/show.ex:482
+#: lib/goodmao2_web/live/pet_live/show.ex:487
 #, elixir-autogen, elixir-format
 msgid "Timeline"
 msgstr "タイムライン"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:140
+#: lib/goodmao2_web/live/pet_live/access.ex:145
 #, elixir-autogen, elixir-format
 msgid "Tip: give a veterinarian a time-boxed expiry so their access ends after the visit."
 msgstr "ヒント：獣医には期限を設定すると、受診後にアクセスが自動的に終了します。"
@@ -752,7 +753,7 @@ msgstr "不明"
 
 #: lib/goodmao2_web/components/log_fields.ex:58
 #: lib/goodmao2_web/helpers.ex:191
-#: lib/goodmao2_web/live/pet_live/show.ex:998
+#: lib/goodmao2_web/live/pet_live/show.ex:1003
 #, elixir-autogen, elixir-format
 msgid "Urine"
 msgstr "尿"
@@ -772,8 +773,8 @@ msgstr "獣医"
 msgid "Viewer"
 msgstr "閲覧者"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:209
-#: lib/goodmao2_web/live/pet_live/show.ex:970
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:214
+#: lib/goodmao2_web/live/pet_live/show.ex:975
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr "公開範囲"
@@ -812,7 +813,7 @@ msgstr "体重"
 msgid "Weight (grams)"
 msgstr "体重（g）"
 
-#: lib/goodmao2_web/live/pet_live/form.ex:131
+#: lib/goodmao2_web/live/pet_live/form.ex:136
 #, elixir-autogen, elixir-format
 msgid "Weight unit"
 msgstr "体重の単位"
@@ -822,13 +823,13 @@ msgstr "体重の単位"
 msgid "What GoodMao does"
 msgstr "グッドマオでできること"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:204
-#: lib/goodmao2_web/live/pet_live/show.ex:965
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:209
+#: lib/goodmao2_web/live/pet_live/show.ex:970
 #, elixir-autogen, elixir-format
 msgid "When"
 msgstr "日時"
 
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:99
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:104
 #, elixir-autogen, elixir-format
 msgid "When care ended (optional — defaults to now)"
 msgstr "ケア終了日時（任意・既定は現在）"
@@ -849,7 +850,7 @@ msgstr "このペットの記録を追加する権限がありません。"
 msgid "You are not allowed to manage sharing."
 msgstr "共有を管理する権限がありません。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:39
+#: lib/goodmao2_web/live/user_live/settings.ex:45
 #, elixir-autogen, elixir-format
 msgid "Your handle lets others invite you to a pet by @handle."
 msgstr "ハンドルを設定すると、他の人が@ハンドルであなたをペットに招待できます。"
@@ -889,7 +890,7 @@ msgstr "重症度 %{s}/5"
 msgid "straining ⚠"
 msgstr "いきみ ⚠"
 
-#: lib/goodmao2_web/live/pet_live/access.ex:170
+#: lib/goodmao2_web/live/pet_live/access.ex:175
 #, elixir-autogen, elixir-format
 msgid "until %{t}"
 msgstr "%{t}まで"
@@ -922,45 +923,45 @@ msgstr "システムに合わせる"
 msgid "Skip to content"
 msgstr "本文へスキップ"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:381
+#: lib/goodmao2_web/live/pet_live/show.ex:386
 #, elixir-autogen, elixir-format
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
 msgstr "このペットの履歴は非表示です。飼い主が「編集」から再表示するまで、タイムラインは利用できません。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:196
+#: lib/goodmao2_web/live/user_live/settings.ex:250
 #, elixir-autogen, elixir-format
 msgid "A link to confirm your email change has been sent to the new address."
 msgstr "メール変更を確認するリンクを新しいアドレスに送信しました。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:67
+#: lib/goodmao2_web/live/user_live/settings.ex:73
 #, elixir-autogen, elixir-format
 msgid "Change Email"
 msgstr "メールアドレスを変更"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:23
-#: lib/goodmao2_web/live/user_live/password_settings.ex:88
-#: lib/goodmao2_web/live/user_live/settings.ex:78
+#: lib/goodmao2_web/live/user_live/password_settings.ex:28
+#: lib/goodmao2_web/live/user_live/password_settings.ex:93
+#: lib/goodmao2_web/live/user_live/settings.ex:84
 #, elixir-autogen, elixir-format
 msgid "Change password"
 msgstr "パスワードを変更"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:66
+#: lib/goodmao2_web/live/user_live/settings.ex:72
 #, elixir-autogen, elixir-format
 msgid "Changing..."
 msgstr "変更中..."
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:63
+#: lib/goodmao2_web/live/user_live/password_settings.ex:68
 #, elixir-autogen, elixir-format
 msgid "Confirm new password"
 msgstr "新しいパスワードの確認"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:24
+#: lib/goodmao2_web/live/user_live/password_settings.ex:29
 #, elixir-autogen, elixir-format
 msgid "Confirm your current password to set a new one."
 msgstr "新しいパスワードを設定するには、現在のパスワードを確認してください。"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:47
-#: lib/goodmao2_web/live/user_live/settings.ex:60
+#: lib/goodmao2_web/live/user_live/password_settings.ex:52
+#: lib/goodmao2_web/live/user_live/settings.ex:66
 #, elixir-autogen, elixir-format
 msgid "Current password"
 msgstr "現在のパスワード"
@@ -968,32 +969,32 @@ msgstr "現在のパスワード"
 #: lib/goodmao2_web/live/user_live/login.ex:49
 #: lib/goodmao2_web/live/user_live/login.ex:74
 #: lib/goodmao2_web/live/user_live/registration.ex:29
-#: lib/goodmao2_web/live/user_live/settings.ex:52
+#: lib/goodmao2_web/live/user_live/settings.ex:58
 #, elixir-autogen, elixir-format
 msgid "Email"
 msgstr "メールアドレス"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:15
+#: lib/goodmao2_web/live/user_live/settings.ex:21
 #, elixir-autogen, elixir-format
 msgid "Manage your profile and email address"
 msgstr "プロフィールとメールアドレスの管理"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:55
+#: lib/goodmao2_web/live/user_live/password_settings.ex:60
 #, elixir-autogen, elixir-format
 msgid "New password"
 msgstr "新しいパスワード"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:68
+#: lib/goodmao2_web/live/user_live/password_settings.ex:73
 #, elixir-autogen, elixir-format
 msgid "Save password"
 msgstr "パスワードを保存"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:75
+#: lib/goodmao2_web/live/user_live/settings.ex:81
 #, elixir-autogen, elixir-format
 msgid "Your password is managed on its own page."
 msgstr "パスワードは専用ページで管理します。"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:74
+#: lib/goodmao2_web/live/user_live/password_settings.ex:79
 #, elixir-autogen, elixir-format
 msgid "← Back to account settings"
 msgstr "← アカウント設定へ戻る"
@@ -1003,17 +1004,17 @@ msgstr "← アカウント設定へ戻る"
 msgid "What happened?"
 msgstr "どんな出来事？"
 
-#: lib/goodmao2_web/live/pet_live/end_of_care.ex:77
+#: lib/goodmao2_web/live/pet_live/end_of_care.ex:82
 #, elixir-autogen, elixir-format
 msgid "This records that %{name} is no longer under your active care — for example if they have passed away, been rehomed, or been lost. Nothing is deleted: the full record and timeline are kept and stay reachable by direct link; %{name} simply leaves your active list. Hiding the history is a separate, reversible choice."
 msgstr "これは、%{name}があなたの日常のケアから離れたことを記録します（他界・里親・行方不明など）。何も削除されません。完全な記録とタイムラインは保持され、直接リンクから引き続き閲覧できます。%{name}はケア中の一覧から外れるだけです。履歴を非表示にするかどうかは、いつでも元に戻せる別の選択です。"
 
-#: lib/goodmao2_web/live/pet_live/index.ex:102
+#: lib/goodmao2_web/live/pet_live/index.ex:107
 #, elixir-autogen, elixir-format
 msgid "Back to your pets"
 msgstr "あなたのペットへ戻る"
 
-#: lib/goodmao2_web/live/pet_live/index.ex:56
+#: lib/goodmao2_web/live/pet_live/index.ex:61
 #, elixir-autogen, elixir-format
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr "ケアを終えたパートナーたち。その記録とタイムラインは、ここにずっと保管されます。"
@@ -1069,12 +1070,12 @@ msgstr "現在のパスワードが正しくないか、新しいパスワード
 msgid "Don't have an account?"
 msgstr "アカウントをお持ちでないですか？"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:116
+#: lib/goodmao2_web/live/user_live/settings.ex:167
 #, elixir-autogen, elixir-format
 msgid "Email change link is invalid or it has expired."
 msgstr "メールアドレス変更リンクが無効か、有効期限が切れています。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:113
+#: lib/goodmao2_web/live/user_live/settings.ex:164
 #, elixir-autogen, elixir-format
 msgid "Email changed successfully."
 msgstr "メールアドレスを変更しました。"
@@ -1234,7 +1235,7 @@ msgstr "文字を大きく"
 msgid "Text size"
 msgstr "文字サイズ"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1024
+#: lib/goodmao2_web/live/pet_live/show.ex:1029
 #, elixir-autogen, elixir-format
 msgid "%{count} entry"
 msgid_plural "%{count} entries"
@@ -1260,12 +1261,12 @@ msgstr "4月"
 msgid "August"
 msgstr "8月"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:718
+#: lib/goodmao2_web/live/pet_live/show.ex:723
 #, elixir-autogen, elixir-format
 msgid "Back to month"
 msgstr "月に戻る"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:514
+#: lib/goodmao2_web/live/pet_live/show.ex:519
 #, elixir-autogen, elixir-format
 msgid "Calendar"
 msgstr "カレンダー"
@@ -1275,7 +1276,7 @@ msgstr "カレンダー"
 msgid "December"
 msgstr "12月"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:681
+#: lib/goodmao2_web/live/pet_live/show.ex:686
 #, elixir-autogen, elixir-format
 msgid "Entries for %{month}"
 msgstr "%{month}の記録"
@@ -1305,7 +1306,7 @@ msgstr "7月"
 msgid "June"
 msgstr "6月"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:501
+#: lib/goodmao2_web/live/pet_live/show.ex:506
 #, elixir-autogen, elixir-format
 msgid "List"
 msgstr "リスト"
@@ -1325,17 +1326,17 @@ msgstr "5月"
 msgid "Mon"
 msgstr "月"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:654
+#: lib/goodmao2_web/live/pet_live/show.ex:659
 #, elixir-autogen, elixir-format
 msgid "Month navigation"
 msgstr "月の切り替え"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:673
+#: lib/goodmao2_web/live/pet_live/show.ex:678
 #, elixir-autogen, elixir-format
 msgid "Next month"
 msgstr "翌月"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:722
+#: lib/goodmao2_web/live/pet_live/show.ex:727
 #, elixir-autogen, elixir-format
 msgid "No entries on this day."
 msgstr "この日の記録はありません。"
@@ -1350,7 +1351,7 @@ msgstr "11月"
 msgid "October"
 msgstr "10月"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:662
+#: lib/goodmao2_web/live/pet_live/show.ex:667
 #, elixir-autogen, elixir-format
 msgid "Previous month"
 msgstr "前月"
@@ -1375,7 +1376,7 @@ msgstr "日"
 msgid "Thu"
 msgstr "木"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:487
+#: lib/goodmao2_web/live/pet_live/show.ex:492
 #, elixir-autogen, elixir-format
 msgid "Timeline view"
 msgstr "タイムライン表示"
@@ -1390,12 +1391,12 @@ msgstr "火"
 msgid "Wed"
 msgstr "水"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1027
+#: lib/goodmao2_web/live/pet_live/show.ex:1032
 #, elixir-autogen, elixir-format
 msgid "urgent"
 msgstr "緊急"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1028
+#: lib/goodmao2_web/live/pet_live/show.ex:1033
 #, elixir-autogen, elixir-format
 msgid "worth watching"
 msgstr "要注意"
@@ -1441,48 +1442,48 @@ msgid "Menu"
 msgstr "メニュー"
 
 #: lib/goodmao2_web/components/layouts.ex:225
-#: lib/goodmao2_web/live/admin_live.ex:21
-#: lib/goodmao2_web/live/admin_live.ex:138
+#: lib/goodmao2_web/live/admin_live.ex:26
+#: lib/goodmao2_web/live/admin_live.ex:146
 #, elixir-autogen, elixir-format
 msgid "Administration"
 msgstr "サイト管理"
 
-#: lib/goodmao2_web/live/admin_live.ex:57
+#: lib/goodmao2_web/live/admin_live.ex:62
 #, elixir-autogen, elixir-format
 msgid "Administration is a global role. It grants no access to any pet's data."
 msgstr "管理はサイト全体の役割です。ペットのデータへのアクセス権は付与されません。"
 
-#: lib/goodmao2_web/live/admin_live.ex:44
+#: lib/goodmao2_web/live/admin_live.ex:49
 #, elixir-autogen, elixir-format
 msgid "Only %{email} may create the first account."
 msgstr "最初のアカウントを作成できるのは %{email} のみです。"
 
-#: lib/goodmao2_web/live/admin_live.ex:47
+#: lib/goodmao2_web/live/admin_live.ex:52
 #, elixir-autogen, elixir-format
 msgid "Open"
 msgstr "開放"
 
-#: lib/goodmao2_web/live/admin_live.ex:22
+#: lib/goodmao2_web/live/admin_live.ex:27
 #, elixir-autogen, elixir-format
 msgid "Platform overview and site status."
 msgstr "プラットフォームの概要とサイトの状態。"
 
-#: lib/goodmao2_web/live/admin_live.ex:34
+#: lib/goodmao2_web/live/admin_live.ex:39
 #, elixir-autogen, elixir-format
 msgid "Registered users"
 msgstr "登録ユーザー数"
 
-#: lib/goodmao2_web/live/admin_live.ex:39
+#: lib/goodmao2_web/live/admin_live.ex:44
 #, elixir-autogen, elixir-format
 msgid "Registration"
 msgstr "登録"
 
-#: lib/goodmao2_web/live/admin_live.ex:42
+#: lib/goodmao2_web/live/admin_live.ex:47
 #, elixir-autogen, elixir-format
 msgid "Restricted"
 msgstr "制限あり"
 
-#: lib/goodmao2_web/live/admin_live.ex:49
+#: lib/goodmao2_web/live/admin_live.ex:54
 #, elixir-autogen, elixir-format
 msgid "The first account to register becomes the administrator."
 msgstr "最初に登録したアカウントが管理者になります。"
@@ -1502,7 +1503,7 @@ msgstr "大切なペットのための健康タイムライン"
 msgid "Blood"
 msgstr "血あり"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:582
+#: lib/goodmao2_web/live/pet_live/show.ex:587
 #, elixir-autogen, elixir-format
 msgid "Clinical flags"
 msgstr "臨床フラグ"
@@ -1527,17 +1528,17 @@ msgstr "重い症状"
 msgid "Straining"
 msgstr "いきみ"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:450
+#: lib/goodmao2_web/live/pet_live/show.ex:455
 #, elixir-autogen, elixir-format
 msgid "More options"
 msgstr "その他のオプション"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:430
+#: lib/goodmao2_web/live/pet_live/show.ex:435
 #, elixir-autogen, elixir-format
 msgid "Quick log shortcuts"
 msgstr "クイック記録のショートカット"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1004
+#: lib/goodmao2_web/live/pet_live/show.ex:1009
 #, elixir-autogen, elixir-format
 msgid "Vomited"
 msgstr "嘔吐"
@@ -1582,7 +1583,7 @@ msgstr "%{type}の記録"
 msgid "Assessment"
 msgstr "所見"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:135
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:140
 #, elixir-autogen, elixir-format
 msgid "Back to %{name}"
 msgstr "%{name} に戻る"
@@ -1592,32 +1593,32 @@ msgstr "%{name} に戻る"
 msgid "Changes saved."
 msgstr "変更を保存しました。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:149
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:154
 #, elixir-autogen, elixir-format
 msgid "Current entry"
 msgstr "現在の記録"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:180
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:185
 #, elixir-autogen, elixir-format
 msgid "Each saved change keeps a snapshot. %{left} edits left."
 msgstr "変更を保存するたびにスナップショットが残ります。あと %{left} 回編集できます。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:178
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:183
 #, elixir-autogen, elixir-format
 msgid "Edit entry"
 msgstr "記録を編集"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:618
+#: lib/goodmao2_web/live/pet_live/show.ex:623
 #, elixir-autogen, elixir-format
 msgid "Edit entry or view its history"
 msgstr "記録を編集または履歴を表示"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:243
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:248
 #, elixir-autogen, elixir-format
 msgid "Edit history"
 msgstr "編集履歴"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:166
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:171
 #, elixir-autogen, elixir-format
 msgid "Edited %{n} of %{max}"
 msgstr "%{max} 回中 %{n} 回編集"
@@ -1627,12 +1628,12 @@ msgstr "%{max} 回中 %{n} 回編集"
 msgid "Entry not found."
 msgstr "記録が見つかりません。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:245
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:250
 #, elixir-autogen, elixir-format
 msgid "No edits yet — this entry is as first recorded."
 msgstr "まだ編集はありません——この記録は最初に記録されたままです。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:261
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:266
 #, elixir-autogen, elixir-format
 msgid "Previous value:"
 msgstr "以前の内容："
@@ -1642,12 +1643,12 @@ msgstr "以前の内容："
 msgid "Recommendation"
 msgstr "推奨"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:221
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:226
 #, elixir-autogen, elixir-format
 msgid "Save changes"
 msgstr "変更を保存"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:238
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:243
 #, elixir-autogen, elixir-format
 msgid "This entry has reached its nine-edit limit and can no longer be changed."
 msgstr "この記録は9回の編集上限に達したため、これ以上変更できません。"
@@ -1667,7 +1668,7 @@ msgstr "この記録を編集する権限がありません。"
 msgid "a former caretaker"
 msgstr "以前の世話人"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:610
+#: lib/goodmao2_web/live/pet_live/show.ex:615
 #, elixir-autogen, elixir-format
 msgid "edited"
 msgstr "編集済み"
@@ -1687,7 +1688,7 @@ msgstr "メディアを保存できませんでした。もう一度お試しく
 msgid "File is too large."
 msgstr "ファイルが大きすぎます。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:897
+#: lib/goodmao2_web/live/pet_live/show.ex:902
 #, elixir-autogen, elixir-format
 msgid "JPEG, PNG, GIF, WEBP, MP4, or WEBM."
 msgstr "JPEG、PNG、GIF、WEBP、MP4、WEBM に対応。"
@@ -1697,12 +1698,12 @@ msgstr "JPEG、PNG、GIF、WEBP、MP4、WEBM に対応。"
 msgid "Life log photo"
 msgstr "生活記録の写真"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:894
+#: lib/goodmao2_web/live/pet_live/show.ex:899
 #, elixir-autogen, elixir-format
 msgid "Photos or video"
 msgstr "写真または動画"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:910
+#: lib/goodmao2_web/live/pet_live/show.ex:915
 #, elixir-autogen, elixir-format
 msgid "Remove file"
 msgstr "ファイルを削除"
@@ -1732,37 +1733,37 @@ msgstr "最近アップロードが多すぎます——しばらくしてから
 msgid "%{brand} health summary"
 msgstr "%{brand} 健康サマリー"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:213
+#: lib/goodmao2_web/live/pet_live/reports.ex:218
 #, elixir-autogen, elixir-format
 msgid "A report freezes the timeline for this range. Private entries are never included."
 msgstr "レポートはこの期間のタイムラインを固定します。非公開の記録は含まれません。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:307
+#: lib/goodmao2_web/live/pet_live/reports.ex:317
 #, elixir-autogen, elixir-format
 msgid "A share link is active until %{t}."
 msgstr "共有リンクは %{t} まで有効です。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:335
+#: lib/goodmao2_web/live/pet_live/reports.ex:345
 #, elixir-autogen, elixir-format
 msgid "Anyone with the link can read this report until it expires."
 msgstr "リンクを知っている人は、有効期限まで誰でもこのレポートを閲覧できます。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:86
+#: lib/goodmao2_web/live/user_live/settings.ex:137
 #, elixir-autogen, elixir-format
 msgid "Are you a veterinarian? Submit your credentials to be verified."
 msgstr "あなたは獣医ですか？認証を受けるために資格情報を提出してください。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:106
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:111
 #, elixir-autogen, elixir-format
 msgid "Back to account settings"
 msgstr "← アカウント設定へ戻る"
 
-#: lib/goodmao2_web/live/admin_live.ex:99
+#: lib/goodmao2_web/live/admin_live.ex:107
 #, elixir-autogen, elixir-format
 msgid "Clinic"
 msgstr "動物病院"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:96
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:101
 #, elixir-autogen, elixir-format
 msgid "Clinic name"
 msgstr "動物病院名"
@@ -1787,17 +1788,17 @@ msgstr "レポートを生成できませんでした。日付を確認してく
 msgid "Could not revoke the link."
 msgstr "リンクを取り消せませんでした。"
 
-#: lib/goodmao2_web/live/admin_live.ex:169
+#: lib/goodmao2_web/live/admin_live.ex:177
 #, elixir-autogen, elixir-format
 msgid "Could not update that submission."
 msgstr "その申請を更新できませんでした。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:338
+#: lib/goodmao2_web/live/pet_live/reports.ex:348
 #, elixir-autogen, elixir-format
 msgid "Create share link"
 msgstr "共有リンクを作成"
 
-#: lib/goodmao2_web/live/admin_live.ex:152
+#: lib/goodmao2_web/live/admin_live.ex:160
 #, elixir-autogen, elixir-format
 msgid "Credentials rejected."
 msgstr "資格情報を却下しました。"
@@ -1807,12 +1808,12 @@ msgstr "資格情報を却下しました。"
 msgid "Credentials submitted for review."
 msgstr "資格情報を審査に提出しました。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:353
+#: lib/goodmao2_web/live/pet_live/reports.ex:363
 #, elixir-autogen, elixir-format
 msgid "Delete report"
 msgstr "レポートを削除"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:350
+#: lib/goodmao2_web/live/pet_live/reports.ex:360
 #, elixir-autogen, elixir-format
 msgid "Delete this report?"
 msgstr "このレポートを削除しますか？"
@@ -1822,60 +1823,60 @@ msgstr "このレポートを削除しますか？"
 msgid "Entries"
 msgstr "記録数"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:207
+#: lib/goodmao2_web/live/pet_live/reports.ex:212
 #, elixir-autogen, elixir-format
 msgid "From"
 msgstr "開始日"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:218
+#: lib/goodmao2_web/live/pet_live/reports.ex:223
 #, elixir-autogen, elixir-format
 msgid "Generate"
 msgstr "生成"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:202
+#: lib/goodmao2_web/live/pet_live/reports.ex:207
 #, elixir-autogen, elixir-format
 msgid "Generate a report"
 msgstr "レポートを生成"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:241
+#: lib/goodmao2_web/live/pet_live/reports.ex:246
 #, elixir-autogen, elixir-format
 msgid "Generated %{t}"
 msgstr "%{t} に生成"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:224
+#: lib/goodmao2_web/live/pet_live/reports.ex:229
 #, elixir-autogen, elixir-format
 msgid "Generated reports"
 msgstr "生成済みのレポート"
 
 #: lib/goodmao2_web/controllers/report_controller.ex:21
 #: lib/goodmao2_web/live/pet_live/reports.ex:60
-#: lib/goodmao2_web/live/pet_live/reports.ex:277
+#: lib/goodmao2_web/live/pet_live/reports.ex:287
 #, elixir-autogen, elixir-format
 msgid "Health summary"
 msgstr "健康サマリー"
 
-#: lib/goodmao2_web/live/admin_live.ex:93
+#: lib/goodmao2_web/live/admin_live.ex:101
 #, elixir-autogen, elixir-format
 msgid "License"
 msgstr "免許"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:86
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:91
 #, elixir-autogen, elixir-format
 msgid "License number"
 msgstr "免許番号"
 
-#: lib/goodmao2_web/live/admin_live.ex:95
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:92
+#: lib/goodmao2_web/live/admin_live.ex:103
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:97
 #, elixir-autogen, elixir-format
 msgid "Licensing body"
 msgstr "発行機関"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:331
+#: lib/goodmao2_web/live/pet_live/reports.ex:341
 #, elixir-autogen, elixir-format
 msgid "Link expires"
 msgstr "リンクの有効期限"
 
-#: lib/goodmao2_web/live/admin_live.ex:80
+#: lib/goodmao2_web/live/admin_live.ex:88
 #, elixir-autogen, elixir-format
 msgid "No credentials are awaiting review."
 msgstr "審査待ちの資格情報はありません。"
@@ -1885,12 +1886,12 @@ msgstr "審査待ちの資格情報はありません。"
 msgid "No entries in this period."
 msgstr "この期間に記録はありません。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:228
+#: lib/goodmao2_web/live/pet_live/reports.ex:233
 #, elixir-autogen, elixir-format
 msgid "No reports yet."
 msgstr "まだレポートはありません。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:116
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:121
 #, elixir-autogen, elixir-format
 msgid "Not accepted"
 msgstr "不受理"
@@ -1900,7 +1901,7 @@ msgstr "不受理"
 msgid "Only a verified veterinarian can be given the vet role."
 msgstr "獣医ロールを付与できるのは、認証済みの獣医のみです。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:114
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:119
 #, elixir-autogen, elixir-format
 msgid "Pending review"
 msgstr "審査中"
@@ -1926,27 +1927,27 @@ msgid "Please choose when the link should expire."
 msgstr "リンクの有効期限を選択してください。"
 
 #: lib/goodmao2_web/controllers/report_html/show.html.heex:7
-#: lib/goodmao2_web/live/pet_live/reports.ex:281
+#: lib/goodmao2_web/live/pet_live/reports.ex:291
 #, elixir-autogen, elixir-format
 msgid "Print"
 msgstr "印刷"
 
-#: lib/goodmao2_web/live/admin_live.ex:97
+#: lib/goodmao2_web/live/admin_live.ex:105
 #, elixir-autogen, elixir-format
 msgid "Region"
 msgstr "地域"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:95
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:100
 #, elixir-autogen, elixir-format
 msgid "Region / country"
 msgstr "地域／国"
 
-#: lib/goodmao2_web/live/admin_live.ex:123
+#: lib/goodmao2_web/live/admin_live.ex:131
 #, elixir-autogen, elixir-format
 msgid "Reject"
 msgstr "却下"
 
-#: lib/goodmao2_web/live/admin_live.ex:120
+#: lib/goodmao2_web/live/admin_live.ex:128
 #, elixir-autogen, elixir-format
 msgid "Reject these credentials?"
 msgstr "この資格情報を却下しますか？"
@@ -1967,33 +1968,33 @@ msgstr "レポートを生成しました。"
 msgid "Report not found."
 msgstr "レポートが見つかりません。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:848
+#: lib/goodmao2_web/live/pet_live/show.ex:853
 #, elixir-autogen, elixir-format
 msgid "Reports"
 msgstr "レポート"
 
 #: lib/goodmao2_web/live/pet_live/reports.ex:41
-#: lib/goodmao2_web/live/pet_live/reports.ex:190
+#: lib/goodmao2_web/live/pet_live/reports.ex:195
 #, elixir-autogen, elixir-format
 msgid "Reports for %{name}"
 msgstr "%{name} のレポート"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:100
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:105
 #, elixir-autogen, elixir-format
 msgid "Resubmit for review"
 msgstr "審査に再提出"
 
-#: lib/goodmao2_web/live/admin_live.ex:71
+#: lib/goodmao2_web/live/admin_live.ex:79
 #, elixir-autogen, elixir-format
 msgid "Review submitted credentials before the vet role can be granted anywhere."
 msgstr "獣医ロールをどこかで付与する前に、提出された資格情報を審査してください。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:318
+#: lib/goodmao2_web/live/pet_live/reports.ex:328
 #, elixir-autogen, elixir-format
 msgid "Revoke link"
 msgstr "リンクを取り消す"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:315
+#: lib/goodmao2_web/live/pet_live/reports.ex:325
 #, elixir-autogen, elixir-format
 msgid "Revoke the share link?"
 msgstr "共有リンクを取り消しますか？"
@@ -2008,12 +2009,12 @@ msgstr "共有リンクを作成しました。今すぐコピーしてくださ
 msgid "Share link revoked."
 msgstr "共有リンクを取り消しました。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:299
+#: lib/goodmao2_web/live/pet_live/reports.ex:309
 #, elixir-autogen, elixir-format
 msgid "Share with a veterinarian"
 msgstr "獣医と共有"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:243
+#: lib/goodmao2_web/live/pet_live/reports.ex:248
 #, elixir-autogen, elixir-format
 msgid "Shared"
 msgstr "共有済み"
@@ -2023,17 +2024,17 @@ msgstr "共有済み"
 msgid "Shared via a temporary link. This is a point-in-time snapshot."
 msgstr "一時リンクで共有されています。これはある時点のスナップショットです。"
 
-#: lib/goodmao2_web/live/admin_live.ex:101
+#: lib/goodmao2_web/live/admin_live.ex:109
 #, elixir-autogen, elixir-format
 msgid "Specialty"
 msgstr "専門"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:97
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:102
 #, elixir-autogen, elixir-format
 msgid "Specialty (optional)"
 msgstr "専門（任意）"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:100
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:105
 #, elixir-autogen, elixir-format
 msgid "Submit for review"
 msgstr "審査に提出"
@@ -2043,7 +2044,7 @@ msgstr "審査に提出"
 msgid "Summary"
 msgstr "サマリー"
 
-#: lib/goodmao2_web/live/admin_live.ex:161
+#: lib/goodmao2_web/live/admin_live.ex:169
 #, elixir-autogen, elixir-format
 msgid "That submission is no longer pending."
 msgstr "その申請はすでに審査待ちではありません。"
@@ -2053,44 +2054,44 @@ msgstr "その申請はすでに審査待ちではありません。"
 msgid "The expiry must be in the future."
 msgstr "有効期限は未来の日時にする必要があります。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:210
+#: lib/goodmao2_web/live/pet_live/reports.ex:215
 #, elixir-autogen, elixir-format
 msgid "To"
 msgstr "終了日"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:115
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:120
 #, elixir-autogen, elixir-format
 msgid "Verified"
 msgstr "認証済み"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:60
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:65
 #, elixir-autogen, elixir-format
 msgid "Verified professionals can be given read access and author vet notes."
 msgstr "認証された専門家には、閲覧アクセスの付与と獣医メモの作成が認められます。"
 
-#: lib/goodmao2_web/live/admin_live.ex:113
+#: lib/goodmao2_web/live/admin_live.ex:121
 #, elixir-autogen, elixir-format
 msgid "Verify"
 msgstr "認証する"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:89
+#: lib/goodmao2_web/live/user_live/settings.ex:140
 #: lib/goodmao2_web/live/user_live/vet_profile.ex:21
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:58
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:63
 #, elixir-autogen, elixir-format
 msgid "Veterinarian credentials"
 msgstr "獣医の資格情報"
 
-#: lib/goodmao2_web/live/admin_live.ex:68
+#: lib/goodmao2_web/live/admin_live.ex:76
 #, elixir-autogen, elixir-format
 msgid "Veterinarian verifications"
 msgstr "獣医の認証"
 
-#: lib/goodmao2_web/live/admin_live.ex:148
+#: lib/goodmao2_web/live/admin_live.ex:156
 #, elixir-autogen, elixir-format
 msgid "Veterinarian verified."
 msgstr "獣医を認証しました。"
 
-#: lib/goodmao2_web/live/pet_live/reports.ex:252
+#: lib/goodmao2_web/live/pet_live/reports.ex:257
 #, elixir-autogen, elixir-format
 msgid "View"
 msgstr "表示"
@@ -2100,7 +2101,7 @@ msgstr "表示"
 msgid "You are not allowed to generate reports."
 msgstr "レポートを生成する権限がありません。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:72
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:77
 #, elixir-autogen, elixir-format
 msgid "Your last submission was not accepted. You may correct and resubmit it."
 msgstr "前回の提出は受理されませんでした。修正して再提出できます。"
@@ -2116,7 +2117,7 @@ msgid "%{actor} removed your access to %{pet}."
 msgstr "%{actor} さんが %{pet} へのあなたのアクセス権を削除しました。"
 
 #: lib/goodmao2_web/components/layouts.ex:207
-#: lib/goodmao2_web/live/message_live/index.ex:113
+#: lib/goodmao2_web/live/message_live/index.ex:120
 #, elixir-autogen, elixir-format
 msgid "%{count} unread message"
 msgid_plural "%{count} unread messages"
@@ -2174,33 +2175,33 @@ msgstr "%{name} さんとのチャット"
 msgid "Conversation not found."
 msgstr "会話が見つかりません。"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:135
+#: lib/goodmao2_web/live/notification_live/index.ex:149
 #, elixir-autogen, elixir-format
 msgid "Dismiss"
 msgstr "消去"
 
-#: lib/goodmao2_web/live/admin_live/announcements.ex:64
+#: lib/goodmao2_web/live/admin_live/announcements.ex:73
 #, elixir-autogen, elixir-format
 msgid "Every user receives this as a notification. Use it sparingly."
 msgstr "これは全ユーザーに通知として届きます。使用は控えめにしてください。"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:77
+#: lib/goodmao2_web/live/notification_live/index.ex:89
 #, elixir-autogen, elixir-format
 msgid "Mark all read"
 msgstr "すべて既読にする"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:128
+#: lib/goodmao2_web/live/notification_live/index.ex:142
 #, elixir-autogen, elixir-format
 msgid "Mark read"
 msgstr "既読にする"
 
-#: lib/goodmao2_web/live/admin_live/announcements.ex:75
-#: lib/goodmao2_web/live/message_live/show.ex:132
+#: lib/goodmao2_web/live/admin_live/announcements.ex:84
+#: lib/goodmao2_web/live/message_live/show.ex:141
 #, elixir-autogen, elixir-format
 msgid "Message"
 msgstr "メッセージ"
 
-#: lib/goodmao2_web/live/message_live/index.ex:73
+#: lib/goodmao2_web/live/message_live/index.ex:80
 #, elixir-autogen, elixir-format
 msgid "Message someone (@handle or email)"
 msgstr "誰かにメッセージを送る（@ハンドル または メールアドレス）"
@@ -2208,7 +2209,7 @@ msgstr "誰かにメッセージを送る（@ハンドル または メールア
 #: lib/goodmao2_web/components/layouts.ex:198
 #: lib/goodmao2_web/components/layouts.ex:201
 #: lib/goodmao2_web/live/message_live/index.ex:19
-#: lib/goodmao2_web/live/message_live/index.ex:60
+#: lib/goodmao2_web/live/message_live/index.ex:67
 #, elixir-autogen, elixir-format
 msgid "Messages"
 msgstr "メッセージ"
@@ -2218,17 +2219,17 @@ msgstr "メッセージ"
 msgid "New log entry"
 msgstr "新しい記録"
 
-#: lib/goodmao2_web/live/message_live/index.ex:89
+#: lib/goodmao2_web/live/message_live/index.ex:96
 #, elixir-autogen, elixir-format
 msgid "No conversations yet. Start one with someone you share a pet with."
 msgstr "まだ会話はありません。ペットを共有している相手と会話を始めましょう。"
 
-#: lib/goodmao2_web/live/message_live/show.ex:99
+#: lib/goodmao2_web/live/message_live/show.ex:108
 #, elixir-autogen, elixir-format
 msgid "No messages yet. Say hello."
 msgstr "まだメッセージはありません。あいさつしてみましょう。"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:86
+#: lib/goodmao2_web/live/notification_live/index.ex:98
 #, elixir-autogen, elixir-format
 msgid "Nothing yet. You'll hear about access changes, new logs, and announcements here."
 msgstr "まだ何もありません。アクセス権の変更、新しい記録、お知らせはここに表示されます。"
@@ -2241,29 +2242,29 @@ msgstr "通知"
 #: lib/goodmao2_web/components/layouts.ex:172
 #: lib/goodmao2_web/components/layouts.ex:175
 #: lib/goodmao2_web/live/notification_live/index.ex:19
-#: lib/goodmao2_web/live/notification_live/index.ex:69
+#: lib/goodmao2_web/live/notification_live/index.ex:81
 #, elixir-autogen, elixir-format
 msgid "Notifications"
 msgstr "通知"
 
-#: lib/goodmao2_web/live/admin_live.ex:62
-#: lib/goodmao2_web/live/admin_live/announcements.ex:59
+#: lib/goodmao2_web/live/admin_live.ex:67
+#: lib/goodmao2_web/live/admin_live/announcements.ex:68
 #, elixir-autogen, elixir-format
 msgid "Post an announcement"
 msgstr "お知らせを投稿する"
 
-#: lib/goodmao2_web/live/message_live/show.ex:143
+#: lib/goodmao2_web/live/message_live/show.ex:152
 #, elixir-autogen, elixir-format
 msgid "Send"
 msgstr "送信"
 
-#: lib/goodmao2_web/live/admin_live/announcements.ex:82
+#: lib/goodmao2_web/live/admin_live/announcements.ex:91
 #, elixir-autogen, elixir-format
 msgid "Send to everyone"
 msgstr "全員に送信"
 
-#: lib/goodmao2_web/live/admin_live/announcements.ex:80
-#: lib/goodmao2_web/live/message_live/show.ex:141
+#: lib/goodmao2_web/live/admin_live/announcements.ex:89
+#: lib/goodmao2_web/live/message_live/show.ex:150
 #, elixir-autogen, elixir-format
 msgid "Sending…"
 msgstr "送信中…"
@@ -2273,17 +2274,17 @@ msgstr "送信中…"
 msgid "Someone"
 msgstr "誰か"
 
-#: lib/goodmao2_web/live/message_live/index.ex:78
+#: lib/goodmao2_web/live/message_live/index.ex:85
 #, elixir-autogen, elixir-format
 msgid "Start"
 msgstr "開始"
 
-#: lib/goodmao2_web/live/admin_live/announcements.ex:74
+#: lib/goodmao2_web/live/admin_live/announcements.ex:83
 #, elixir-autogen, elixir-format
 msgid "Title"
 msgstr "タイトル"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:108
+#: lib/goodmao2_web/live/notification_live/index.ex:122
 #, elixir-autogen, elixir-format
 msgid "Unread"
 msgstr "未読"
@@ -2297,3 +2298,135 @@ msgstr "その会話を開始できませんでした。メッセージを送れ
 #, elixir-autogen, elixir-format
 msgid "Your message couldn't be sent."
 msgstr "メッセージを送信できませんでした。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:96
+#, elixir-autogen, elixir-format
+msgid "Configured"
+msgstr "設定済み"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:123
+#, elixir-autogen, elixir-format
+msgid "Contact (mailto:)"
+msgstr "連絡先（mailto:）"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:46
+#, elixir-autogen, elixir-format
+msgid "Contact saved."
+msgstr "連絡先を保存しました。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:49
+#, elixir-autogen, elixir-format
+msgid "Could not save the contact."
+msgstr "連絡先を保存できませんでした。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:39
+#, elixir-autogen, elixir-format
+msgid "Could not save the keys."
+msgstr "キーを保存できませんでした。"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:288
+#, elixir-autogen, elixir-format
+msgid "Couldn't update push notifications. Please try again."
+msgstr "プッシュ通知を更新できませんでした。もう一度お試しください。"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:129
+#, elixir-autogen, elixir-format
+msgid "Disable push"
+msgstr "プッシュを無効にする"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:120
+#, elixir-autogen, elixir-format
+msgid "Enable push"
+msgstr "プッシュを有効にする"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:142
+#, elixir-autogen, elixir-format
+msgid "Generate keys"
+msgstr "キーを生成"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:140
+#, elixir-autogen, elixir-format
+msgid "Generating…"
+msgstr "生成中…"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:108
+#, elixir-autogen, elixir-format
+msgid "Get notified about access changes, new logs, and announcements even when GoodMao is closed."
+msgstr "GoodMao を閉じているときでも、アクセス権の変更、新しい記録、お知らせの通知を受け取れます。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:35
+#, elixir-autogen, elixir-format
+msgid "New Web Push keys generated. Existing subscriptions must re-subscribe."
+msgstr "新しい Web Push キーを生成しました。既存の購読は再登録が必要です。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:96
+#, elixir-autogen, elixir-format
+msgid "Not configured"
+msgstr "未設定"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:283
+#, elixir-autogen, elixir-format
+msgid "Notification permission was denied."
+msgstr "通知の許可が拒否されました。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:108
+#, elixir-autogen, elixir-format
+msgid "Public key"
+msgstr "公開キー"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:100
+#, elixir-autogen, elixir-format
+msgid "Push notifications"
+msgstr "プッシュ通知"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:106
+#, elixir-autogen, elixir-format
+msgid "Push notifications are on for this device."
+msgstr "このデバイスではプッシュ通知が有効です。"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:279
+#, elixir-autogen, elixir-format
+msgid "Push notifications disabled for this device."
+msgstr "このデバイスのプッシュ通知を無効にしました。"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:272
+#, elixir-autogen, elixir-format
+msgid "Push notifications enabled for this device."
+msgstr "このデバイスのプッシュ通知を有効にしました。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:142
+#, elixir-autogen, elixir-format
+msgid "Regenerate keys"
+msgstr "キーを再生成"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:135
+#, elixir-autogen, elixir-format
+msgid "Regenerating the keys invalidates every existing push subscription — users will need to re-enable notifications. Continue?"
+msgstr "キーを再生成すると、既存のプッシュ購読はすべて無効になります。ユーザーは通知を再度有効にする必要があります。続行しますか？"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:126
+#, elixir-autogen, elixir-format
+msgid "Save contact"
+msgstr "連絡先を保存"
+
+#: lib/goodmao2_web/live/admin_live.ex:70
+#: lib/goodmao2_web/live/admin_live/settings.ex:21
+#: lib/goodmao2_web/live/admin_live/settings.ex:80
+#, elixir-autogen, elixir-format
+msgid "System settings"
+msgstr "システム設定"
+
+#: lib/goodmao2_web/live/user_live/settings.ex:104
+#, elixir-autogen, elixir-format
+msgid "This browser doesn't support push notifications."
+msgstr "このブラウザはプッシュ通知に対応していません。"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:91
+#, elixir-autogen, elixir-format
+msgid "Web Push (VAPID)"
+msgstr "Web Push（VAPID）"
+
+#: lib/goodmao2_web/live/admin_live/settings.ex:101
+#, elixir-autogen, elixir-format
+msgid "Web Push lets followers receive notifications with GoodMao closed. Generate a keypair to enable it."
+msgstr "Web Push を使うと、GoodMao を閉じていてもフォロワーが通知を受け取れます。キーペアを生成して有効にしましょう。"

@@ -62,9 +62,12 @@ defmodule Goodmao2Web.AdminLive do
         {gettext("Administration is a global role. It grants no access to any pet's data.")}
       </p>
 
-      <div class="mt-4">
+      <div class="mt-4 flex flex-wrap gap-2">
         <.link navigate={~p"/admin/announcements"} id="admin-announcements-link" class="btn btn-sm">
           <.icon name="hero-megaphone" class="size-4" /> {gettext("Post an announcement")}
+        </.link>
+        <.link navigate={~p"/admin/settings"} id="admin-settings-link" class="btn btn-sm">
+          <.icon name="hero-cog-6-tooth" class="size-4" /> {gettext("System settings")}
         </.link>
       </div>
 

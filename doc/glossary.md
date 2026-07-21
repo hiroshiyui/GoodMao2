@@ -120,6 +120,13 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
   through **Oban** so the write path stays fast.
 - **Announcement** — an Administrator broadcast that fans an `announcement` notification
   out to every user (composed on `/admin/announcements`).
+- **Web Push** — OS-level delivery of the four bell events to a user's browser even with
+  GoodMao closed (ADR-0011 Stage 2). Opt-in per device on `/users/settings`, best-effort, and
+  dispatched through **Oban** from the same `notifications` rows. Rendered in the site's
+  default locale (no per-request locale off the request path).
+- **Push subscription** — the browser endpoint + encryption keys (`p256dh`/`auth`) a user
+  registered for Web Push. The `endpoint` is browser-supplied, so it is SSRF-validated before
+  storage; a `410 Gone` from the push service soft-deletes it.
 - **毛小孩 (fur kid)** — affectionate Taiwanese term for a pet; the product's tone.
   Localized per culture, not transliterated (English "pets", Japanese ペット) — see
   _Culture-first localization_.
@@ -160,5 +167,16 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
 - **Oban** — the durable, DB-backed background-job library GoodMao will adopt **when a
   job actually needs it** (media janitor, reminders, notification fan-out); deferred until
   required. See [ADR-0006 (superseded)](adr/README.md).
+- **VAPID** — the Web Push server-identity keypair (RFC 8292; ECDSA P-256). The public key
+  is handed to the browser; the private key signs a short-lived ES256 JWT per push. GoodMao
+  generates it from the **admin Web UI** (`/admin/settings`) and stores it in the `settings`
+  table — the private key AES-256-GCM-encrypted (`WebPush.VapidVault`, keyed off
+  `SECRET_KEY_BASE`). Rotating `SECRET_KEY_BASE` requires regenerating the keys.
+- **SSRF-safe client** — `WebPush.SafeClient`, the outbound HTTP client for push delivery.
+  Because push endpoints are user-supplied URLs, it resolves DNS, rejects private/loopback
+  addresses (IPv4 and IPv6, incl. IPv4-mapped/NAT64), and **pins** the connection to the
+  resolved IP (defeating DNS-rebinding) while keeping the original SNI/Host.
+- **System settings** — a small admin-managed key/value store (`Goodmao2.Settings`, ETS-cached)
+  for site-wide configuration set from the Web UI. First use: the Web Push VAPID keypair.
 - **`mix precommit`** — the single gate (compile with warnings-as-errors + unused-deps
   check + format + full test suite) that humans and agents run before finishing.

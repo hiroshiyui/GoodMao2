@@ -59,6 +59,13 @@ config :esbuild,
       ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+  ],
+  # The service worker is a separate bundle served from the site root (scope "/"), so it
+  # cannot live under /assets. It has no imports; --bundle just resolves + minifies it.
+  service_worker: [
+    args: ~w(js/service_worker.js --bundle --target=es2022 --outdir=../priv/static),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
 # Configure tailwind (the version is required)
@@ -103,6 +110,11 @@ config :goodmao2, Goodmao2.Media,
   max_video_seconds: 60,
   max_entries: 4,
   rate_limit_per_hour: 30
+
+# Web Push (ADR-0011 Stage 2). Per-user hourly cap on subscribe/unsubscribe writes. The
+# VAPID keypair itself is *not* configured here — an administrator generates it from
+# `/admin/settings` and it is stored (private key encrypted) in the `settings` table.
+config :goodmao2, Goodmao2.Notifications, push_subscribe_per_hour: 60
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

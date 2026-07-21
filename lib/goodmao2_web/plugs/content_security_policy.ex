@@ -13,7 +13,9 @@ defmodule Goodmao2Web.Plugs.ContentSecurityPolicy do
       `'unsafe-inline'` covers the inline `style` attributes LiveView/topbar set at
       runtime (nonces can't apply to style *attributes*).
     * `connect-src 'self'` — the LiveView websocket and long-poll fallback are
-      same-origin (CSP treats `'self'` as matching same-origin `ws`/`wss`).
+      same-origin (CSP treats `'self'` as matching same-origin `ws`/`wss`); also covers
+      the same-origin push-subscription `fetch`.
+    * `worker-src 'self'` — the Web Push service worker is same-origin (ADR-0011 Stage 2).
     * `img-src 'self' data:` — same-origin images plus the inline SVG favicon.
 
   The nonce is exposed as `conn.assigns.csp_nonce` so the root layout can stamp it
@@ -49,6 +51,7 @@ defmodule Goodmao2Web.Plugs.ContentSecurityPolicy do
         "font-src 'self'",
         "style-src 'self' 'unsafe-inline'",
         "connect-src 'self'",
+        "worker-src 'self'",
         "script-src 'self' 'nonce-#{nonce}'"
       ],
       "; "

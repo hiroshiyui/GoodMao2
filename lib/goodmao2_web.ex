@@ -17,7 +17,7 @@ defmodule Goodmao2Web do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt service_worker.js)
 
   def router do
     quote do

@@ -40,6 +40,26 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
     end
   end
 
+  describe "push notifications card" do
+    test "is hidden when VAPID is not configured", %{conn: conn} do
+      {:ok, _lv, html} = conn |> log_in_user(user_fixture()) |> live(~p"/users/settings")
+      refute html =~ "Push notifications"
+      refute html =~ ~s(phx-hook="PushManager")
+    end
+
+    test "is shown once VAPID keys exist", %{conn: conn} do
+      {public_key, encrypted_private} = Goodmao2.Notifications.WebPush.generate_keypair()
+      {:ok, _} = Goodmao2.Settings.put("vapid_public_key", public_key)
+
+      {:ok, _} =
+        Goodmao2.Settings.put("vapid_private_key_encrypted", Base.encode64(encrypted_private))
+
+      {:ok, _lv, html} = conn |> log_in_user(user_fixture()) |> live(~p"/users/settings")
+      assert html =~ "Push notifications"
+      assert html =~ ~s(phx-hook="PushManager")
+    end
+  end
+
   describe "update email form" do
     setup %{conn: conn} do
       # Set a password so the current-password gate on the email change applies

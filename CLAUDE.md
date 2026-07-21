@@ -91,7 +91,19 @@ call them.
   (`Goodmao2Web.Helpers.notification_summary/1`), never stored. Grant/revoke notify **inline**
   from `Pets`; `log_added` (respecting per-entry `visibility`) and admin `announcement`s fan out
   via **Oban** (`LogFanoutWorker` / `AnnouncementFanoutWorker`). Every change broadcasts the
-  recomputed unread count over PubSub.
+  recomputed unread count over PubSub. **Web Push** (ADR-0011 Stage 2) rides the same rows:
+  every bell row funnels through `create/3`, which enqueues a **`PushDispatchWorker`** when
+  `WebPush.vapid_configured?/0`. `WebPush` hand-rolls RFC 8291/8188/8292 on `:crypto` (no
+  external lib); `WebPush.SafeClient` is an **SSRF-safe, DNS-pinned** outbound client
+  (private-range denylist incl. IPv4-mapped/NAT64) validating the browser-supplied `endpoint`
+  at storage *and* send time; `WebPush.VapidVault` AES-256-GCM-encrypts the VAPID private key
+  (keyed off `SECRET_KEY_BASE`). Browsers subscribe via `PushSubscriptionController`
+  (`/api/push-subscriptions`, CSRF + rate-limited); `service_worker.js` + `push_manager_hook.js`
+  drive display and opt-in (on `/users/settings`).
+- **`Settings`** (`settings.ex`) — a tiny admin-managed key/value system-settings store
+  (ETS-cached via `Settings.Cache`), first used for the **VAPID keypair**. An admin generates
+  keys on **`AdminLive.Settings`** (`/admin/settings`). Reads are unauthenticated; writes are
+  admin-gated at the LiveView boundary.
 - **`Messaging`** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](doc/adr/0011-notifications-and-messaging.md)).
   One conversation per unordered user pair (canonical `user_lo_id < user_hi_id`, DB `CHECK` +
   unique index). **Shared-pet gate:** `start_conversation/2` is allowed only between users with
@@ -109,11 +121,14 @@ submits vet credentials. `NotificationLive.Index` (`/notifications`) is the bell
 badges** come from the global `Goodmao2Web.UnreadBadges` `on_mount` hook (`attach_hook`) on the
 authenticated live_session — no per-LiveView code. `AdminLive` (`live/admin_live.ex`) is the
 admin-only read-only `/admin` site overview **and** the vet-credential review queue;
-`AdminLive.Announcements` (`/admin/announcements`) composes announcement broadcasts.
+`AdminLive.Announcements` (`/admin/announcements`) composes announcement broadcasts, and
+`AdminLive.Settings` (`/admin/settings`) generates/manages the Web Push VAPID keys.
 They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on failure. Purified
 media is served by `MediaController` at `GET /media/:id` (re-applies the parent log's read
 authorization, IDOR-hidden, hardened headers, `Range` support); anonymous shared reports by
-`ReportController` at `GET /reports/shared/:token` (unexpired-token-gated, existence-hidden).
+`ReportController` at `GET /reports/shared/:token` (unexpired-token-gated, existence-hidden);
+Web Push subscriptions by `PushSubscriptionController` (`POST`/`DELETE /api/push-subscriptions`,
+through the `:browser` pipeline for CSRF, rate-limited).
 Routes are in the `:require_authenticated_user` `live_session` in `router.ex`. Shared view
 helpers (enum-label translations, log summaries, clinical flags) are in
 `lib/goodmao2_web/helpers.ex`; the health-report body + shared weight chart are in

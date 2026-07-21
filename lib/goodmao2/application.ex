@@ -15,6 +15,10 @@ defmodule Goodmao2.Application do
       {Phoenix.PubSub, name: Goodmao2.PubSub},
       # Owns the media-upload rate-limit ETS table (ADR-0005).
       Goodmao2.Media.RateLimiter,
+      # Owns the system-settings read-cache ETS table.
+      Goodmao2.Settings.Cache,
+      # Owns the push-subscription write rate-limit ETS table.
+      Goodmao2.Notifications.PushRateLimiter,
       # Start a worker by calling: Goodmao2.Worker.start_link(arg)
       # {Goodmao2.Worker, arg},
       # Start to serve requests, typically the last entry

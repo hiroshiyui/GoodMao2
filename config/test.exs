@@ -52,3 +52,14 @@ config :phoenix,
 config :goodmao2, Goodmao2.Media,
   storage_dir: Path.expand("../tmp/media_test", __DIR__),
   rate_limit_per_hour: 1_000_000
+
+# Read settings straight from the DB in tests — a global ETS cache shared across the async
+# sandbox would leak one test's writes into another.
+config :goodmao2, Goodmao2.Settings, cache: false
+
+# Web Push outbound client: bypass DNS/SSRF resolution and route Req through Req.Test stubs
+# so delivery can be asserted inside the Ecto sandbox without real network calls.
+config :goodmao2, Goodmao2.Notifications.WebPush.SafeClient,
+  bypass_ssrf_check: true,
+  allow_http_localhost: true,
+  req_test_options: [plug: {Req.Test, Goodmao2.Notifications.WebPush.SafeClient}]

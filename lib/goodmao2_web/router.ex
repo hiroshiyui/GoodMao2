@@ -117,9 +117,21 @@ defmodule Goodmao2Web.Router do
 
       # Admin-only announcement compose; gated per-LiveView by the :require_admin on_mount.
       live "/admin/announcements", AdminLive.Announcements, :new
+
+      # Admin-only system settings (Web Push VAPID keys); gated by the :require_admin on_mount.
+      live "/admin/settings", AdminLive.Settings, :index
     end
 
     post "/users/update-password", UserSessionController, :update_password
+  end
+
+  # Web Push subscription API (ADR-0011 Stage 2). Through `:browser` (not `:api`) so it gets
+  # session auth + CSRF; the client sends the `x-csrf-token` header.
+  scope "/api", Goodmao2Web do
+    pipe_through [:browser, :require_authenticated_user]
+
+    post "/push-subscriptions", PushSubscriptionController, :create
+    delete "/push-subscriptions", PushSubscriptionController, :delete
   end
 
   scope "/", Goodmao2Web do
