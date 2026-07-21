@@ -174,7 +174,8 @@ rejects *and* the legitimate case still passes).
       crypto hand-rolled on `:crypto` (no external lib); an Oban `PushDispatchWorker` hooked at the
       single `Notifications.create/3` choke point; a service worker + opt-in on `/users/settings`.
       **VAPID keys are admin-generated in the Web UI** (`/admin/settings`), the private key encrypted
-      at rest. Follow-up: push for new mailbox messages; notification batching/digest.
+      at rest. New **mailbox messages** push too (`Messaging.MessagePushWorker`). Follow-up:
+      notification batching/digest.
 - [ ] Per-entry **share links** (public token) + anonymous shared timeline/media
       ([ADR-0004](adr/0004-log-visibility.md); Phase 3)
 - [x] Verified **veterinarian accounts** (credential verification) + generated

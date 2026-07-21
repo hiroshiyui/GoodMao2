@@ -162,13 +162,31 @@ defmodule Goodmao2.Notifications do
   is gone or the user has no subscriptions.
   """
   def dispatch_web_push(notification_id) do
-    with %Notification{} = notification <- Repo.get(Notification, notification_id),
-         [_ | _] = subscriptions <- live_push_subscriptions(notification.user_id) do
-      payload = notification |> WebPush.build_payload() |> Jason.encode!()
-      Enum.each(subscriptions, &WebPush.send_web_push(&1, payload))
-      :ok
-    else
-      _ -> :ok
+    case Repo.get(Notification, notification_id) do
+      %Notification{} = notification ->
+        push_to_user(notification.user_id, WebPush.build_payload(notification))
+
+      _ ->
+        :ok
+    end
+  end
+
+  @doc """
+  Sends an already-built payload map to every live push subscription of `user_id`.
+
+  The generic Web Push primitive — used by `dispatch_web_push/1` (bell notifications) and by
+  `Goodmao2.Messaging` (new mailbox messages, which write no bell row). No-op if the user
+  has no subscriptions. Best-effort; a `410` prunes the stale subscription.
+  """
+  def push_to_user(user_id, payload) when is_map(payload) do
+    case live_push_subscriptions(user_id) do
+      [] ->
+        :ok
+
+      subscriptions ->
+        json = Jason.encode!(payload)
+        Enum.each(subscriptions, &WebPush.send_web_push(&1, json))
+        :ok
     end
   end
 

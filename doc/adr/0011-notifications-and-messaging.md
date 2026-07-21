@@ -79,8 +79,9 @@ many-recipient fan-out runs through Oban. Web Push is a separate, later stage.**
   not env: an admin generates the keypair, the private key is AES-256-GCM encrypted at rest
   (keyed off `SECRET_KEY_BASE` via PBKDF2) in a small `settings` store. Push copy renders from
   the same `Goodmao2Web.Helpers` as the bell, in the default locale (there is no per-request
-  locale in the dispatch worker). New mailbox *messages* do not push (they write no bell row);
-  a future add.
+  locale in the dispatch worker). New mailbox *messages* also push — they write no bell row,
+  so `Messaging.send_message/3` enqueues a `MessagePushWorker` that sends to the *other*
+  participant via the same `Notifications.push_to_user/2` primitive.
 
 ## Consequences
 

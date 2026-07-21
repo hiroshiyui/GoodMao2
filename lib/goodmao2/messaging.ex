@@ -22,7 +22,9 @@ defmodule Goodmao2.Messaging do
 
   alias Goodmao2.{Accounts, Repo}
   alias Goodmao2.Accounts.User
-  alias Goodmao2.Messaging.{Conversation, Message, Participant}
+  alias Goodmao2.Messaging.{Conversation, Message, MessagePushWorker, Participant}
+  alias Goodmao2.Notifications
+  alias Goodmao2.Notifications.WebPush
 
   ## PubSub
 
@@ -257,6 +259,8 @@ defmodule Goodmao2.Messaging do
               participant_id != user.id,
               do: broadcast_count(participant_id)
 
+          maybe_enqueue_message_push(message)
+
           {:ok, message}
 
         {:error, changeset} ->
@@ -284,6 +288,50 @@ defmodule Goodmao2.Messaging do
       {:ok, count}
     else
       {:error, :not_participant}
+    end
+  end
+
+  ## Web Push (ADR-0011 Stage 2)
+
+  # A new message surfaces on the mailbox badge and (if configured) as a Web Push to the
+  # other participant — messages write no bell row, so this is their only push path.
+  defp maybe_enqueue_message_push(%Message{id: id}) do
+    if WebPush.vapid_configured?() do
+      %{"message_id" => id}
+      |> MessagePushWorker.new()
+      |> Oban.insert()
+    end
+  end
+
+  @doc """
+  Delivers a message to the *other* participant's browsers as Web Push.
+
+  The `MessagePushWorker` entry point: renders the sender + body into a payload (deep-linking
+  to the thread) and sends to the recipient's live subscriptions. No-op if the message is
+  gone/soft-deleted or the recipient has no subscriptions.
+  """
+  def dispatch_message_push(message_id) do
+    case Repo.get(Message, message_id) do
+      %Message{deleted_at: nil} = message ->
+        recipient_ids = participant_ids(message.conversation_id) -- [message.sender_id]
+
+        if recipient_ids != [] do
+          sender = Repo.get(User, message.sender_id)
+
+          payload =
+            Goodmao2Web.Helpers.message_push_payload(
+              sender,
+              message.body,
+              message.conversation_id
+            )
+
+          Enum.each(recipient_ids, &Notifications.push_to_user(&1, payload))
+        end
+
+        :ok
+
+      _ ->
+        :ok
     end
   end
 

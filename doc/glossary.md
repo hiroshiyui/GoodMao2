@@ -120,9 +120,10 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
   through **Oban** so the write path stays fast.
 - **Announcement** — an Administrator broadcast that fans an `announcement` notification
   out to every user (composed on `/admin/announcements`).
-- **Web Push** — OS-level delivery of the four bell events to a user's browser even with
-  GoodMao closed (ADR-0011 Stage 2). Opt-in per device on `/users/settings`, best-effort, and
-  dispatched through **Oban** from the same `notifications` rows. Rendered in the site's
+- **Web Push** — OS-level delivery of the four bell events **and new mailbox messages** to a
+  user's browser even with GoodMao closed (ADR-0011 Stage 2). Opt-in per device on
+  `/users/settings`, best-effort, and dispatched through **Oban** (from the `notifications`
+  rows for bell events; from `Messaging.send_message/3` for messages). Rendered in the site's
   default locale (no per-request locale off the request path).
 - **Push subscription** — the browser endpoint + encryption keys (`p256dh`/`auth`) a user
   registered for Web Push. The `endpoint` is browser-supplied, so it is SSRF-validated before

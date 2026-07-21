@@ -110,7 +110,9 @@ call them.
   an effective grant on a common pet, returning a uniform non-leaking `{:error, :cannot_message}`
   whether the recipient is unknown, self, or unshared. Thread reads require participation
   (existence-hidden `nil`/`:not_participant`); each participant has a **read cursor**; messages
-  are capped at 2 000 codepoints and soft-deleted.
+  are capped at 2 000 codepoints and soft-deleted. A new message also **Web Push**es to the other
+  participant (`send_message/3` → `MessagePushWorker` → `Notifications.push_to_user/2`), gated on
+  `WebPush.vapid_configured?/0` — messages write no bell row, so this is their only push path.
 
 Web LiveViews (`lib/goodmao2_web/live/pet_live/`): `Index`, `Form` (new/edit), `Show`
 (QuickLog + live filterable timeline/calendar + weight trend), `LogEntry` (single entry:

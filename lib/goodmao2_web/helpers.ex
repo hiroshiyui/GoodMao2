@@ -156,6 +156,33 @@ defmodule Goodmao2Web.Helpers do
   def notification_path(%{type: "access_revoked"}), do: ~p"/pets"
   def notification_path(_notification), do: nil
 
+  @doc """
+  Builds the Web Push payload for a new mailbox message (ADR-0011 Stage 2).
+
+  Mailbox messages create no bell row, so this renders push copy directly from the sender
+  and body: the sender's public label as the title (like a chat app) and a short preview as
+  the body, deep-linking to the thread. Rendered in the default locale (the dispatch worker
+  has no per-request locale). `sender` may be `nil` (a deleted account).
+  """
+  def message_push_payload(sender, body, conversation_id) do
+    %{
+      title: message_push_title(sender),
+      body: message_push_preview(body),
+      url: url(~p"/messages/#{conversation_id}"),
+      type: "message",
+      icon: nil
+    }
+  end
+
+  defp message_push_title(%{handle: h}) when is_binary(h) and h != "", do: "@" <> h
+  defp message_push_title(%{display_name: n}) when is_binary(n) and n != "", do: n
+  defp message_push_title(_), do: gettext("New message")
+
+  defp message_push_preview(body) do
+    trimmed = String.trim(body || "")
+    if String.length(trimmed) > 140, do: String.slice(trimmed, 0, 140) <> "…", else: trimmed
+  end
+
   # A non-leaking actor label, or a gentle generic when the actor had no public name.
   defp actor_name(name) when is_binary(name) and name != "", do: name
   defp actor_name(_), do: gettext("Someone")
