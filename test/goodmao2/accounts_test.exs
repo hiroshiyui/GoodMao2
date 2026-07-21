@@ -554,6 +554,26 @@ defmodule Goodmao2.AccountsTest do
     end
   end
 
+  describe "update_timeline_page_size/2" do
+    test "persists a whitelisted size" do
+      user = user_fixture()
+      # New users start at the default.
+      assert user.timeline_page_size == 25
+
+      assert {:ok, updated} = Accounts.update_timeline_page_size(user, 100)
+      assert updated.timeline_page_size == 100
+      assert Accounts.get_user!(user.id).timeline_page_size == 100
+    end
+
+    test "rejects an out-of-range size" do
+      user = user_fixture()
+      assert {:error, changeset} = Accounts.update_timeline_page_size(user, 999)
+      assert %{timeline_page_size: _} = errors_on(changeset)
+      # The stored value is unchanged.
+      assert Accounts.get_user!(user.id).timeline_page_size == 25
+    end
+  end
+
   describe "vet profiles" do
     test "submit_vet_profile creates a pending profile" do
       user = user_fixture()

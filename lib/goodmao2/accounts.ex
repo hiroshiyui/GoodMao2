@@ -195,6 +195,16 @@ defmodule Goodmao2.Accounts do
     |> Repo.update()
   end
 
+  @doc """
+  Persists the user's timeline page-size preference (roadmap §8). The size is whitelisted in
+  `User.preferences_changeset/2`, so an out-of-range value returns `{:error, changeset}`.
+  """
+  def update_timeline_page_size(%User{} = user, size) do
+    user
+    |> User.preferences_changeset(%{"timeline_page_size" => size})
+    |> Repo.update()
+  end
+
   ## Veterinarian profiles
 
   @doc "Returns the user's `VetProfile`, or `nil`."

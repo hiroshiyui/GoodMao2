@@ -482,6 +482,22 @@ defmodule Goodmao2Web.PetLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
       refute has_element?(lv, "#timeline-pager")
     end
+
+    test "the chosen per-page size persists across visits", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      seed_timeline(user, pet, 30)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> form("#timeline-page-size") |> render_change(%{"size" => "100"})
+
+      # Saved to the user's preference...
+      assert Goodmao2.Accounts.get_user!(user.id).timeline_page_size == 100
+
+      # ...so a fresh visit already shows all 30 with no pager.
+      {:ok, lv2, _html} = live(conn, ~p"/pets/#{pet.id}")
+      assert has_element?(lv2, ".timeline-entry-note", "entry-29")
+      refute has_element?(lv2, "#timeline-pager")
+    end
   end
 
   describe "Log entry page — edit + history (ADR-0009)" do

@@ -9,6 +9,11 @@ defmodule Goodmao2.Accounts.User do
                        user users owner staff official team goodmao pets vet vets vetprofile
                        me here all everyone anonymous none null undefined shared media api)
 
+  # The allowed pet-timeline page sizes; the first is the default. Single source of truth for
+  # the schema default, the changeset whitelist, and the LiveView dropdown.
+  @timeline_page_sizes [25, 50, 100]
+  def timeline_page_sizes, do: @timeline_page_sizes
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -26,6 +31,10 @@ defmodule Goodmao2.Accounts.User do
     # Preferred IANA timezone for displaying/entering times (ADR-0018). Nil ⇒ fall back to the
     # admin system default, then Etc/UTC. Validated against the live tz database.
     field :timezone, :string
+
+    # How many entries the pet timeline shows per page (roadmap §8). Whitelisted to
+    # `@timeline_page_sizes`; the first is the default.
+    field :timeline_page_size, :integer, default: 25
 
     # Two-factor authentication (ADR-0013). `totp_secret` holds the AES-256-GCM
     # ciphertext of the shared secret (never the raw secret); `totp_confirmed_at` is
@@ -51,6 +60,16 @@ defmodule Goodmao2.Accounts.User do
     |> normalize_handle()
     |> validate_handle(opts)
     |> validate_timezone()
+  end
+
+  @doc """
+  A changeset for lightweight UI preferences that persist per account — currently the
+  timeline page size. Whitelisted so a crafted value can't request an unbounded page.
+  """
+  def preferences_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:timeline_page_size])
+    |> validate_inclusion(:timeline_page_size, @timeline_page_sizes)
   end
 
   # A blank selection clears the preference (fall back to system default); any other value must

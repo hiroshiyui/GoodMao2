@@ -7,13 +7,15 @@ defmodule Goodmao2Web.PetLive.Show do
   """
   use Goodmao2Web, :live_view
 
-  alias Goodmao2.{Logs, Media, Pets}
+  alias Goodmao2.{Accounts, Logs, Media, Pets}
+  alias Goodmao2.Accounts.User
   alias Goodmao2.Logs.LogEntry
   alias Goodmao2Web.CalendarGrid
 
-  # The page sizes offered by the timeline's "per page" dropdown. The first is the default;
+  # The page sizes offered by the timeline's "per page" dropdown, sourced from the User schema so
+  # the whitelist and the persisted preference share one definition. The first is the default;
   # any other value is rejected back to it, so a crafted select can't request an unbounded page.
-  @page_sizes [25, 50, 100]
+  @page_sizes User.timeline_page_sizes()
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -35,7 +37,7 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:can_manage?, Pets.can?(pet, user, :manage))
          |> assign(:filter, "all")
          |> assign(:page, 1)
-         |> assign(:page_size, hd(@page_sizes))
+         |> assign(:page_size, user.timeline_page_size || hd(@page_sizes))
          |> assign(:has_next?, false)
          |> assign(:visible_ids, MapSet.new())
          |> assign(:view, "list")
@@ -134,11 +136,16 @@ defmodule Goodmao2Web.PetLive.Show do
     {:noreply, if(socket.assigns.view == "calendar", do: load_month(socket), else: socket)}
   end
 
-  # The "per page" dropdown next to the filter — a new size restarts at page 1.
+  # The "per page" dropdown next to the filter — a new size restarts at page 1 and is persisted
+  # as the user's preference so it sticks across visits and devices. The size is already
+  # whitelisted, so the write is best-effort (the in-session size applies regardless).
   def handle_event("set_page_size", %{"size" => size}, socket) do
+    size = parse_page_size(size)
+    Accounts.update_timeline_page_size(socket.assigns.current_scope.user, size)
+
     {:noreply,
      socket
-     |> assign(:page_size, parse_page_size(size))
+     |> assign(:page_size, size)
      |> assign(:page, 1)
      |> load_entries()}
   end
