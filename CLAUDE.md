@@ -13,8 +13,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   what's shipped vs. intentionally deferred.
 - **`doc/glossary.md`** — the shared product/domain vocabulary (and its Phoenix tech terms).
 - **`doc/adr/`** — Architecture Decision Records: the *why* behind the invariants
-  (pet-lifecycle, log-visibility, error-reporting, soft-delete, localization, deferred
-  media/revisions/notifications).
+  (resource-based authorization, structured one-table logging, scope-based/first-user-admin
+  auth, pet-lifecycle, log-visibility, error-reporting, soft-delete, second-factor auth,
+  localization, the Rust native boundary, deferred media/revisions/notifications).
 - **`doc/web-application-development-common-practices.md`** — product-agnostic engineering
   lessons (security/data-modeling/testing/ops), each with the failure mode behind it.
 
@@ -41,11 +42,12 @@ mix run priv/repo/seeds.exs    # re-seed (idempotent)
 mix gettext.extract && mix gettext.merge priv/gettext
 ```
 
-**Rust NIFs:** `Goodmao2.Native` loads the `native/goodmao2_native` crate (Rustler), built
-automatically by `mix compile` — the toolchain is pinned by `rust-toolchain.toml`, so a build
-host needs that Rust version (`rustup` auto-installs it). `Cargo.lock` is committed; the built
-`priv/native/*.so` and `native/*/target/` are git-ignored. Keep the `rustler` crate version in
-lockstep with the `:rustler` dep in `mix.exs`.
+**Rust NIFs** ([ADR-0017](doc/adr/0017-rust-nif-native-boundary.md))**:** `Goodmao2.Native`
+loads the `native/goodmao2_native` crate (Rustler), built automatically by `mix compile` — the
+toolchain is pinned by `rust-toolchain.toml`, so a build host needs that Rust version (`rustup`
+auto-installs it). Currently only a placeholder `add/2` — proven scaffolding for future
+CPU-bound work. `Cargo.lock` is committed; the built `priv/native/*.so` and `native/*/target/`
+are git-ignored. Keep the `rustler` crate version in lockstep with the `:rustler` dep in `mix.exs`.
 
 Postgres: dev and test both use a **`goodmao2`** role (password `goodmao2`) needing
 `CREATEDB` — see `config/dev.exs` / `config/test.exs`. Demo logins after seeding:
@@ -59,7 +61,8 @@ call them.
 
 - **`Accounts`** (`accounts.ex`) — `phx.gen.auth` scope-based auth (the caller is
   `socket.assigns.current_scope.user`), extended with a public `@handle`, `display_name`,
-  and `is_admin` (the **first registered user** becomes the sole administrator). Admin is a
+  and `is_admin` (the **first registered user** becomes the sole administrator —
+  [ADR-0016](doc/adr/0016-scope-based-auth-and-first-user-admin.md)). Admin is a
   global role only; it grants **no access to pet data**. Also the **second-factor** core
   ([ADR-0013](doc/adr/0013-second-factor-authentication.md)): `Accounts.TwoFactor` (TOTP via
   `nimble_totp` + `eqrcode`, single-use HMAC-hashed recovery codes, and `login_next_step/1`),
@@ -69,7 +72,8 @@ call them.
   everyone else; secrets are encrypted/hashed at rest; security keys are **hard-deleted** (the
   soft-delete exception). The `:wax_` config (RP id/origin) lives in `config/{dev,test,runtime}.exs`.
 - **`Pets`** (`pets.ex`) — pets, `pet_accesses` grants, and the **resource-based
-  authorization core**. This is the security-critical module:
+  authorization core** ([ADR-0014](doc/adr/0014-resource-based-authorization.md)). This is
+  the security-critical module:
   - Authorization is *computed per request* from an **effective grant** (`status=active`
     AND not expired), never global. Roles: `owner` / `co_caretaker` / `viewer` / `vet`;
     capability levels: `:read` / `:write` / `:manage`.
@@ -78,7 +82,8 @@ call them.
     "forbidden").
   - Creating a pet inserts the creator's `owner` grant in the **same transaction**; the
     **≥1-owner invariant** is enforced on revoke (`{:error, :last_owner}`).
-- **`Logs`** (`logs.ex`) — structured entries + the timeline + **PubSub**. All entry types
+- **`Logs`** (`logs.ex`) — structured entries + the timeline + **PubSub**
+  ([ADR-0015](doc/adr/0015-structured-one-table-logging.md)). All entry types
   share **one `log_entries` table** with a `type` discriminator and a `jsonb` `data`
   payload; per-type field validation is in `LogEntry.changeset/2`. Entries are
   **soft-deleted** (`deleted_at`); every read filters `deleted_at IS NULL`. Writes re-check

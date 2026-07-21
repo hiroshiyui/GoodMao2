@@ -10,8 +10,9 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
 
 - **Accounts** (`accounts.ex`) — authentication and user management from `phx.gen.auth`,
   extended with the editable public **`@handle`**, `display_name`, and the
-  first-user-becomes-**administrator** rule (`is_admin`). The administrator is the sole
-  global role; it is orthogonal to per-pet access and grants no backdoor to pet data.
+  first-user-becomes-**administrator** rule (`is_admin`) ([ADR-0016](adr/0016-scope-based-auth-and-first-user-admin.md)).
+  The administrator is the sole global role; it is orthogonal to per-pet access and grants
+  no backdoor to pet data.
   Also the **second-factor** core ([ADR-0013](adr/0013-second-factor-authentication.md)):
   `Accounts.TwoFactor` (TOTP + single-use HMAC-hashed recovery codes + the `login_next_step/1`
   state machine), `Accounts.WebAuthn` (FIDO2 relying-party ceremonies via `wax_`, sign-count
@@ -19,9 +20,10 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   `Accounts.TotpVault` (AES-256-GCM secret-at-rest, keyed off `SECRET_KEY_BASE`). 2FA is
   **required for the admin**, opt-in for everyone else.
 - **Pets** (`pets.ex`) — pets, access grants, and the **resource-based authorization**
-  core. Authorization is computed per request from an *effective* grant, never global.
-- **Logs** (`logs.ex`) — structured log entries, the timeline query (soft-delete-aware),
-  and real-time broadcasts over PubSub.
+  core ([ADR-0014](adr/0014-resource-based-authorization.md)). Authorization is computed
+  per request from an *effective* grant, never global.
+- **Logs** (`logs.ex`) — structured log entries ([ADR-0015](adr/0015-structured-one-table-logging.md)),
+  the timeline query (soft-delete-aware), and real-time broadcasts over PubSub.
 - **Media** (`media.ex`) — purified photos/videos attached to `life` logs (ADR-0005):
   ffmpeg-based purification (`Media.Purifier`), an id-keyed storage seam (`Media.Storage`),
   atomic create with the log, an upload rate limiter (`Media.RateLimiter`), and the
@@ -76,13 +78,14 @@ with role `owner`. `created_by_user_id` is an audit reference (no FK navigation)
 exists-hides the timeline.
 
 ### `pet_accesses` (Pets.PetAccess) — the authorization core
-One row per `(pet, user)`. `role` ∈ {`owner`, `co_caretaker`, `viewer`, `vet`},
+([ADR-0014](adr/0014-resource-based-authorization.md).) One row per `(pet, user)`. `role` ∈ {`owner`, `co_caretaker`, `viewer`, `vet`},
 `status` ∈ {`active`, `revoked`}, optional `expires_at` (time-boxed grants, typical for
 vets). Unique index on `(pet_id, user_id)`.
 
 **Effective access** = `status == "active"` AND (`expires_at` is null OR in the future).
 
 ### `log_entries` (Logs.LogEntry) — one table, typed
+([ADR-0015](adr/0015-structured-one-table-logging.md).)
 Common columns (`pet_id`, `recorded_by_user_id` audit ref, `type`, `occurred_at`,
 `note`, `visibility`, `deleted_at`) plus a `jsonb` **`data`** payload holding the
 subtype's structured fields. `type` is the discriminator; per-type payload validation
