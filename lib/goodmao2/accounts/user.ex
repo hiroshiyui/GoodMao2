@@ -23,6 +23,10 @@ defmodule Goodmao2.Accounts.User do
     # The sole global role — the first registered account. Not a per-pet role.
     field :is_admin, :boolean, default: false
 
+    # Preferred IANA timezone for displaying/entering times (ADR-0018). Nil ⇒ fall back to the
+    # admin system default, then Etc/UTC. Validated against the live tz database.
+    field :timezone, :string
+
     # Two-factor authentication (ADR-0013). `totp_secret` holds the AES-256-GCM
     # ciphertext of the shared secret (never the raw secret); `totp_confirmed_at` is
     # set once the user proves possession with a valid code (nil ⇒ TOTP disabled).
@@ -42,10 +46,28 @@ defmodule Goodmao2.Accounts.User do
   """
   def profile_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:display_name, :handle])
+    |> cast(attrs, [:display_name, :handle, :timezone])
     |> validate_length(:display_name, max: 80)
     |> normalize_handle()
     |> validate_handle(opts)
+    |> validate_timezone()
+  end
+
+  # A blank selection clears the preference (fall back to system default); any other value must
+  # be a zone the tz database recognises.
+  defp validate_timezone(changeset) do
+    case get_change(changeset, :timezone) do
+      nil ->
+        changeset
+
+      "" ->
+        put_change(changeset, :timezone, nil)
+
+      tz ->
+        if Goodmao2.Timezone.known?(tz),
+          do: changeset,
+          else: add_error(changeset, :timezone, "is not a valid timezone")
+    end
   end
 
   defp normalize_handle(changeset) do

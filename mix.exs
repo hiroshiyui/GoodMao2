@@ -72,6 +72,9 @@ defmodule Goodmao2.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
+      # Timezone awareness (ADR-0018). Pure-Elixir IANA tz database — no runtime HTTP —
+      # backing DateTime.shift_zone/2 so stored-UTC times display in the viewer's zone.
+      {:tz, "~> 0.28"},
       # Two-factor authentication (ADR-0013). WebAuthn/FIDO2 relying party (note the
       # `:wax_` app key), TOTP + QR for authenticator apps. `cbor` encodes stored COSE keys.
       {:wax_, "~> 0.7"},

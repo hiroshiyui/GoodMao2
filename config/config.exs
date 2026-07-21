@@ -87,6 +87,12 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Timezone awareness (ADR-0018). The `tz` database backs DateTime.shift_zone/2 so stored-UTC
+# times render in the viewer's zone. `:default_timezone` is the last-resort fallback when no
+# admin system default is set (Settings key "default_timezone") and the user has no preference.
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+config :goodmao2, :default_timezone, "Etc/UTC"
+
 # Background jobs (Oban). Today it runs a single daily cron — the token janitor that
 # prunes expired auth tokens (Accounts.delete_expired_tokens/0); more workloads
 # (reminders, async media, notification fan-out) are deferred (doc/roadmap.md).

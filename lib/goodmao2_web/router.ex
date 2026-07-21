@@ -13,6 +13,7 @@ defmodule Goodmao2Web.Router do
     plug :put_secure_browser_headers
     plug Goodmao2Web.Plugs.ContentSecurityPolicy
     plug :fetch_current_scope_for_user
+    plug Goodmao2Web.Plugs.Timezone
   end
 
   pipeline :api do
@@ -86,6 +87,7 @@ defmodule Goodmao2Web.Router do
       on_mount: [
         {Goodmao2Web.UserAuth, :require_authenticated},
         {Goodmao2Web.UserLocale, :put_locale},
+        {Goodmao2Web.UserTimezone, :put_timezone},
         {Goodmao2Web.UnreadBadges, :mount_badges}
       ] do
       live "/users/settings", UserLive.Settings, :edit
@@ -146,7 +148,8 @@ defmodule Goodmao2Web.Router do
       on_mount: [
         {Goodmao2Web.UserAuth, :mount_current_scope},
         {Goodmao2Web.UserAuth, :require_pending_2fa},
-        {Goodmao2Web.UserLocale, :put_locale}
+        {Goodmao2Web.UserLocale, :put_locale},
+        {Goodmao2Web.UserTimezone, :put_timezone}
       ] do
       live "/users/two-factor", UserLive.TwoFactor, :new
       live "/users/two-factor/setup", UserLive.TwoFactorSetup, :new
@@ -165,7 +168,8 @@ defmodule Goodmao2Web.Router do
     live_session :current_user,
       on_mount: [
         {Goodmao2Web.UserAuth, :mount_current_scope},
-        {Goodmao2Web.UserLocale, :put_locale}
+        {Goodmao2Web.UserLocale, :put_locale},
+        {Goodmao2Web.UserTimezone, :put_timezone}
       ] do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
