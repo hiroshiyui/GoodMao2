@@ -24,6 +24,12 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   per request from an *effective* grant, never global.
 - **Logs** (`logs.ex`) — structured log entries ([ADR-0015](adr/0015-structured-one-table-logging.md)),
   the timeline query (soft-delete-aware), and real-time broadcasts over PubSub.
+- **Medications** (`medications.ex`) — recurring medication **schedules** + materialized **dose**
+  slots + reminders ([ADR-0019](adr/0019-medication-schedules-and-reminders.md)). Dose slots are
+  pre-created per schedule (in the schedule's own timezone → UTC); marking a dose given is an
+  **atomic `pending → given` claim** that reuses the `medication` `log_entry` (`Logs.create_entry`).
+  `Medications.ReminderWorker` (Oban cron) fills the horizon, ages overdue slots to `missed`, and
+  fans out a `medication_due` bell + Web Push to effective `:write` caretakers, de-duped.
 - **Media** (`media.ex`) — purified photos/videos attached to `life` logs (ADR-0005):
   ffmpeg-based purification (`Media.Purifier`), an id-keyed storage seam (`Media.Storage`),
   atomic create with the log, an upload rate limiter (`Media.RateLimiter`), and the
@@ -141,6 +147,19 @@ the id and never stored** (path-traversal-proof). Bytes are re-encoded/remuxed b
 strip EXIF/GPS/metadata, written under a configured `storage_dir` outside any served path, and
 inserted with the log in one transaction. Soft-deleted via `deleted_at`.
 
+### `medication_schedules` / `medication_doses` (Medications.*) — schedules + dose slots
+
+A recurring medication plan and its materialized dose slots ([ADR-0019](adr/0019-medication-schedules-and-reminders.md)).
+A **schedule** carries `medication_name`, `dose`, `times_of_day` (`time[]`), `interval_days`,
+`start_date`/`end_date`, its own IANA `timezone`, `active`, `notes`, and an audit
+`created_by_user_id`; soft-deleted via `deleted_at`. A **dose** is one durable slot per expected
+time: `schedule_id` (FK), a **denormalized `pet_id`** (authorization anchor), `due_at` (UTC, from
+the schedule's wall-clock time + `timezone`), `status` (`pending | given | skipped | missed`),
+`given_at`, audit `recorded_by_user_id`, a `log_entry_id` link (the `medication` entry written on
+give), and `reminded_at` (nudge de-dupe). A **unique `(schedule_id, due_at)`** index makes
+materialization idempotent; a partial index over pending slots backs the reminder sweep. Marking a
+dose given is an atomic `pending → given` claim (no double-dose).
+
 ### `vet_profiles` (Accounts.VetProfile) — veterinarian credential
 
 At most **one** per user: `license_number`, `licensing_body`, `region`, `clinic_name`,
@@ -161,7 +180,7 @@ unexpired, matching token. See [ADR-0012](adr/0012-vet-access-model.md).
 ### `notifications` (Notifications.Notification) — the bell feed
 
 Per recipient: `user_id`, a `type` discriminator (`access_granted` / `access_revoked` /
-`log_added` / `announcement`), a `jsonb` **`payload`** (denormalized snapshot — pet id/name,
+`log_added` / `announcement` / `medication_due`), a `jsonb` **`payload`** (denormalized snapshot — pet id/name,
 actor label, role, log type + entry id, announcement title/body; the copy is *rendered* from
 this at read time, never stored), `read_at?` (null = unread), and `deleted_at`. A partial index
 on unread rows backs the badge count. See [ADR-0011](adr/0011-notifications-and-messaging.md).

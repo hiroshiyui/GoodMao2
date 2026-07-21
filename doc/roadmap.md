@@ -132,7 +132,14 @@ rejects *and* the legitimate case still passes).
       time on the pet page, with the latest value and its signed change since the first
       measurement (arrow + sign, not colour alone) and an sr-only data table for assistive tech.
       Fed by `Logs.weight_series/3` (visibility- and hidden-history-aware) and live over PubSub
-- [ ] Medication schedules + reminders; the "did anyone give the pill?" coordination (Phase 1/3)
+- [x] **Medication schedules + reminders** — the "did anyone give the pill?" coordination
+      ([ADR-0019](adr/0019-medication-schedules-and-reminders.md)). Recurring schedules (each with
+      its own timezone) materialize durable **dose slots**; any `:write` caretaker marks a slot
+      **Given** (an atomic claim that writes a normal `medication` timeline entry) or **Skipped**,
+      and everyone sees who handled it, live. An Oban cron (`ReminderWorker`, `*/15`) fills the
+      dose horizon, ages overdue slots to `missed`, and fans out a de-duped `medication_due` bell +
+      Web Push to effective `:write` caretakers. UI: `PetLive.Medications`. Follow-ups: snooze /
+      escalation, per-pet timezones, dose-history retention GC
 - [x] LifeLog media (photos/videos) with active purification ([ADR-0005](adr/0005-media-storage.md);
       Phase 1) — a `life` log can carry JPEG/PNG/GIF/WEBP images and MP4/WEBM video, uploaded
       through the app and **actively purified with ffmpeg** (magic-byte typing; images decoded

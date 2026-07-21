@@ -15,7 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`doc/adr/`** — Architecture Decision Records: the *why* behind the invariants
   (resource-based authorization, structured one-table logging, scope-based/first-user-admin
   auth, pet-lifecycle, log-visibility, error-reporting, soft-delete, second-factor auth,
-  localization, timezone display, the Rust native boundary, deferred media/revisions/notifications).
+  localization, timezone display, medication schedules, the Rust native boundary, deferred
+  media/revisions/notifications).
 - **`doc/web-application-development-common-practices.md`** — product-agnostic engineering
   lessons (security/data-modeling/testing/ops), each with the failure mode behind it.
 
@@ -91,6 +92,17 @@ call them.
   is owner-only). Each real edit snapshots the prior state into `log_entry_revisions`
   (append-only, edit-count-capped). `create/update/delete_entry` broadcast on the pet's
   topic so `PetLive.Show` streams live updates.
+- **`Medications`** (`medications.ex`) — recurring medication **schedules** + materialized
+  **dose** slots + reminders ([ADR-0019](doc/adr/0019-medication-schedules-and-reminders.md)).
+  Each schedule stores its own IANA `timezone`; `materialize_doses/1` pre-creates one durable
+  `medication_doses` row per upcoming slot (wall-clock → UTC, idempotent via a unique
+  `(schedule_id, due_at)` index). Marking a dose given is an **atomic `pending → given` claim**
+  (TOCTOU-safe; second caller → `{:error, :already_recorded}`) that reuses the `medication`
+  `log_entry` via `Logs.create_entry` — one timeline, no parallel history. Create/edit a schedule
+  and give/skip a dose need **`:write`**; delete needs **`:manage`**. `Medications.ReminderWorker`
+  (Oban cron, `*/15`) fills the horizon, ages overdue slots to `missed`, and fans out a
+  **`medication_due`** bell + Web Push to effective `:write` caretakers, de-duped via `reminded_at`.
+  Web UI: `PetLive.Medications` (`/pets/:pet_id/medications`), linked from the pet page.
 - **`Media`** (`media.ex`) — purified LifeLog photos/videos attached to `life` logs
   ([ADR-0005](doc/adr/0005-media-storage.md)). `Media.Purifier` re-encodes/remuxes uploads
   with **ffmpeg** (magic-byte typing, EXIF/GPS stripped, codec allow-list + duration cap);

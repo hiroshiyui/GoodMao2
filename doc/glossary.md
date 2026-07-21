@@ -93,9 +93,16 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
   hard delete from outside while the row is preserved. Pet end-of-care and grant
   revocation express the same principle via a status enum. See
   [ADR-0008](adr/0008-soft-delete.md).
-- **Medication** — an ongoing prescription/schedule; `medication` log entries record
-  actual administrations (backs the "did anyone give the pill?" coordination).
-  _Deferred_ — administrations are loggable today; schedules/reminders are Phase 1/3.
+- **Medication schedule** — a recurring plan for a pet (medication, dose, daily times, interval,
+  start/end) with its own IANA timezone ([ADR-0019](adr/0019-medication-schedules-and-reminders.md)).
+  Create/edit needs `:write`; delete needs `:manage`.
+- **Dose (slot)** — one durable, materialized occurrence of a schedule at a specific `due_at`
+  (UTC, from the schedule's wall-clock time). Its `status` moves `pending → given | skipped |
+  missed`; giving it is an **atomic claim** that writes a normal `medication` log entry — this is
+  the "did anyone give the pill?" coordination core.
+- **Medication reminder** — a one-time `medication_due` bell + Web Push nudge sent to a pet's
+  effective `:write` caretakers when a dose comes due, fired by an Oban cron (`ReminderWorker`)
+  and de-duped via the dose's `reminded_at`.
 - **Health summary report** — a generated point-in-time export of a pet's logs for a
   vet: a **frozen snapshot** over a date range (private entries excluded), viewable/printable
   by any effective grant and shareable via an **expiring** anonymous token. See

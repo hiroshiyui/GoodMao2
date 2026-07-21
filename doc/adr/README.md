@@ -62,6 +62,7 @@ valid:
 | [0016](0016-scope-based-auth-and-first-user-admin.md) | Scope-based authentication and a single first-user administrator | Accepted (shipped) |
 | [0017](0017-rust-nif-native-boundary.md) | A Rust/Rustler native boundary for CPU-bound work | Accepted (scaffolding) |
 | [0018](0018-timezone-display-policy.md) | Timezone-aware display and input | Accepted (shipped) |
+| [0019](0019-medication-schedules-and-reminders.md) | Medication schedules, materialized doses, and reminders | Accepted (shipped) |
 
 _Add a row per ADR as it lands._
 

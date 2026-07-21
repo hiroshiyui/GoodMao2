@@ -47,6 +47,12 @@ This skill audits security only. For correctness, tests, docs, and a11y, use `co
 - **Grant resolution**: `grant_access` resolves grantees by `@handle` or email; only a
   `:manage` holder can grant; an unknown identifier returns `:grantee_not_found` (no user
   enumeration beyond what a handle lookup inherently allows).
+- **Medications** (ADR-0019): schedule reads are IDOR-hidden; create/edit a schedule and
+  give/skip a dose require `:write`, delete requires `:manage`. Marking a dose given is an
+  **atomic `UPDATE … WHERE status = 'pending'`** — verify no read-then-write race can double-record
+  a dose, and that the `medication` log entry + dose stamp commit together. `medication_due`
+  reminders must fan out **only to effective `:write` caretakers** (never a viewer) and be de-duped
+  via `reminded_at`.
 
 ---
 
