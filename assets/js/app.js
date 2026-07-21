@@ -58,6 +58,31 @@ const Print = {
   },
 }
 
+// Clipboard: copy a value to the clipboard from a button (CSP-safe — no inline handler).
+// The button carries data-clipboard-target (a selector for an <input> whose value to copy)
+// or data-clipboard-text. Briefly reflects success in the button's title for feedback.
+const Clipboard = {
+  mounted() {
+    this.onClick = async () => {
+      const sel = this.el.getAttribute("data-clipboard-target")
+      const target = sel && document.querySelector(sel)
+      const text = target ? target.value : this.el.getAttribute("data-clipboard-text")
+      if (!text || !navigator.clipboard) return
+      try {
+        await navigator.clipboard.writeText(text)
+        this.el.setAttribute("data-copied", "true")
+        setTimeout(() => this.el.removeAttribute("data-copied"), 1500)
+      } catch (_e) {
+        /* clipboard denied — the field stays selectable for a manual copy */
+      }
+    }
+    this.el.addEventListener("click", this.onClick)
+  },
+  destroyed() {
+    if (this.onClick) this.el.removeEventListener("click", this.onClick)
+  },
+}
+
 // Font-size zoom: persist the root font-size (as a percentage) in localStorage and
 // apply it to <html>. The whole UI is rem-based, so this scales everything. The
 // default (125% = 20px) matches the CSS baseline in app.css; the pre-paint guard
@@ -106,7 +131,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, PointerGlow, Print, PushManager, WebAuthn, TimezoneDetect},
+  hooks: {...colocatedHooks, PointerGlow, Print, Clipboard, PushManager, WebAuthn, TimezoneDetect},
 })
 
 // Show progress bar on live navigation and form submits

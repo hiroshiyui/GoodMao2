@@ -10,7 +10,7 @@ defmodule Goodmao2Web.MediaController do
   """
   use Goodmao2Web, :controller
 
-  alias Goodmao2.Media
+  alias Goodmao2.{Logs, Media}
   alias Goodmao2.Media.Storage
 
   # sobelow_skip ["Traversal.SendFile", "Traversal.FileModule"]
@@ -22,6 +22,23 @@ defmodule Goodmao2Web.MediaController do
 
     with {:ok, id} <- parse_id(id_param),
          {:ok, asset} <- Media.fetch_asset_for_user(user, id),
+         path = Storage.object_path(asset.id),
+         true <- File.exists?(path) do
+      conn |> harden(asset) |> send_bytes(path, asset.byte_size)
+    else
+      _ -> conn |> put_status(:not_found) |> text("Not found")
+    end
+  end
+
+  # sobelow_skip ["Traversal.SendFile", "Traversal.FileModule"]
+  # Anonymous byte serving for a `public` entry's media (ADR-0004). Authorization is the parent
+  # entry's still-live share token — re-resolved per request — and the asset must belong to that
+  # entry; only then is `Storage.object_path(asset.id)` (an id-derived path, never a request
+  # string) touched. A dead token or an unrelated media id is existence-hidden, like `show/2`.
+  def shared(conn, %{"token" => token, "id" => id_param}) do
+    with {:ok, id} <- parse_id(id_param),
+         %{media_assets: assets} <- Logs.fetch_entry_by_share_token(token),
+         %Media.MediaAsset{} = asset <- Enum.find(assets, &(&1.id == id)),
          path = Storage.object_path(asset.id),
          true <- File.exists?(path) do
       conn |> harden(asset) |> send_bytes(path, asset.byte_size)

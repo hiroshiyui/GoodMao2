@@ -41,6 +41,10 @@ defmodule Goodmao2Web.Router do
     # Anonymous, tokenized health-summary report — readable by anyone holding an unexpired
     # share link (no account). Existence-hidden on a bad/expired/revoked token (404).
     get "/reports/shared/:token", ReportController, :show
+
+    # Anonymous, tokenized single log entry — the sole anonymous read path for a `public`
+    # entry (ADR-0004). Existence-hidden on a bad/narrowed/expired/history-hidden token.
+    get "/entries/shared/:token", SharedEntryController, :show
   end
 
   # Unauthenticated liveness/readiness probe (no pipeline: no session, CSRF, or
@@ -54,6 +58,15 @@ defmodule Goodmao2Web.Router do
     pipe_through [:serve_media, :require_authenticated_user]
 
     get "/media/:id", MediaController, :show
+  end
+
+  # Purified media for a `public` entry, served anonymously via its parent entry's share token
+  # (ADR-0004). No auth — the token (re-checked per request against the still-shareable entry)
+  # is the only gate; an unrelated media id or a dead token is existence-hidden (404).
+  scope "/", Goodmao2Web do
+    pipe_through :serve_media
+
+    get "/entries/shared/:token/media/:id", MediaController, :shared
   end
 
   # Other scopes may use custom stacks.

@@ -1,0 +1,63 @@
+<main id="main-content" tabindex="-1" class="mx-auto max-w-2xl px-4 py-8">
+  <header>
+    <h1 class="text-2xl font-semibold">
+      {gettext("%{brand} shared entry", brand: brand_name())}
+    </h1>
+    <p class="text-base-content/60 mt-1 text-sm">
+      {[@entry.pet.name, translate_species(@entry.pet.species)]
+      |> Enum.filter(&(&1 && &1 != ""))
+      |> Enum.join(" · ")}
+    </p>
+  </header>
+
+  <article id="shared-entry" class="card card-border bg-base-100 mt-6">
+    <div class="card-body gap-2 p-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="rounded-full bg-base-200 p-2">
+          <.icon name={log_type_icon(@entry.type)} class="size-4" />
+        </span>
+        <span id="shared-entry-type" class="text-lg font-medium">
+          {log_type_label(@entry.type)}
+        </span>
+      </div>
+
+      <p id="shared-entry-summary" class="text-base break-words">
+        {log_summary(%{type: @entry.type, data: @entry.data}, @entry.pet.weight_unit)}
+      </p>
+
+      <ul :if={clinical_flags(@entry) != []} class="flex flex-wrap gap-1">
+        <li
+          :for={flag <- clinical_flags(@entry)}
+          class={["badge badge-sm gap-1", flag_class(flag.level)]}
+        >
+          <.icon name={flag.icon} class="size-3" /> {flag.label}
+        </li>
+      </ul>
+
+      <p
+        :if={@entry.note not in [nil, ""]}
+        id="shared-entry-note"
+        class="text-base-content/70 text-sm italic break-words"
+      >
+        {@entry.note}
+      </p>
+
+      <.media_grid
+        :if={@entry.media_assets != []}
+        assets={@entry.media_assets}
+        share_token={@token}
+        class="mt-2 flex flex-wrap gap-2"
+      />
+
+      <p class="text-base-content/50 mt-1 text-xs">
+        <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
+          {format_datetime(@entry.occurred_at)}
+        </time>
+      </p>
+    </div>
+  </article>
+
+  <footer class="text-base-content/50 mt-10 text-center text-xs">
+    {gettext("Shared via a link for this single entry. The owner can revoke it at any time.")}
+  </footer>
+</main>

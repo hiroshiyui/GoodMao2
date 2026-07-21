@@ -122,6 +122,41 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     end
   end
 
+  # Share-link expiry (ADR-0004) — owner-only, only meaningful while the entry is public. The
+  # datetime-local wall-clock is interpreted in the viewer's timezone and stored UTC.
+  def handle_event("set_share_expiry", %{"expires_at" => value}, socket) do
+    case blank_to_nil(value) do
+      nil ->
+        {:noreply, put_flash(socket, :error, gettext("Choose an expiry date and time."))}
+
+      str ->
+        case Goodmao2.Timezone.local_naive_to_utc(str, socket.assigns.timezone) do
+          {:ok, dt} -> apply_share_expiry(socket, dt)
+          :error -> {:noreply, put_flash(socket, :error, gettext("That date couldn't be read."))}
+        end
+    end
+  end
+
+  def handle_event("clear_share_expiry", _params, socket) do
+    apply_share_expiry(socket, nil)
+  end
+
+  defp apply_share_expiry(socket, expires_at) do
+    %{current_scope: %{user: user}, pet: pet, entry: entry} = socket.assigns
+
+    case Logs.set_share_expiry(user, pet, entry, expires_at) do
+      {:ok, updated} ->
+        {:noreply,
+         socket |> put_flash(:info, gettext("Share link updated.")) |> load_entry(updated)}
+
+      {:error, :expiry_in_past} ->
+        {:noreply, put_flash(socket, :error, gettext("Pick a time in the future."))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Couldn't update the share link."))}
+    end
+  end
+
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
@@ -215,6 +250,82 @@ defmodule Goodmao2Web.PetLive.LogEntry do
               {gettext("Edited %{n} of %{max}", n: @entry.edit_count, max: Logs.max_edits())}
             </span>
           </p>
+        </div>
+      </section>
+
+      <section
+        :if={@role == "owner" and @entry.visibility == "public" and @entry.share_token}
+        id="log-share-section"
+        aria-labelledby="log-share-heading"
+        class="card card-border border-primary/40 bg-base-100 mt-6"
+      >
+        <div class="card-body gap-3 p-4">
+          <div>
+            <h2 id="log-share-heading" class="text-lg font-semibold">
+              <.icon name="hero-link" class="size-5 align-middle" /> {gettext("Share link")}
+            </h2>
+            <p class="text-base-content/60 text-sm">
+              {gettext(
+                "Anyone with this link can view just this entry while it stays public. Set the entry to Limited or Private to revoke it."
+              )}
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <input
+              id="log-share-url"
+              type="text"
+              readonly
+              value={url(~p"/entries/shared/#{@entry.share_token}")}
+              class="input input-bordered input-sm min-w-0 flex-1"
+              aria-label={gettext("Share link URL")}
+            />
+            <button
+              type="button"
+              id="log-share-copy"
+              phx-hook="Clipboard"
+              data-clipboard-target="#log-share-url"
+              class="btn btn-sm btn-primary"
+            >
+              <.icon name="hero-clipboard-document" class="size-4" /> {gettext("Copy")}
+            </button>
+          </div>
+
+          <div class="border-base-200 border-t pt-3">
+            <p class="text-sm font-medium">{gettext("Expiry")}</p>
+            <p id="log-share-expiry-status" class="text-base-content/60 text-sm">
+              <%= if @entry.share_expires_at do %>
+                {gettext("Expires %{when}", when: format_datetime(@entry.share_expires_at))}
+              <% else %>
+                {gettext("No expiry — active while public.")}
+              <% end %>
+            </p>
+            <form
+              id="log-share-expiry-form"
+              phx-submit="set_share_expiry"
+              class="mt-2 flex flex-wrap items-end gap-2"
+            >
+              <label for="log-share-expiry-input" class="sr-only">{gettext("Expiry")}</label>
+              <input
+                id="log-share-expiry-input"
+                name="expires_at"
+                type="datetime-local"
+                class="input input-bordered input-sm"
+              />
+              <button type="submit" id="log-share-expiry-set" class="btn btn-sm btn-ghost">
+                {gettext("Set expiry")}
+              </button>
+              <button
+                :if={@entry.share_expires_at}
+                type="button"
+                id="log-share-expiry-clear"
+                phx-click="clear_share_expiry"
+                class="btn btn-sm btn-ghost"
+              >
+                {gettext("Clear expiry")}
+              </button>
+            </form>
+          </div>
         </div>
       </section>
 

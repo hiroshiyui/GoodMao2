@@ -628,4 +628,66 @@ defmodule Goodmao2Web.PetLiveTest do
       assert {:error, {:live_redirect, %{to: "/pets"}}} = live(conn, ~p"/pets/#{pet.id}/access")
     end
   end
+
+  describe "Log entry share links (ADR-0004)" do
+    defp public_log(owner, pet) do
+      {:ok, entry} =
+        Goodmao2.Logs.create_entry(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "visibility" => "public"
+        })
+
+      entry
+    end
+
+    test "an owner sees the share link for a public entry", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      entry = public_log(user, pet)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      assert has_element?(lv, "#log-share-section")
+      assert lv |> element("#log-share-url") |> render() =~ entry.share_token
+    end
+
+    test "setting an entry public reveals the share link", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      entry = log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      refute has_element?(lv, "#log-share-section")
+
+      lv |> form("#log-edit-form", log: %{visibility: "public"}) |> render_submit()
+      assert has_element?(lv, "#log-share-section")
+    end
+
+    test "a non-owner never sees the share link", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      entry = public_log(owner, pet)
+      grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      assert has_element?(lv, ".log-entry-summary")
+      refute has_element?(lv, "#log-share-section")
+    end
+
+    test "an owner can set and clear the link expiry", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      entry = public_log(user, pet)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      assert has_element?(lv, "#log-share-expiry-status", "No expiry")
+
+      lv
+      |> form("#log-share-expiry-form", %{expires_at: "2099-01-01T00:00"})
+      |> render_submit()
+
+      assert has_element?(lv, "#log-share-expiry-status", "Expires")
+      assert has_element?(lv, "#log-share-expiry-clear")
+
+      lv |> element("#log-share-expiry-clear") |> render_click()
+      assert has_element?(lv, "#log-share-expiry-status", "No expiry")
+    end
+  end
 end

@@ -81,4 +81,44 @@ defmodule Goodmao2Web.MediaControllerTest do
     assert [range] = get_resp_header(conn, "content-range")
     assert range == "bytes 0-9/#{asset.byte_size}"
   end
+
+  describe "shared media via a public entry's token (ADR-0004)" do
+    defp public_asset_and_token(owner, pet) do
+      asset = make_asset(owner, pet, visibility: "public")
+      entry = Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, asset.log_entry_id)
+      {asset, entry.share_token}
+    end
+
+    test "serves bytes anonymously for a valid token, hardened", %{conn: conn} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      {asset, token} = public_asset_and_token(owner, pet)
+
+      conn = get(conn, ~p"/entries/shared/#{token}/media/#{asset.id}")
+
+      assert response(conn, 200)
+      assert byte_size(response(conn, 200)) == asset.byte_size
+      assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
+      assert ["default-src 'none'; sandbox"] = get_resp_header(conn, "content-security-policy")
+    end
+
+    test "a token can't reach another entry's media (IDOR, 404)", %{conn: conn} do
+      o1 = user_fixture()
+      {_a1, token1} = public_asset_and_token(o1, pet_fixture(o1))
+
+      o2 = user_fixture()
+      {a2, _t2} = public_asset_and_token(o2, pet_fixture(o2))
+
+      conn = get(conn, ~p"/entries/shared/#{token1}/media/#{a2.id}")
+      assert conn.status == 404
+    end
+
+    test "a dead token serves nothing (404)", %{conn: conn} do
+      owner = user_fixture()
+      {asset, _token} = public_asset_and_token(owner, pet_fixture(owner))
+
+      conn = get(conn, ~p"/entries/shared/#{"nope"}/media/#{asset.id}")
+      assert conn.status == 404
+    end
+  end
 end
