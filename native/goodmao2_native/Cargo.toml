@@ -1,0 +1,19 @@
+[package]
+name = "goodmao2_native"
+version = "0.1.0"
+edition = "2021"
+authors = []
+license = "AGPL-3.0-or-later"
+
+# Rustler NIFs load as a C-compatible dynamic library (`.so`/`.dll`/`.dylib`).
+[lib]
+name = "goodmao2_native"
+crate-type = ["cdylib"]
+
+# Keep in lockstep with the Elixir `:rustler` dep version in mix.exs.
+[dependencies]
+rustler = "0.38"
+
+# NIFs must never block the BEAM scheduler for long; release-optimize even in dev builds.
+[profile.dev]
+opt-level = 2

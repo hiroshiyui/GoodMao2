@@ -72,6 +72,9 @@ defmodule Goodmao2.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
+      # Rust NIFs (native/goodmao2_native), toolchain pinned by rust-toolchain.toml.
+      # Keep this in lockstep with the `rustler` crate version in the Cargo.toml.
+      {:rustler, "~> 0.38"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       # Security tooling — advisory audit of deps and a Phoenix-aware static scan.

@@ -41,6 +41,12 @@ mix run priv/repo/seeds.exs    # re-seed (idempotent)
 mix gettext.extract && mix gettext.merge priv/gettext
 ```
 
+**Rust NIFs:** `Goodmao2.Native` loads the `native/goodmao2_native` crate (Rustler), built
+automatically by `mix compile` — the toolchain is pinned by `rust-toolchain.toml`, so a build
+host needs that Rust version (`rustup` auto-installs it). `Cargo.lock` is committed; the built
+`priv/native/*.so` and `native/*/target/` are git-ignored. Keep the `rustler` crate version in
+lockstep with the `:rustler` dep in `mix.exs`.
+
 Postgres: dev and test both use a **`goodmao2`** role (password `goodmao2`) needing
 `CREATEDB` — see `config/dev.exs` / `config/test.exs`. Demo logins after seeding:
 `owner@example.com` / `vet@example.com`, both password `password1234!`.
