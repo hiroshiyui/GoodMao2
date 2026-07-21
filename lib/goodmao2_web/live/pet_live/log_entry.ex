@@ -49,15 +49,20 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     |> assign(:at_limit?, entry.edit_count >= Logs.max_edits())
     |> assign(:revisions, revisions)
     |> assign(:editors, editors)
-    |> assign(:form, to_form(entry_params(entry, socket.assigns.timezone), as: :log))
+    |> assign(
+      :form,
+      to_form(entry_params(entry, socket.assigns.timezone, pet.weight_unit), as: :log)
+    )
     |> assign(:error, nil)
   end
 
   # Flatten the entry into form params: its structured `data` plus the shared note / time /
-  # visibility fields (time shifted into the viewer's timezone for the datetime-local input —
-  # ADR-0018).
-  defp entry_params(entry, tz) do
-    Map.merge(entry.data || %{}, %{
+  # visibility fields (time shifted into the viewer's timezone — ADR-0018; a weight value shown
+  # in the pet's unit — roadmap §8).
+  defp entry_params(entry, tz, unit) do
+    (entry.data || %{})
+    |> weight_grams_to_field(entry.type, unit)
+    |> Map.merge(%{
       "note" => entry.note,
       "occurred_at" =>
         entry.occurred_at &&
@@ -67,6 +72,14 @@ defmodule Goodmao2Web.PetLive.LogEntry do
       "visibility" => entry.visibility
     })
   end
+
+  defp weight_grams_to_field(%{"weight_grams" => g} = data, "weight", unit) do
+    data
+    |> Map.delete("weight_grams")
+    |> Map.put("weight", Goodmao2Web.Helpers.weight_input_value(g, unit))
+  end
+
+  defp weight_grams_to_field(data, _type, _unit), do: data
 
   @impl true
   def handle_event("validate", %{"log" => params}, socket) do
@@ -83,7 +96,10 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     {visibility, data} = Map.pop(params, "visibility")
 
     attrs =
-      %{"data" => data, "note" => blank_to_nil(note)}
+      %{
+        "data" => weight_field_to_grams(data, entry.type, pet.weight_unit),
+        "note" => blank_to_nil(note)
+      }
       |> put_local_occurred_at(occurred_at, socket.assigns.timezone)
       |> maybe_put("visibility", visibility)
 
@@ -108,6 +124,15 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  # The weight field is edited in the pet's unit; store canonical grams (roadmap §8).
+  defp weight_field_to_grams(%{"weight" => value} = data, "weight", unit) do
+    data
+    |> Map.delete("weight")
+    |> Map.put("weight_grams", Goodmao2Web.Helpers.weight_to_grams(value, unit))
+  end
+
+  defp weight_field_to_grams(data, _type, _unit), do: data
 
   # Interpret the datetime-local wall-clock in the viewer's timezone and store UTC (ADR-0018);
   # blank omits it (changeset keeps the prior time), unparseable passes through to be rejected.
@@ -171,7 +196,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
       >
         <div class="card-body p-4">
           <h2 id="log-entry-heading" class="sr-only">{gettext("Current entry")}</h2>
-          <p class="log-entry-summary break-words">{log_summary(@entry)}</p>
+          <p class="log-entry-summary break-words">{log_summary(@entry, @pet.weight_unit)}</p>
           <p :if={@entry.note} class="log-entry-note text-base-content/70 text-sm break-words">
             {@entry.note}
           </p>
@@ -215,7 +240,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
           phx-submit="save"
           class="mt-3 space-y-3"
         >
-          <.log_fields type={@entry.type} form={@form} />
+          <.log_fields type={@entry.type} form={@form} weight_unit={@pet.weight_unit} />
 
           <.input
             :if={@entry.type != "life"}
@@ -284,7 +309,10 @@ defmodule Goodmao2Web.PetLive.LogEntry do
               </p>
               <p class="text-base-content/50 text-xs">{gettext("Previous value:")}</p>
               <p class="log-revision-summary text-sm break-words">
-                {log_summary(%{type: rev.snapshot["type"], data: rev.snapshot["data"] || %{}})}
+                {log_summary(
+                  %{type: rev.snapshot["type"], data: rev.snapshot["data"] || %{}},
+                  @pet.weight_unit
+                )}
               </p>
               <p
                 :if={rev.snapshot["note"]}

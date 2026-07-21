@@ -283,7 +283,25 @@ defmodule Goodmao2Web.Helpers do
   end
 
   def log_summary("life", _d), do: gettext("Daily life")
+
+  @doc """
+  A localized one-line summary, weight-unit-aware. For `weight` entries the value renders in the
+  pet's `unit`; every other type ignores `unit` and defers to `log_summary/2`. Must precede the
+  `log_summary(_type, _d)` catch-all below, or that would shadow this arity-2 map clause.
+  """
+  def log_summary(%{type: type, data: data}, unit) when is_binary(unit),
+    do: log_summary(type, data || %{}, unit)
+
   def log_summary(_type, _d), do: ""
+
+  def log_summary("weight", d, unit) do
+    case d["weight_grams"] do
+      nil -> gettext("Weight")
+      g -> format_weight(g, unit)
+    end
+  end
+
+  def log_summary(type, d, _unit), do: log_summary(type, d)
 
   ## Formatting
   #
@@ -445,6 +463,68 @@ defmodule Goodmao2Web.Helpers do
     do: :erlang.float_to_binary(grams / 1000, decimals: 2)
 
   def format_kg(other), do: other
+
+  # Weight is always stored canonically as grams (`data["weight_grams"]`); these convert only at
+  # the display/input edges so a pet's `weight_unit` (grams/kilograms/pounds) is honored
+  # (roadmap §8). `@grams_per_pound` is the exact avoirdupois definition.
+  @grams_per_pound 453.59237
+
+  @doc "The numeric weight in the pet's `unit`, from a grams value (kg/lb are floats)."
+  def weight_from_grams(grams, "grams") when is_number(grams), do: round(grams)
+  def weight_from_grams(grams, "pounds") when is_number(grams), do: grams / @grams_per_pound
+  def weight_from_grams(grams, _kilograms) when is_number(grams), do: grams / 1000
+  def weight_from_grams(other, _unit), do: other
+
+  @doc "Converts an entered weight (number or numeric string) in `unit` to integer grams, or nil."
+  def weight_to_grams(value, unit) do
+    case to_number(value) do
+      nil ->
+        nil
+
+      n ->
+        grams =
+          case unit do
+            "grams" -> n
+            "pounds" -> n * @grams_per_pound
+            _kilograms -> n * 1000
+          end
+
+        round(grams)
+    end
+  end
+
+  @doc "A localized weight for display, in the pet's `unit` (`4200, \"pounds\"` → `\"9.26 lb\"`)."
+  def format_weight(grams, "grams") when is_number(grams), do: gettext("%{v} g", v: round(grams))
+
+  def format_weight(grams, "pounds") when is_number(grams),
+    do: gettext("%{v} lb", v: two_decimals(grams / @grams_per_pound))
+
+  def format_weight(grams, _kilograms) when is_number(grams),
+    do: gettext("%{v} kg", v: two_decimals(grams / 1000))
+
+  def format_weight(other, _unit), do: other
+
+  @doc "The prefill string for a weight input in the pet's `unit`, from a grams value."
+  def weight_input_value(grams, "grams") when is_number(grams),
+    do: Integer.to_string(round(grams))
+
+  def weight_input_value(grams, unit) when is_number(grams),
+    do: two_decimals(weight_from_grams(grams, unit))
+
+  def weight_input_value(_grams, _unit), do: ""
+
+  defp two_decimals(x), do: :erlang.float_to_binary(x / 1, decimals: 2)
+
+  defp to_number(n) when is_number(n), do: n
+
+  defp to_number(s) when is_binary(s) do
+    case Float.parse(String.trim(s)) do
+      {f, _} -> f
+      :error -> nil
+    end
+  end
+
+  defp to_number(_), do: nil
 
   defp compact_join(parts) do
     parts

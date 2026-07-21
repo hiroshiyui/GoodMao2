@@ -14,11 +14,11 @@ defmodule Goodmao2Web.ReportComponents do
 
   import Goodmao2Web.Helpers,
     only: [
-      format_kg: 1,
+      format_weight: 2,
       format_date: 1,
       format_datetime: 1,
       log_type_label: 1,
-      log_summary: 1,
+      log_summary: 2,
       clinical_flags: 1
     ]
 
@@ -28,9 +28,11 @@ defmodule Goodmao2Web.ReportComponents do
   """
   attr :series, :list, required: true
   attr :id, :string, default: "weight-trend"
+  attr :unit, :string, default: "kilograms"
 
   def weight_chart(assigns) do
     series = assigns.series
+    unit = assigns.unit
     first = List.first(series)
     last = List.last(series)
     points = weight_points(series)
@@ -41,9 +43,9 @@ defmodule Goodmao2Web.ReportComponents do
         points: points,
         polyline: Enum.map_join(points, " ", &"#{&1.x},#{&1.y}"),
         last_point: List.last(points),
-        latest_kg: format_kg(last.grams),
+        latest: format_weight(last.grams, unit),
         delta_grams: delta,
-        delta_kg: format_kg(abs(delta)),
+        delta_weight: format_weight(abs(delta), unit),
         first_at: first.at,
         last_at: last.at
       )
@@ -55,11 +57,11 @@ defmodule Goodmao2Web.ReportComponents do
           <h2 id={"#{@id}-heading"} class="text-lg font-semibold">{gettext("Weight trend")}</h2>
           <p class="flex items-baseline gap-2">
             <span id="weight-latest" class="text-2xl font-semibold">
-              {gettext("%{kg} kg", kg: @latest_kg)}
+              {@latest}
             </span>
             <span id="weight-change" class="text-base-content/60 flex items-center gap-0.5 text-sm">
               <.icon name={weight_delta_icon(@delta_grams)} class="size-4" />
-              {weight_delta_label(@delta_grams, @delta_kg)}
+              {weight_delta_label(@delta_grams, @delta_weight)}
             </span>
           </p>
         </div>
@@ -108,7 +110,7 @@ defmodule Goodmao2Web.ReportComponents do
               <tbody>
                 <tr :for={p <- @series}>
                   <td><time datetime={DateTime.to_iso8601(p.at)}>{format_datetime(p.at)}</time></td>
-                  <td>{gettext("%{kg} kg", kg: format_kg(p.grams))}</td>
+                  <td>{format_weight(p.grams, @unit)}</td>
                 </tr>
               </tbody>
             </table>
@@ -127,6 +129,11 @@ defmodule Goodmao2Web.ReportComponents do
   attr :content, :map, required: true
   attr :period_start, :any, required: true
   attr :period_end, :any, required: true
+  # Render-side paging of the frozen entry list for long reports (roadmap §8). `base_path` is the
+  # report URL the Prev/Next links append `?page=N` to; nil hides the controls (renders all).
+  attr :page, :integer, default: 1
+  attr :page_size, :integer, default: 100
+  attr :base_path, :string, default: nil
 
   def report_body(assigns) do
     entries = assigns.content |> Map.get("entries", []) |> Enum.map(&decode_entry/1)
@@ -140,14 +147,25 @@ defmodule Goodmao2Web.ReportComponents do
     counts = entries |> Enum.frequencies_by(& &1.type) |> Enum.sort()
     pet = Map.get(assigns.content, "pet", %{})
 
+    total = length(entries)
+    page_size = assigns.page_size
+    page_count = max(1, ceil(total / page_size))
+    page = assigns.page |> max(1) |> min(page_count)
+    visible = Enum.slice(entries, (page - 1) * page_size, page_size)
+
     assigns =
       assign(assigns,
-        entries: entries,
+        entries: visible,
         weights: weights,
         counts: counts,
         pet_name: Map.get(pet, "name"),
         pet_species: Map.get(pet, "species"),
-        total: length(entries)
+        pet_weight_unit: Map.get(pet, "weight_unit", "kilograms"),
+        total: total,
+        page: page,
+        page_count: page_count,
+        range_from: (total == 0 && 0) || (page - 1) * page_size + 1,
+        range_to: min(page * page_size, total)
       )
 
     ~H"""
@@ -179,7 +197,12 @@ defmodule Goodmao2Web.ReportComponents do
         </ul>
       </section>
 
-      <.weight_chart :if={@weights != []} id="report-weight" series={@weights} />
+      <.weight_chart
+        :if={@weights != []}
+        id="report-weight"
+        series={@weights}
+        unit={@pet_weight_unit}
+      />
 
       <section id="report-entries" aria-labelledby="report-entries-heading" class="mt-6">
         <h2 id="report-entries-heading" class="text-lg font-semibold">{gettext("Timeline")}</h2>
@@ -199,7 +222,7 @@ defmodule Goodmao2Web.ReportComponents do
                 </time>
               </div>
               <p class="text-base-content/80 text-sm">
-                {log_summary(%{type: entry.type, data: entry.data})}
+                {log_summary(%{type: entry.type, data: entry.data}, @pet_weight_unit)}
               </p>
               <ul :if={flags(entry) != []} class="flex flex-wrap gap-1">
                 <li
@@ -218,6 +241,37 @@ defmodule Goodmao2Web.ReportComponents do
             </div>
           </li>
         </ol>
+
+        <nav
+          :if={@page_count > 1 and @base_path}
+          id="report-pager"
+          class="mt-4 flex items-center justify-between gap-2 text-sm"
+          aria-label={gettext("Timeline pages")}
+        >
+          <.link
+            :if={@page > 1}
+            id="report-page-prev"
+            href={"#{@base_path}?page=#{@page - 1}"}
+            class="btn btn-ghost btn-sm"
+          >
+            <.icon name="hero-arrow-left" class="size-4" /> {gettext("Previous")}
+          </.link>
+          <span :if={@page <= 1} aria-hidden="true"></span>
+
+          <span id="report-page-status" class="text-base-content/60 tabular-nums">
+            {gettext("%{from}–%{to} of %{total}", from: @range_from, to: @range_to, total: @total)}
+          </span>
+
+          <.link
+            :if={@page < @page_count}
+            id="report-page-next"
+            href={"#{@base_path}?page=#{@page + 1}"}
+            class="btn btn-ghost btn-sm"
+          >
+            {gettext("Next")} <.icon name="hero-arrow-right" class="size-4" />
+          </.link>
+          <span :if={@page >= @page_count} aria-hidden="true"></span>
+        </nav>
       </section>
     </div>
     """
@@ -281,7 +335,7 @@ defmodule Goodmao2Web.ReportComponents do
   defp weight_delta_icon(delta) when delta < 0, do: "hero-arrow-trending-down"
   defp weight_delta_icon(_delta), do: "hero-minus"
 
-  defp weight_delta_label(delta, kg) when delta > 0, do: gettext("+%{kg} kg", kg: kg)
-  defp weight_delta_label(delta, kg) when delta < 0, do: gettext("−%{kg} kg", kg: kg)
-  defp weight_delta_label(_delta, _kg), do: gettext("no change")
+  defp weight_delta_label(delta, w) when delta > 0, do: gettext("+%{w}", w: w)
+  defp weight_delta_label(delta, w) when delta < 0, do: gettext("−%{w}", w: w)
+  defp weight_delta_label(_delta, _w), do: gettext("no change")
 end

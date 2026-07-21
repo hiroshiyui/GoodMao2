@@ -244,11 +244,31 @@ defmodule Goodmao2Web.PetLiveTest do
       refute has_element?(lv, ".timeline-entry .clinical-flag")
     end
 
+    test "weight is entered and displayed in the pet's unit, stored as grams (roadmap §8)", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user, %{"weight_unit" => "pounds"})
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      lv |> element("#quicklog-type-weight") |> render_click()
+      # The field is labelled in the pet's unit...
+      assert has_element?(lv, "#quicklog-form label", "Weight (pounds)")
+
+      lv |> form("#quicklog-form", log: %{weight: "10"}) |> render_submit()
+
+      # ...stored canonically as grams (10 lb ≈ 4536 g)...
+      [entry] = Goodmao2.Logs.list_entries(user, pet)
+      assert entry.data["weight_grams"] == 4536
+      # ...and rendered back in pounds.
+      assert has_element?(lv, ".timeline-entry-summary", "10.00 lb")
+    end
+
     test "the weight-trend chart appears once there are two or more measurements", %{
       conn: conn,
       user: user
     } do
-      pet = pet_fixture(user)
+      pet = pet_fixture(user, %{"weight_unit" => "kilograms"})
       earlier = DateTime.utc_now() |> DateTime.add(-2, :day) |> DateTime.truncate(:second)
 
       log_entry_fixture(user, pet, %{

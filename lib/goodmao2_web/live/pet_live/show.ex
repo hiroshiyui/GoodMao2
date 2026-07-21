@@ -198,7 +198,7 @@ defmodule Goodmao2Web.PetLive.Show do
     attrs =
       %{
         "type" => type,
-        "data" => data,
+        "data" => convert_weight_input(data, type, pet.weight_unit),
         "note" => blank_to_nil(note),
         "visibility" => visibility || "limited"
       }
@@ -349,6 +349,16 @@ defmodule Goodmao2Web.PetLive.Show do
   defp matches_filter?(_entry, "all"), do: true
   defp matches_filter?(entry, type), do: entry.type == type
 
+  # The weight field is entered in the pet's `weight_unit`; convert it to canonical grams for
+  # storage (`data["weight_grams"]`) — roadmap §8.
+  defp convert_weight_input(%{"weight" => value} = data, "weight", unit) do
+    data
+    |> Map.delete("weight")
+    |> Map.put("weight_grams", Goodmao2Web.Helpers.weight_to_grams(value, unit))
+  end
+
+  defp convert_weight_input(data, _type, _unit), do: data
+
   # The datetime-local input carries a wall-clock value in the viewer's timezone; interpret it
   # in `tz` and store the UTC instant (ADR-0018). A blank value is omitted (the changeset then
   # defaults to now/UTC); an unparseable value is passed through so the changeset rejects it.
@@ -474,6 +484,7 @@ defmodule Goodmao2Web.PetLive.Show do
               type={@quicklog_type}
               form={@quick_form}
               role={@role}
+              weight_unit={@pet.weight_unit}
               collapse_extras={false}
             />
           </details>
@@ -483,6 +494,7 @@ defmodule Goodmao2Web.PetLive.Show do
             type={@quicklog_type}
             form={@quick_form}
             role={@role}
+            weight_unit={@pet.weight_unit}
             uploads={@uploads}
           />
         </div>
@@ -491,6 +503,7 @@ defmodule Goodmao2Web.PetLive.Show do
       <.weight_chart
         :if={not @history_hidden? and length(@weight_series) >= 2}
         series={@weight_series}
+        unit={@pet.weight_unit}
       />
 
       <section
@@ -560,6 +573,7 @@ defmodule Goodmao2Web.PetLive.Show do
           today={Date.utc_today()}
           day_entries={selected_day_entries(@month_entries, @selected_day, @timezone)}
           can_write?={@can_write?}
+          weight_unit={@pet.weight_unit}
         />
 
         <ol :if={@view == "list"} id="timeline" phx-update="stream" class="mt-4 space-y-2">
@@ -571,7 +585,11 @@ defmodule Goodmao2Web.PetLive.Show do
             id={dom_id}
             class="timeline-entry card card-border bg-base-100"
           >
-            <.timeline_entry_card entry={entry} can_write?={@can_write?} />
+            <.timeline_entry_card
+              entry={entry}
+              can_write?={@can_write?}
+              weight_unit={@pet.weight_unit}
+            />
           </li>
         </ol>
       </section>
@@ -585,6 +603,7 @@ defmodule Goodmao2Web.PetLive.Show do
   # per-day drill-down so both render identically.
   attr :entry, :map, required: true
   attr :can_write?, :boolean, default: false
+  attr :weight_unit, :string, default: "kilograms"
 
   defp timeline_entry_card(assigns) do
     assigns = assign(assigns, :flags, clinical_flags(assigns.entry))
@@ -616,7 +635,9 @@ defmodule Goodmao2Web.PetLive.Show do
             {translate_visibility(@entry.visibility)}
           </span>
         </div>
-        <p class="timeline-entry-summary text-sm break-words">{log_summary(@entry)}</p>
+        <p class="timeline-entry-summary text-sm break-words">
+          {log_summary(@entry, @weight_unit)}
+        </p>
         <p
           :if={@entry.note}
           class="timeline-entry-note text-base-content/70 mt-1 text-sm break-words"
@@ -666,6 +687,7 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :today, Date, required: true
   attr :day_entries, :list, default: []
   attr :can_write?, :boolean, default: false
+  attr :weight_unit, :string, default: "kilograms"
 
   defp log_calendar(assigns) do
     ~H"""
@@ -748,7 +770,7 @@ defmodule Goodmao2Web.PetLive.Show do
             id={"day-entry-#{entry.id}"}
             class="timeline-entry card card-border bg-base-100"
           >
-            <.timeline_entry_card entry={entry} can_write?={@can_write?} />
+            <.timeline_entry_card entry={entry} can_write?={@can_write?} weight_unit={@weight_unit} />
           </li>
         </ol>
       </div>
@@ -903,6 +925,7 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :type, :string, required: true
   attr :form, :map, required: true
   attr :role, :string, required: true
+  attr :weight_unit, :string, default: "kilograms"
   attr :collapse_extras, :boolean, default: true
   attr :uploads, :any, default: nil
 
@@ -915,7 +938,7 @@ defmodule Goodmao2Web.PetLive.Show do
       phx-submit="quicklog"
       class="mt-3 space-y-3"
     >
-      <.log_fields type={@type} form={@form} />
+      <.log_fields type={@type} form={@form} weight_unit={@weight_unit} />
 
       <div :if={@type == "life" and @uploads} id="life-media-upload" class="space-y-2">
         <label for={@uploads.media.ref} class="fieldset-label text-sm">

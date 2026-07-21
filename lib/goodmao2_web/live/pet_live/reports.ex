@@ -46,7 +46,7 @@ defmodule Goodmao2Web.PetLive.Reports do
     )
   end
 
-  defp apply_action(socket, :show, %{"report_id" => rid}) do
+  defp apply_action(socket, :show, %{"report_id" => rid} = params) do
     user = socket.assigns.current_scope.user
 
     case Reports.fetch_report(user, socket.assigns.pet, rid) do
@@ -59,7 +59,16 @@ defmodule Goodmao2Web.PetLive.Reports do
         socket
         |> assign(:page_title, gettext("Health summary"))
         |> assign(:report, report)
+        |> assign(:page, parse_page(params["page"]))
         |> assign(:share_form, to_form(%{}, as: :share))
+    end
+  end
+
+  # A 1-based page number from the query string, defaulting to 1 on anything unparseable.
+  defp parse_page(value) do
+    case value && Integer.parse(to_string(value)) do
+      {n, _} when n > 0 -> n
+      _ -> 1
     end
   end
 
@@ -298,6 +307,8 @@ defmodule Goodmao2Web.PetLive.Reports do
             content={@report.content}
             period_start={@report.period_start}
             period_end={@report.period_end}
+            page={@page}
+            base_path={~p"/pets/#{@pet.id}/reports/#{@report.id}"}
           />
         </div>
 

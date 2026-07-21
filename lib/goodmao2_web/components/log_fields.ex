@@ -11,9 +11,11 @@ defmodule Goodmao2Web.LogFields do
   use Gettext, backend: Goodmao2Web.Gettext
 
   import Goodmao2Web.CoreComponents
+  import Goodmao2Web.Helpers, only: [translate_weight_unit: 1]
 
   attr :type, :string, required: true
   attr :form, :map, required: true
+  attr :weight_unit, :string, default: "kilograms"
 
   def log_fields(%{type: "food"} = assigns) do
     ~H"""
@@ -88,9 +90,10 @@ defmodule Goodmao2Web.LogFields do
   def log_fields(%{type: "weight"} = assigns) do
     ~H"""
     <.input
-      field={@form[:weight_grams]}
+      field={@form[:weight]}
       type="number"
-      label={gettext("Weight (grams)")}
+      step="any"
+      label={gettext("Weight (%{unit})", unit: translate_weight_unit(@weight_unit))}
       min="0"
       required
     />
