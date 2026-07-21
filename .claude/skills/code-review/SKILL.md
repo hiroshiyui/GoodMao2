@@ -38,6 +38,13 @@ Before reviewing, understand the system's current shape:
   `is_nil(deleted_at)`. Deletion stamps the column, never `Repo.delete`.
 - **Lifecycle**: end-of-care is a status transition (`lifecycle_status` + `ended_at`), never
   a deletion; list queries separate active vs. ended pets correctly.
+- **Rust NIFs** (`native/goodmao2_native`, loaded by `Goodmao2.Native`): a NIF must not block
+  the BEAM scheduler — long-running or blocking work uses a dirty scheduler
+  (`#[rustler::nif(schedule = "DirtyCpu"/"DirtyIo")]`). It must return `Result`/error terms
+  rather than panic (`unwrap`/`expect`/out-of-bounds unwind into a node crash), and validate
+  sizes/lengths of decoded terms before allocating or indexing. The `rustler` crate version
+  stays in lockstep with the Elixir `:rustler` dep; `Cargo.lock` is committed, the built `.so`
+  is not. `mix compile` builds the crate — a Rust error fails the Elixir build.
 
 ---
 

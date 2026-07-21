@@ -15,6 +15,12 @@ When performing release engineering, always follow these steps:
    ```bash
    mix precommit
    ```
+   This also compiles the Rust NIF crate (`native/goodmao2_native`), so the **pinned Rust
+   toolchain** (`rust-toolchain.toml`) must be installed on the build host. The compiled NIF
+   (`priv/native/*.so`) is a **platform-specific, git-ignored build artifact** — a release
+   built on one OS/arch will not run on another. If you ever distribute prebuilt releases for
+   multiple targets, that's the point to adopt `rustler_precompiled`; note it, don't ship a
+   single-platform artifact silently.
 
 3. **Update the version** — bump the `version` field in `mix.exs` to match the new release
    version.

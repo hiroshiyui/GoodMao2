@@ -14,7 +14,7 @@ When committing and pushing changes, always follow these steps:
    `feat(pets): add coat-colour field`, `fix(logs): filter soft-deleted entries from the
    timeline`). The message should explain *why* the change was made, not just *what*
    changed. Scopes typically map to a context or area: `accounts`, `pets`, `logs`, `web`,
-   `docs`, `i18n`.
+   `docs`, `i18n`, `native` (the Rust NIF crate).
 
 3. **Run the gate before pushing** — `mix precommit` must pass. Do not push a red tree.
 

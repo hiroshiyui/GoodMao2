@@ -1,11 +1,12 @@
 ---
 name: check-updates
-description: Check for available updates and security advisories across the dependency ecosystems GoodMao uses — Elixir/Hex packages and the esbuild/Tailwind/daisyUI frontend toolchain — then report what is outdated, what is blocked by a version constraint, and what is retired/insecure, grouped by risk. Reports findings; does not upgrade without confirmation.
+description: Check for available updates and security advisories across the dependency ecosystems GoodMao uses — Elixir/Hex packages, the esbuild/Tailwind/daisyUI frontend toolchain, and the Rust/Cargo NIF crate — then report what is outdated, what is blocked by a version constraint, and what is retired/insecure, grouped by risk. Reports findings; does not upgrade without confirmation.
 ---
 
-GoodMao spans two dependency ecosystems (Elixir/Hex and the vendored/CLI frontend
-tooling), so a complete update check must cover both — `mix hex.outdated` alone
-misses the JS/CSS toolchain.
+GoodMao spans three dependency ecosystems — Elixir/Hex, the vendored/CLI frontend
+tooling, and the Rust/Cargo NIF crate (`native/goodmao2_native`) — so a complete update
+check must cover all three; `mix hex.outdated` alone misses the JS/CSS toolchain and the
+Rust crates.
 
 This skill **reports**. Do not edit `mix.exs`, `config/config.exs`, or vendored files
 under `assets/vendor/`, and do not run any upgrade, without explicit user confirmation
@@ -59,6 +60,26 @@ done
 - A Tailwind/daisyUI bump can shift component styles — call out that any bump needs a
   visual check of the light/dark themes.
 
+## Step 3 — Rust / Cargo (the NIF crate)
+
+The `native/goodmao2_native` crate (Rustler NIFs) has its own Cargo dependencies, pinned in
+`native/goodmao2_native/Cargo.lock`, and a toolchain channel in `rust-toolchain.toml`.
+
+```bash
+cd native/goodmao2_native
+cargo update --dry-run          # what a `cargo update` would bump (respects Cargo.toml semver)
+cargo outdated                  # if cargo-outdated is installed: Current vs Latest per crate
+cargo audit                     # RustSec advisories (install: cargo install cargo-audit) — ALWAYS run
+```
+
+- **`rustler` lockstep**: the `rustler` crate version in `Cargo.toml` MUST match the Elixir
+  `:rustler` dep in `mix.exs` (they release together). Flag any drift as a **required paired
+  bump** — bumping one without the other can break the NIF glue.
+- Treat **`cargo audit` output as top priority**, exactly like `mix hex.audit`.
+- **Toolchain**: compare the `channel` in `rust-toolchain.toml` against the latest stable Rust
+  release; a bump changes the compiler for every build host, so verify the crate still builds
+  (`mix compile` recompiles the NIF) and note it needs a rebuild on all platforms.
+
 ---
 
 ## Reporting
@@ -67,8 +88,8 @@ Present a single consolidated list grouped by **risk**, not by ecosystem:
 
 | Priority | Criteria |
 |----------|----------|
-| **Security** | Anything from `mix hex.audit`, or a bump that patches a known advisory, or an outdated dep on the auth / crypto / input-handling boundary |
-| **Framework (needs care)** | Major/minor bumps of Phoenix, LiveView, Ecto, Bandit, Req, Tailwind/daisyUI, or any `Update not possible` requiring a `mix.exs` constraint edit — each needs its changelog read and the full test suite run |
+| **Security** | Anything from `mix hex.audit` or `cargo audit`, or a bump that patches a known advisory, or an outdated dep on the auth / crypto / input-handling boundary |
+| **Framework (needs care)** | Major/minor bumps of Phoenix, LiveView, Ecto, Bandit, Req, Tailwind/daisyUI, the `rustler` lockstep pair (Elixir dep + Rust crate together), or any `Update not possible` requiring a `mix.exs` constraint edit — each needs its changelog read and the full test suite run |
 | **Routine** | Patch/minor bumps of everything else where the constraint already allows it |
 
 For each entry give: **current → latest**, the ecosystem, whether a constraint edit is
@@ -82,6 +103,8 @@ required, and a one-line risk note. State explicitly which ecosystems were clean
    `mix deps.get`.
 3. For frontend: edit the `config/config.exs` version (esbuild/tailwind) or re-vendor
    daisyUI, then `mix assets.build`.
-4. **Run the gate after every batch** and stop on any failure: `mix precommit`.
-5. For a Tailwind/daisyUI bump, also visually verify the light/dark themes. Commit by
+4. For Rust: `cd native/goodmao2_native && cargo update` (or edit `Cargo.toml`); bump the
+   `rustler` crate **and** the `:rustler` mix dep together; `mix compile` to rebuild the NIF.
+5. **Run the gate after every batch** and stop on any failure: `mix precommit`.
+6. For a Tailwind/daisyUI bump, also visually verify the light/dark themes. Commit by
    ecosystem/topic.

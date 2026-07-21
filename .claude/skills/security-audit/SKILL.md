@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: Perform a dedicated, project-wide security audit of GoodMao — resource-based per-pet authorization, injection/output encoding, authentication/session management, secrets, configuration/logging, and dependency advisories — mapped to the OWASP Top 10, then report findings by severity and fix critical issues.
+description: Perform a dedicated, project-wide security audit of GoodMao — resource-based per-pet authorization, injection/output encoding, authentication/session management, secrets, configuration/logging, native (Rust NIF) code, and dependency advisories — mapped to the OWASP Top 10, then report findings by severity and fix critical issues.
 ---
 
 GoodMao handles **sensitive pet health data** shared across multiple caretakers and vets.
@@ -21,7 +21,9 @@ This skill audits security only. For correctness, tests, docs, and a11y, use `co
   2. **The authorization core** (`lib/goodmao2/pets.ex`) — every capability decision.
   3. **Public/guest surface** — the landing page, registration, login, magic-link, password reset.
   4. **Admin** — the global `is_admin` role (must NOT reach pet data).
-- Skim `mix.exs` / `mix.lock` for the dependency inventory.
+  5. **Native code** — the `native/goodmao2_native` Rust NIF crate runs inside the BEAM
+     (see Step 8); terms crossing the FFI boundary are attacker-influenced input.
+- Skim `mix.exs` / `mix.lock` and `native/goodmao2_native/Cargo.toml` for the dependency inventory.
 
 ---
 
@@ -109,23 +111,46 @@ This skill audits security only. For correctness, tests, docs, and a11y, use `co
 
 ---
 
-## Step 8 — Dependency Vulnerabilities (A06)
+## Step 8 — Native Code (Rust NIFs) (A08)
+
+The `native/goodmao2_native` crate runs **inside the BEAM as native code** — it bypasses the
+VM's memory safety and fault isolation, so a bug here is a whole-node concern, not a process
+crash. Audit every NIF:
+
+- **No panics across the boundary.** A Rust `panic!` (including `unwrap()`/`expect()`/slice
+  out-of-bounds/integer overflow in debug) unwinds into a NIF crash. NIFs must return
+  `Result`/error terms, not panic. Grep the crate for `unwrap(`, `expect(`, `panic!`, `[..]`
+  indexing on caller-controlled lengths.
+- **`unsafe` is justified.** Every `unsafe` block needs a comment proving its invariants;
+  treat unexplained `unsafe`, raw pointers, or `transmute` as a finding.
+- **Inputs are validated at the boundary.** Terms decoded from Elixir are attacker-influenced
+  — bound sizes/lengths before allocating or indexing; never trust a decoded length.
+- **No scheduler starvation (DoS).** A NIF that can run longer than ~1 ms must use a dirty
+  scheduler (`#[rustler::nif(schedule = "DirtyCpu"/"DirtyIo")]`); an unbounded loop or large
+  allocation on a normal scheduler stalls the whole node.
+- **Build integrity.** The `rustler` crate version tracks the Elixir `:rustler` dep; the built
+  `.so` under `priv/native/` is a git-ignored artifact (never committed); `Cargo.lock` **is**
+  committed for reproducible builds.
+
+## Step 9 — Dependency Vulnerabilities (A06)
 
 ```bash
 mix hex.audit          # retired packages + security advisories (EEF/GHSA/OSV)
 mix hex.outdated       # context for what a fix bump would require
+cd native/goodmao2_native && cargo audit   # RustSec advisories for the NIF crate's crates
 ```
 
 - Triage each advisory: **production vs test-only** (use `mix deps.tree`), **fix availability**
   (bump vs replace an unmaintained package), and any **existing mitigation**.
 - Frontend: check the pinned esbuild/Tailwind versions and vendored daisyUI against npm
   advisories (see the `check-updates` skill for mechanics).
+- Rust: `cargo audit` for the NIF crate; treat a RustSec advisory like a Hex one.
 - Report each with: package, **current → fixed** (or "no fix — replace"), severity,
   production-vs-test, advisory ID.
 
 ---
 
-## Step 9 — OWASP Top 10 Cross-Check
+## Step 10 — OWASP Top 10 Cross-Check
 
 Explicitly close out each category, citing where it was checked:
 
@@ -136,9 +161,9 @@ Explicitly close out each category, citing where it was checked:
 | A03 Injection | 3 |
 | A04 Insecure Design | 2, 7 |
 | A05 Security Misconfiguration | 6 |
-| A06 Vulnerable & Outdated Components | 8 |
+| A06 Vulnerable & Outdated Components | 9 |
 | A07 Identification & Auth Failures | 4 |
-| A08 Software & Data Integrity Failures | 5, 8 |
+| A08 Software & Data Integrity Failures | 5, 8, 9 |
 | A09 Logging & Monitoring Failures | 6 |
 | A10 SSRF | n/a today — no server-side fetch of user-supplied URLs ships yet; becomes live when link previews / media / Web Push land (see `doc/roadmap.md`) |
 

@@ -16,6 +16,10 @@ When performing documentation engineering, always follow these steps:
      they land
    - `@moduledoc` and `@doc` strings in changed or related modules (the `Pets` authorization
      functions especially — their contracts are the security spec)
+   - the Rust NIF crate (`native/goodmao2_native`) when present — its `Goodmao2.Native`
+     `@moduledoc`/`@doc`, crate-level `//!`/`//` docs, and any mention of the native layer
+     in `README.md`/`CLAUDE.md` (build via `mix compile`, toolchain pinned by
+     `rust-toolchain.toml`)
 
 2. **Revise and update** any documentation that is stale, incomplete, or inconsistent with
    the current code. Ensure new features, removed dependencies, behavioural changes, schema
