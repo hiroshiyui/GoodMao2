@@ -112,12 +112,15 @@ call them.
   `create_life_log/4` **stages** the raw upload (`Media.Storage.stage/1`, a never-served
   `_staging` tree) and creates the entry immediately, enqueuing a **`Media.PurifyWorker`** (Oban)
   per file **transactionally**. The worker runs `Media.Purifier` (ffmpeg: magic-byte typing,
-  EXIF/GPS stripped, codec allow-list + duration cap), then `attach_purified_asset/2` inserts the
-  ready row + writes bytes and **re-broadcasts** so the media appears live; a classified failure
-  sends the uploader a **`media_failed`** bell. `Media.Storage` writes id-keyed opaque objects
-  under a configured `storage_dir` (physical path never stored — traversal-proof), served
-  IDOR-hidden per request. `Media.OrphanJanitor` (daily Oban cron → `delete_orphans/0`) reclaims
-  stray objects + stale staged uploads. `Media.RateLimiter` throttles uploads.
+  EXIF/GPS stripped, images re-encoded with **alpha flattened onto opaque white**, codec
+  allow-list + duration cap), then `attach_purified_asset/2` inserts the ready row + writes bytes
+  and **re-broadcasts** so the media appears live; a classified failure sends the uploader a
+  **`media_failed`** bell. Byte-size caps and min/max pixel dimensions (images *and* videos) are
+  **admin-configurable** via `Media.Limits` (Settings-backed, `0` = unbounded; image floor ships
+  640×480) and enforced in the purifier; the same size cap gates the LiveView upload. `Media.Storage`
+  writes id-keyed opaque objects under a configured `storage_dir` (physical path never stored —
+  traversal-proof), served IDOR-hidden per request. `Media.OrphanJanitor` (daily Oban cron →
+  `delete_orphans/0`) reclaims stray objects + stale staged uploads. `Media.RateLimiter` throttles uploads.
 - **`Reports`** (`reports.ex`) — generated **health summary reports**
   ([ADR-0012](doc/adr/0012-vet-access-model.md)). `generate_report/3` (`:manage`) freezes a
   `jsonb` `content` snapshot over a date range built from `Logs.shareable_entries/3`, which
@@ -140,9 +143,10 @@ call them.
   (`/api/push-subscriptions`, CSRF + rate-limited); `service_worker.js` + `push_manager_hook.js`
   drive display and opt-in (on `/users/settings`).
 - **`Settings`** (`settings.ex`) — a tiny admin-managed key/value system-settings store
-  (ETS-cached via `Settings.Cache`), used for the **VAPID keypair** and the **system default
-  timezone** (`default_timezone`). An admin manages these on **`AdminLive.Settings`**
-  (`/admin/settings`). Reads are unauthenticated; writes are admin-gated at the LiveView boundary.
+  (ETS-cached via `Settings.Cache`), used for the **VAPID keypair**, the **system default
+  timezone** (`default_timezone`), and the **media upload limits** (`media_*`, resolved through
+  `Media.Limits`). An admin manages these on **`AdminLive.Settings`** (`/admin/settings`). Reads
+  are unauthenticated; writes are admin-gated at the LiveView boundary.
 - **`Timezone`** (`timezone.ex`) — timezone policy ([ADR-0018](doc/adr/0018-timezone-display-policy.md)).
   Times are stored **UTC** but resolved to an **active zone per viewer** — `resolve/1`:
   **user `timezone` preference → `Settings` `default_timezone` → `Etc/UTC`**. The active zone is
@@ -179,7 +183,8 @@ badges** come from the global `Goodmao2Web.UnreadBadges` `on_mount` hook (`attac
 authenticated live_session — no per-LiveView code. `AdminLive` (`live/admin_live.ex`) is the
 admin-only read-only `/admin` site overview **and** the vet-credential review queue;
 `AdminLive.Announcements` (`/admin/announcements`) composes announcement broadcasts, and
-`AdminLive.Settings` (`/admin/settings`) generates/manages the Web Push VAPID keys.
+`AdminLive.Settings` (`/admin/settings`) generates/manages the Web Push VAPID keys, the system
+default timezone, and the media upload limits (`Media.Limits`).
 They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on failure. Purified
 media is served by `MediaController` at `GET /media/:id` (re-applies the parent log's read
 authorization, IDOR-hidden, hardened headers, `Range` support), and anonymously for a `public`

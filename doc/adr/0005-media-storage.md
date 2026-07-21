@@ -13,7 +13,11 @@
 > is created immediately, and each file is purified + attached in the background (the media
 > appears live via PubSub; a failure sends the uploader a `media_failed` bell). A daily
 > `Media.OrphanJanitor` cron reclaims stray storage objects and stale staged uploads. Share-token
-> media serving also shipped with per-entry share links (ADR-0004)._
+> media serving also shipped with per-entry share links (ADR-0004). The image re-encode now
+> **flattens away any alpha channel** (onto opaque white) so transparency can't conceal content,
+> and the **byte-size caps + min/max pixel dimensions** are **admin-configurable at runtime**
+> (`Media.Limits`, Settings-backed, `0` = unbounded; the image dimension floor ships at 640×480)
+> for images and videos alike._
 
 ## Context
 
@@ -53,10 +57,16 @@ S3-compatible object store is a later option behind the same seam).
     JPEG/PNG/GIF/WEBP images, MP4/WEBM video. **SVG is rejected** (active-content XML).
   - **Images** are decoded and **re-encoded** (stripping all EXIF/GPS/IPTC/XMP/profiles);
     the stored bytes are the encoder's output, which also neutralizes polyglots, trailing
-    payloads, and (with decode limits) decompression bombs.
+    payloads, and (with decode limits) decompression bombs. The re-encode also **flattens any
+    alpha channel onto an opaque background** so a transparent region cannot smuggle hidden or
+    deceptive pixels.
   - **Videos** are validated (codec allow-list, duration cap) then **remuxed** to strip
     all container metadata (incl. GPS) and non-A/V streams.
   - **Text** (caption/note) is trimmed, control-character-stripped, and length-capped.
+  - **Byte-size caps and min/max pixel dimensions** (per kind, images *and* videos) are enforced
+    against `Media.Limits` — resolved from the `Settings` store so an administrator can tune every
+    bound at runtime from `/admin/settings` (`0` on either side = unbounded). Defaults: images
+    ≤ 8 MB with a 640×480 floor, videos ≤ 16 MB; all other bounds ship unbounded.
 - **Serving.** One authenticated endpoint resolves the asset by its own id, re-applies the
   **parent log's read authorization** (effective grant + ADR-0004 `visibility` + recorder
   + `history_hidden`), hides existence with `not_found`, and streams the bytes with
