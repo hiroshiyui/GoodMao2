@@ -93,9 +93,10 @@ config :phoenix, :json_library, Jason
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 config :goodmao2, :default_timezone, "Etc/UTC"
 
-# Background jobs (Oban). Today it runs a single daily cron — the token janitor that
-# prunes expired auth tokens (Accounts.delete_expired_tokens/0); more workloads
-# (reminders, async media, notification fan-out) are deferred (doc/roadmap.md).
+# Background jobs (Oban). Crons: the token janitor (prunes expired auth tokens), the media
+# orphan janitor (sweeps stray storage/staged bytes), and the medication reminder worker.
+# On-demand jobs (enqueued from contexts): notification fan-out, Web Push dispatch, and media
+# purification (Media.PurifyWorker — ffmpeg off the request path).
 config :goodmao2, Oban,
   repo: Goodmao2.Repo,
   queues: [default: 10],
@@ -103,6 +104,8 @@ config :goodmao2, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"30 3 * * *", Goodmao2.Accounts.TokenJanitor},
+       # Media (ADR-0005): sweep orphaned storage objects + stale staged uploads. Daily.
+       {"45 3 * * *", Goodmao2.Media.OrphanJanitor},
        # Medication scheduling (ADR-0019): keep the dose horizon filled, age overdue slots to
        # missed, and send due reminders. Every 15 minutes.
        {"*/15 * * * *", Goodmao2.Medications.ReminderWorker}

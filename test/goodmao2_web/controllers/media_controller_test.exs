@@ -5,7 +5,7 @@ defmodule Goodmao2Web.MediaControllerTest do
   import Goodmao2.AccountsFixtures
   import Goodmao2.PetsFixtures
 
-  alias Goodmao2.Media
+  alias Goodmao2.{Logs, Media}
   alias Goodmao2.Media.Storage
 
   setup do
@@ -25,10 +25,23 @@ defmodule Goodmao2Web.MediaControllerTest do
     {:ok, purified} = Media.purify(src)
     File.rm(src)
 
-    attrs = %{"note" => "hi", "visibility" => Keyword.get(opts, :visibility, "limited")}
-    {:ok, entry} = Media.create_life_log_with_media(owner, pet, attrs, [purified])
+    # Attach a ready asset directly (bypassing the async pipeline) — these tests exercise
+    # serving/authorization, not the upload flow, and need a purified object on disk.
+    {:ok, entry} =
+      Logs.create_entry(owner, pet, %{
+        "type" => "life",
+        "note" => "hi",
+        "visibility" => Keyword.get(opts, :visibility, "limited")
+      })
+
+    {:ok, asset} =
+      Media.attach_purified_asset(
+        %{log_entry_id: entry.id, pet_id: pet.id, uploaded_by_user_id: owner.id, caption: nil},
+        purified
+      )
+
     File.rm(purified.path)
-    hd(entry.media_assets)
+    asset
   end
 
   test "serves bytes to an authorized reader with hardened headers", %{conn: conn} do

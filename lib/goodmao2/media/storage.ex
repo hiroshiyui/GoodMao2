@@ -43,4 +43,45 @@ defmodule Goodmao2.Media.Storage do
 
   @doc "Whether an asset's bytes are present."
   def exists?(id) when is_integer(id), do: File.exists?(object_path(id))
+
+  ## Staging — raw, un-purified uploads awaiting the async PurifyWorker (ADR-0005).
+  #
+  # Raw bytes live under a dedicated `_staging` subdir keyed by an opaque random token. This tree
+  # is **never served**: `object_path/1` only ever addresses `storage_dir/<numeric-shard>/<id>`,
+  # so no request can reach a staged file, and the orphan janitor sweeps stale staged bytes.
+
+  @staging_dir "_staging"
+
+  @doc "The staging directory root (a subtree of `storage_dir`, never served)."
+  def staging_root, do: Path.join(storage_dir(), @staging_dir)
+
+  @doc "The filesystem path for a staged token. Validated to be traversal-proof."
+  def staged_path(token) when is_binary(token) do
+    unless token =~ ~r/\A[A-Za-z0-9_-]{16,64}\z/,
+      do: raise(ArgumentError, "invalid staging token")
+
+    Path.join(staging_root(), token)
+  end
+
+  @doc "Copies raw upload `source_path` into staging under a fresh token, returned as `{:ok, token}`."
+  # sobelow_skip ["Traversal.FileModule"]
+  # The destination is `staging_root/<random token>` — the token is server-generated and regex-
+  # validated in `staged_path/1`; no user-controlled path reaches File.mkdir_p/File.copy.
+  def stage(source_path) do
+    token = Base.url_encode64(:crypto.strong_rand_bytes(24), padding: false)
+    dest = staged_path(token)
+
+    with :ok <- File.mkdir_p(Path.dirname(dest)),
+         {:ok, _bytes} <- File.copy(source_path, dest) do
+      {:ok, token}
+    end
+  end
+
+  @doc "Removes a staged object (best-effort; a missing token is not an error)."
+  # sobelow_skip ["Traversal.FileModule"]
+  # Path derived from the regex-validated token alone (see `staged_path/1`).
+  def unstage(token) when is_binary(token) do
+    _ = File.rm(staged_path(token))
+    :ok
+  end
 end

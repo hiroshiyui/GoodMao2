@@ -14,7 +14,7 @@ defmodule Goodmao2.Notifications.Notification do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @types ~w(access_granted access_revoked log_added announcement medication_due)
+  @types ~w(access_granted access_revoked log_added announcement medication_due media_failed)
 
   def types, do: @types
 
