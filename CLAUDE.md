@@ -89,7 +89,11 @@ call them.
   payload; per-type field validation is in `LogEntry.changeset/2`. Entries are
   **soft-deleted** (`deleted_at`); every read filters `deleted_at IS NULL`. Writes re-check
   `Pets` capability at the context boundary (`vet_note` is vet-only; changing `visibility`
-  is owner-only). Each real edit snapshots the prior state into `log_entry_revisions`
+  is owner-only). Setting an entry **`public`** (owner-only, on create *and* edit, timeline
+  *and* media paths) mints an unguessable `share_token` via `Logs.put_share_token/1`; narrowing
+  clears it. `fetch_entry_by_share_token/1` is the **sole anonymous read path** (still-public +
+  unexpired `share_expires_at` + non-deleted + history not hidden, else existence-hidden) —
+  [ADR-0004](doc/adr/0004-log-visibility.md). Each real edit snapshots the prior state into `log_entry_revisions`
   (append-only, edit-count-capped). `create/update/delete_entry` broadcast on the pet's
   topic so `PetLive.Show` streams live updates.
 - **`Medications`** (`medications.ex`) — recurring medication **schedules** + materialized
@@ -173,10 +177,14 @@ admin-only read-only `/admin` site overview **and** the vet-credential review qu
 `AdminLive.Settings` (`/admin/settings`) generates/manages the Web Push VAPID keys.
 They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on failure. Purified
 media is served by `MediaController` at `GET /media/:id` (re-applies the parent log's read
-authorization, IDOR-hidden, hardened headers, `Range` support); anonymous shared reports by
-`ReportController` at `GET /reports/shared/:token` (unexpired-token-gated, existence-hidden);
-Web Push subscriptions by `PushSubscriptionController` (`POST`/`DELETE /api/push-subscriptions`,
-through the `:browser` pipeline for CSRF, rate-limited).
+authorization, IDOR-hidden, hardened headers, `Range` support), and anonymously for a `public`
+entry by `MediaController.shared` at `GET /entries/shared/:token/media/:id` (token-gated, same
+hardening); anonymous shared reports by `ReportController` at `GET /reports/shared/:token` and a
+single anonymous **shared entry** by `SharedEntryController` at `GET /entries/shared/:token`
+(both unexpired-token-gated, existence-hidden — [ADR-0004](doc/adr/0004-log-visibility.md)); Web
+Push subscriptions by `PushSubscriptionController` (`POST`/`DELETE /api/push-subscriptions`,
+through the `:browser` pipeline for CSRF, rate-limited). The owner manages an entry's share link
+(copy URL, set/clear expiry) on `PetLive.LogEntry`; the `Clipboard` JS hook backs the copy button.
 Routes are in the `:require_authenticated_user` `live_session` in `router.ex`. Shared view
 helpers (enum-label translations, log summaries, clinical flags) are in
 `lib/goodmao2_web/helpers.ex`; the health-report body + shared weight chart are in

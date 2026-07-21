@@ -183,8 +183,15 @@ rejects *and* the legitimate case still passes).
       **VAPID keys are admin-generated in the Web UI** (`/admin/settings`), the private key encrypted
       at rest. New **mailbox messages** push too (`Messaging.MessagePushWorker`). Follow-up:
       notification batching/digest.
-- [ ] Per-entry **share links** (public token) + anonymous shared timeline/media
-      ([ADR-0004](adr/0004-log-visibility.md); Phase 3)
+- [x] Per-entry **share links** (public token) + anonymous shared entry/media
+      ([ADR-0004](adr/0004-log-visibility.md); Phase 3) — an owner setting an entry to `public`
+      mints an unguessable, revocable `share_token` (narrowing clears it; an optional
+      `share_expires_at` can time-box it). `Logs.fetch_entry_by_share_token/1` is the **sole**
+      anonymous read path (still-public + unexpired + non-deleted + history not hidden, else
+      existence-hidden); `SharedEntryController` serves `GET /entries/shared/:token`, and the
+      entry's purified media is re-authorized through the same token at
+      `GET /entries/shared/:token/media/:id`. The owner copies the URL and sets/clears the expiry
+      on the entry page. The grant-gated timeline still serves no anonymous callers
 - [x] Verified **veterinarian accounts** (credential verification) + generated
       **health-summary report** export ([ADR-0012](adr/0012-vet-access-model.md); Phase 4) —
       `Accounts.VetProfile` (applicant page + admin review queue on `/admin`) gates the `vet`
@@ -336,8 +343,9 @@ icon vendoring is needed. GoodMao ships a light/dark/system theme toggle.
   cascade-path decision.
 - The `life` log type ships as a **text-only** daily-life note (authored from QuickLog,
   caption required); only its photo/video enrichment is deferred with the media work above.
-  The `visibility` `public` + share-token concept is modeled in the schema but its
-  UI/endpoints are deferred with the share-link work above.
+  The `visibility` `public` scope + per-entry share token is now **fully shipped** (ADR-0004):
+  minted for owner-set public entries, served anonymously (entry + media) via
+  `/entries/shared/:token`, revocable by narrowing or an optional expiry.
 
 ## What's next
 
@@ -345,32 +353,26 @@ With the v1.0.0 core, hardening, clinical-timeline, localization, engineering/op
 accessibility tranches shipped, these are the remaining threads — ordered by the value they
 unlock, not by size. Each is already scoped by an ADR or an existing section above.
 
-1. **Per-entry public share links** (highest value, most-referenced deferral) — the last
-   piece of the sharing story. A `public`-visibility entry can already be modeled; what's
-   deferred is the **share-token UI + anonymous endpoints** so an owner can hand a vet or
-   friend a single-entry (and, later, a filtered-timeline) link without an account, mirroring
-   the report share-token pattern (SHA-256-hashed token, existence-hidden, expiring). Unifies
-   the §6 share-link item, the Reports "per-entry public share links" follow-up, and the §11
-   note ([ADR-0004](adr/0004-log-visibility.md), Phase 3). **Then** extend token-gated serving
-   to **media** (share-token media serving) so a shared `life` entry's photos render anonymously.
-
-2. **Deployment: co-hosting runbook + Ansible** (ships v1.0.0 to a real host) — the two open
+1. **Deployment: co-hosting runbook + Ansible** (ships v1.0.0 to a real host) — the two open
    §9 items. Write the **co-hosting deploy note** (distinct `PORT` + Postgres role/db per app,
    one reverse proxy terminating TLS on `443` and routing by hostname), then the **Ansible
    playbook** that provisions and releases it, mirroring Baudrate's approach so GoodMao and its
    siblings co-host under one repeatable playbook.
 
-3. **Async media pipeline** (closes the last `[~]` in §8) — move ffmpeg purification off the
+2. **Async media pipeline** (closes the last `[~]` in §8) — move ffmpeg purification off the
    request path into an **Oban** worker, and add the **orphan-object janitor** cron for storage
    objects whose log never committed. Removes the synchronous-upload latency and the only
    remaining "deferred until needed" Oban workload ([ADR-0005](adr/0005-media-storage.md)).
 
-4. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
+3. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
    escalation** and **dose-history retention GC** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md));
    **notification batching / digest** so bursts don't spam the bell + push
    ([ADR-0011](adr/0011-notifications-and-messaging.md)); and **per-pet timezones** (resolution
    is per-viewer today) shared across medications and display
    ([ADR-0018](adr/0018-timezone-display-policy.md)).
 
-Deployment (2) and the async-media/janitor half of (3) are the true gates to a public v1.0.0;
-(1) is the biggest remaining product surface; (4) is quality-of-life once the above land.
+**Shipped since this list was first drafted:** per-entry public share links + anonymous
+shared-entry/media endpoints (ADR-0004) — the biggest remaining product surface, now done.
+
+Deployment (1) and the async-media/janitor half of (2) are the true gates to a public v1.0.0;
+(3) is quality-of-life once the above land.

@@ -100,8 +100,9 @@ vets). Unique index on `(pet_id, user_id)`.
 ### `log_entries` (Logs.LogEntry) — one table, typed
 ([ADR-0015](adr/0015-structured-one-table-logging.md).)
 Common columns (`pet_id`, `recorded_by_user_id` audit ref, `type`, `occurred_at`,
-`note`, `visibility`, `deleted_at`) plus a `jsonb` **`data`** payload holding the
-subtype's structured fields. `type` is the discriminator; per-type payload validation
+`note`, `visibility`, `deleted_at`, and — for a `public` entry — a `share_token` +
+optional `share_expires_at`, [ADR-0004](adr/0004-log-visibility.md)) plus a `jsonb`
+**`data`** payload holding the subtype's structured fields. `type` is the discriminator; per-type payload validation
 lives in `LogEntry.changeset/2`. Soft-deleted via `deleted_at` (reads filter
 `deleted_at IS NULL`). `occurred_at` (when the event happened) is distinct from the
 row's insert time and is **backdatable**; future timestamps are rejected.
@@ -227,7 +228,9 @@ keyed off `SECRET_KEY_BASE`), `vapid_subject` — and `default_timezone`, the sy
   (enforced in `Logs`, the context boundary).
 - **The `vet` role is granted only to a verified `VetProfile`** (`Accounts.verified_vet?/1`),
   on grant *and* re-grant ([ADR-0012](adr/0012-vet-access-model.md)).
-- **Changing a log's `visibility` requires `owner`.**
+- **Changing a log's `visibility` requires `owner`** (and creating a `public` entry does too);
+  setting `public` mints a revocable `share_token` — the sole anonymous read path
+  (`Logs.fetch_entry_by_share_token/1`, `GET /entries/shared/:token`), [ADR-0004](adr/0004-log-visibility.md).
 - `Pets.fetch_pet/3` returns `{:error, :not_found}` (never "forbidden") for pets the
   caller cannot access — **IDOR-hidden**.
 - **Owner invariant:** creating a pet inserts the creator's `owner` grant in the same

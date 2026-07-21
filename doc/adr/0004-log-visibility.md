@@ -1,6 +1,6 @@
 # 4. Log entry visibility scopes
 
-- **Status:** Accepted _(schema shipped; anonymous read + owner UI deferred)_
+- **Status:** Accepted _(shipped)_
 - **Date:** 2026-07-10
 - **Deciders:** GoodMao maintainers
 
@@ -55,11 +55,17 @@ grant-scoped reads.**
   history also kills its outstanding links.
 - New surface to maintain: a unique filtered index on the share token, exposed in views
   only to owners (never to plain viewers/vets).
-- **GoodMao status:** the `visibility` enum and the owner-only change rule are
-  **shipped**; the `public` scope + share token are **modeled in the schema**, but the
-  anonymous read route and the owner-facing share-link/scope-selector UI are **deferred**
-  (roadmap Phase 3). Per-recipient sharing (grant one external vet a scoped link) is out
-  of scope; a future ADR may revisit.
+- **GoodMao status: shipped.** The `visibility` enum, the owner-only change rule, and the
+  `public` scope + **per-entry share link** are all live. Setting an entry `public` (only an
+  owner may — enforced on create *and* edit, in the timeline *and* the media-log path) mints an
+  unguessable URL-safe `share_token`; narrowing clears it. `Logs.fetch_entry_by_share_token/1`
+  is the sole anonymous read path — gated on a matching token, still-`public` scope, an
+  optional-and-unexpired `share_expires_at`, non-deleted, and the pet's history not hidden;
+  everything else is existence-hidden `nil`. Served by `SharedEntryController`
+  (`GET /entries/shared/:token`), with the entry's purified media re-authorized through the same
+  token at `GET /entries/shared/:token/media/:id`. The owner manages the link (copy URL, set/clear
+  expiry) on the entry page. Per-recipient sharing (grant one external vet a scoped link) remains
+  out of scope; a future ADR may revisit.
 
 ## Alternatives considered
 
