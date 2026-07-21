@@ -102,6 +102,7 @@ defmodule Goodmao2Web.Helpers do
   def notification_title("log_added", _p), do: gettext("New log entry")
   # An announcement's title is admin-authored free text, shown verbatim.
   def notification_title("announcement", p), do: p["title"] || gettext("Announcement")
+  def notification_title("medication_due", _p), do: gettext("Medication due")
   def notification_title(_type, _p), do: gettext("Notification")
 
   @doc "A localized one-line summary of a notification, rendered from its payload."
@@ -130,6 +131,14 @@ defmodule Goodmao2Web.Helpers do
     )
   end
 
+  def notification_summary("medication_due", p) do
+    gettext("%{medication} (%{dose}) is due for %{pet}.",
+      medication: p["medication_name"],
+      dose: p["dose"],
+      pet: p["pet_name"]
+    )
+  end
+
   # An announcement body is admin-authored free text, shown verbatim.
   def notification_summary("announcement", p), do: p["body"]
   def notification_summary(_type, _p), do: nil
@@ -139,6 +148,7 @@ defmodule Goodmao2Web.Helpers do
   def notification_icon("access_revoked"), do: "hero-user-minus"
   def notification_icon("log_added"), do: "hero-pencil-square"
   def notification_icon("announcement"), do: "hero-megaphone"
+  def notification_icon("medication_due"), do: "hero-beaker"
   def notification_icon(_type), do: "hero-bell"
 
   @doc """
@@ -154,6 +164,10 @@ defmodule Goodmao2Web.Helpers do
     do: ~p"/pets/#{pet_id}"
 
   def notification_path(%{type: "access_revoked"}), do: ~p"/pets"
+
+  def notification_path(%{type: "medication_due", payload: %{"pet_id" => pet_id}}),
+    do: ~p"/pets/#{pet_id}/medications"
+
   def notification_path(_notification), do: nil
 
   @doc """

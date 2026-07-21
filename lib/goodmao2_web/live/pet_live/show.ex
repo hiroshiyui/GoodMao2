@@ -862,6 +862,13 @@ defmodule Goodmao2Web.PetLive.Show do
 
       <nav id="pet-actions" class="flex gap-2" aria-label={gettext("Pet actions")}>
         <.link
+          navigate={~p"/pets/#{@pet.id}/medications"}
+          id="pet-medications-link"
+          class="btn btn-ghost btn-sm"
+        >
+          <.icon name="hero-beaker" class="size-4" /> {gettext("Medications")}
+        </.link>
+        <.link
           navigate={~p"/pets/#{@pet.id}/reports"}
           id="pet-reports-link"
           class="btn btn-ghost btn-sm"

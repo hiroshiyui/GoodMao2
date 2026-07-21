@@ -112,6 +112,7 @@ defmodule Goodmao2Web.Router do
       live "/pets/:id/reports", PetLive.Reports, :index
       live "/pets/:id/reports/:report_id", PetLive.Reports, :show
       live "/pets/:pet_id/logs/:id", PetLive.LogEntry, :show
+      live "/pets/:pet_id/medications", PetLive.Medications, :index
 
       # In-site notifications (bell) and the private 1:1 mailbox (ADR-0011).
       live "/notifications", NotificationLive.Index, :index
