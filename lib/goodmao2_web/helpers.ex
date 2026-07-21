@@ -108,6 +108,7 @@ defmodule Goodmao2Web.Helpers do
   # An announcement's title is admin-authored free text, shown verbatim.
   def notification_title("announcement", p), do: p["title"] || gettext("Announcement")
   def notification_title("medication_due", _p), do: gettext("Medication due")
+  def notification_title("media_failed", _p), do: gettext("Upload couldn't be processed")
   def notification_title(_type, _p), do: gettext("Notification")
 
   @doc "A localized one-line summary of a notification, rendered from its payload."
@@ -146,6 +147,13 @@ defmodule Goodmao2Web.Helpers do
 
   # An announcement body is admin-authored free text, shown verbatim.
   def notification_summary("announcement", p), do: p["body"]
+
+  def notification_summary("media_failed", _p),
+    do:
+      gettext(
+        "A photo or video you uploaded couldn't be processed — check the format and try again."
+      )
+
   def notification_summary(_type, _p), do: nil
 
   @doc "A heroicon name for a notification type."
@@ -154,6 +162,7 @@ defmodule Goodmao2Web.Helpers do
   def notification_icon("log_added"), do: "hero-pencil-square"
   def notification_icon("announcement"), do: "hero-megaphone"
   def notification_icon("medication_due"), do: "hero-beaker"
+  def notification_icon("media_failed"), do: "hero-exclamation-triangle"
   def notification_icon(_type), do: "hero-bell"
 
   @doc """
@@ -172,6 +181,12 @@ defmodule Goodmao2Web.Helpers do
 
   def notification_path(%{type: "medication_due", payload: %{"pet_id" => pet_id}}),
     do: ~p"/pets/#{pet_id}/medications"
+
+  def notification_path(%{
+        type: "media_failed",
+        payload: %{"pet_id" => pet_id, "log_entry_id" => id}
+      }),
+      do: ~p"/pets/#{pet_id}/logs/#{id}"
 
   def notification_path(_notification), do: nil
 

@@ -272,12 +272,10 @@ defmodule Goodmao2Web.PetLive.Show do
     end
   end
 
-  # A daily-life log may carry purified photos/videos (ADR-0005). Consume + purify every
-  # uploaded file, then create the entry and its media atomically. Purified temp files are
-  # always cleaned up; if any file fails purification, nothing is created.
-  # sobelow_skip ["Traversal.FileModule"]
-  # The only File.rm here targets `purified.path` — temp files the purifier itself generated,
-  # never a user-controlled path.
+  # A daily-life log may carry photos/videos (ADR-0005). Stage each raw upload and create the
+  # entry immediately; the ffmpeg purification runs off the request path in `Media.PurifyWorker`,
+  # which attaches each media row and re-broadcasts so it appears live. If the log itself fails to
+  # create, the staged uploads are discarded.
   defp save_life_log(socket, params) do
     pet = socket.assigns.pet
     user = socket.assigns.current_scope.user
@@ -289,27 +287,23 @@ defmodule Goodmao2Web.PetLive.Show do
       }
       |> put_local_occurred_at(Map.get(params, "occurred_at"), socket.assigns.timezone)
 
-    results =
-      consume_uploaded_entries(socket, :media, fn %{path: path}, _entry ->
-        {:ok, Media.purify(path)}
+    staged =
+      socket
+      |> consume_uploaded_entries(:media, fn %{path: path}, _entry ->
+        {:ok, Media.stage_upload(path)}
+      end)
+      |> Enum.flat_map(fn
+        {:ok, token} -> [%{token: token}]
+        _ -> []
       end)
 
-    purified = for {:ok, p} <- results, do: p
-    failed? = Enum.any?(results, &match?({:error, _}, &1))
+    case Media.create_life_log(user, pet, attrs, staged) do
+      {:ok, _entry} = ok ->
+        handle_life_result(socket, ok)
 
-    if failed? do
-      Enum.each(purified, &File.rm(&1.path))
-
-      {:noreply,
-       assign(
-         socket,
-         :quick_error,
-         gettext("A file couldn't be processed — check the format and size.")
-       )}
-    else
-      result = Media.create_life_log_with_media(user, pet, attrs, purified)
-      Enum.each(purified, &File.rm(&1.path))
-      handle_life_result(socket, result)
+      error ->
+        Enum.each(staged, &Media.unstage_upload(&1.token))
+        handle_life_result(socket, error)
     end
   end
 
@@ -334,12 +328,12 @@ defmodule Goodmao2Web.PetLive.Show do
     {:noreply, put_flash(socket, :error, gettext("You are not allowed to log for this pet."))}
   end
 
-  defp handle_life_result(socket, {:error, :storage_failed}) do
-    {:noreply, put_flash(socket, :error, gettext("Couldn't store the media. Please try again."))}
-  end
-
   defp handle_life_result(socket, {:error, %Ecto.Changeset{} = changeset}) do
     {:noreply, assign(socket, :quick_error, changeset_error_message(changeset))}
+  end
+
+  defp handle_life_result(socket, {:error, _reason}) do
+    {:noreply, put_flash(socket, :error, gettext("Couldn't save that entry. Please try again."))}
   end
 
   @doc false

@@ -607,7 +607,14 @@ defmodule Goodmao2Web.PetLiveTest do
 
       lv |> form("#quicklog-form", log: %{note: "Nap in the sun"}) |> render_submit()
 
+      # The entry appears immediately; the photo is purified off the request path (ADR-0005),
+      # so it isn't attached until the PurifyWorker runs.
       assert has_element?(lv, ".timeline-entry-type", "Daily life")
+      refute has_element?(lv, ".timeline-media img")
+
+      # Running the worker attaches the media and broadcasts, so it appears live.
+      Oban.drain_queue(queue: :default)
+      assert render(lv) =~ "timeline-media"
       assert has_element?(lv, ".timeline-media img")
     end
   end
