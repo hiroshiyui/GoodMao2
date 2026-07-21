@@ -450,6 +450,9 @@ defmodule Goodmao2Web.PetLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
       lv |> element("#timeline-page-next") |> render_click()
 
+      # Paging asks the client to scroll the timeline section back into view.
+      assert_push_event(lv, "scroll-to-timeline", %{})
+
       # Page 2 holds the oldest 5 only.
       assert has_element?(lv, ".timeline-entry-note", "entry-25")
       assert has_element?(lv, ".timeline-entry-note", "entry-29")

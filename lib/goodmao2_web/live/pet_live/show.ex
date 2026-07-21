@@ -151,7 +151,11 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   def handle_event("timeline_page", %{"page" => page}, socket) do
-    {:noreply, socket |> assign(:page, parse_page(page, socket.assigns.page)) |> load_entries()}
+    {:noreply,
+     socket
+     |> assign(:page, parse_page(page, socket.assigns.page))
+     |> load_entries()
+     |> push_event("scroll-to-timeline", %{})}
   end
 
   # Switch between the chronological list and the month grid. Returning to the list

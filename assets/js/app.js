@@ -91,6 +91,17 @@ window.addEventListener("storage", (e) => {
   if (e.key === FONT_SIZE_KEY) applyFontSize(e.newValue || FONT_SIZE_DEFAULT)
 })
 
+// After the pet timeline pages (server pushes this once the new slice is rendered), bring the
+// top of the timeline section into view so a paged list doesn't leave the viewport mid-scroll.
+// Honor prefers-reduced-motion (jump instead of animating), matching the app's motion guard.
+window.addEventListener("phx:scroll-to-timeline", () => {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  document.getElementById("timeline-section")?.scrollIntoView({
+    behavior: reduce ? "auto" : "smooth",
+    block: "start",
+  })
+})
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
