@@ -14,7 +14,7 @@ defmodule Goodmao2.Notifications.Notification do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @types ~w(access_granted access_revoked log_added announcement)
+  @types ~w(access_granted access_revoked log_added announcement medication_due)
 
   def types, do: @types
 
@@ -50,7 +50,8 @@ defmodule Goodmao2.Notifications.Notification do
     "access_granted" => ~w(pet_id pet_name role),
     "access_revoked" => ~w(pet_id pet_name),
     "log_added" => ~w(pet_id pet_name entry_id log_type),
-    "announcement" => ~w(title body)
+    "announcement" => ~w(title body),
+    "medication_due" => ~w(pet_id pet_name medication_name dose)
   }
 
   defp validate_payload(changeset) do

@@ -102,7 +102,10 @@ config :goodmao2, Oban,
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
-       {"30 3 * * *", Goodmao2.Accounts.TokenJanitor}
+       {"30 3 * * *", Goodmao2.Accounts.TokenJanitor},
+       # Medication scheduling (ADR-0019): keep the dose horizon filled, age overdue slots to
+       # missed, and send due reminders. Every 15 minutes.
+       {"*/15 * * * *", Goodmao2.Medications.ReminderWorker}
      ]}
   ]
 
