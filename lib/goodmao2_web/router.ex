@@ -85,7 +85,8 @@ defmodule Goodmao2Web.Router do
     live_session :require_authenticated_user,
       on_mount: [
         {Goodmao2Web.UserAuth, :require_authenticated},
-        {Goodmao2Web.UserLocale, :put_locale}
+        {Goodmao2Web.UserLocale, :put_locale},
+        {Goodmao2Web.UnreadBadges, :mount_badges}
       ] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/password", UserLive.PasswordSettings, :edit
@@ -108,6 +109,14 @@ defmodule Goodmao2Web.Router do
       live "/pets/:id/reports", PetLive.Reports, :index
       live "/pets/:id/reports/:report_id", PetLive.Reports, :show
       live "/pets/:pet_id/logs/:id", PetLive.LogEntry, :show
+
+      # In-site notifications (bell) and the private 1:1 mailbox (ADR-0011).
+      live "/notifications", NotificationLive.Index, :index
+      live "/messages", MessageLive.Index, :index
+      live "/messages/:id", MessageLive.Show, :show
+
+      # Admin-only announcement compose; gated per-LiveView by the :require_admin on_mount.
+      live "/admin/announcements", AdminLive.Announcements, :new
     end
 
     post "/users/update-password", UserSessionController, :update_password

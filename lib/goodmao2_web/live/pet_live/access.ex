@@ -93,7 +93,12 @@ defmodule Goodmao2Web.PetLive.Access do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <section id="access-section" aria-labelledby="access-heading" class="mx-auto max-w-xl">
         <div class="flex items-center gap-2">
           <.link

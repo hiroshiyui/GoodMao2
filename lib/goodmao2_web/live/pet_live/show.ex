@@ -367,7 +367,12 @@ defmodule Goodmao2Web.PetLive.Show do
     assigns = assign(assigns, :presets, quicktap_presets(assigns.quicklog_type))
 
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <.pet_header pet={@pet} role={@role} can_manage?={@can_manage?} />
 
       <div

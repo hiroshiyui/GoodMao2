@@ -24,6 +24,17 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   ([ADR-0012](adr/0012-vet-access-model.md)): a frozen `content` snapshot over a date range
   (built from `Logs.shareable_entries/3`, which **excludes every private entry**), read by any
   effective grant, and optionally shared through an **expiring** anonymous token.
+- **Notifications** (`notifications.ex`) — the in-site **bell feed** ([ADR-0011](adr/0011-notifications-and-messaging.md)):
+  per-recipient rows with a `type` + `jsonb` payload (copy rendered at read time, never
+  stored). Single-recipient grant/revoke events are created **inline** by `Pets`;
+  `log_added` (visibility-aware) and admin `announcement`s fan out via **Oban**
+  (`LogFanoutWorker` / `AnnouncementFanoutWorker`). Every change broadcasts the recomputed
+  unread count over PubSub.
+- **Messaging** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](adr/0011-notifications-and-messaging.md)):
+  one conversation per unordered user pair, gated by the **shared-pet rule** (`can_message?/2`,
+  the effective-grant self-join) with a uniform non-leaking `:cannot_message`; thread reads
+  require participation (existence-hidden), each participant carries a **read cursor**, and
+  messages (2 000-codepoint cap) broadcast live per conversation.
 
 Each context owns its schemas under `lib/goodmao2/<context>/`.
 
@@ -113,6 +124,25 @@ paired with `share_expires_at`, and `deleted_at` (soft-delete). Generation/shari
 require `:manage`; reading requires `:read`; the anonymous token path is gated only by an
 unexpired, matching token. See [ADR-0012](adr/0012-vet-access-model.md).
 
+### `notifications` (Notifications.Notification) — the bell feed
+
+Per recipient: `user_id`, a `type` discriminator (`access_granted` / `access_revoked` /
+`log_added` / `announcement`), a `jsonb` **`payload`** (denormalized snapshot — pet id/name,
+actor label, role, log type + entry id, announcement title/body; the copy is *rendered* from
+this at read time, never stored), `read_at?` (null = unread), and `deleted_at`. A partial index
+on unread rows backs the badge count. See [ADR-0011](adr/0011-notifications-and-messaging.md).
+
+### `conversations` / `conversation_participants` / `messages` (Messaging.*) — the mailbox
+
+One `conversations` row per **unordered user pair** — stored as ordered `user_lo_id` <
+`user_hi_id` columns (DB `CHECK` + unique index; the canonical pair key), plus a denormalized
+`last_message_at`. Each `conversation_participants` row is one user's membership and carries the
+per-participant **read cursor** `last_read_at` (a message is unread when it arrived after it).
+`messages` hold `conversation_id`, `sender_id` (audit ref, nilified on user deletion), and a
+`body` capped at **2 000** characters (column + changeset). All three soft-delete via
+`deleted_at`. Starting a conversation is gated by the **shared-pet rule**; thread access
+requires participation. See [ADR-0011](adr/0011-notifications-and-messaging.md).
+
 ## Authorization logic
 
 `Goodmao2.Pets.can?(pet, user, level)` where `level` ∈ `:read | :write | :manage`:
@@ -145,11 +175,12 @@ schema**. Recorded here so the payload/relationship shapes are known when the wo
   `schedule` recurrence, `start_date`, `end_date?`, `prescribed_by_vet_id?` audit ref,
   `active`). `medication` log entries record actual administrations against it — the
   "did anyone give the pill?" coordination. _Phase 1/3._
-- **Notifications** and the **mailbox** (`conversations` / `conversation_participants` /
-  `messages`) are likewise deferred — see
-  [ADR-0011](adr/0011-notifications-and-messaging.md). (**Log-edit revisions**, **VetProfile**,
-  and **HealthSummaryReport** have shipped — see the data model above and
-  [ADR-0009](adr/0009-log-edit-revisions.md) / [ADR-0012](adr/0012-vet-access-model.md).)
+- **Web Push** (Stage 2 of [ADR-0011](adr/0011-notifications-and-messaging.md)) — a
+  push-subscription entity, VAPID keys, an SSRF-safe outbound client, and a dispatch job —
+  is deferred; the in-site notifications/mailbox core (Stage 1) has shipped. (**Log-edit
+  revisions**, **VetProfile**, **HealthSummaryReport**, **notifications**, and the **mailbox**
+  have shipped — see the data model above and [ADR-0009](adr/0009-log-edit-revisions.md) /
+  [ADR-0011](adr/0011-notifications-and-messaging.md) / [ADR-0012](adr/0012-vet-access-model.md).)
 
 ## Web layer (`lib/goodmao2_web/`)
 
@@ -157,15 +188,23 @@ LiveViews under `live/pet_live/`: `Index` (active / past pets), `Form` (new & ed
 `Show` (QuickLog + live timeline + weight trend), `LogEntry` (a single entry: edit + revision
 history, ADR-0009), `Access` (sharing/grants), `EndOfCare` (owner-only lifecycle), `Reports`
 (generate/list/view health summaries, ADR-0012). `UserLive.VetProfile` (`/users/vet-profile`)
-is the applicant's credential-submission page. Routes live in the
-`:require_authenticated_user` live_session in `router.ex`.
+is the applicant's credential-submission page. `NotificationLive.Index` (`/notifications`) is
+the bell feed, and `MessageLive.Index` / `MessageLive.Show` (`/messages`, `/messages/:id`) are
+the mailbox inbox and thread (ADR-0011). Routes live in the `:require_authenticated_user`
+live_session in `router.ex`.
 The `Show` LiveView subscribes to the pet's PubSub topic and streams entries.
+
+Live **unread badges** in the nav come from a global `Goodmao2Web.UnreadBadges` `on_mount`
+hook on that live_session: it assigns the counts and `attach_hook(:handle_info, …)` updates
+them from PubSub in **every** authenticated LiveView without per-view code
+([ADR-0011](adr/0011-notifications-and-messaging.md)).
 
 `AdminLive` (`live/admin_live.ex`, `GET /admin`) is a separate `:require_admin`-gated,
 read-only site-overview surface for the sole administrator (user count, admin identity,
 first-registration gate status), plus the **veterinarian-credential review queue** (verify /
-reject pending `VetProfile`s). Admin is a global role only — it grants **no** access to
-pet data, so this page reads none.
+reject pending `VetProfile`s). `AdminLive.Announcements` (`/admin/announcements`, same
+`:require_admin` gate) composes an admin **announcement** broadcast to every user. Admin is a
+global role only — it grants **no** access to pet data, so these pages read none.
 
 Purified life-log media is served by `MediaController` at `GET /media/:id` (a dedicated
 `:serve_media` pipeline — session + scope, no HTML negotiation), which re-applies the parent

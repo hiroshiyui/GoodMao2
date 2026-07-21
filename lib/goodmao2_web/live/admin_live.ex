@@ -16,7 +16,12 @@ defmodule Goodmao2Web.AdminLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <.header>
         {gettext("Administration")}
         <:subtitle>{gettext("Platform overview and site status.")}</:subtitle>
@@ -56,6 +61,12 @@ defmodule Goodmao2Web.AdminLive do
       <p class="text-base-content/60 text-sm">
         {gettext("Administration is a global role. It grants no access to any pet's data.")}
       </p>
+
+      <div class="mt-4">
+        <.link navigate={~p"/admin/announcements"} id="admin-announcements-link" class="btn btn-sm">
+          <.icon name="hero-megaphone" class="size-4" /> {gettext("Post an announcement")}
+        </.link>
+      </div>
 
       <section id="vet-verifications" aria-labelledby="vet-verifications-heading" class="mt-10">
         <h2 id="vet-verifications-heading" class="text-lg font-semibold">

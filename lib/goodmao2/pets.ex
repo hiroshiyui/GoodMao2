@@ -179,6 +179,20 @@ defmodule Goodmao2.Pets do
     )
   end
 
+  @doc """
+  Lists a pet's **effective** grants (active *and* not expired) — the true current
+  follower set, used by the notification fan-out. Unlike `list_accesses/1`, this applies
+  the expiry filter.
+  """
+  def list_effective_accesses(%Pet{id: pet_id}) do
+    Repo.all(
+      from a in PetAccess,
+        where: a.pet_id == ^pet_id and a.status == "active",
+        where: is_nil(a.expires_at) or a.expires_at > ^now(),
+        order_by: [asc: a.role, asc: a.inserted_at]
+    )
+  end
+
   @doc "Changeset for the grant form (defaults to a fresh grant)."
   def change_access(access \\ %PetAccess{}, attrs \\ %{}), do: PetAccess.changeset(access, attrs)
 
@@ -194,22 +208,33 @@ defmodule Goodmao2.Pets do
          :ok <- require_verified_vet(attrs["role"], grantee) do
       # This path doubles as the grant-*update* path (insert_or_update), so it must
       # honor the >=1-owner invariant when demoting or time-boxing an existing owner.
-      with_owner_lock(pet, fn ->
-        existing = Repo.get_by(PetAccess, pet_id: pet.id, user_id: grantee.id)
+      # Read the prior grant (outside the lock is fine — it only decides whether to
+      # notify) so a pure no-op re-grant doesn't spam the grantee.
+      prior = Repo.get_by(PetAccess, pet_id: pet.id, user_id: grantee.id)
 
-        with :ok <- guard_owner_retirement(pet, existing, attrs) do
-          (existing || %PetAccess{})
-          |> PetAccess.changeset(%{
-            "pet_id" => pet.id,
-            "user_id" => grantee.id,
-            "role" => attrs["role"],
-            "granted_by_user_id" => granter.id,
-            "expires_at" => attrs["expires_at"],
-            "status" => "active"
-          })
-          |> Repo.insert_or_update()
-        end
-      end)
+      result =
+        with_owner_lock(pet, fn ->
+          existing = Repo.get_by(PetAccess, pet_id: pet.id, user_id: grantee.id)
+
+          with :ok <- guard_owner_retirement(pet, existing, attrs) do
+            (existing || %PetAccess{})
+            |> PetAccess.changeset(%{
+              "pet_id" => pet.id,
+              "user_id" => grantee.id,
+              "role" => attrs["role"],
+              "granted_by_user_id" => granter.id,
+              "expires_at" => attrs["expires_at"],
+              "status" => "active"
+            })
+            |> Repo.insert_or_update()
+          end
+        end)
+
+      with {:ok, %PetAccess{} = access} <- result do
+        maybe_notify_granted(prior, access, granter, pet)
+      end
+
+      result
     else
       nil -> {:error, :grantee_not_found}
       {:error, _} = err -> err
@@ -222,11 +247,18 @@ defmodule Goodmao2.Pets do
   """
   def revoke_access(%User{} = revoker, %Pet{} = pet, %PetAccess{} = access) do
     with :ok <- require(pet, revoker, :manage) do
-      with_owner_lock(pet, fn ->
-        with :ok <- guard_last_owner(pet, access) do
-          access |> PetAccess.changeset(%{status: "revoked"}) |> Repo.update()
-        end
-      end)
+      result =
+        with_owner_lock(pet, fn ->
+          with :ok <- guard_last_owner(pet, access) do
+            access |> PetAccess.changeset(%{status: "revoked"}) |> Repo.update()
+          end
+        end)
+
+      with {:ok, %PetAccess{}} <- result do
+        Goodmao2.Notifications.notify_access_revoked(access.user_id, revoker, pet)
+      end
+
+      result
     end
   end
 
@@ -280,20 +312,21 @@ defmodule Goodmao2.Pets do
 
   defp require_verified_vet(_role, _grantee), do: :ok
 
-  defp resolve_user(identifier) do
-    identifier = String.trim(identifier)
+  # Notify the grantee only when access meaningfully changed: a brand-new grant, a
+  # re-activation of a revoked/expired one, or a role change. A pure no-op re-grant (same
+  # active role, only expiry touched) doesn't notify.
+  defp maybe_notify_granted(prior, %PetAccess{} = access, %User{} = granter, %Pet{} = pet) do
+    changed? =
+      is_nil(prior) or prior.status != "active" or prior.role != access.role
 
-    cond do
-      identifier == "" ->
-        nil
-
-      String.contains?(identifier, "@") and not String.starts_with?(identifier, "@") ->
-        Accounts.get_user_by_email(identifier)
-
-      true ->
-        Accounts.get_user_by_handle(identifier)
+    if changed? do
+      Goodmao2.Notifications.notify_access_granted(access.user_id, granter, pet, access.role)
     end
+
+    :ok
   end
+
+  defp resolve_user(identifier), do: Accounts.resolve_user(identifier)
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:second)
 end

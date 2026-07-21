@@ -147,6 +147,36 @@ defmodule Goodmao2.Accounts do
   end
 
   @doc """
+  Resolves a free-text identifier to a user, or `nil`.
+
+  A value containing `@` without a leading `@` is treated as an email; otherwise it is a
+  public `@handle`. This is the single resolver used by both the access-grant path
+  (`Pets.grant_access/3`) and the messaging path (`Goodmao2.Messaging`), so the
+  handle/email heuristic lives in one place.
+  """
+  def resolve_user(identifier) when is_binary(identifier) do
+    identifier = String.trim(identifier)
+
+    cond do
+      identifier == "" ->
+        nil
+
+      String.contains?(identifier, "@") and not String.starts_with?(identifier, "@") ->
+        get_user_by_email(identifier)
+
+      true ->
+        get_user_by_handle(identifier)
+    end
+  end
+
+  def resolve_user(_), do: nil
+
+  @doc "Returns the ids of every user — the recipient set for an admin announcement fan-out."
+  def all_user_ids do
+    Repo.all(from u in User, select: u.id)
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for changing the user's editable profile.
   """
   def change_user_profile(user, attrs \\ %{}, opts \\ []) do

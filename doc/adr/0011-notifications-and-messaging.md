@@ -1,10 +1,13 @@
 # 11. In-site notifications and a private mailbox
 
-- **Status:** Proposed _(deferred — design captured ahead of implementation)_
-- **Date:** 2026-07-18
+- **Status:** Accepted _(Stage 1 shipped; Web Push Stage 2 still deferred)_
+- **Date:** 2026-07-18 _(accepted 2026-07-20)_
 - **Deciders:** GoodMao maintainers
 
-> _Neither surface is built yet — this is the spec to satisfy (roadmap Phase 3)._
+> _Stage 1 is shipped: the bell feed, the private 1:1 mailbox, live PubSub badges, the
+> shared-pet gate, Oban fan-out (`log_added` + admin announcements), and soft-delete
+> throughout. **Web Push (Stage 2) remains deferred** behind its SSRF-safe-client
+> prerequisite._
 
 ## Context
 
@@ -80,6 +83,17 @@ many-recipient fan-out runs through Oban. Web Push is a separate, later stage.**
   **batching/digest is future work**, called out here so it isn't mistaken for done.
 - **No email.** Deliberately out of scope (operational cost); Web Push is the outbound
   channel, staged behind its SSRF prerequisite.
+
+- **GoodMao status (Stage 1 shipped, 2026-07-20).** Two contexts back the surfaces:
+  `Goodmao2.Notifications` (feed + `notifications` table + the `LogFanoutWorker` /
+  `AnnouncementFanoutWorker` Oban workers) and `Goodmao2.Messaging` (`conversations`,
+  `conversation_participants`, `messages`, the shared-pet gate `can_message?/2`, and the
+  per-participant read cursor). Copy is rendered from `type` + payload via
+  `Goodmao2Web.Helpers.notification_summary/1`. Live badges ride a global
+  `Goodmao2Web.UnreadBadges` `on_mount` hook (`attach_hook(:handle_info, …)`) so every
+  authenticated LiveView updates without per-view code. Grant/revoke notify **inline** from
+  `Pets`; new logs enqueue fan-out from `Logs.create_entry/3` (respecting per-entry
+  `visibility`). **Web Push (Stage 2) is not built.**
 
 ## Alternatives considered
 

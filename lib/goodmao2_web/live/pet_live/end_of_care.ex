@@ -59,7 +59,12 @@ defmodule Goodmao2Web.PetLive.EndOfCare do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <section id="eol-section" aria-labelledby="eol-heading" class="mx-auto max-w-lg">
         <div class="flex items-center gap-2">
           <.link

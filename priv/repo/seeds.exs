@@ -153,6 +153,27 @@ if Logs.list_entries(owner, pet) == [] do
   for {user, attrs} <- entries, do: Logs.create_entry(user, pet, attrs)
 end
 
+# A demo conversation between the owner and the vet (they share Mochi, so the shared-pet
+# gate allows it). Idempotent: start_conversation returns the existing thread, and we only
+# seed the opening messages when the thread is empty.
+alias Goodmao2.Messaging
+
+case Messaging.start_conversation(owner, "dr_lin") do
+  {:ok, conversation} ->
+    if Messaging.list_messages(owner, conversation) == [] do
+      Messaging.send_message(owner, conversation, "Hi Dr. Lin — Mochi seemed a bit off today.")
+
+      Messaging.send_message(
+        vet,
+        conversation,
+        "Thanks for the note. Let's keep an eye on her water intake."
+      )
+    end
+
+  _ ->
+    :ok
+end
+
 IO.puts("""
 Seeded demo data:
   owner@example.com / password1234!   (@amy — administrator, owns Mochi)

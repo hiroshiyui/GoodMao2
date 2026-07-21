@@ -159,11 +159,17 @@ rejects *and* the legitimate case still passes).
 
 ### 6. Sharing, notifications & vet workflow
 
-- [ ] In-site **notification feed** + 1:1 **mailbox**, live unread badges via PubSub
-      ([ADR-0011](adr/0011-notifications-and-messaging.md); Phase 3) — preserve: inline vs
-      Oban fan-out split, **shared-pet gate** to start a conversation, non-leaking uniform
-      refusal, canonical `PairKey`, 2 000-char cap, per-participant read cursor, don't
-      self-notify, messages are not bell rows
+- [x] In-site **notification feed** + 1:1 **mailbox**, live unread badges via PubSub
+      ([ADR-0011](adr/0011-notifications-and-messaging.md); Phase 3, Stage 1) — a bell feed
+      (`Goodmao2.Notifications`) and a private mailbox (`Goodmao2.Messaging`), each with its
+      own live badge kept fresh over PubSub through a global `Goodmao2Web.UnreadBadges`
+      `on_mount` hook. Preserves every invariant: the **shared-pet gate** to start a
+      conversation, a **non-leaking uniform** `:cannot_message` refusal, a canonical unordered
+      **user-pair** key (DB `CHECK` + unique index), the 2 000-codepoint cap, a per-participant
+      **read cursor**, don't self-notify, and messages are **not** bell rows. Single-recipient
+      grant/revoke notify **inline** from `Pets`; `log_added` (visibility-aware) and admin
+      **announcements** fan out via **Oban** (`Log`/`AnnouncementFanoutWorker`). Follow-up:
+      **Web Push (Stage 2)** stays deferred behind its SSRF-safe-client prerequisite; batching/digest
 - [ ] Per-entry **share links** (public token) + anonymous shared timeline/media
       ([ADR-0004](adr/0004-log-visibility.md); Phase 3)
 - [x] Verified **veterinarian accounts** (credential verification) + generated
@@ -204,9 +210,11 @@ rejects *and* the legitimate case still passes).
 
 - [~] **Oban** for background jobs (supersedes the deferred bespoke-job-queue plan, ADR-0006;
       Phase 1/2). The foundation is in (Oban + `Oban.Plugins.Cron`, supervised after the repo),
-      and the first workload ships: a daily **token janitor** cron that prunes expired auth
-      tokens (`Goodmao2.Accounts.TokenJanitor` → `Accounts.delete_expired_tokens/0`). Still
-      deferred until each is needed: reminders, async media, notification fan-out.
+      and two workloads ship: a daily **token janitor** cron that prunes expired auth tokens
+      (`Goodmao2.Accounts.TokenJanitor` → `Accounts.delete_expired_tokens/0`), and the
+      **notification fan-out** workers (`Goodmao2.Notifications.LogFanoutWorker` /
+      `AnnouncementFanoutWorker`, ADR-0011). Still deferred until each is needed: reminders,
+      async media, Web Push dispatch.
 - [ ] Weight-unit-aware display + richer `Species` enum (`rabbit` / `bird`); 5-minute
       clock-skew tolerance on the `occurred_at` / `ended_at` future-guard; timeline `offset`
       paging for report views (the `from` / `to` range now backs the shipped calendar view)

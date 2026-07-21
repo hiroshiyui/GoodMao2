@@ -175,7 +175,12 @@ defmodule Goodmao2Web.PetLive.Reports do
   @impl true
   def render(%{live_action: :index} = assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <section id="reports-section" aria-labelledby="reports-heading" class="mx-auto max-w-xl">
         <div class="flex items-center gap-2">
           <.link
@@ -261,7 +266,12 @@ defmodule Goodmao2Web.PetLive.Reports do
 
   def render(%{live_action: :show} = assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <section id="report-show" aria-labelledby="report-show-heading" class="mx-auto max-w-2xl">
         <div class="flex items-center justify-between gap-2 print:hidden">
           <div class="flex items-center gap-2">

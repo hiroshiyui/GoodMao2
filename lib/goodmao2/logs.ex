@@ -190,6 +190,17 @@ defmodule Goodmao2.Logs do
   end
 
   @doc """
+  Loads a live (non-deleted) entry by id with **no authorization**, or `nil`.
+
+  Internal use only — the notification fan-out worker needs the raw entry (its
+  `visibility` and `recorded_by_user_id`) to decide who may be notified. Not a
+  caller-facing read; user-facing reads go through `get_entry/3`.
+  """
+  def get_entry_for_fanout(id) do
+    Repo.one(from e in LogEntry, where: e.id == ^id and is_nil(e.deleted_at))
+  end
+
+  @doc """
   Returns `true` if a caller with `role` and `user_id` may read `entry`.
 
   Encodes the ADR-0004 rule: a `private` entry is visible only to owners and its
@@ -232,6 +243,7 @@ defmodule Goodmao2.Logs do
         {:ok, entry} ->
           entry = Repo.preload(entry, media_assets: media_preload_query())
           broadcast(pet, {:entry_created, entry})
+          Goodmao2.Notifications.enqueue_log_fanout(pet.id, entry.id)
           {:ok, entry}
 
         error ->

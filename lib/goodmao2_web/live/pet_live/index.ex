@@ -31,7 +31,12 @@ defmodule Goodmao2Web.PetLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <section id="pets-section" aria-labelledby="pets-heading">
         <header class="flex items-center justify-between gap-4">
           <h1 id="pets-heading" class="flex items-center gap-2 text-2xl font-semibold">

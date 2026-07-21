@@ -33,6 +33,14 @@ defmodule Goodmao2Web.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :unread_notifications, :integer,
+    default: 0,
+    doc: "live unread notification count for the nav bell badge"
+
+  attr :unread_messages, :integer,
+    default: 0,
+    doc: "live unread message count for the nav mailbox badge"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -67,7 +75,12 @@ defmodule Goodmao2Web.Layouts do
             </summary>
             <div class="dropdown-content z-40 mt-2 w-56 rounded-box border border-base-200 bg-base-100 p-2 shadow">
               <ul class="menu w-full gap-1">
-                <.nav_links current_scope={@current_scope} id_prefix="m-" />
+                <.nav_links
+                  current_scope={@current_scope}
+                  unread_notifications={@unread_notifications}
+                  unread_messages={@unread_messages}
+                  id_prefix="m-"
+                />
               </ul>
               <div class="mt-2 flex items-center justify-between gap-2 border-t border-base-200 px-1 pt-3">
                 <.font_size_controls id_prefix="m-" />
@@ -78,7 +91,11 @@ defmodule Goodmao2Web.Layouts do
 
           <%!-- Desktop: the full inline bar (canonical, test-anchored ids). --%>
           <ul class="hidden items-center gap-2 sm:gap-3 lg:flex">
-            <.nav_links current_scope={@current_scope} />
+            <.nav_links
+              current_scope={@current_scope}
+              unread_notifications={@unread_notifications}
+              unread_messages={@unread_messages}
+            />
             <li>
               <.font_size_controls />
             </li>
@@ -135,6 +152,8 @@ defmodule Goodmao2Web.Layouts do
   # the desktop inline bar and the mobile hamburger menu, so `id_prefix` keeps their element
   # ids unique across the two copies (the desktop copy keeps the canonical, test-anchored ids).
   attr :current_scope, :map, default: nil
+  attr :unread_notifications, :integer, default: 0
+  attr :unread_messages, :integer, default: 0
   attr :id_prefix, :string, default: ""
 
   defp nav_links(assigns) do
@@ -143,6 +162,58 @@ defmodule Goodmao2Web.Layouts do
       <li>
         <.link navigate={~p"/pets"} id={"#{@id_prefix}nav-pets"} class="btn btn-ghost btn-sm">
           {gettext("My pets")}
+        </.link>
+      </li>
+      <li class="flex items-center">
+        <.link
+          navigate={~p"/notifications"}
+          id={"#{@id_prefix}nav-notifications"}
+          class="btn btn-ghost btn-sm gap-1"
+          title={gettext("Notifications")}
+        >
+          <.icon name="hero-bell" class="size-4" />
+          <span class="lg:sr-only">{gettext("Notifications")}</span>
+          <span
+            :if={@unread_notifications > 0}
+            id={"#{@id_prefix}nav-notifications-badge"}
+            class="badge badge-primary badge-sm"
+            aria-label={
+              ngettext(
+                "%{count} unread notification",
+                "%{count} unread notifications",
+                @unread_notifications,
+                count: @unread_notifications
+              )
+            }
+          >
+            {@unread_notifications}
+          </span>
+        </.link>
+      </li>
+      <li class="flex items-center">
+        <.link
+          navigate={~p"/messages"}
+          id={"#{@id_prefix}nav-messages"}
+          class="btn btn-ghost btn-sm gap-1"
+          title={gettext("Messages")}
+        >
+          <.icon name="hero-envelope" class="size-4" />
+          <span class="lg:sr-only">{gettext("Messages")}</span>
+          <span
+            :if={@unread_messages > 0}
+            id={"#{@id_prefix}nav-messages-badge"}
+            class="badge badge-primary badge-sm"
+            aria-label={
+              ngettext(
+                "%{count} unread message",
+                "%{count} unread messages",
+                @unread_messages,
+                count: @unread_messages
+              )
+            }
+          >
+            {@unread_messages}
+          </span>
         </.link>
       </li>
       <%= if @current_scope.user.is_admin do %>

@@ -90,7 +90,12 @@ defmodule Goodmao2Web.PetLive.Form do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <section id="pet-form-section" aria-labelledby="pet-form-heading" class="mx-auto max-w-xl">
         <h1 id="pet-form-heading" class="text-2xl font-semibold">{@page_title}</h1>
 

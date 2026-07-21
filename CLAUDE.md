@@ -86,13 +86,30 @@ call them.
   an optional **expiring** share link stores only the token's SHA-256 hash. Also:
   **`Accounts.VetProfile`** — the `vet` role is grantable only to a user with a **verified**
   profile (`Accounts.verified_vet?/1`), gated in `Pets.grant_access/3` on grant *and* re-grant.
+- **`Notifications`** (`notifications.ex`) — the in-site **bell feed** ([ADR-0011](doc/adr/0011-notifications-and-messaging.md)).
+  Per-recipient rows keyed by `type` + a `jsonb` payload; **copy is rendered at read time**
+  (`Goodmao2Web.Helpers.notification_summary/1`), never stored. Grant/revoke notify **inline**
+  from `Pets`; `log_added` (respecting per-entry `visibility`) and admin `announcement`s fan out
+  via **Oban** (`LogFanoutWorker` / `AnnouncementFanoutWorker`). Every change broadcasts the
+  recomputed unread count over PubSub.
+- **`Messaging`** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](doc/adr/0011-notifications-and-messaging.md)).
+  One conversation per unordered user pair (canonical `user_lo_id < user_hi_id`, DB `CHECK` +
+  unique index). **Shared-pet gate:** `start_conversation/2` is allowed only between users with
+  an effective grant on a common pet, returning a uniform non-leaking `{:error, :cannot_message}`
+  whether the recipient is unknown, self, or unshared. Thread reads require participation
+  (existence-hidden `nil`/`:not_participant`); each participant has a **read cursor**; messages
+  are capped at 2 000 codepoints and soft-deleted.
 
 Web LiveViews (`lib/goodmao2_web/live/pet_live/`): `Index`, `Form` (new/edit), `Show`
 (QuickLog + live filterable timeline/calendar + weight trend), `LogEntry` (single entry:
 edit + revision history), `Access` (grant/revoke), `EndOfCare` (owner-only lifecycle),
 `Reports` (generate/list/view health summaries). `UserLive.VetProfile` (`/users/vet-profile`)
-submits vet credentials. `AdminLive` (`live/admin_live.ex`) is the admin-only read-only
-`/admin` site overview **and** the vet-credential review queue.
+submits vet credentials. `NotificationLive.Index` (`/notifications`) is the bell feed;
+`MessageLive.Index`/`Show` (`/messages`, `/messages/:id`) are the mailbox. Live nav **unread
+badges** come from the global `Goodmao2Web.UnreadBadges` `on_mount` hook (`attach_hook`) on the
+authenticated live_session — no per-LiveView code. `AdminLive` (`live/admin_live.ex`) is the
+admin-only read-only `/admin` site overview **and** the vet-credential review queue;
+`AdminLive.Announcements` (`/admin/announcements`) composes announcement broadcasts.
 They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on failure. Purified
 media is served by `MediaController` at `GET /media/:id` (re-applies the parent log's read
 authorization, IDOR-hidden, hardened headers, `Range` support); anonymous shared reports by

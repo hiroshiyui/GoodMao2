@@ -7,6 +7,7 @@ defmodule Goodmao2Web.Helpers do
   All user-visible strings go through Gettext.
   """
   use Gettext, backend: Goodmao2Web.Gettext
+  use Goodmao2Web, :verified_routes
 
   @doc """
   The brand wordmark, rendered through Gettext so it varies per locale (ADR-0002):
@@ -90,6 +91,74 @@ defmodule Goodmao2Web.Helpers do
   def log_type_icon("vet_note"), do: "hero-clipboard-document-check"
   def log_type_icon("life"), do: "hero-photo"
   def log_type_icon(_), do: "hero-pencil-square"
+
+  ## Notifications (ADR-0011): copy is rendered from `type` + payload, never stored
+
+  @doc "A short, localized title for a notification (its heading in the feed)."
+  def notification_title(%{type: type, payload: payload}), do: notification_title(type, payload)
+
+  def notification_title("access_granted", _p), do: gettext("Access granted")
+  def notification_title("access_revoked", _p), do: gettext("Access removed")
+  def notification_title("log_added", _p), do: gettext("New log entry")
+  # An announcement's title is admin-authored free text, shown verbatim.
+  def notification_title("announcement", p), do: p["title"] || gettext("Announcement")
+  def notification_title(_type, _p), do: gettext("Notification")
+
+  @doc "A localized one-line summary of a notification, rendered from its payload."
+  def notification_summary(%{type: type, payload: payload}),
+    do: notification_summary(type, payload)
+
+  def notification_summary("access_granted", p) do
+    gettext("%{actor} gave you %{role} access to %{pet}.",
+      actor: actor_name(p["actor"]),
+      role: translate_role(p["role"]),
+      pet: p["pet_name"]
+    )
+  end
+
+  def notification_summary("access_revoked", p) do
+    gettext("%{actor} removed your access to %{pet}.",
+      actor: actor_name(p["actor"]),
+      pet: p["pet_name"]
+    )
+  end
+
+  def notification_summary("log_added", p) do
+    gettext("A new %{type} entry was recorded for %{pet}.",
+      type: log_type_label(p["log_type"]),
+      pet: p["pet_name"]
+    )
+  end
+
+  # An announcement body is admin-authored free text, shown verbatim.
+  def notification_summary("announcement", p), do: p["body"]
+  def notification_summary(_type, _p), do: nil
+
+  @doc "A heroicon name for a notification type."
+  def notification_icon("access_granted"), do: "hero-user-plus"
+  def notification_icon("access_revoked"), do: "hero-user-minus"
+  def notification_icon("log_added"), do: "hero-pencil-square"
+  def notification_icon("announcement"), do: "hero-megaphone"
+  def notification_icon(_type), do: "hero-bell"
+
+  @doc """
+  The in-app path a notification links to, or `nil` when it isn't navigable.
+
+  A revoked-access notification points at the pet list (the caller no longer has a grant),
+  a new-log notification at that entry, and other pet events at the pet page.
+  """
+  def notification_path(%{type: "log_added", payload: %{"pet_id" => pet_id, "entry_id" => id}}),
+    do: ~p"/pets/#{pet_id}/logs/#{id}"
+
+  def notification_path(%{type: "access_granted", payload: %{"pet_id" => pet_id}}),
+    do: ~p"/pets/#{pet_id}"
+
+  def notification_path(%{type: "access_revoked"}), do: ~p"/pets"
+  def notification_path(_notification), do: nil
+
+  # A non-leaking actor label, or a gentle generic when the actor had no public name.
+  defp actor_name(name) when is_binary(name) and name != "", do: name
+  defp actor_name(_), do: gettext("Someone")
 
   @doc """
   Renders a structured log entry's `data` payload into a short human summary.

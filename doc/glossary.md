@@ -101,14 +101,25 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
   by any effective grant and shareable via an **expiring** anonymous token. See
   [ADR-0012](adr/0012-vet-access-model.md).
 - **Notification** — an in-site event delivered to one user's **bell** feed
-  (`access_granted`, `access_revoked`, `log_added`, `announcement`), with its own unread
-  badge. _Deferred_ (Phase 3) — see [ADR-0011](adr/0011-notifications-and-messaging.md).
+  (`access_granted`, `access_revoked`, `log_added`, `announcement`), with its own live unread
+  badge. The display copy is **rendered** from a stored `type` + `jsonb` payload, never stored
+  as a string. See [ADR-0011](adr/0011-notifications-and-messaging.md).
 - **Mailbox / Conversation** — private 1:1 messaging between users, organized as per-pair
-  conversation threads. **Starting** one requires a **shared pet** (the abuse boundary —
-  no cold DMs); messages are capped at **2,000 characters**. Separate unread badge from
-  the bell. _Deferred_ (Phase 3) — see [ADR-0011](adr/0011-notifications-and-messaging.md).
+  conversation threads (one row per **unordered user pair**). Messages are capped at **2,000
+  characters** and carry a separate unread badge from the bell. See
+  [ADR-0011](adr/0011-notifications-and-messaging.md).
+- **Shared-pet gate** — the messaging abuse boundary: you may **start** a conversation only
+  with someone you already share a pet with (an effective grant on a common pet) — no cold DMs.
+  A failed attempt returns a **uniform, non-leaking** refusal that never reveals whether the
+  recipient exists (ADR-0007).
+- **Read cursor** — a conversation participant's `last_read_at`: a message is unread for them
+  when it arrived after this timestamp (and they didn't send it). Drives the per-thread and
+  mailbox unread counts.
+- **Fan-out** — creating one notification row **per recipient** for a many-recipient event
+  (`log_added` to every other viewer of the entry; an `announcement` to every user), run
+  through **Oban** so the write path stays fast.
 - **Announcement** — an Administrator broadcast that fans an `announcement` notification
-  out to every user. _Deferred_ (Phase 3).
+  out to every user (composed on `/admin/announcements`).
 - **毛小孩 (fur kid)** — affectionate Taiwanese term for a pet; the product's tone.
   Localized per culture, not transliterated (English "pets", Japanese ペット) — see
   _Culture-first localization_.

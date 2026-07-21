@@ -52,7 +52,12 @@ defmodule Goodmao2Web.UserLive.VetProfile do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app
+      flash={@flash}
+      current_scope={@current_scope}
+      unread_notifications={@unread_notifications}
+      unread_messages={@unread_messages}
+    >
       <section id="vet-profile-section" aria-labelledby="vet-profile-heading" class="mx-auto max-w-xl">
         <.header>
           {gettext("Veterinarian credentials")}

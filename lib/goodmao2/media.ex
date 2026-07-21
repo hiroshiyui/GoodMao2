@@ -69,6 +69,7 @@ defmodule Goodmao2.Media do
       {:ok, %{log: log}} ->
         entry = Repo.preload(log, media_assets: media_query())
         Phoenix.PubSub.broadcast(Goodmao2.PubSub, Logs.topic(pet), {:entry_created, entry})
+        Goodmao2.Notifications.enqueue_log_fanout(pet.id, entry.id)
         {:ok, entry}
 
       {:error, :store, {written_ids, _reason}, _changes} ->
