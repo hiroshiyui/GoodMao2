@@ -110,3 +110,7 @@ msgstr ""
 
 msgid "must be equal to %{number}"
 msgstr ""
+
+## From Goodmao2.Accounts.User.profile_changeset/3 (ADR-0018)
+msgid "is not a valid timezone"
+msgstr ""

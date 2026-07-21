@@ -91,3 +91,7 @@ msgstr "必須大於或等於 %{number}"
 
 msgid "must be equal to %{number}"
 msgstr "必須等於 %{number}"
+
+## From Goodmao2.Accounts.User.profile_changeset/3 (ADR-0018)
+msgid "is not a valid timezone"
+msgstr "不是有效的時區"

@@ -91,3 +91,7 @@ msgstr "%{number}以上である必要があります"
 
 msgid "must be equal to %{number}"
 msgstr "%{number}と等しい必要があります"
+
+## From Goodmao2.Accounts.User.profile_changeset/3 (ADR-0018)
+msgid "is not a valid timezone"
+msgstr "有効なタイムゾーンではありません"
