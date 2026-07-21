@@ -3,7 +3,7 @@ defmodule Goodmao2.MediaTest do
   # out to ffmpeg.
   use Goodmao2.DataCase, async: false
 
-  alias Goodmao2.{Logs, Media}
+  alias Goodmao2.{Logs, Media, Settings}
   alias Goodmao2.Media.Storage
 
   import Goodmao2.AccountsFixtures
@@ -34,17 +34,30 @@ defmodule Goodmao2.MediaTest do
   defp tmp(ext),
     do: Path.join(System.tmp_dir!(), "gm_test_#{System.unique_integer([:positive])}.#{ext}")
 
-  defp make_png do
+  defp make_png(spec \\ "color=c=red:s=16x16") do
     path = tmp("png")
 
     {_, 0} =
       System.cmd(
         "ffmpeg",
-        ~w(-hide_banner -v error -f lavfi -i color=c=red:s=16x16 -frames:v 1 -y) ++ [path]
+        ~w(-hide_banner -v error -f lavfi -i) ++ [spec] ++ ~w(-frames:v 1 -y) ++ [path]
       )
 
     on_exit(fn -> File.rm(path) end)
     path
+  end
+
+  # A fully transparent PNG (rgba) of the given size — used to prove alpha is flattened away.
+  defp make_alpha_png(w, h), do: make_png("color=c=red@0.0:s=#{w}x#{h},format=rgba")
+
+  defp pix_fmt(path) do
+    {out, 0} =
+      System.cmd(
+        "ffprobe",
+        ~w(-v error -select_streams v:0 -show_entries stream=pix_fmt -of csv=p=0) ++ [path]
+      )
+
+    String.trim(out)
   end
 
   defp make_mp4 do
@@ -96,6 +109,41 @@ defmodule Goodmao2.MediaTest do
       on_exit(fn -> File.rm(path) end)
 
       assert {:error, :unsupported_type} = Media.purify(path)
+    end
+
+    test "flattens away an image's alpha channel onto an opaque background" do
+      result = Media.purify(make_alpha_png(700, 500))
+      cleanup_purified(result)
+
+      assert {:ok, %{kind: "image", path: path}} = result
+      # The purified bytes carry no alpha plane — a transparent region can hide nothing.
+      refute pix_fmt(path) =~ ~r/rgba|argb|\bya\b|a$/
+    end
+
+    test "rejects an image below the configured minimum resolution" do
+      Settings.put("media_min_image_width", "640")
+      Settings.put("media_min_image_height", "480")
+
+      assert {:error, :below_min_resolution} = Media.purify(make_png("color=c=red:s=320x240"))
+    end
+
+    test "rejects an image above the configured maximum resolution" do
+      Settings.put("media_max_image_width", "100")
+
+      assert {:error, :above_max_resolution} = Media.purify(make_png("color=c=red:s=200x50"))
+    end
+
+    test "rejects an image larger than the configured byte cap" do
+      # A 1000×1000 PNG is a few KB; a 1-byte cap rejects it as too_large.
+      Settings.put("media_max_image_bytes", "1")
+
+      assert {:error, :too_large} = Media.purify(make_png("color=c=red:s=1000x1000"))
+    end
+
+    test "rejects a video below the configured minimum resolution" do
+      Settings.put("media_min_video_width", "1920")
+
+      assert {:error, :below_min_resolution} = Media.purify(make_mp4())
     end
   end
 

@@ -8,7 +8,10 @@ defmodule Goodmao2.Media.Purifier do
       not on the allow-list — including SVG (active-content XML) — is rejected.
     * **Images** are decoded and **re-encoded** with `ffmpeg -map_metadata -1`, which strips
       all EXIF/GPS/IPTC/XMP and, because the stored bytes are the encoder's fresh output, also
-      neutralizes polyglots and trailing payloads.
+      neutralizes polyglots and trailing payloads. The re-encode also **flattens away any alpha
+      channel** onto an opaque background, so a transparent image can't hide deceptive content.
+    * **Byte-size caps and min/max pixel dimensions** are enforced against the
+      admin-configurable `Goodmao2.Media.Limits` (per-kind, images and videos alike).
     * **Videos** are probed (codec allow-list + duration cap) then **remuxed** with
       `-map_metadata -1` and only the first video/audio stream mapped — dropping container GPS,
       chapters, and any data/subtitle streams.
@@ -17,6 +20,8 @@ defmodule Goodmao2.Media.Purifier do
   temp file the caller must move into storage and then clean up.
   """
   require Logger
+
+  alias Goodmao2.Media.Limits
 
   # Magic-byte signatures → the format we accept. SVG and everything else fall through to
   # `{:error, :unsupported_type}`. Videos are container-probed further below.
@@ -78,8 +83,8 @@ defmodule Goodmao2.Media.Purifier do
   defp within_size?(path, {kind, _}) do
     limit =
       case kind do
-        :image -> config(:max_image_bytes)
-        :video -> config(:max_video_bytes)
+        :image -> Limits.get(:max_image_bytes)
+        :video -> Limits.get(:max_video_bytes)
       end
 
     case File.stat(path) do
@@ -93,16 +98,37 @@ defmodule Goodmao2.Media.Purifier do
 
   defp process({:image, format}, source) do
     %{content_type: content_type, ext: ext} = @image_types[format]
-    out = temp_path(ext)
 
-    # Re-encode pixels and strip every metadata block. Keeps animation for gif/webp.
-    args = ["-y", "-nostdin", "-v", "error", "-i", source, "-map_metadata", "-1", out]
+    with {:ok, %{"streams" => streams}} <- probe(source),
+         {:ok, {w, h}} <- dimensions(streams),
+         :ok <- within_resolution?(w, h, :image) do
+      out = temp_path(ext)
 
-    with :ok <- run("ffmpeg", args),
-         {:ok, size} <- output_size(out) do
-      {:ok, %{kind: "image", content_type: content_type, path: out, byte_size: size}}
-    else
-      error -> cleanup_and(out, error)
+      # Re-encode pixels, flatten any alpha onto opaque white, and strip every metadata block.
+      # `flatten_alpha/0` composites the frame over an opaque box then drops the alpha plane, so
+      # a transparent region cannot smuggle hidden pixels. Per-frame, so gif/webp animation survives.
+      args = [
+        "-y",
+        "-nostdin",
+        "-v",
+        "error",
+        "-i",
+        source,
+        "-filter_complex",
+        flatten_alpha(),
+        "-map",
+        "[out]",
+        "-map_metadata",
+        "-1",
+        out
+      ]
+
+      with :ok <- run("ffmpeg", args),
+           {:ok, size} <- output_size(out) do
+        {:ok, %{kind: "image", content_type: content_type, path: out, byte_size: size}}
+      else
+        error -> cleanup_and(out, error)
+      end
     end
   end
 
@@ -118,6 +144,14 @@ defmodule Goodmao2.Media.Purifier do
     else
       {:error, _} = error -> cleanup_and(out, error)
     end
+  end
+
+  # Duplicate the frame, paint one copy fully opaque white, overlay the original (honouring its
+  # alpha) on top, then force an alpha-less pixel format. Needs no knowledge of the dimensions.
+  defp flatten_alpha do
+    "split[fg][bg];" <>
+      "[bg]drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill[bgf];" <>
+      "[bgf][fg]overlay=format=auto,format=rgb24[out]"
   end
 
   defp validate_video(streams, fmt, spec) do
@@ -139,8 +173,51 @@ defmodule Goodmao2.Media.Purifier do
         {:error, :disallowed_audio_codec}
 
       true ->
-        :ok
+        with {:ok, {w, h}} <- dimensions([video]), do: within_resolution?(w, h, :video)
     end
+  end
+
+  # --- Resolution -----------------------------------------------------------
+
+  # The width/height of the first video stream (ffprobe reports a still image as one such stream).
+  defp dimensions(streams) do
+    case Enum.find(streams, &(&1["codec_type"] == "video")) do
+      %{"width" => w, "height" => h} when is_integer(w) and is_integer(h) and w > 0 and h > 0 ->
+        {:ok, {w, h}}
+
+      _ ->
+        {:error, :bad_dimensions}
+    end
+  end
+
+  # Enforce the admin-configurable floor/ceiling (`0` on either side = unbounded).
+  defp within_resolution?(w, h, kind) do
+    %{min_w: min_w, min_h: min_h, max_w: max_w, max_h: max_h} = resolution_bounds(kind)
+
+    cond do
+      w < min_w or h < min_h -> {:error, :below_min_resolution}
+      max_w > 0 and w > max_w -> {:error, :above_max_resolution}
+      max_h > 0 and h > max_h -> {:error, :above_max_resolution}
+      true -> :ok
+    end
+  end
+
+  defp resolution_bounds(:image) do
+    %{
+      min_w: Limits.get(:min_image_width),
+      min_h: Limits.get(:min_image_height),
+      max_w: Limits.get(:max_image_width),
+      max_h: Limits.get(:max_image_height)
+    }
+  end
+
+  defp resolution_bounds(:video) do
+    %{
+      min_w: Limits.get(:min_video_width),
+      min_h: Limits.get(:min_video_height),
+      max_w: Limits.get(:max_video_width),
+      max_h: Limits.get(:max_video_height)
+    }
   end
 
   # Copy the first video + optional first audio stream, strip all metadata/chapters and any

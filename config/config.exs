@@ -116,9 +116,20 @@ config :goodmao2, Oban,
 # remuxed to strip EXIF/GPS/metadata) and stored as opaque objects keyed by id, served only
 # through an authorized endpoint. `storage_dir` is set per-environment (a writable path
 # *outside* any served directory); prod fails fast if it is unset (see runtime.exs).
+# The byte-size caps and min/max pixel dimensions below are the *defaults*; an administrator
+# overrides any of them at runtime from `/admin/settings` (resolved via `Goodmao2.Media.Limits`,
+# `0` = unbounded). The image dimension floor ships at 640×480; other bounds ship unbounded.
 config :goodmao2, Goodmao2.Media,
-  max_image_bytes: 15_000_000,
-  max_video_bytes: 100_000_000,
+  max_image_bytes: 8_000_000,
+  max_video_bytes: 16_000_000,
+  min_image_width: 640,
+  min_image_height: 480,
+  max_image_width: 0,
+  max_image_height: 0,
+  min_video_width: 0,
+  min_video_height: 0,
+  max_video_width: 0,
+  max_video_height: 0,
   max_video_seconds: 60,
   max_entries: 4,
   rate_limit_per_hour: 30

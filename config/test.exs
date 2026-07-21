@@ -51,7 +51,11 @@ config :phoenix,
 # (the limiter's own logic is unit-tested directly).
 config :goodmao2, Goodmao2.Media,
   storage_dir: Path.expand("../tmp/media_test", __DIR__),
-  rate_limit_per_hour: 1_000_000
+  rate_limit_per_hour: 1_000_000,
+  # Relax the image resolution floor so the tiny ffmpeg-generated test fixtures purify; the
+  # resolution-limit logic is exercised directly by setting the limits in dedicated tests.
+  min_image_width: 0,
+  min_image_height: 0
 
 # Read settings straight from the DB in tests — a global ETS cache shared across the async
 # sandbox would leak one test's writes into another.
