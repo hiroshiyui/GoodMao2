@@ -399,4 +399,94 @@ defmodule Goodmao2.LogsTest do
       assert id == entry.id
     end
   end
+
+  describe "per-entry share links (ADR-0004)" do
+    defp public_entry(owner, pet) do
+      {:ok, entry} =
+        Logs.create_entry(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "visibility" => "public"
+        })
+
+      entry
+    end
+
+    test "setting an entry public mints a token; narrowing clears it", %{owner: owner, pet: pet} do
+      entry = public_entry(owner, pet)
+      assert is_binary(entry.share_token) and byte_size(entry.share_token) > 20
+
+      {:ok, narrowed} = Logs.update_entry(owner, pet, entry, %{"visibility" => "limited"})
+      assert narrowed.share_token == nil
+      assert narrowed.share_expires_at == nil
+    end
+
+    test "a non-owner cannot mint a public link", %{owner: owner, pet: pet} do
+      writer = user_fixture()
+      grant_fixture(pet, owner, writer, "co_caretaker")
+
+      assert {:error, :unauthorized} =
+               Logs.create_entry(writer, pet, %{
+                 "type" => "food",
+                 "data" => %{"amount" => "full"},
+                 "visibility" => "public"
+               })
+    end
+
+    test "fetch_entry_by_share_token returns only a live, public, unexpired entry", %{
+      owner: owner,
+      pet: pet
+    } do
+      entry = public_entry(owner, pet)
+
+      assert %{id: id} = Logs.fetch_entry_by_share_token(entry.share_token)
+      assert id == entry.id
+
+      # Wrong / malformed tokens are existence-hidden.
+      assert Logs.fetch_entry_by_share_token("nope") == nil
+      assert Logs.fetch_entry_by_share_token(nil) == nil
+
+      # Narrowing revokes the link.
+      {:ok, _} = Logs.update_entry(owner, pet, entry, %{"visibility" => "limited"})
+      assert Logs.fetch_entry_by_share_token(entry.share_token) == nil
+    end
+
+    test "an expired link stops resolving", %{owner: owner, pet: pet} do
+      entry = public_entry(owner, pet)
+      future = DateTime.utc_now() |> DateTime.add(3600, :second)
+
+      {:ok, entry} = Logs.set_share_expiry(owner, pet, entry, future)
+      assert %{} = Logs.fetch_entry_by_share_token(entry.share_token)
+
+      # Force the stored expiry into the past and confirm it no longer resolves.
+      past = DateTime.utc_now() |> DateTime.add(-60, :second) |> DateTime.truncate(:second)
+      Ecto.Changeset.change(entry, share_expires_at: past) |> Goodmao2.Repo.update!()
+      assert Logs.fetch_entry_by_share_token(entry.share_token) == nil
+    end
+
+    test "hiding the pet's history kills a live link", %{owner: owner, pet: pet} do
+      entry = public_entry(owner, pet)
+      {:ok, _} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      assert Logs.fetch_entry_by_share_token(entry.share_token) == nil
+    end
+
+    test "set_share_expiry: owner-only, future-only, and only on a shared entry", %{
+      owner: owner,
+      pet: pet
+    } do
+      entry = public_entry(owner, pet)
+      past = DateTime.utc_now() |> DateTime.add(-60, :second)
+      assert {:error, :expiry_in_past} = Logs.set_share_expiry(owner, pet, entry, past)
+
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+      future = DateTime.utc_now() |> DateTime.add(3600, :second)
+      assert {:error, :unauthorized} = Logs.set_share_expiry(viewer, pet, entry, future)
+
+      {:ok, limited} =
+        Logs.create_entry(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      assert {:error, :not_shared} = Logs.set_share_expiry(owner, pet, limited, future)
+    end
+  end
 end

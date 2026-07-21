@@ -33,10 +33,21 @@ defmodule Goodmao2.Media do
   def create_life_log_with_media(%User{} = user, %Pet{} = pet, attrs, purified)
       when is_list(purified) do
     cond do
-      pet.history_hidden -> {:error, :unauthorized}
-      not Pets.can?(pet, user, :write) -> {:error, :unauthorized}
-      RateLimiter.check(user.id) == {:error, :rate_limited} -> {:error, :rate_limited}
-      true -> do_create(user, pet, attrs, purified)
+      pet.history_hidden ->
+        {:error, :unauthorized}
+
+      not Pets.can?(pet, user, :write) ->
+        {:error, :unauthorized}
+
+      # Only owners may publish (mint a public share link), matching Logs.create_entry (ADR-0004).
+      attrs["visibility"] == "public" and Pets.effective_role(pet, user) != "owner" ->
+        {:error, :unauthorized}
+
+      RateLimiter.check(user.id) == {:error, :rate_limited} ->
+        {:error, :rate_limited}
+
+      true ->
+        do_create(user, pet, attrs, purified)
     end
   end
 
@@ -53,7 +64,10 @@ defmodule Goodmao2.Media do
       Multi.new()
       |> Multi.insert(
         :log,
-        LogEntry.changeset(%LogEntry{recorded_by_user_id: user.id}, log_attrs)
+        %LogEntry{recorded_by_user_id: user.id}
+        |> LogEntry.changeset(log_attrs)
+        # Mint/clear the share token in lockstep with visibility, like the timeline (ADR-0004).
+        |> Logs.put_share_token()
       )
 
     multi =

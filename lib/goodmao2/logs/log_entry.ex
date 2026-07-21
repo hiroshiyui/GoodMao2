@@ -50,6 +50,12 @@ defmodule Goodmao2.Logs.LogEntry do
     # the context on each snapshotted edit; not user-castable.
     field :edit_count, :integer, default: 0
 
+    # Per-entry anonymous share link (ADR-0004). `share_token` is the raw URL-safe token minted
+    # when an owner sets `visibility` to `public` and cleared when narrowed; `share_expires_at`
+    # is an optional expiry. Both are managed by the context, never user-castable.
+    field :share_token, :string
+    field :share_expires_at, :utc_datetime
+
     belongs_to :pet, Goodmao2.Pets.Pet
     has_many :revisions, Goodmao2.Logs.LogEntryRevision
     has_many :media_assets, Goodmao2.Media.MediaAsset

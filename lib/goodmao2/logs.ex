@@ -216,6 +216,35 @@ defmodule Goodmao2.Logs do
 
   def can_view_entry?(%LogEntry{}, _user_id, _role), do: true
 
+  @doc """
+  Resolves a raw per-entry share token to its live, still-shareable entry, or `nil` (ADR-0004).
+
+  This is the **sole anonymous read path** — it takes no user and never touches the grant-gated
+  timeline. The only gates are the token itself and that the entry is still shareable:
+  `visibility == "public"`, not soft-deleted, an absent-or-unexpired `share_expires_at`, and the
+  pet's history not hidden (a hidden pet kills its live links). A bad, narrowed, expired, or
+  history-hidden token all return `nil` — existence-hidden, exactly like the report token path.
+  Preloads the pet and non-deleted media for the shared view.
+  """
+  def fetch_entry_by_share_token(token) when is_binary(token) and token != "" do
+    now = DateTime.utc_now()
+
+    query =
+      from e in LogEntry,
+        join: p in assoc(e, :pet),
+        where: e.share_token == ^token,
+        where: e.visibility == "public" and is_nil(e.deleted_at),
+        where: is_nil(e.share_expires_at) or e.share_expires_at > ^now,
+        where: not p.history_hidden
+
+    case Repo.one(query) do
+      nil -> nil
+      entry -> Repo.preload(entry, [:pet, media_assets: media_preload_query()])
+    end
+  end
+
+  def fetch_entry_by_share_token(_), do: nil
+
   @doc "A blank changeset for the given log type."
   def change_entry(%LogEntry{} = entry \\ %LogEntry{}, attrs \\ %{}) do
     LogEntry.changeset(entry, attrs)
@@ -230,17 +259,16 @@ defmodule Goodmao2.Logs do
   """
   def create_entry(%User{} = user, %Pet{} = pet, attrs) do
     role = Pets.effective_role(pet, user)
+    attrs = attrs |> stringify() |> Map.put("pet_id", pet.id)
+    base = %LogEntry{recorded_by_user_id: user.id}
 
     with :ok <- ensure_visible(pet),
-         :ok <- authorize_write(role, attrs["type"] || attrs[:type]) do
-      attrs =
-        attrs
-        |> stringify()
-        |> Map.put("pet_id", pet.id)
-
+         :ok <- authorize_write(role, attrs["type"]),
+         :ok <- authorize_public_creation(role, attrs) do
       result =
-        %LogEntry{recorded_by_user_id: user.id}
+        base
         |> LogEntry.changeset(attrs)
+        |> put_share_token()
         |> Repo.insert()
 
       case result do
@@ -277,7 +305,7 @@ defmodule Goodmao2.Logs do
          :ok <- authorize_write(role, entry.type),
          :ok <- authorize_modify(role, user, entry),
          :ok <- authorize_visibility_change(role, entry, attrs) do
-      changeset = LogEntry.changeset(entry, attrs)
+      changeset = entry |> LogEntry.changeset(attrs) |> put_share_token()
 
       cond do
         not changeset.valid? ->
@@ -335,6 +363,38 @@ defmodule Goodmao2.Logs do
 
       {:error, :entry, %Ecto.Changeset{} = changeset, _changes} ->
         {:error, changeset}
+    end
+  end
+
+  @doc """
+  Sets or clears a public entry's optional share-link expiry (ADR-0004).
+
+  Owner-only, and only meaningful once the entry is `public` (i.e. it has a share token).
+  `expires_at` must be in the future, or `nil` to clear the expiry (the link then lives as long
+  as the entry stays public). Returns `{:ok, entry}` or `{:error, :unauthorized | :not_shared |
+  :expiry_in_past}`. Broadcasts the updated entry.
+  """
+  def set_share_expiry(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, expires_at) do
+    role = Pets.effective_role(pet, user)
+
+    with :ok <- ensure_visible(pet),
+         :ok <- authorize_owner(role),
+         :ok <- ensure_shared(entry),
+         :ok <- validate_future_or_nil(expires_at) do
+      expires_at = expires_at && DateTime.truncate(expires_at, :second)
+
+      entry
+      |> Ecto.Changeset.change(%{share_expires_at: expires_at})
+      |> Repo.update()
+      |> case do
+        {:ok, updated} ->
+          updated = Repo.preload(updated, media_assets: media_preload_query())
+          broadcast(pet, {:entry_updated, updated})
+          {:ok, updated}
+
+        error ->
+          error
+      end
     end
   end
 
@@ -430,6 +490,51 @@ defmodule Goodmao2.Logs do
     else
       :ok
     end
+  end
+
+  defp authorize_owner("owner"), do: :ok
+  defp authorize_owner(_role), do: {:error, :unauthorized}
+
+  # A recorder may keep their own new entry `private`, but only an owner may create a `public`
+  # one — publishing/minting a share link is an owner act (ADR-0004). Narrowing/changing an
+  # existing entry's visibility stays owner-only via `authorize_visibility_change/3`.
+  defp authorize_public_creation(role, attrs) do
+    if attrs["visibility"] == "public" and role != "owner",
+      do: {:error, :unauthorized},
+      else: :ok
+  end
+
+  defp ensure_shared(%LogEntry{share_token: nil}), do: {:error, :not_shared}
+  defp ensure_shared(%LogEntry{}), do: :ok
+
+  defp validate_future_or_nil(nil), do: :ok
+
+  defp validate_future_or_nil(%DateTime{} = dt) do
+    if DateTime.after?(dt, DateTime.utc_now()), do: :ok, else: {:error, :expiry_in_past}
+  end
+
+  @doc """
+  Keeps the share token in lockstep with the entry's visibility (ADR-0004): a `public` entry
+  gets an unguessable URL-safe token minted once (kept on later public re-saves); any narrower
+  scope clears the token and its expiry. The token is never user-castable — only set here, so
+  every entry-writing path (the timeline and the media log) funnels its changeset through this.
+  """
+  def put_share_token(changeset) do
+    case Ecto.Changeset.get_field(changeset, :visibility) do
+      "public" ->
+        if changeset.data.share_token,
+          do: changeset,
+          else: Ecto.Changeset.put_change(changeset, :share_token, generate_share_token())
+
+      _narrower ->
+        changeset
+        |> Ecto.Changeset.put_change(:share_token, nil)
+        |> Ecto.Changeset.put_change(:share_expires_at, nil)
+    end
+  end
+
+  defp generate_share_token do
+    Base.url_encode64(:crypto.strong_rand_bytes(32), padding: false)
   end
 
   defp broadcast(pet, message) do
