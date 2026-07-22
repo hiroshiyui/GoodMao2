@@ -145,5 +145,41 @@ defmodule Goodmao2Web.ReportComponentsTest do
       assert length(Regex.scan(~r/<circle\b/, html)) == 1
       assert html =~ "<polyline"
     end
+
+    test "leaves the sr-only table complete for a short history" do
+      series =
+        for d <- 1..5,
+            do: %{
+              at: DateTime.new!(Date.new!(2026, 7, d), ~T[09:00:00], "Etc/UTC"),
+              grams: 4000 + d
+            }
+
+      html = render_component(&ReportComponents.weight_chart/1, series: series, unit: "grams")
+
+      # 1 header row + 5 data rows; caption is the plain label (not the sampled note).
+      assert length(Regex.scan(~r/<tr\b/, html)) == 6
+      refute html =~ "evenly sampled"
+    end
+
+    test "caps and evenly samples the sr-only table for a long history" do
+      series =
+        for d <- 1..100,
+            do: %{
+              at: DateTime.new!(Date.new!(2026, 7, 1) |> Date.add(d), ~T[09:00:00], "Etc/UTC"),
+              grams: 4000 + d
+            }
+
+      html = render_component(&ReportComponents.weight_chart/1, series: series, unit: "grams")
+
+      # 100 days → sampled to at most 45 rows (+ the header row), not 100.
+      data_rows = length(Regex.scan(~r/<tr\b/, html)) - 1
+      assert data_rows <= 45
+      assert html =~ "of 100 days"
+      assert html =~ "evenly sampled"
+
+      # The endpoints are always kept: first day (07-02) and last day (10-09).
+      assert html =~ "2026-07-02"
+      assert html =~ "2026-10-09"
+    end
   end
 end

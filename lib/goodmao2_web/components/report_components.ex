@@ -31,6 +31,11 @@ defmodule Goodmao2Web.ReportComponents do
   # the line (and the latest-point marker) are drawn.
   @max_dots 45
 
+  # Cap on the sr-only data-table rows for long histories; beyond it the table is evenly sampled
+  # (first and last day always kept) so assistive tech gets a representative view, not hundreds
+  # of rows.
+  @max_table_rows 45
+
   @doc """
   A CSP-safe inline-SVG weight-trend chart over an oldest-first `series` of
   `%{at: DateTime, grams: number}`, with an sr-only data table for assistive tech.
@@ -51,9 +56,13 @@ defmodule Goodmao2Web.ReportComponents do
     points = weight_points(daily)
     delta = last.grams - first.grams
 
+    # The sr-only data table is bounded for long histories: evenly sample down to `@max_table_rows`
+    # (keeping the first and last day) so assistive tech gets a representative table, not hundreds
+    # of rows.
+    table = sample_evenly(daily, @max_table_rows)
+
     assigns =
       assign(assigns,
-        daily: daily,
         points: points,
         # Past the threshold the per-day dots overlap into noise; drop them and let the line carry
         # the trend (the latest-point marker is always kept).
@@ -62,6 +71,9 @@ defmodule Goodmao2Web.ReportComponents do
         last_point: List.last(points),
         grid_y: grid_lines_y(),
         grid_x: grid_lines_x(daily),
+        table: table,
+        table_sampled?: length(table) < length(daily),
+        day_count: length(daily),
         latest: format_weight(last.grams, unit),
         delta_grams: delta,
         delta_weight: format_weight(abs(delta), unit),
@@ -128,7 +140,16 @@ defmodule Goodmao2Web.ReportComponents do
           </div>
           <figcaption class="sr-only">
             <table>
-              <caption>{gettext("Daily average weight")}</caption>
+              <caption>
+                <%= if @table_sampled? do %>
+                  {gettext("Daily average weight — %{shown} of %{total} days (evenly sampled)",
+                    shown: length(@table),
+                    total: @day_count
+                  )}
+                <% else %>
+                  {gettext("Daily average weight")}
+                <% end %>
+              </caption>
               <thead>
                 <tr>
                   <th scope="col">{gettext("Date")}</th>
@@ -136,7 +157,7 @@ defmodule Goodmao2Web.ReportComponents do
                 </tr>
               </thead>
               <tbody>
-                <tr :for={p <- @daily}>
+                <tr :for={p <- @table}>
                   <td><time datetime={Date.to_iso8601(p.date)}>{format_date(p.date)}</time></td>
                   <td>{format_weight(p.grams, @unit)}</td>
                 </tr>
@@ -393,6 +414,18 @@ defmodule Goodmao2Web.ReportComponents do
 
   # Whole days between the first and last daily bucket (0 when they share a day).
   defp day_span(daily), do: Date.diff(List.last(daily).date, List.first(daily).date)
+
+  # Evenly downsample a list to at most `max` items, always keeping the first and last (so the
+  # trend's endpoints are preserved). Returns the list unchanged when it already fits.
+  defp sample_evenly(list, max) when length(list) <= max, do: list
+
+  defp sample_evenly(list, max) do
+    step = (length(list) - 1) / (max - 1)
+
+    0..(max - 1)
+    |> Enum.map(&Enum.at(list, round(&1 * step)))
+    |> Enum.uniq()
+  end
 
   defp weight_delta_icon(delta) when delta > 0, do: "hero-arrow-trending-up"
   defp weight_delta_icon(delta) when delta < 0, do: "hero-arrow-trending-down"
