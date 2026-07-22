@@ -41,6 +41,9 @@ defmodule Goodmao2.Accounts.User do
     # set once the user proves possession with a valid code (nil ⇒ TOTP disabled).
     field :totp_secret, :binary, redact: true
     field :totp_confirmed_at, :utc_datetime
+    # Window timestamp of the last TOTP code consumed at login — passed as `since:` to reject
+    # replaying a just-used code within its 30s window (ADR-0013).
+    field :totp_last_used_at, :utc_datetime
 
     timestamps(type: :utc_datetime)
   end
@@ -259,12 +262,12 @@ defmodule Goodmao2.Accounts.User do
   @doc """
   A changeset for enabling or disabling TOTP two-factor authentication.
 
-  Casts only the `totp_secret` (encrypted ciphertext) and `totp_confirmed_at` — the
-  caller (`Accounts.TwoFactor`) is responsible for encrypting the secret before it ever
-  reaches this changeset.
+  Casts only the `totp_secret` (encrypted ciphertext), `totp_confirmed_at`, and
+  `totp_last_used_at` — the caller (`Accounts.TwoFactor`) is responsible for encrypting the
+  secret before it ever reaches this changeset.
   """
   def totp_changeset(user, attrs) do
-    cast(user, attrs, [:totp_secret, :totp_confirmed_at])
+    cast(user, attrs, [:totp_secret, :totp_confirmed_at, :totp_last_used_at])
   end
 
   @doc """

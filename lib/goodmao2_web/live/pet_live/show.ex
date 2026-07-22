@@ -57,12 +57,12 @@ defmodule Goodmao2Web.PetLive.Show do
            max_entries: Media.config(:max_entries),
            # The larger per-kind cap gates the client upload; the purifier re-checks each file
            # against its own image/video byte cap (Media.Limits), so this is only a coarse ceiling.
-           max_file_size: Media.Limits.get(:max_video_bytes)
+           max_file_size: Media.Limits.upload_byte_cap(:max_video_bytes)
          )
          |> allow_upload(:avatar,
            accept: ~w(.jpg .jpeg .png .gif .webp),
            max_entries: 1,
-           max_file_size: Media.Limits.get(:max_image_bytes)
+           max_file_size: Media.Limits.upload_byte_cap(:max_image_bytes)
          )
          |> load_entries()
          |> load_weight()}

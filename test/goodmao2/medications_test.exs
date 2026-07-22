@@ -252,6 +252,24 @@ defmodule Goodmao2.MedicationsTest do
       # Exactly one timeline entry was written.
       assert length(Logs.list_entries(owner, pet)) == 1
     end
+
+    test "a dose belonging to another pet cannot be stamped via an accessible pet", %{
+      owner: owner,
+      pet: pet,
+      dose: dose
+    } do
+      # The caller owns `other_pet` too, so authorization on it passes — but `dose` belongs to
+      # `pet`, not `other_pet`. The cross-pet claim must be existence-hidden (:not_found), not
+      # allowed to stamp a foreign pet's dose.
+      other_pet = pet_fixture(owner)
+
+      assert {:error, :not_found} = Medications.mark_dose_given(owner, other_pet, dose)
+      assert {:error, :not_found} = Medications.mark_dose_skipped(owner, other_pet, dose)
+
+      # The dose is untouched and still claimable on its real pet.
+      assert {:ok, given} = Medications.mark_dose_given(owner, pet, dose)
+      assert given.status == "given"
+    end
   end
 
   describe "mark_dose_skipped/3 and mark_missed_doses/0" do

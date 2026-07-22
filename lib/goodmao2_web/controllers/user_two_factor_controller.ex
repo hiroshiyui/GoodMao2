@@ -22,7 +22,9 @@ defmodule Goodmao2Web.UserTwoFactorController do
     with_pending(conn, fn conn, user ->
       secret = Accounts.decrypt_totp_secret(user)
 
-      if is_binary(secret) and Accounts.valid_totp?(secret, code) do
+      # Pass the last-used window so a just-consumed code can't be replayed within its 30s window.
+      if is_binary(secret) and Accounts.valid_totp?(secret, code, since: user.totp_last_used_at) do
+        Accounts.record_totp_used(user)
         succeed(conn, user)
       else
         fail(conn, ~p"/users/two-factor", gettext("That code is not valid. Please try again."))

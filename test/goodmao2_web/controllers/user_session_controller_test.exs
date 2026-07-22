@@ -76,6 +76,65 @@ defmodule Goodmao2Web.UserSessionControllerTest do
     end
   end
 
+  describe "POST /users/log-in - password rate limiting" do
+    # Matches config :goodmao2, Goodmao2.Accounts, :login_attempts_per_hour.
+    @attempts_per_hour 10
+
+    test "locks out after too many failures, refusing even the correct password", %{
+      conn: conn,
+      user: user
+    } do
+      user = set_password(user)
+
+      for _ <- 1..@attempts_per_hour do
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => user.email, "password" => "wrong-password"}
+        })
+      end
+
+      # The correct password is now refused with the same generic error (no lockout oracle).
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => user.email, "password" => valid_user_password()}
+        })
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
+      refute get_session(conn, :user_token)
+    end
+
+    test "a successful login clears the failure counter", %{conn: conn, user: user} do
+      user = set_password(user)
+
+      for _ <- 1..(@attempts_per_hour - 1) do
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => user.email, "password" => "wrong-password"}
+        })
+      end
+
+      # A success just under the cap resets the counter...
+      ok_conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => user.email, "password" => valid_user_password()}
+        })
+
+      assert get_session(ok_conn, :user_token)
+
+      # ...so a fresh burst of failures does not immediately trip the limit.
+      for _ <- 1..(@attempts_per_hour - 1) do
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => user.email, "password" => "wrong-password"}
+        })
+      end
+
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => user.email, "password" => valid_user_password()}
+        })
+
+      assert get_session(conn, :user_token)
+    end
+  end
+
   describe "POST /users/log-in - magic link" do
     test "logs the user in", %{conn: conn, user: user} do
       {token, _hashed_token} = generate_user_magic_link_token(user)

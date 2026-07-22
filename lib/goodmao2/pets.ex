@@ -116,9 +116,6 @@ defmodule Goodmao2.Pets do
     end
   end
 
-  @doc "Returns a pet by id without authorization (internal use)."
-  def get_pet!(id), do: Repo.get!(Pet, id)
-
   @doc "Changeset for the pet edit form."
   def change_pet(%Pet{} = pet, attrs \\ %{}), do: Pet.changeset(pet, attrs)
 

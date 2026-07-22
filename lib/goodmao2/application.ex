@@ -21,6 +21,8 @@ defmodule Goodmao2.Application do
       Goodmao2.Notifications.PushRateLimiter,
       # Owns the registration / magic-link email rate-limit ETS table (ADR-0016).
       Goodmao2.Accounts.RegistrationRateLimiter,
+      # Owns the failed email+password login rate-limit ETS table.
+      Goodmao2.Accounts.LoginRateLimiter,
       # Owns the single-use WebAuthn challenge ETS table (ADR-0013).
       Goodmao2.Accounts.WebAuthnChallenges,
       # Start a worker by calling: Goodmao2.Worker.start_link(arg)

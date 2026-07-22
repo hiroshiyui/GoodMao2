@@ -114,6 +114,21 @@ defmodule Goodmao2.Accounts.TwoFactor do
     |> Repo.update()
   end
 
+  @doc """
+  Records that `user` just consumed a TOTP code at login by stamping `totp_last_used_at` to now.
+
+  The stored timestamp is later passed as `since:` to `valid_totp?/3`, so the same code cannot be
+  replayed within its 30-second window (ADR-0013).
+  """
+  @spec record_totp_used(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def record_totp_used(%User{} = user) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    user
+    |> User.totp_changeset(%{totp_last_used_at: now})
+    |> Repo.update()
+  end
+
   @doc "Decrypts and returns the user's raw TOTP secret, or nil if unset/undecryptable."
   @spec decrypt_totp_secret(User.t()) :: binary() | nil
   def decrypt_totp_secret(%User{totp_secret: nil}), do: nil
@@ -133,7 +148,11 @@ defmodule Goodmao2.Accounts.TwoFactor do
   def disable_totp(%User{} = user) do
     with {:ok, user} <-
            user
-           |> User.totp_changeset(%{totp_secret: nil, totp_confirmed_at: nil})
+           |> User.totp_changeset(%{
+             totp_secret: nil,
+             totp_confirmed_at: nil,
+             totp_last_used_at: nil
+           })
            |> Repo.update() do
       delete_recovery_codes(user)
       {:ok, user}

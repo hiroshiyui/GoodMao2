@@ -33,6 +33,20 @@ defmodule Goodmao2.Media.LimitsTest do
     end
   end
 
+  describe "upload_byte_cap/1" do
+    test "returns the configured cap when positive" do
+      assert Limits.upload_byte_cap(:max_image_bytes) == 8_000_000
+    end
+
+    test "substitutes a concrete ceiling when the cap is lifted to 0 (unbounded)" do
+      # allow_upload/3 cannot express "unbounded", so a 0 cap must resolve to a positive ceiling
+      # rather than 0 (which would reject every upload). The Purifier stays the authoritative check.
+      Settings.put("media_max_video_bytes", "0")
+      assert Limits.get(:max_video_bytes) == 0
+      assert Limits.upload_byte_cap(:max_video_bytes) > 0
+    end
+  end
+
   describe "fields/0 and setting_key/1" do
     test "every field maps to a `media_`-namespaced settings key" do
       assert :max_image_bytes in Limits.fields()

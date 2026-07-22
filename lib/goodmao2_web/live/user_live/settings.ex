@@ -281,7 +281,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       |> allow_upload(:avatar,
         accept: ~w(.jpg .jpeg .png .webp .gif),
         max_entries: 1,
-        max_file_size: Media.Limits.get(:max_image_bytes)
+        max_file_size: Media.Limits.upload_byte_cap(:max_image_bytes)
       )
 
     {:ok, socket}

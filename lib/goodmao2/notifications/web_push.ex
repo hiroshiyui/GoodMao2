@@ -112,14 +112,27 @@ defmodule Goodmao2.Notifications.WebPush do
           {:error, :gone}
 
         {:ok, status, _headers} ->
-          Logger.warning("Web push failed: HTTP #{status} for #{subscription.endpoint}")
+          Logger.warning("Web push failed: HTTP #{status} for #{endpoint_label(subscription)}")
           {:error, {:http_error, status}}
 
         {:error, reason} ->
-          Logger.warning("Web push error: #{inspect(reason)} for #{subscription.endpoint}")
+          Logger.warning("Web push error: #{inspect(reason)} for #{endpoint_label(subscription)}")
           {:error, reason}
       end
     end
+  end
+
+  # A log-safe label for a subscription: its id plus only the push-service host. The full
+  # endpoint URL embeds a per-subscription registration token (a delivery capability), so it
+  # must never reach the logs.
+  defp endpoint_label(subscription) do
+    host =
+      case URI.parse(subscription.endpoint || "") do
+        %URI{host: h} when is_binary(h) -> h
+        _ -> "unknown"
+      end
+
+    "subscription ##{subscription.id} (#{host})"
   end
 
   @doc """

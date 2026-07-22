@@ -17,7 +17,9 @@ defmodule Goodmao2Web.LocaleController do
         put_resp_cookie(conn, Locale.cookie(), locale,
           max_age: @one_year,
           same_site: "Lax",
-          http_only: true
+          http_only: true,
+          # Stamp Secure whenever the request arrived over TLS (always in prod via force_ssl).
+          secure: conn.scheme == :https
         )
       else
         conn

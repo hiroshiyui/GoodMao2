@@ -545,6 +545,7 @@ defmodule Goodmao2.Accounts do
   defdelegate totp_uri(secret, account_name), to: TwoFactor
   defdelegate totp_qr_data_uri(uri), to: TwoFactor
   defdelegate valid_totp?(secret, code, opts \\ []), to: TwoFactor
+  defdelegate record_totp_used(user), to: TwoFactor
   defdelegate enable_totp(user, secret), to: TwoFactor
   defdelegate decrypt_totp_secret(user), to: TwoFactor
   defdelegate disable_totp(user), to: TwoFactor

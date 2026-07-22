@@ -57,7 +57,11 @@ config :goodmao2, :mailer_from, {"GoodMao", "contact@example.com"}
 
 # Registration / magic-link email throttle (per target address, per hour) — see
 # Goodmao2.Accounts.RegistrationRateLimiter. Caps outbound auth mail to any one address.
-config :goodmao2, Goodmao2.Accounts, registration_emails_per_hour: 5
+config :goodmao2, Goodmao2.Accounts,
+  registration_emails_per_hour: 5,
+  # Cap on *failed* email+password login attempts per target address, per hour — see
+  # Goodmao2.Accounts.LoginRateLimiter. Blunts online password guessing; a success resets it.
+  login_attempts_per_hour: 10
 
 # Configure esbuild (the version is required)
 config :esbuild,

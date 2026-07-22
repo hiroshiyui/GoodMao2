@@ -4,11 +4,15 @@ defmodule Goodmao2Web.Endpoint do
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
+  # `secure: true` in prod stamps the Secure attribute so the session cookie never travels over
+  # plain HTTP (defense-in-depth behind `force_ssl`). Dev serves both http://…:4000 and
+  # https://…:4001, so the flag is off outside prod to keep the http dev origin usable.
   @session_options [
     store: :cookie,
     key: "_goodmao2_key",
     signing_salt: "CfBgOD5J",
-    same_site: "Lax"
+    same_site: "Lax",
+    secure: Mix.env() == :prod
   ]
 
   socket "/live", Phoenix.LiveView.Socket,

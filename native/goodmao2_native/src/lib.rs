@@ -10,9 +10,12 @@
 //   * Prefer returning `Result<T, E>` / an error term over panicking; a panic unwinds into
 //     a NIF crash.
 
+// Returns a `Result` rather than panicking: an out-of-range sum (i64 overflow) becomes a
+// `BadArg` error term instead of an unchecked `a + b` that panics across the NIF boundary in
+// debug builds and silently wraps in release builds.
 #[rustler::nif]
-fn add(a: i64, b: i64) -> i64 {
-    a + b
+fn add(a: i64, b: i64) -> rustler::NifResult<i64> {
+    a.checked_add(b).ok_or(rustler::Error::BadArg)
 }
 
 // Auto-registers every `#[rustler::nif]` in this crate against the Elixir module below.

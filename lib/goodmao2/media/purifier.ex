@@ -97,9 +97,11 @@ defmodule Goodmao2.Media.Purifier do
         :video -> Limits.get(:max_video_bytes)
       end
 
+    # A limit of 0 means "no cap" (the documented Media.Limits convention), so only reject on
+    # size when the cap is positive. Empty (0-byte) files are always rejected as unreadable.
     case File.stat(path) do
-      {:ok, %{size: size}} when size > 0 and size <= limit -> {:ok, size}
-      {:ok, %{size: size}} when size > limit -> {:error, :too_large}
+      {:ok, %{size: size}} when size > 0 and (limit == 0 or size <= limit) -> {:ok, size}
+      {:ok, %{size: size}} when limit > 0 and size > limit -> {:error, :too_large}
       _ -> {:error, :unreadable}
     end
   end

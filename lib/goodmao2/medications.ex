@@ -219,7 +219,8 @@ defmodule Goodmao2.Medications do
   entry and the dose stamp commit together (or not at all).
   """
   def mark_dose_given(%User{} = user, %Pet{} = pet, %Dose{} = dose, attrs \\ %{}) do
-    with :ok <- authorize(pet, user, :write) do
+    with :ok <- authorize(pet, user, :write),
+         :ok <- ensure_dose_belongs(dose, pet) do
       schedule = Repo.get(Schedule, dose.schedule_id)
       given_at = now()
 
@@ -265,7 +266,8 @@ defmodule Goodmao2.Medications do
   created. Same atomic claim as `mark_dose_given/4`.
   """
   def mark_dose_skipped(%User{} = user, %Pet{} = pet, %Dose{} = dose) do
-    with :ok <- authorize(pet, user, :write) do
+    with :ok <- authorize(pet, user, :write),
+         :ok <- ensure_dose_belongs(dose, pet) do
       {claimed, _} =
         Repo.update_all(
           from(d in Dose, where: d.id == ^dose.id and d.status == "pending"),
@@ -388,6 +390,12 @@ defmodule Goodmao2.Medications do
   defp authorize(pet, user, level) do
     if Pets.can?(pet, user, level), do: :ok, else: {:error, :unauthorized}
   end
+
+  # Defense-in-depth: the dose must actually belong to the authorized pet. Today every caller
+  # loads doses already scoped to the pet, but a future caller trusting a client-supplied dose
+  # id must not be able to stamp a foreign pet's dose (existence-hidden, never "forbidden").
+  defp ensure_dose_belongs(%Dose{pet_id: pet_id}, %Pet{id: pet_id}), do: :ok
+  defp ensure_dose_belongs(_dose, _pet), do: {:error, :not_found}
 
   # Accept both string- and atom-keyed attrs from callers/tests.
   defp string_keys(attrs) do

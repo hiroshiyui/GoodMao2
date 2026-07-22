@@ -54,6 +54,23 @@ defmodule Goodmao2.Media.Limits do
   @doc "All effective limits as an atom-keyed map (handy for the Purifier and the admin form)."
   def all, do: Map.new(@fields, fn field -> {field, get(field)} end)
 
+  # A concrete positive ceiling for `allow_upload(max_file_size:)`, which cannot express
+  # "unbounded". When the admin lifts a byte cap to 0, the LiveView still needs a coarse ceiling
+  # (the Purifier remains the authoritative check); 1 GB is far above any real pet photo/clip.
+  @upload_hard_ceiling 1_000_000_000
+
+  @doc """
+  The byte cap for a LiveView `allow_upload(max_file_size:)`. Returns the configured cap, or a
+  coarse hard ceiling when the admin has set the cap to `0` (unbounded) — `allow_upload` rejects
+  a `0` cap, and the Purifier is the authoritative per-kind size check regardless.
+  """
+  def upload_byte_cap(field) when is_atom(field) do
+    case get(field) do
+      0 -> @upload_hard_ceiling
+      n -> n
+    end
+  end
+
   defp default(field) do
     :goodmao2
     |> Application.get_env(Goodmao2.Media, [])

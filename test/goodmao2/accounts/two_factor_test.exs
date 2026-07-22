@@ -64,8 +64,18 @@ defmodule Goodmao2.Accounts.TwoFactorTest do
       refute Accounts.valid_totp?(secret, code, since: System.system_time(:second))
     end
 
-    test "disable_totp clears the secret and deletes recovery codes" do
+    test "record_totp_used stamps totp_last_used_at for replay rejection" do
       {user, _secret} = totp_user_fixture()
+      assert is_nil(user.totp_last_used_at)
+
+      {:ok, user} = Accounts.record_totp_used(user)
+
+      assert %DateTime{} = user.totp_last_used_at
+    end
+
+    test "disable_totp clears the secret, last-used stamp, and recovery codes" do
+      {user, _secret} = totp_user_fixture()
+      {:ok, user} = Accounts.record_totp_used(user)
       Accounts.generate_recovery_codes(user)
       assert Accounts.recovery_codes_remaining(user) == 10
 
@@ -73,6 +83,7 @@ defmodule Goodmao2.Accounts.TwoFactorTest do
 
       refute Accounts.totp_enabled?(user)
       assert is_nil(user.totp_secret)
+      assert is_nil(user.totp_last_used_at)
       assert Accounts.recovery_codes_remaining(user) == 0
     end
   end
