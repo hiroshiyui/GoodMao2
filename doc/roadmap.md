@@ -307,12 +307,15 @@ the locale-parity test + the `a11y-engineering` skill.
       generated via `mix phx.gen.release`), the env file, migrate-before-activate, and the
       **Amazon SES** mailer (`Swoosh.Adapters.AmazonSES`, `AWS_SES_*` + `MAILER_FROM_EMAIL` env,
       verified-sender/sandbox caveats). Mirrors Baudrate's `ansible/` deploy conventions.
-- [ ] **Ansible-driven deployment** — provisioning and releases automated with Ansible, mirroring
-      **Baudrate's `ansible/`** (`setup-server.yml` + `deploy-baudrate.yml`: common/postgresql/
-      elixir/rust/nginx roles, SOPS secrets, server-side `mix release` from a git tag, timestamped
-      `releases/` + atomic `current` symlink, `bin/migrate` before swap, `/health` poll) so the two
-      apps co-host under one repeatable playbook. Playbook not yet written. (Note: the old
-      `my_ansible_playbooks` repo is unrelated — the live reference is Baudrate's in-repo `ansible/`.)
+- [x] **Ansible-driven deployment** (`ansible/`) — provisioning + releases automated, mirroring
+      **Baudrate's `ansible/`**: `setup-server.yml` (common/postgresql/elixir/rust/nginx roles —
+      note **ffmpeg** in `common` for runtime media purification, and a `goodmao`/`goodmao2_prod`
+      Postgres pair) + `deploy-goodmao2.yml` (SOPS secrets incl. the SES credential, server-side
+      `mix release` from a git tag, timestamped `releases/` + atomic `current` symlink, env-file-
+      sourced `bin/migrate` before swap, `/health` poll, keep-N cleanup). Distinct `PORT` 5000,
+      systemd unit, and nginx `server_name` let it co-host with Baudrate; media is app-served, never
+      nginx-static. (The old `my_ansible_playbooks` repo is unrelated — the reference was Baudrate's
+      in-repo `ansible/`.)
 
 ### 10. Accessibility & UX polish
 
@@ -361,14 +364,7 @@ With the v1.0.0 core, hardening, clinical-timeline, localization, engineering/op
 accessibility tranches shipped, these are the remaining threads — ordered by the value they
 unlock, not by size. Each is already scoped by an ADR or an existing section above.
 
-1. **Deployment: Ansible playbook** (ships v1.0.0 to a real host) — the remaining §9 item. The
-   **co-hosting deploy note** (`doc/deployment.md`) and the release scaffolding + **Amazon SES**
-   mailer it documents are now shipped; what's left is the **Ansible playbook** that provisions
-   and releases GoodMao2, mirroring Baudrate's in-repo `ansible/` (roles, SOPS secrets, server-
-   side `mix release` from a tag, atomic `current` swap, migrate-before-activate, `/health` poll)
-   so GoodMao2 and its siblings co-host under one repeatable playbook.
-
-2. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
+1. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
    escalation** and **dose-history retention GC** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md));
    **notification batching / digest** so bursts don't spam the bell + push
    ([ADR-0011](adr/0011-notifications-and-messaging.md)); and **per-pet timezones** (resolution
@@ -376,8 +372,11 @@ unlock, not by size. Each is already scoped by an ADR or an existing section abo
    ([ADR-0018](adr/0018-timezone-display-policy.md)).
 
 **Shipped since this list was first drafted:** per-entry public share links + anonymous
-shared-entry/media endpoints (ADR-0004), and the **async media pipeline** — off-request-path
-ffmpeg purification (`Media.PurifyWorker`) + the orphan-object janitor (ADR-0005), which closed
-the last `[~]` in §8.
+shared-entry/media endpoints (ADR-0004); the **async media pipeline** — off-request-path ffmpeg
+purification (`Media.PurifyWorker`) + the orphan-object janitor (ADR-0005), which closed the last
+`[~]` in §8; and the **deployment tranche** (§9) — the co-hosting note (`doc/deployment.md`),
+Amazon SES mailer, release scaffolding, and the **Ansible playbook** (`ansible/`) that ships
+v1.0.0 to a real host alongside Baudrate.
 
-Deployment (1) is now the true gate to a public v1.0.0; (2) is quality-of-life once it lands.
+With deployment shipped, the public **v1.0.0** can be tagged and released; the coordination /
+notification polish above is quality-of-life that can follow at any pace.

@@ -7,9 +7,9 @@ fronted by **one nginx** that terminates TLS and routes to each app by hostname.
 Baudrate's deploy (`/home/yhh/MyProjects/baudrate/ansible/`); the sole rule of co-hosting is
 that **every host-level identifier is distinct per app**.
 
-> Status: **manual runbook** (roadmap §9). The Ansible playbook that automates the steps below
-> — mirroring Baudrate's `setup-server.yml` / `deploy-baudrate.yml` — is the next thread and is
-> not written yet.
+> Status: shipped. This runbook is the hand-operated reference; the same steps are **automated in
+> [`../ansible/`](../ansible/)** (`setup-server.yml` + `deploy-goodmao2.yml`, mirroring Baudrate's
+> playbook). Read this to understand the model; run the playbook to actually deploy.
 
 ## The collision surface
 
