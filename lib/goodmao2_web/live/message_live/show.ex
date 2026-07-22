@@ -109,7 +109,14 @@ defmodule Goodmao2Web.MessageLive.Show do
           </h1>
         </div>
 
-        <ol id="message-thread" phx-update="stream" class="mt-6 space-y-2">
+        <ol
+          id="message-thread"
+          phx-update="stream"
+          role="log"
+          aria-live="polite"
+          aria-label={gettext("Conversation messages")}
+          class="mt-6 space-y-2"
+        >
           <li
             class="hidden only:block text-base-content/60 py-8 text-center"
             id="message-thread-empty"

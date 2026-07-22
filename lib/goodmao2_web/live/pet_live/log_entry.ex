@@ -188,13 +188,6 @@ defmodule Goodmao2Web.PetLive.LogEntry do
   defp blank_to_nil(""), do: nil
   defp blank_to_nil(v), do: v
 
-  defp changeset_error_message(changeset) do
-    changeset
-    |> Ecto.Changeset.traverse_errors(fn {msg, _opts} -> msg end)
-    |> Enum.flat_map(fn {field, msgs} -> Enum.map(msgs, &"#{field} #{&1}") end)
-    |> Enum.join("; ")
-  end
-
   defp editor_label(editors, user_id) do
     case Map.get(editors, user_id) do
       nil -> gettext("a former caretaker")

@@ -19,7 +19,8 @@ defmodule Goodmao2Web.ReportComponents do
       format_datetime: 1,
       log_type_label: 1,
       log_summary: 2,
-      clinical_flags: 1
+      clinical_flags: 1,
+      clinical_flag_class: 1
     ]
 
   @doc """
@@ -227,7 +228,7 @@ defmodule Goodmao2Web.ReportComponents do
               <ul :if={flags(entry) != []} class="flex flex-wrap gap-1">
                 <li
                   :for={flag <- flags(entry)}
-                  class={["badge badge-sm gap-1", flag_class(flag.level)]}
+                  class={["badge badge-sm gap-1", clinical_flag_class(flag.level)]}
                 >
                   <.icon name={flag.icon} class="size-3" /> {flag.label}
                 </li>
@@ -278,10 +279,6 @@ defmodule Goodmao2Web.ReportComponents do
   end
 
   defp flags(entry), do: clinical_flags(%{type: entry.type, data: entry.data})
-
-  defp flag_class(:urgent), do: "badge-error"
-  defp flag_class(:watch), do: "badge-warning"
-  defp flag_class(_), do: "badge-ghost"
 
   # A frozen snapshot entry has string keys and an ISO-8601 occurred_at; decode into the
   # atom-keyed shape the Helpers rendering functions expect.

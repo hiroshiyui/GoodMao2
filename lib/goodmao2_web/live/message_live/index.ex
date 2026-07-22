@@ -93,7 +93,12 @@ defmodule Goodmao2Web.MessageLive.Index do
           </div>
         </.form>
 
-        <ul id="conversations-list" class="mt-6 space-y-2">
+        <ul
+          id="conversations-list"
+          aria-live="polite"
+          aria-label={gettext("Conversations")}
+          class="mt-6 space-y-2"
+        >
           <li
             :if={@conversations == []}
             id="conversations-empty"

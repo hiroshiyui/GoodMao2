@@ -245,14 +245,14 @@ Planned for later phases; **not yet in GoodMao's
 schema**. Recorded here so the payload/relationship shapes are known when the work lands
 (see [`roadmap.md`](roadmap.md) and the linked ADRs).
 
-- **Medication** (per pet) — an ongoing prescription/schedule (`name`, `dose`, `route?`,
-  `schedule` recurrence, `start_date`, `end_date?`, `prescribed_by_vet_id?` audit ref,
-  `active`). `medication` log entries record actual administrations against it — the
-  "did anyone give the pill?" coordination. _Phase 1/3._
-- (**Log-edit revisions**, **VetProfile**, **HealthSummaryReport**, **notifications**, the
-  **mailbox**, and **Web Push** (ADR-0011 Stage 2) have all shipped — see the data model above
-  and [ADR-0009](adr/0009-log-edit-revisions.md) /
-  [ADR-0011](adr/0011-notifications-and-messaging.md) / [ADR-0012](adr/0012-vet-access-model.md).)
+- (**Medication schedules & doses**, **Log-edit revisions**, **VetProfile**,
+  **HealthSummaryReport**, **notifications**, the **mailbox**, **Web Push** (ADR-0011 Stage 2),
+  and **profile images / media** have all shipped — see the data model above and
+  [ADR-0009](adr/0009-log-edit-revisions.md) /
+  [ADR-0011](adr/0011-notifications-and-messaging.md) /
+  [ADR-0012](adr/0012-vet-access-model.md) /
+  [ADR-0019](adr/0019-medication-schedules-and-reminders.md) /
+  [ADR-0005](adr/0005-media-storage.md) / [ADR-0020](adr/0020-profile-images.md).)
 
 ## Web layer (`lib/goodmao2_web/`)
 

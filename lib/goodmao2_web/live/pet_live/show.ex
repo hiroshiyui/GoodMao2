@@ -534,13 +534,6 @@ defmodule Goodmao2Web.PetLive.Show do
     end
   end
 
-  defp changeset_error_message(changeset) do
-    changeset
-    |> Ecto.Changeset.traverse_errors(fn {msg, _opts} -> msg end)
-    |> Enum.flat_map(fn {field, msgs} -> Enum.map(msgs, &"#{field} #{&1}") end)
-    |> Enum.join("; ")
-  end
-
   ## Render
 
   @impl true
@@ -1384,11 +1377,6 @@ defmodule Goodmao2Web.PetLive.Show do
   defp cal_count_class(:urgent), do: "badge-error"
   defp cal_count_class(:watch), do: "badge-warning"
   defp cal_count_class(_), do: "badge-ghost"
-
-  # Clinical-flag chip colour by level. Paired in the markup with a level-specific icon shape
-  # (triangle = urgent, circle = watch) and the flag's text, so colour is never the sole cue.
-  defp clinical_flag_class(:urgent), do: "badge-error"
-  defp clinical_flag_class(:watch), do: "badge-warning"
 
   # A subtle colour tint for clinically-urgent entry types.
   defp entry_tone(%{type: "vomit"}), do: "text-warning"

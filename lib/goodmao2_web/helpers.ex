@@ -354,6 +354,36 @@ defmodule Goodmao2Web.Helpers do
     dt |> Goodmao2.Timezone.to_local(tz) |> Calendar.strftime("%Y-%m-%d")
   end
 
+  @doc """
+  Converts a `datetime-local` wall-clock string (entered in the viewer's `tz`) into a UTC
+  `%DateTime{}` and stores it under `key` in `attrs`, for the inverse of `to_datetime_local/2`
+  on the way into a changeset (ADR-0018).
+
+  A blank value is left untouched (the changeset casts `""` → `nil`); an unparseable value is
+  kept as the raw string so the changeset surfaces the error rather than silently dropping it.
+  """
+  def put_local_datetime(attrs, key, value, tz) do
+    case value do
+      v when v in [nil, ""] ->
+        attrs
+
+      str ->
+        case Goodmao2.Timezone.local_naive_to_utc(str, tz) do
+          {:ok, dt} -> Map.put(attrs, key, dt)
+          :error -> Map.put(attrs, key, str)
+        end
+    end
+  end
+
+  @doc ~S"""
+  Formats a stored UTC datetime as the local `"YYYY-MM-DDTHH:MM"` value a `datetime-local` input
+  expects, shifted into `tz` — the pre-fill inverse of `put_local_datetime/4` (ADR-0018).
+  """
+  def to_datetime_local(nil, _tz), do: ""
+
+  def to_datetime_local(%DateTime{} = dt, tz),
+    do: dt |> Goodmao2.Timezone.to_local(tz) |> Calendar.strftime("%Y-%m-%dT%H:%M")
+
   ## Clinical flags
 
   @doc """
@@ -423,6 +453,29 @@ defmodule Goodmao2Web.Helpers do
   def escalate(:watch, _), do: :watch
   def escalate(_, :watch), do: :watch
   def escalate(_, _), do: nil
+
+  @doc """
+  The daisyUI badge class for a clinical-flag level.
+
+  Paired in the markup with a level-specific icon shape and the flag's text, so colour is
+  never the sole cue. Shared by the timeline, the health report, and the anonymous shared view.
+  """
+  def clinical_flag_class(:urgent), do: "badge-error"
+  def clinical_flag_class(:watch), do: "badge-warning"
+  def clinical_flag_class(_), do: "badge-ghost"
+
+  @doc """
+  Flattens an `Ecto.Changeset`'s errors into a single human-readable string.
+
+  Used to surface a failed context write as a flash message. Shared across the LiveViews that
+  drive pet/log/medication write forms.
+  """
+  def changeset_error_message(%Ecto.Changeset{} = changeset) do
+    changeset
+    |> Ecto.Changeset.traverse_errors(fn {msg, _opts} -> msg end)
+    |> Enum.flat_map(fn {field, msgs} -> Enum.map(msgs, &"#{field} #{&1}") end)
+    |> Enum.join("; ")
+  end
 
   @doc "Localized long month label for a `Date`, e.g. \"July 2026\" / \"2026年7月\"."
   def month_label(%Date{year: year, month: month}) do

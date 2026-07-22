@@ -19,6 +19,7 @@ defmodule Goodmao2Web.PetLive.EndOfCare do
          socket
          |> assign(:page_title, gettext("End of care · %{name}", name: pet.name))
          |> assign(:pet, pet)
+         |> assign(:ended_at_input, to_datetime_local(pet.ended_at, socket.assigns.timezone))
          |> assign_form(Pets.change_pet_lifecycle(pet))}
 
       {:error, :not_found} ->
@@ -30,15 +31,16 @@ defmodule Goodmao2Web.PetLive.EndOfCare do
   @impl true
   def handle_event("validate", %{"pet" => params}, socket) do
     changeset =
-      Pets.change_pet_lifecycle(socket.assigns.pet, params) |> Map.put(:action, :validate)
+      Pets.change_pet_lifecycle(socket.assigns.pet, local_attrs(params, socket))
+      |> Map.put(:action, :validate)
 
-    {:noreply, assign_form(socket, changeset)}
+    {:noreply, socket |> echo_ended_at(params) |> assign_form(changeset)}
   end
 
   def handle_event("save", %{"pet" => params}, socket) do
     user = socket.assigns.current_scope.user
 
-    case Pets.update_pet_lifecycle(user, socket.assigns.pet, params) do
+    case Pets.update_pet_lifecycle(user, socket.assigns.pet, local_attrs(params, socket)) do
       {:ok, pet} ->
         {:noreply,
          socket
@@ -46,13 +48,23 @@ defmodule Goodmao2Web.PetLive.EndOfCare do
          |> push_navigate(to: ~p"/pets/#{pet.id}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
+        {:noreply, socket |> echo_ended_at(params) |> assign_form(changeset)}
 
       {:error, :unauthorized} ->
         {:noreply,
          socket |> put_flash(:error, gettext("Not allowed.")) |> push_navigate(to: ~p"/pets")}
     end
   end
+
+  # Interpret the submitted `ended_at` wall-clock in the viewer's timezone and store UTC
+  # (ADR-0018), mirroring the log forms; a blank value defers to the changeset's now-default.
+  defp local_attrs(params, socket) do
+    put_local_datetime(params, "ended_at", params["ended_at"], socket.assigns.timezone)
+  end
+
+  # Keep the datetime-local input showing exactly what the owner typed across re-renders.
+  defp echo_ended_at(socket, params),
+    do: assign(socket, :ended_at_input, params["ended_at"] || "")
 
   defp assign_form(socket, changeset), do: assign(socket, :form, to_form(changeset))
 
@@ -102,6 +114,7 @@ defmodule Goodmao2Web.PetLive.EndOfCare do
           <.input
             field={@form[:ended_at]}
             type="datetime-local"
+            value={@ended_at_input}
             label={gettext("When care ended (optional — defaults to now)")}
           />
 

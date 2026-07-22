@@ -712,6 +712,34 @@ defmodule Goodmao2Web.PetLiveTest do
     end
   end
 
+  describe "Sharing" do
+    test "a granted expiry is interpreted in the granter's timezone and stored UTC (ADR-0018)", %{
+      conn: conn,
+      user: user
+    } do
+      # The granter reads/enters times in Taipei (UTC+8, no DST).
+      {:ok, _} = Goodmao2.Accounts.update_user_profile(user, %{"timezone" => "Asia/Taipei"})
+      pet = pet_fixture(user)
+      grantee = user_fixture()
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/access")
+
+      lv
+      |> form("#grant-form",
+        grant: %{
+          "identifier" => grantee.email,
+          "role" => "co_caretaker",
+          "expires_at" => "2026-08-01T18:00"
+        }
+      )
+      |> render_submit()
+
+      access = Goodmao2.Pets.effective_access(pet, grantee)
+      # 18:00 in Taipei is stored as 10:00 UTC.
+      assert access.expires_at == ~U[2026-08-01 10:00:00Z]
+    end
+  end
+
   describe "Log entry share links (ADR-0004)" do
     defp public_log(owner, pet) do
       {:ok, entry} =

@@ -36,6 +36,10 @@ defmodule Goodmao2Web.PetLive.Access do
   def handle_event("grant", %{"grant" => params}, socket) do
     user = socket.assigns.current_scope.user
 
+    # The expiry is entered as a wall-clock in the granter's timezone; store UTC (ADR-0018).
+    params =
+      put_local_datetime(params, "expires_at", params["expires_at"], socket.assigns.timezone)
+
     case Pets.grant_access(user, socket.assigns.pet, params) do
       {:ok, _access} ->
         {:noreply,

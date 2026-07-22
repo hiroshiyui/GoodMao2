@@ -174,13 +174,6 @@ defmodule Goodmao2Web.PetLive.Medications do
     Time.from_iso8601(s)
   end
 
-  defp changeset_error_message(changeset) do
-    changeset
-    |> Ecto.Changeset.traverse_errors(fn {msg, _opts} -> msg end)
-    |> Enum.flat_map(fn {field, msgs} -> Enum.map(msgs, &"#{field} #{&1}") end)
-    |> Enum.join("; ")
-  end
-
   ## Render
 
   @impl true

@@ -93,7 +93,13 @@ defmodule Goodmao2Web.NotificationLive.Index do
           </button>
         </div>
 
-        <ul id="notifications-list" phx-update="stream" class="mt-4 space-y-2">
+        <ul
+          id="notifications-list"
+          phx-update="stream"
+          aria-live="polite"
+          aria-label={gettext("Notifications")}
+          class="mt-4 space-y-2"
+        >
           <li
             class="hidden only:block text-base-content/60 py-8 text-center"
             id="notifications-empty"

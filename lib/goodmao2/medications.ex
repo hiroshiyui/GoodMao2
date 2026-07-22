@@ -81,7 +81,7 @@ defmodule Goodmao2.Medications do
           on: s.id == d.schedule_id,
           where: d.pet_id == ^pet.id and is_nil(s.deleted_at),
           where: d.due_at >= ^from_dt and d.due_at <= ^to_dt,
-          order_by: [asc: d.due_at],
+          order_by: [asc: d.due_at, asc: d.id],
           preload: [schedule: s]
       )
     else

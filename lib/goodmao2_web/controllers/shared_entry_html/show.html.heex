@@ -28,7 +28,7 @@
       <ul :if={clinical_flags(@entry) != []} class="flex flex-wrap gap-1">
         <li
           :for={flag <- clinical_flags(@entry)}
-          class={["badge badge-sm gap-1", flag_class(flag.level)]}
+          class={["badge badge-sm gap-1", clinical_flag_class(flag.level)]}
         >
           <.icon name={flag.icon} class="size-3" /> {flag.label}
         </li>
