@@ -123,21 +123,31 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  # ## Configuring the mailer
+  # ## Mailer — Amazon SES
   #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :goodmao2, Goodmao2.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+  # Auth emails (registration confirm, magic-link login, email-change) go out through
+  # Amazon SES via Swoosh's `SendRawEmail` API adapter, which rides the Req API client
+  # already configured in config/prod.exs. The IAM credentials below need only the
+  # `ses:SendRawEmail` permission; the region is the SES region the identity is verified in.
+  # Fail fast when unset — a public deploy that can't send auth mail is broken.
+  config :goodmao2, Goodmao2.Mailer,
+    adapter: Swoosh.Adapters.AmazonSES,
+    region: System.get_env("AWS_SES_REGION") || "us-east-1",
+    access_key:
+      System.get_env("AWS_SES_ACCESS_KEY_ID") ||
+        raise("environment variable AWS_SES_ACCESS_KEY_ID is missing."),
+    secret:
+      System.get_env("AWS_SES_SECRET_ACCESS_KEY") ||
+        raise("environment variable AWS_SES_SECRET_ACCESS_KEY is missing.")
+
+  # The From identity on every outbound email. MUST be an address (or domain) verified
+  # in the SES account above, or SES rejects the send.
+  from_email =
+    System.get_env("MAILER_FROM_EMAIL") ||
+      raise """
+      environment variable MAILER_FROM_EMAIL is missing.
+      Set it to an SES-verified sender address, e.g. no-reply@your-domain.example.
+      """
+
+  config :goodmao2, :mailer_from, {System.get_env("MAILER_FROM_NAME") || "GoodMao", from_email}
 end

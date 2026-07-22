@@ -66,6 +66,9 @@ defmodule Goodmao2.MixProject do
        compile: false,
        depth: 1},
       {:swoosh, "~> 1.16"},
+      # Renders the raw MIME message the Amazon SES adapter POSTs to SendRawEmail
+      # (the prod mailer — config/runtime.exs). Optional dep of :swoosh.
+      {:gen_smtp, "~> 1.0"},
       {:oban, "~> 2.19"},
       {:req, "~> 0.5"},
       {:telemetry_metrics, "~> 1.0"},

@@ -9,7 +9,7 @@ defmodule Goodmao2.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Goodmao2", "contact@example.com"})
+      |> from(Application.fetch_env!(:goodmao2, :mailer_from))
       |> subject(subject)
       |> text_body(body)
 

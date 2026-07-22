@@ -48,8 +48,12 @@ config :goodmao2, Goodmao2Web.Endpoint,
 # locally. You can see the emails in your browser, at "/dev/mailbox".
 #
 # For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
+# at the `config/runtime.exs` (prod uses Amazon SES — see there).
 config :goodmao2, Goodmao2.Mailer, adapter: Swoosh.Adapters.Local
+
+# The sender identity stamped on every outbound email (UserNotifier). In prod this is
+# overridden from env in config/runtime.exs and MUST be an SES-verified address.
+config :goodmao2, :mailer_from, {"GoodMao", "contact@example.com"}
 
 # Configure esbuild (the version is required)
 config :esbuild,
