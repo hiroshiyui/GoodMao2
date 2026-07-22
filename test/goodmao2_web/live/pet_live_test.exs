@@ -619,6 +619,53 @@ defmodule Goodmao2Web.PetLiveTest do
     end
   end
 
+  describe "Pet profile photo (ADR-0020)" do
+    test "a manager uploads a pet avatar; it appears round-masked once processed", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+
+      src = Path.join(System.tmp_dir!(), "gm_petav_#{System.unique_integer([:positive])}.png")
+
+      {_, 0} =
+        System.cmd(
+          "ffmpeg",
+          ~w(-hide_banner -v error -f lavfi -i color=c=orange:s=16x16 -frames:v 1 -y) ++ [src]
+        )
+
+      content = File.read!(src)
+      File.rm(src)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # The manage-only upload control is present, and the fallback initials render until ready.
+      assert has_element?(lv, "#pet-avatar-form")
+      assert has_element?(lv, "#avatar-pet-#{pet.id}")
+
+      photo =
+        file_input(lv, "#pet-avatar-form", :avatar, [
+          %{name: "rex.png", content: content, type: "image/png"}
+        ])
+
+      render_upload(photo, "rex.png")
+      lv |> form("#pet-avatar-form") |> render_submit()
+
+      Oban.drain_queue(queue: :default)
+      assert has_element?(lv, "#avatar-pet-#{pet.id} img")
+      assert Goodmao2.Media.Avatars.get_avatar("pet", pet.id).status == "ready"
+    end
+
+    test "a viewer sees no upload control", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      refute has_element?(lv, "#pet-avatar-form")
+    end
+  end
+
   describe "authorization" do
     test "accessing another user's pet is reported as not found", %{conn: conn} do
       other = user_fixture()
