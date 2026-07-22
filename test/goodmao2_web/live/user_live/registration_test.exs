@@ -50,19 +50,27 @@ defmodule Goodmao2Web.UserLive.RegistrationTest do
                ~r/An email was sent to .*, please access it to confirm your account/
     end
 
-    test "renders errors for duplicated email", %{conn: conn} do
+    test "a duplicated email is existence-hidden and sends the existing account a login link",
+         %{conn: conn} do
+      user = user_fixture(%{email: unique_user_email()})
+
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
-      user = user_fixture(%{email: "test@email.com"})
-
-      result =
+      {:ok, _lv, html} =
         lv
-        |> form("#registration_form",
-          user: %{"email" => user.email}
-        )
+        |> form("#registration_form", user: %{"email" => user.email})
         |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
 
-      assert result =~ "has already been taken"
+      # Responds exactly like a fresh signup — the form is not a membership oracle.
+      assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
+      refute html =~ "has already been taken"
+
+      # The pre-existing account still received a magic-link login token.
+      assert Goodmao2.Repo.get_by(Goodmao2.Accounts.UserToken,
+               user_id: user.id,
+               context: "login"
+             )
     end
   end
 
