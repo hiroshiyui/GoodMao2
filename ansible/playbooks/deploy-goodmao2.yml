@@ -1,0 +1,87 @@
+---
+# GoodMao2 — Application deployment playbook
+#
+# Builds GoodMao2 from a git release tag on the server, creates an OTP release,
+# manages symlink-based releases for rollback, runs migrations, and (re)starts
+# the app via systemd.
+#
+# Requires setup-server.yml to have been run first (server must already have
+# Erlang, Elixir, Rust, PostgreSQL, nginx, ffmpeg, and the goodmao system user).
+#
+# Secrets are decrypted automatically from all.sops.yml via your GPG key.
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-goodmao2.yml
+#   ansible-playbook playbooks/deploy-goodmao2.yml -e release_tag=v1.0.0
+#
+- name: Deploy GoodMao2
+  hosts: production
+  become: true
+
+  vars_prompt:
+    - name: domain
+      prompt: "Site domain name"
+      default: "{{ lookup('ansible.builtin.env', 'GOODMAO_DOMAIN') }}"
+      private: false
+
+    - name: release_tag
+      prompt: "GitHub release tag to deploy (e.g. v1.0.0)"
+      private: false
+
+    - name: git_repo
+      prompt: "Git repository URL"
+      default: "{{ git_repo | default('https://github.com/hiroshiyui/GoodMao2.git') }}"
+      private: false
+
+  pre_tasks:
+    - name: Validate domain is provided
+      ansible.builtin.assert:
+        that:
+          - domain | length > 0
+        fail_msg: "domain is required. Set GOODMAO_DOMAIN or enter it at the prompt."
+
+    - name: Validate release_tag is provided
+      ansible.builtin.assert:
+        that:
+          - release_tag | length > 0
+        fail_msg: "release_tag is required. Specify a git tag (e.g. v1.0.0)."
+
+    - name: Validate SES credentials are available
+      ansible.builtin.assert:
+        that:
+          - aws_ses_access_key_id is defined
+          - aws_ses_secret_access_key is defined
+        fail_msg: >
+          Amazon SES credentials are missing. Set aws_ses_access_key_id and
+          aws_ses_secret_access_key in inventory/group_vars/all.sops.yml — the app
+          fails to boot without them (config/runtime.exs).
+
+    - name: Generate secret key base (not found in all.sops.yml)
+      when: secret_key_base is not defined
+      block:
+        - name: Generate random secret key base
+          ansible.builtin.set_fact:
+            secret_key_base: "{{ lookup('ansible.builtin.password', '/dev/null length=64 chars=ascii_letters,digits') }}"
+
+        - name: Display generated secret key base
+          ansible.builtin.debug:
+            msg: |
+              ============================================================
+              Generated SECRET_KEY_BASE: {{ secret_key_base }}
+
+              Save this to your SOPS secrets file:
+
+                sops inventory/group_vars/all.sops.yml
+
+              Add the value:
+                secret_key_base: "{{ secret_key_base }}"
+              ============================================================
+
+        - name: Confirm secret key base has been saved
+          ansible.builtin.pause:
+            prompt: "Press Enter after you have saved the secret key base (Ctrl+C to abort)"
+
+  roles:
+    - role: deploy
+      become_user: "{{ goodmao_user }}"
+      tags: [deploy]

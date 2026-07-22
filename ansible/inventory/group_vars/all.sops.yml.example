@@ -1,0 +1,17 @@
+---
+# Copy this file, then encrypt it with SOPS:
+#
+#   cp all.sops.yml.example all.sops.yml
+#   sops --encrypt --in-place all.sops.yml
+#
+# To edit later:
+#
+#   sops all.sops.yml
+#
+# SOPS encrypts only the values — keys remain readable in git diffs.
+#
+postgres_db_password: "CHANGE_ME"
+secret_key_base: "CHANGE_ME"
+# Amazon SES IAM credential (needs only ses:SendRawEmail).
+aws_ses_access_key_id: "CHANGE_ME"
+aws_ses_secret_access_key: "CHANGE_ME"

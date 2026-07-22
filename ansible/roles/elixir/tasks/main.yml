@@ -1,0 +1,126 @@
+---
+- name: Install asdf build dependencies
+  ansible.builtin.apt:
+    name:
+      - curl
+      - git
+      - autoconf
+      - libncurses-dev
+      - libssl-dev
+      - libwxgtk3.2-dev
+      - unixodbc-dev
+    state: present
+
+- name: Create asdf bin directory
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.file:
+    path: "{{ goodmao_home }}/.asdf/bin"
+    state: directory
+    mode: "0755"
+
+- name: Download asdf binary
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.get_url:
+    url: "https://github.com/asdf-vm/asdf/releases/download/v{{ asdf_version }}/asdf-v{{ asdf_version }}-linux-amd64.tar.gz"
+    dest: "/tmp/asdf-v{{ asdf_version }}.tar.gz"
+    mode: "0644"
+
+- name: Extract asdf binary
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.unarchive:
+    src: "/tmp/asdf-v{{ asdf_version }}.tar.gz"
+    dest: "{{ goodmao_home }}/.asdf/bin"
+    remote_src: true
+
+- name: Verify asdf version
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf version"
+  register: asdf_version_check
+  changed_when: false
+
+- name: Remove legacy asdf shell init (pre-0.16)
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.lineinfile:
+    path: "{{ goodmao_home }}/.bashrc"
+    line: '. "$HOME/.asdf/asdf.sh"'
+    state: absent
+
+- name: Add asdf to shell profile
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.blockinfile:
+    path: "{{ goodmao_home }}/.bashrc"
+    marker: "# {mark} ASDF MANAGED BLOCK"
+    block: |
+      export ASDF_DATA_DIR="{{ goodmao_home }}/.asdf"
+      export PATH="{{ goodmao_home }}/.asdf/bin:{{ goodmao_home }}/.asdf/shims:$PATH"
+    create: true
+    mode: "0644"
+
+- name: Install asdf erlang plugin
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf plugin add erlang"
+    creates: "{{ goodmao_home }}/.asdf/plugins/erlang"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+
+- name: Install asdf elixir plugin
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf plugin add elixir"
+    creates: "{{ goodmao_home }}/.asdf/plugins/elixir"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+
+- name: Install Erlang {{ erlang_version }}
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf install erlang {{ erlang_version }}"
+    creates: "{{ goodmao_home }}/.asdf/installs/erlang/{{ erlang_version }}"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+    PATH: "{{ goodmao_home }}/.asdf/bin:{{ goodmao_home }}/.asdf/shims:{{ ansible_facts.env.PATH }}"
+
+- name: Set Erlang {{ erlang_version }} as global default
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf set --home erlang {{ erlang_version }}"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+  changed_when: true
+
+- name: Install Elixir {{ elixir_version }}
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf install elixir {{ elixir_version }}"
+    creates: "{{ goodmao_home }}/.asdf/installs/elixir/{{ elixir_version }}"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+    PATH: "{{ goodmao_home }}/.asdf/bin:{{ goodmao_home }}/.asdf/shims:{{ ansible_facts.env.PATH }}"
+
+- name: Set Elixir {{ elixir_version }} as global default
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf set --home elixir {{ elixir_version }}"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+  changed_when: true
+
+- name: Install Hex
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf exec mix local.hex --force"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+    PATH: "{{ goodmao_home }}/.asdf/bin:{{ goodmao_home }}/.asdf/shims:{{ ansible_facts.env.PATH }}"
+  changed_when: false
+
+- name: Install Rebar
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.asdf/bin/asdf exec mix local.rebar --force"
+  environment:
+    ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
+    PATH: "{{ goodmao_home }}/.asdf/bin:{{ goodmao_home }}/.asdf/shims:{{ ansible_facts.env.PATH }}"
+  changed_when: false

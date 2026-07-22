@@ -1,0 +1,7 @@
+# Ansible retry files
+.retry/
+
+# Decrypted secrets must never be committed. The encrypted all.sops.yml is safe
+# to commit; guard against an accidental plaintext copy.
+inventory/group_vars/all.sops.yml.dec
+*.decrypted

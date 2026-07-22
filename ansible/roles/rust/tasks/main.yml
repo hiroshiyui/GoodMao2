@@ -1,0 +1,31 @@
+---
+# Rust toolchain for the Rustler NIF (native/goodmao2_native, ADR-0017). The
+# exact toolchain is pinned by rust-toolchain.toml and auto-installed by rustup
+# on first `mix compile`.
+- name: Check if rustup is installed
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.stat:
+    path: "{{ goodmao_home }}/.cargo/bin/rustup"
+  register: rustup_installed
+
+- name: Install rustup
+  when: not rustup_installed.stat.exists
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.shell:
+    cmd: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+  environment:
+    CARGO_HOME: "{{ goodmao_home }}/.cargo"
+    RUSTUP_HOME: "{{ goodmao_home }}/.rustup"
+  args:
+    creates: "{{ goodmao_home }}/.cargo/bin/rustup"
+
+- name: Update Rust toolchain
+  when: rustup_installed.stat.exists
+  become_user: "{{ goodmao_user }}"
+  ansible.builtin.command:
+    cmd: "{{ goodmao_home }}/.cargo/bin/rustup update"
+  environment:
+    CARGO_HOME: "{{ goodmao_home }}/.cargo"
+    RUSTUP_HOME: "{{ goodmao_home }}/.rustup"
+  register: rustup_update
+  changed_when: "'updated' in rustup_update.stdout"

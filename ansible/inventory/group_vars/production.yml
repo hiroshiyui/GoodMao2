@@ -1,0 +1,7 @@
+---
+# Production-specific overrides
+# domain and certbot_email are prompted at runtime.
+#
+# Optional:
+#   mailer_from_email: no-reply@goodmao.tw   # defaults to no-reply@<domain>
+#   site_owner_email:  you@example.com       # pins the bootstrap admin (GOODMAO_SITE_OWNER_EMAIL)

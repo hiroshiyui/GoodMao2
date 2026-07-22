@@ -1,0 +1,38 @@
+# {{ ansible_managed }}
+# GoodMao2 — systemd service unit
+
+[Unit]
+Description=GoodMao2
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=exec
+User={{ goodmao_user }}
+WorkingDirectory={{ deploy_path }}/current
+EnvironmentFile={{ deploy_path }}/env/goodmao2.env
+ExecStart={{ deploy_path }}/current/bin/server
+ExecStop={{ deploy_path }}/current/bin/goodmao2 stop
+Restart=on-failure
+RestartSec=5
+
+# Allow time for in-flight requests to drain on shutdown before SIGKILL.
+TimeoutStopSec=30
+SyslogIdentifier=goodmao2
+
+# Security hardening. MEDIA_STORAGE_DIR is the ONLY writable path — everything
+# else the app touches (current/releases/env) is read-only.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ media_path }}
+ReadOnlyPaths={{ deploy_path }}/current {{ deploy_path }}/releases {{ deploy_path }}/env
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

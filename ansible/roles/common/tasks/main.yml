@@ -1,0 +1,102 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install essential packages
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      # ffmpeg/ffprobe — REQUIRED AT RUNTIME: media purification (ADR-0005) shells
+      # out to them in Media.PurifyWorker. Not just a build dependency.
+      - ffmpeg
+      - curl
+      - wget
+      - git
+      - ufw
+      - fail2ban
+      - ntp
+      - unzip
+      - htop
+      - logrotate
+    state: present
+
+- name: Create goodmao system group
+  ansible.builtin.group:
+    name: "{{ goodmao_user }}"
+    system: true
+
+- name: Create goodmao system user
+  ansible.builtin.user:
+    name: "{{ goodmao_user }}"
+    group: "{{ goodmao_user }}"
+    home: "{{ goodmao_home }}"
+    shell: /bin/bash
+    system: true
+    create_home: true
+
+# --- UFW firewall ---
+# Only 80/443 (nginx) and SSH are opened; the app's PORT ({{ app_port }}) stays
+# on loopback, reached only via nginx. This is what lets GoodMao2 and Baudrate
+# co-host safely — neither app port is publicly exposed.
+
+- name: Set UFW default deny incoming
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Set UFW default allow outgoing
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow SSH through UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+
+- name: Allow HTTP through UFW
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+- name: Allow HTTPS through UFW
+  community.general.ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+
+# --- SSH hardening ---
+
+- name: Harden SSH configuration
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    validate: "sshd -t -f %s"
+  loop:
+    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+    - { regexp: '^#?PermitEmptyPasswords', line: 'PermitEmptyPasswords no' }
+  notify: Restart sshd
+
+# --- Services ---
+
+- name: Enable and start NTP
+  ansible.builtin.systemd:
+    name: ntp
+    state: started
+    enabled: true
+
+- name: Enable and start fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: started
+    enabled: true

@@ -1,0 +1,11 @@
+---
+- name: Reload systemd
+  become_user: root
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart goodmao2
+  become_user: root
+  ansible.builtin.systemd:
+    name: goodmao2
+    state: restarted

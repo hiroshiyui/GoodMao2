@@ -1,0 +1,38 @@
+---
+# System
+goodmao_user: goodmao
+goodmao_home: /opt/goodmao2
+
+# PostgreSQL
+postgres_version: "15"
+postgres_db_name: goodmao2_prod
+postgres_db_user: goodmao
+# postgres_db_password provided by all.sops.yml (or auto-generated at runtime)
+
+# Networking
+# DISTINCT from the sibling Baudrate app (which uses 4000) — see doc/deployment.md.
+app_port: 5000
+ssh_port: 22
+
+# Deployment paths
+deploy_path: /opt/goodmao2
+static_path: "{{ deploy_path }}/static"
+# LifeLog media (ADR-0005): writable, backed-up, OUTSIDE any served path. Never
+# nginx-served — media is streamed through the app, authorized per request.
+media_path: "{{ deploy_path }}/shared/media"
+
+# Deployment (HTTPS clone, public repo)
+git_repo: "https://github.com/hiroshiyui/GoodMao2.git"
+keep_releases: 5
+
+# asdf version manager
+asdf_version: "0.16.7"
+
+# Erlang/Elixir versions (match .tool-versions)
+erlang_version: "28.3.1"
+elixir_version: "1.19.5"
+
+# Mailer — Amazon SES (non-secret bits; credentials live in all.sops.yml).
+# MAILER_FROM_EMAIL defaults to no-reply@<domain> unless overridden here.
+aws_ses_region: "us-east-1"
+mailer_from_name: "GoodMao"
