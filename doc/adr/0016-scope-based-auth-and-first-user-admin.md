@@ -43,6 +43,10 @@ global operational role that confers no pet access.**
 - **First user is the administrator.** `Accounts.register_user/1` sets `is_admin: true` on
   the account **iff** no user exists yet (`not Repo.exists?(User)`). There is exactly one
   administrator and it is established on first registration — no console step, no seed flag.
+  Because that check and the insert are not atomic, a **partial unique index**
+  (`users_single_admin_index`, `where is_admin`) is the real guard: two concurrent first
+  registrations can't both win — the loser's insert fails the constraint and `register_user`
+  transparently retries it as an ordinary account.
 
 - **Optional site-owner fence.** Because "first to register wins" is attacker-winnable on an
   open deploy, an optional `config :goodmao2, :site_owner_email` (env
@@ -61,15 +65,23 @@ global operational role that confers no pet access.**
 - **One identity mechanism everywhere.** Contexts, workers, and tests all authorize against
   a `%User{}` resolved from the scope; there is no parallel "current user" plumbing to keep
   in sync.
-- **Zero-ceremony admin bootstrap**, at the cost of a first-run race that the site-owner
-  fence closes when the deploy needs it. Operators of public instances are expected to set
-  `GOODMAO_SITE_OWNER_EMAIL`; `mix goodmao.doctor` surfaces required prod secrets.
+- **Zero-ceremony admin bootstrap.** The "who becomes admin" race is closed on two levels:
+  the `users_single_admin_index` guarantees *at most one* administrator regardless of timing,
+  and the optional site-owner fence controls *which* address may claim that seat on a public
+  deploy. Operators of public instances are still expected to set `GOODMAO_SITE_OWNER_EMAIL`
+  (so an attacker can't grab the seat first); `mix goodmao.doctor` surfaces required prod
+  secrets.
+- **Registration is existence-hidden and rate-limited.** The registration form responds to a
+  duplicate email exactly as to a fresh signup (sending the existing account a login link
+  instead), so it can't be used to enumerate members; and registration / magic-link emails are
+  throttled per address (`Accounts.RegistrationRateLimiter`) to cap outbound auth mail.
 - **The admin/pet-access separation is load-bearing.** Any future admin feature must resist
   the temptation to "just let the admin see it" for pet data; oversight surfaces show
   counts and identities, not timelines.
-- **Exactly one administrator.** There is no admin-management UI: the role is conferred only
-  at first registration. Transferring or adding administrators is a deliberate future
-  decision, not an accident of the current model.
+- **Exactly one administrator** — now DB-enforced by `users_single_admin_index`, not merely a
+  property of the insert logic. There is no admin-management UI: the role is conferred only at
+  first registration. Transferring or adding administrators is a deliberate future decision,
+  not an accident of the current model.
 - Follow-on auth hardening (handle rules, the registration gate, 2FA) all attach to this
   model rather than replacing it.
 
