@@ -116,10 +116,33 @@ defmodule Goodmao2.Accounts do
     first? = not Repo.exists?(User)
 
     with :ok <- authorize_first_registration(first?, attrs) do
-      changeset = User.email_changeset(%User{}, attrs)
-      changeset = if first?, do: Ecto.Changeset.change(changeset, is_admin: true), else: changeset
+      insert_registration(attrs, first?)
+    end
+  end
 
-      Repo.insert(changeset)
+  defp insert_registration(attrs, false) do
+    %User{} |> User.email_changeset(attrs) |> Repo.insert()
+  end
+
+  # `first?` and the insert are not one atomic step, so two concurrent first registrations
+  # can both see an empty table — the `users_single_admin_index` partial unique index is the
+  # real single-admin guard (ADR-0016). If we lose that race the winner is already admin, so
+  # retry this signup as an ordinary (non-admin) account rather than failing it.
+  defp insert_registration(attrs, true) do
+    changeset =
+      %User{}
+      |> User.email_changeset(attrs)
+      |> Ecto.Changeset.change(is_admin: true)
+      |> Ecto.Changeset.unique_constraint(:is_admin, name: :users_single_admin_index)
+
+    case Repo.insert(changeset) do
+      {:error, %Ecto.Changeset{} = failed} = error ->
+        if Keyword.has_key?(failed.errors, :is_admin),
+          do: insert_registration(attrs, false),
+          else: error
+
+      ok ->
+        ok
     end
   end
 

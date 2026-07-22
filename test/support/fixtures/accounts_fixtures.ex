@@ -19,10 +19,15 @@ defmodule Goodmao2.AccountsFixtures do
   end
 
   def unconfirmed_user_fixture(attrs \\ %{}) do
+    # Insert directly rather than through Accounts.register_user/1 so ordinary fixtures never
+    # create the sole-admin row. The single-admin partial index (users_single_admin_index)
+    # would otherwise make the first-user insert in every async test transaction contend
+    # across the suite (each sandboxed transaction sees an empty users table, so register_user
+    # would set is_admin: true). The real first-user-admin path is covered in accounts_test.
     {:ok, user} =
-      attrs
-      |> valid_user_attributes()
-      |> Accounts.register_user()
+      %Accounts.User{}
+      |> Accounts.User.email_changeset(valid_user_attributes(attrs))
+      |> Goodmao2.Repo.insert()
 
     user
   end
@@ -42,7 +47,14 @@ defmodule Goodmao2.AccountsFixtures do
   end
 
   def admin_fixture(attrs \\ %{}) do
-    Goodmao2.Repo.update!(Accounts.User.admin_changeset(user_fixture(attrs)))
+    # There is exactly one administrator (ADR-0016), now DB-enforced by
+    # `users_single_admin_index`. Reuse the existing admin if this test transaction already
+    # has one (e.g. the first `user_fixture`, which registers as admin) rather than minting a
+    # second and tripping the constraint.
+    case Goodmao2.Repo.one(from u in Accounts.User, where: u.is_admin, limit: 1) do
+      nil -> Goodmao2.Repo.update!(Accounts.User.admin_changeset(user_fixture(attrs)))
+      %Accounts.User{} = admin -> admin
+    end
   end
 
   def valid_vet_profile_attributes(attrs \\ %{}) do

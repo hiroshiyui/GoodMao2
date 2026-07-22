@@ -92,6 +92,18 @@ defmodule Goodmao2.AccountsTest do
       assert first.is_admin
       refute second.is_admin
     end
+
+    test "the database enforces a single administrator (closes the first-registration race)" do
+      {:ok, _first} = Accounts.register_user(valid_user_attributes())
+      {:ok, second} = Accounts.register_user(valid_user_attributes())
+      refute second.is_admin
+
+      # The partial unique index (users_single_admin_index) rejects a second admin row —
+      # the guard that makes two concurrent first registrations converge on one admin.
+      assert_raise Ecto.ConstraintError, fn ->
+        second |> Ecto.Changeset.change(is_admin: true) |> Repo.update()
+      end
+    end
   end
 
   describe "register_user/1 site-owner gate" do
