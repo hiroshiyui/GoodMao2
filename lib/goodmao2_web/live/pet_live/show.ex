@@ -1167,7 +1167,11 @@ defmodule Goodmao2Web.PetLive.Show do
         </div>
       </div>
 
-      <nav id="pet-actions" class="flex gap-2" aria-label={gettext("Pet actions")}>
+      <nav
+        id="pet-actions"
+        class="flex flex-wrap gap-2 sm:justify-end"
+        aria-label={gettext("Pet actions")}
+      >
         <.link
           navigate={~p"/pets/#{@pet.id}/medications"}
           id="pet-medications-link"
