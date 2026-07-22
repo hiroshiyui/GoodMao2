@@ -11,6 +11,55 @@ that **every host-level identifier is distinct per app**.
 > [`../ansible/`](../ansible/)** (`setup-server.yml` + `deploy-goodmao2.yml`, mirroring Baudrate's
 > playbook). Read this to understand the model; run the playbook to actually deploy.
 
+## First production go-live checklist
+
+A one-time, ordered checklist for the **first** deploy. Each step links to its detail below or in
+[`../ansible/README.md`](../ansible/README.md). Ansible does the on-host work; the items marked
+**(you)** are external prerequisites and decisions Ansible can't make for you.
+
+**Ahead of time (lead-time items — start these first):**
+
+- [ ] **(you) Amazon SES production access** — a fresh SES account is *sandboxed* (can only mail
+      verified addresses). Verify a sender identity, mint an IAM credential scoped to
+      `ses:SendRawEmail`, and **request production access** — approval isn't instant. See
+      [Mailer — Amazon SES](#mailer--amazon-ses). Without it, real users can't confirm accounts.
+- [ ] **(you) DNS** — point the domain's A/AAAA record at the host **before** provisioning, so
+      Let's Encrypt (certbot) can issue the cert.
+- [ ] **(you) A host** — Debian 12 with SSH; co-hosts with Baudrate (see [collision surface](#the-collision-surface)).
+- [ ] **(you) Control machine** — Ansible 2.14+, SOPS, a GPG key, and the three
+      `ansible-galaxy` collections (per [`../ansible/README.md`](../ansible/README.md)).
+
+**Configure & deploy:**
+
+- [ ] **Inventory + secrets** — edit `ansible/inventory/hosts.yml`; set `secret_key_base`,
+      `postgres_db_password`, and the two `aws_ses_*` credentials via
+      `sops inventory/group_vars/all.sops.yml`. The SES credentials **must** be supplied by hand.
+- [ ] **Pin the admin** — set `site_owner_email` in `group_vars/production.yml`. This closes the
+      "first registrant wins admin" race (ADR-0016) on a public URL. **Recommended for any real deploy.**
+- [ ] **Provision** — `ansible-playbook playbooks/setup-server.yml` (pkgs incl. ffmpeg, PG15,
+      asdf/Elixir, rust, nginx+certbot). Dry-run first with `--check --diff`.
+- [ ] **Deploy the release** — `ansible-playbook playbooks/deploy-goodmao2.yml`, choosing the git
+      tag you cut (e.g. **`v0.2.0`**). Ends by polling `/health` until it returns 200.
+
+**First-boot steps the playbook does not cover (do these manually, once):**
+
+- [ ] **Register the admin** as `site_owner_email`. 2FA is **required for the administrator**
+      (ADR-0013), so have an authenticator app (TOTP) *or* a FIDO2 security key ready — you're
+      forced through 2FA setup before a session is issued. Confirm the confirmation email arrives via SES.
+- [ ] **Generate Web Push VAPID keys** at `/admin/settings` — only if you want push. They live in
+      the runtime `Settings` store, **not** env vars; push stays disabled (a valid state) until generated.
+- [ ] **Set the system default timezone** at `/admin/settings` (else falls back to `Etc/UTC`, ADR-0018).
+- [ ] **Review media upload limits** at `/admin/settings` (`Media.Limits`).
+
+**Before onboarding real users — data safety (not yet automated):**
+
+- [ ] **(you) Postgres backups** — a scheduled `pg_dump`/pgBackRest with off-host retention.
+      The Ansible roles provision Postgres but do **not** set up backups.
+- [ ] **(you) Media backups** — `MEDIA_STORAGE_DIR` (`/opt/goodmao2/shared/media/`) holds the
+      only copy of purified LifeLog media; it survives releases but nothing backs it up.
+- [ ] **Confirm your rollback path** — migrations are **not** auto-rolled-back (see [Rollback](#rollback)),
+      so a restorable DB backup is your real safety net for a bad migration.
+
 ## The collision surface
 
 GoodMao2 and Baudrate ship the **same defaults** (both are `phx.gen.release` Phoenix 1.8 apps
