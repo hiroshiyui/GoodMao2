@@ -217,6 +217,11 @@ Routes are in the `:require_authenticated_user` `live_session` in `router.ex`. S
 helpers (enum-label translations, log summaries, clinical flags) are in
 `lib/goodmao2_web/helpers.ex`; the health-report body + shared weight chart are in
 `lib/goodmao2_web/components/report_components.ex` — all imported app-wide via `goodmao2_web.ex`.
+The weight chart aggregates readings into one **daily-average** point per *local* day and
+partitions its x-axis strictly by calendar day (faint x/y scale lines; per-day dots dropped past
+~45 days; the sr-only data table evenly sampled for long histories), and reveals a point's
+date/weight on click via the `WeightChart` JS hook (a native `<title>` gives the hover fallback in
+the hook-less static report).
 
 ## Non-obvious conventions
 

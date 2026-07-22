@@ -35,8 +35,9 @@ GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
 - **Live timeline** — chronological *or* month-**calendar** view, filterable by type,
   updating in real time via Phoenix PubSub (a co-caretaker's entry appears instantly for
   everyone watching the pet). Highest-signal cues surface as **clinical flag chips**
-  (icon + text + shape, never colour alone), and an inline CSP-safe **weight-trend chart**
-  tracks weight over time. Entries are **soft-deleted** (`deleted_at`), never hard-deleted.
+  (icon + text + shape, never colour alone), and an inline CSP-safe **daily-average
+  weight-trend chart** tracks weight over time (click a point for its date and value). Entries
+  are **soft-deleted** (`deleted_at`), never hard-deleted.
 - **LifeLog media** — a `life` log can carry photos/videos, uploaded through the app and
   **actively purified with ffmpeg** (magic-byte typing, EXIF/GPS stripped by re-encode,
   codec allow-list + duration cap), stored as id-keyed opaque objects and served only via

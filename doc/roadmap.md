@@ -129,9 +129,13 @@ rejects *and* the legitimate case still passes).
 ### 5. Clinical logging & timeline
 
 - [x] Weight trend chart (Phase 1) — an inline, CSP-safe SVG line chart of the pet's weight over
-      time on the pet page, with the latest value and its signed change since the first
-      measurement (arrow + sign, not colour alone) and an sr-only data table for assistive tech.
-      Fed by `Logs.weight_series/3` (visibility- and hidden-history-aware) and live over PubSub
+      time on the pet page, aggregated to one **daily-average** point per *local* day and
+      partitioned strictly by calendar day (faint x/y scale lines; per-day dots dropped past ~45
+      days; the sr-only data table evenly sampled for long histories). Shows the latest value and
+      its signed change since the first day (arrow + sign, not colour alone); clicking a point
+      reveals its date and weight (`WeightChart` hook, with a native `<title>` hover fallback in the
+      static report). Fed by `Logs.weight_series/3` (visibility- and hidden-history-aware) and live
+      over PubSub
 - [x] **Medication schedules + reminders** — the "did anyone give the pill?" coordination
       ([ADR-0019](adr/0019-medication-schedules-and-reminders.md)). Recurring schedules (each with
       its own timezone) materialize durable **dose slots**; any `:write` caretaker marks a slot
