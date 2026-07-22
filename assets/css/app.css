@@ -320,4 +320,37 @@ html { font-size: 125%; }
   display: block;
 }
 
+/* Plotted datapoints are clickable (see the WeightChart hook); native <title> gives a hover
+   tooltip everywhere, including the static shared report where the hook does not run. */
+.weight-point {
+  cursor: pointer;
+}
+
+/* The click tooltip the WeightChart hook toggles: a small themed popup. It is a fixed element on
+   <body> (never clipped by the card/figure overflow); the hook sets left/top from the point's
+   viewport rect and clamps them on-screen. The transform centers it and lifts it above the
+   point — or hangs it below (`--below`) when there isn't room above. */
+.weight-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  z-index: 50;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  background: var(--color-neutral);
+  color: var(--color-neutral-content);
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+.weight-tooltip.weight-tooltip--below {
+  transform: translate(-50%, 0);
+}
+
+.weight-tooltip[hidden] {
+  display: none;
+}
+
 /* This file is for your main application CSS */

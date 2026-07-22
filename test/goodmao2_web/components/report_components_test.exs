@@ -146,6 +146,22 @@ defmodule Goodmao2Web.ReportComponentsTest do
       assert html =~ "<polyline"
     end
 
+    test "each datapoint carries its date and weight for the click/hover tooltip" do
+      series = [
+        %{at: ~U[2026-07-01 09:00:00Z], grams: 4000},
+        %{at: ~U[2026-07-02 09:00:00Z], grams: 4200}
+      ]
+
+      html = render_component(&ReportComponents.weight_chart/1, series: series, unit: "grams")
+
+      assert html =~ ~s(phx-hook="WeightChart")
+      assert html =~ ~s(class="weight-point)
+      assert html =~ ~s(data-date="2026-07-01")
+      assert html =~ ~s(data-weight="4000 g")
+      # Native SVG <title> hover fallback (works in the static report too).
+      assert html =~ "2026-07-02 · 4200 g"
+    end
+
     test "leaves the sr-only table complete for a short history" do
       series =
         for d <- 1..5,

@@ -56,6 +56,15 @@ defmodule Goodmao2Web.ReportComponents do
     points = weight_points(daily)
     delta = last.grams - first.grams
 
+    # Each plotted point carries its localized date + weight, so a click (JS hook) or hover
+    # (native SVG <title>) can reveal them without a server round-trip.
+    dots =
+      daily
+      |> Enum.zip(points)
+      |> Enum.map(fn {d, p} ->
+        %{x: p.x, y: p.y, date: format_date(d.date), weight: format_weight(d.grams, unit)}
+      end)
+
     # The sr-only data table is bounded for long histories: evenly sample down to `@max_table_rows`
     # (keeping the first and last day) so assistive tech gets a representative table, not hundreds
     # of rows.
@@ -63,12 +72,12 @@ defmodule Goodmao2Web.ReportComponents do
 
     assigns =
       assign(assigns,
-        points: points,
+        dots: dots,
         # Past the threshold the per-day dots overlap into noise; drop them and let the line carry
         # the trend (the latest-point marker is always kept).
-        show_dots: length(points) <= @max_dots,
+        show_dots: length(dots) <= @max_dots,
         polyline: Enum.map_join(points, " ", &"#{&1.x},#{&1.y}"),
-        last_point: List.last(points),
+        last_dot: List.last(dots),
         grid_y: grid_lines_y(),
         grid_x: grid_lines_x(daily),
         table: table,
@@ -98,7 +107,13 @@ defmodule Goodmao2Web.ReportComponents do
         </div>
 
         <figure class="weight-chart mt-3">
-          <svg viewBox="0 0 640 180" class="w-full" aria-hidden="true">
+          <svg
+            id={"#{@id}-plot"}
+            phx-hook="WeightChart"
+            viewBox="0 0 640 180"
+            class="w-full"
+            aria-hidden="true"
+          >
             <g
               class="text-base-content/10"
               stroke="currentColor"
@@ -119,20 +134,28 @@ defmodule Goodmao2Web.ReportComponents do
               class="text-primary"
             />
             <circle
-              :for={p <- if(@show_dots, do: @points, else: [])}
-              cx={p.x}
-              cy={p.y}
+              :for={dot <- if(@show_dots, do: @dots, else: [])}
+              cx={dot.x}
+              cy={dot.y}
               r="3"
               fill="currentColor"
-              class="text-primary"
-            />
+              class="weight-point text-primary"
+              data-date={dot.date}
+              data-weight={dot.weight}
+            >
+              <title>{dot.date} · {dot.weight}</title>
+            </circle>
             <circle
-              cx={@last_point.x}
-              cy={@last_point.y}
+              cx={@last_dot.x}
+              cy={@last_dot.y}
               r="5"
               fill="currentColor"
-              class="text-secondary"
-            />
+              class="weight-point text-secondary"
+              data-date={@last_dot.date}
+              data-weight={@last_dot.weight}
+            >
+              <title>{@last_dot.date} · {@last_dot.weight}</title>
+            </circle>
           </svg>
           <div class="text-base-content/50 mt-1 flex justify-between text-xs" aria-hidden="true">
             <time datetime={Date.to_iso8601(@first_date)}>{format_date(@first_date)}</time>
