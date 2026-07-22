@@ -171,8 +171,10 @@ call them.
   process-scoped like Gettext locale (`put_current/1` / `current/0`), established by
   `Plugs.Timezone` (`:browser`, after scope fetch) and the `UserTimezone` `on_mount` (after the
   scope hook, in each authed live_session). `format_datetime/1`/`format_date/1` shift UTC → local;
-  the log forms parse `occurred_at` wall-clock → UTC via `local_naive_to_utc/2` **before** the
-  changeset; the calendar buckets by **local** day (`grid_range/1` over-fetches ±1 day). Backed by
+  every `datetime-local` input (log `occurred_at`, end-of-care `ended_at`, grant `expires_at`)
+  parses its wall-clock → UTC via `Helpers.put_local_datetime/4` (over `local_naive_to_utc/2`)
+  **before** the changeset and prefills back to local via `Helpers.to_datetime_local/2`; the
+  calendar buckets by **local** day (`grid_range/1` over-fetches ±1 day). Backed by
   the pure-Elixir **`tz`** dep (no runtime HTTP; `config :elixir, :time_zone_database`). A user
   picks their zone on `/users/settings` (browser-prefilled via the `TimezoneDetect` hook).
 - **`Messaging`** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](doc/adr/0011-notifications-and-messaging.md)).
