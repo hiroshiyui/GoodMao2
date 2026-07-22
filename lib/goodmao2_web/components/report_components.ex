@@ -23,32 +23,50 @@ defmodule Goodmao2Web.ReportComponents do
       clinical_flag_class: 1
     ]
 
+  # Cap on the number of vertical (per-day) scale lines before they are thinned to every k-th day,
+  # so a long span stays readable rather than a solid wall of rules.
+  @max_x_grid 31
+
+  # Above this many daily points the per-point dots overlap into a speckled band; beyond it only
+  # the line (and the latest-point marker) are drawn.
+  @max_dots 45
+
   @doc """
   A CSP-safe inline-SVG weight-trend chart over an oldest-first `series` of
   `%{at: DateTime, grams: number}`, with an sr-only data table for assistive tech.
+
+  Readings are **aggregated into one point per local day** (the mean of that day's weigh-ins),
+  so a burst of same-day measurements reads as a single daily average rather than noise. Days
+  are bucketed in the viewer's active timezone (ADR-0018), consistent with the calendar.
   """
   attr :series, :list, required: true
   attr :id, :string, default: "weight-trend"
   attr :unit, :string, default: "kilograms"
 
   def weight_chart(assigns) do
-    series = assigns.series
     unit = assigns.unit
-    first = List.first(series)
-    last = List.last(series)
-    points = weight_points(series)
+    daily = daily_averages(assigns.series)
+    first = List.first(daily)
+    last = List.last(daily)
+    points = weight_points(daily)
     delta = last.grams - first.grams
 
     assigns =
       assign(assigns,
+        daily: daily,
         points: points,
+        # Past the threshold the per-day dots overlap into noise; drop them and let the line carry
+        # the trend (the latest-point marker is always kept).
+        show_dots: length(points) <= @max_dots,
         polyline: Enum.map_join(points, " ", &"#{&1.x},#{&1.y}"),
         last_point: List.last(points),
+        grid_y: grid_lines_y(),
+        grid_x: grid_lines_x(daily),
         latest: format_weight(last.grams, unit),
         delta_grams: delta,
         delta_weight: format_weight(abs(delta), unit),
-        first_at: first.at,
-        last_at: last.at
+        first_date: first.date,
+        last_date: last.date
       )
 
     ~H"""
@@ -67,8 +85,17 @@ defmodule Goodmao2Web.ReportComponents do
           </p>
         </div>
 
-        <figure class="mt-3">
+        <figure class="weight-chart mt-3">
           <svg viewBox="0 0 640 180" class="w-full" aria-hidden="true">
+            <g
+              class="text-base-content/10"
+              stroke="currentColor"
+              stroke-width="1"
+              vector-effect="non-scaling-stroke"
+            >
+              <line :for={y <- @grid_y} x1="6" y1={y} x2="634" y2={y} />
+              <line :for={x <- @grid_x} x1={x} y1="10" x2={x} y2="170" />
+            </g>
             <polyline
               points={@polyline}
               fill="none"
@@ -80,7 +107,7 @@ defmodule Goodmao2Web.ReportComponents do
               class="text-primary"
             />
             <circle
-              :for={p <- @points}
+              :for={p <- if(@show_dots, do: @points, else: [])}
               cx={p.x}
               cy={p.y}
               r="3"
@@ -96,21 +123,21 @@ defmodule Goodmao2Web.ReportComponents do
             />
           </svg>
           <div class="text-base-content/50 mt-1 flex justify-between text-xs" aria-hidden="true">
-            <time datetime={DateTime.to_iso8601(@first_at)}>{format_date(@first_at)}</time>
-            <time datetime={DateTime.to_iso8601(@last_at)}>{format_date(@last_at)}</time>
+            <time datetime={Date.to_iso8601(@first_date)}>{format_date(@first_date)}</time>
+            <time datetime={Date.to_iso8601(@last_date)}>{format_date(@last_date)}</time>
           </div>
           <figcaption class="sr-only">
             <table>
-              <caption>{gettext("Weight measurements")}</caption>
+              <caption>{gettext("Daily average weight")}</caption>
               <thead>
                 <tr>
                   <th scope="col">{gettext("Date")}</th>
-                  <th scope="col">{gettext("Weight")}</th>
+                  <th scope="col">{gettext("Average weight")}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr :for={p <- @series}>
-                  <td><time datetime={DateTime.to_iso8601(p.at)}>{format_datetime(p.at)}</time></td>
+                <tr :for={p <- @daily}>
+                  <td><time datetime={Date.to_iso8601(p.date)}>{format_date(p.date)}</time></td>
                   <td>{format_weight(p.grams, @unit)}</td>
                 </tr>
               </tbody>
@@ -304,29 +331,68 @@ defmodule Goodmao2Web.ReportComponents do
     end
   end
 
-  defp weight_points(series) do
-    grams = Enum.map(series, & &1.grams)
-    gmin = Enum.min(grams)
-    gmax = Enum.max(grams)
-    t0 = series |> List.first() |> Map.fetch!(:at) |> DateTime.to_unix()
-    t1 = series |> List.last() |> Map.fetch!(:at) |> DateTime.to_unix()
-    n = length(series)
+  # Collapse raw weigh-ins into one mean point per **local** day (viewer's active zone, ADR-0018),
+  # oldest-first. Dense same-day readings become a single daily average, and the calendar-day
+  # bucketing matches the timeline's day grouping.
+  defp daily_averages(series) do
+    tz = Goodmao2.Timezone.current()
 
     series
-    |> Enum.with_index()
-    |> Enum.map(fn {p, i} ->
-      fx =
-        cond do
-          t1 > t0 -> (DateTime.to_unix(p.at) - t0) / (t1 - t0)
-          n > 1 -> i / (n - 1)
-          true -> 0.0
-        end
+    |> Enum.group_by(fn %{at: at} ->
+      at |> Goodmao2.Timezone.to_local(tz) |> DateTime.to_date()
+    end)
+    |> Enum.map(fn {date, points} ->
+      grams = Enum.map(points, & &1.grams)
+      %{date: date, grams: round(Enum.sum(grams) / length(grams))}
+    end)
+    |> Enum.sort_by(& &1.date, Date)
+  end
 
+  # Faint horizontal scale lines: 5 evenly-spaced rules across the plot band (y 10 → 170),
+  # matching the y-extent used by `weight_points/1`.
+  defp grid_lines_y, do: for(i <- 0..4, do: 10.0 + i * 40.0)
+
+  # Vertical scale lines, one per **calendar day** across the span (first → last), so the x-axis
+  # is strictly partitioned by day and empty days show as empty. Thinned to every k-th day once
+  # the span exceeds `@max_x_grid`.
+  defp grid_lines_x(daily) do
+    span = day_span(daily)
+
+    if span <= 0 do
+      [6.0]
+    else
+      day_offsets(span)
+      |> Enum.map(fn d -> Float.round(6.0 + d / span * 628.0, 1) end)
+    end
+  end
+
+  defp day_offsets(span) when span + 1 <= @max_x_grid, do: Enum.to_list(0..span)
+
+  defp day_offsets(span) do
+    step = ceil(span / (@max_x_grid - 1))
+    (Enum.to_list(0..span//step) ++ [span]) |> Enum.uniq() |> Enum.sort()
+  end
+
+  # The x-axis is partitioned strictly by calendar day: each point sits at its day-offset from the
+  # first day, so gaps between weigh-in days render as real gaps. The y-axis is the normalized
+  # weight range; only the first/last dates are labelled.
+  defp weight_points(daily) do
+    grams = Enum.map(daily, & &1.grams)
+    gmin = Enum.min(grams)
+    gmax = Enum.max(grams)
+    first = List.first(daily).date
+    span = day_span(daily)
+
+    Enum.map(daily, fn p ->
+      fx = if span > 0, do: Date.diff(p.date, first) / span, else: 0.0
       fy = if gmax > gmin, do: (p.grams - gmin) / (gmax - gmin), else: 0.5
 
       %{x: Float.round(6.0 + fx * 628.0, 1), y: Float.round(10.0 + (1.0 - fy) * 160.0, 1)}
     end)
   end
+
+  # Whole days between the first and last daily bucket (0 when they share a day).
+  defp day_span(daily), do: Date.diff(List.last(daily).date, List.first(daily).date)
 
   defp weight_delta_icon(delta) when delta > 0, do: "hero-arrow-trending-up"
   defp weight_delta_icon(delta) when delta < 0, do: "hero-arrow-trending-down"

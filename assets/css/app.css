@@ -312,4 +312,12 @@ html { font-size: 125%; }
   }
 }
 
+/* The weight-trend chart is a content figure inside a daisyUI `.card`, but daisyUI styles
+   `.card figure` as a centered flex row (for full-bleed card *images*). That would lay the SVG
+   and its axis-label row out side-by-side, collapsing the date labels into a narrow column on
+   the right. Restore normal block flow so the SVG and the full-width labels stack vertically. */
+.card figure.weight-chart {
+  display: block;
+}
+
 /* This file is for your main application CSS */
