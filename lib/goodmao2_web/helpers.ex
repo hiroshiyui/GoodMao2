@@ -109,6 +109,7 @@ defmodule Goodmao2Web.Helpers do
   def notification_title("announcement", p), do: p["title"] || gettext("Announcement")
   def notification_title("medication_due", _p), do: gettext("Medication due")
   def notification_title("media_failed", _p), do: gettext("Upload couldn't be processed")
+  def notification_title("avatar_failed", _p), do: gettext("Profile photo couldn't be processed")
   def notification_title(_type, _p), do: gettext("Notification")
 
   @doc "A localized one-line summary of a notification, rendered from its payload."
@@ -154,6 +155,12 @@ defmodule Goodmao2Web.Helpers do
         "A photo or video you uploaded couldn't be processed — check the format and try again."
       )
 
+  def notification_summary("avatar_failed", _p),
+    do:
+      gettext(
+        "The profile photo you uploaded couldn't be processed — check the format and try again."
+      )
+
   def notification_summary(_type, _p), do: nil
 
   @doc "A heroicon name for a notification type."
@@ -163,6 +170,7 @@ defmodule Goodmao2Web.Helpers do
   def notification_icon("announcement"), do: "hero-megaphone"
   def notification_icon("medication_due"), do: "hero-beaker"
   def notification_icon("media_failed"), do: "hero-exclamation-triangle"
+  def notification_icon("avatar_failed"), do: "hero-exclamation-triangle"
   def notification_icon(_type), do: "hero-bell"
 
   @doc """

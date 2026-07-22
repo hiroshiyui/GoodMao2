@@ -44,6 +44,52 @@ defmodule Goodmao2.Media.Storage do
   @doc "Whether an asset's bytes are present."
   def exists?(id) when is_integer(id), do: File.exists?(object_path(id))
 
+  ## Avatars — profile-image objects keyed by owner, in a dedicated subtree (ADR-0020).
+  #
+  # Avatar objects live under `storage_dir/avatars/<owner-key>`, a keyspace **disjoint** from the
+  # numeric-shard tree above, so an `avatar` and a `media_asset` sharing an integer id can never
+  # collide. The key is `"<owner_type>-<owner_id>"` (e.g. `"pet-7"`) — server-derived from the DB
+  # row, regex-validated here, never a request string — and stable across replacements (the object
+  # is overwritten in place; `updated_at` cache-busts the URL).
+
+  @avatars_dir "avatars"
+
+  @doc "The object path for an avatar owner key. Validated to be traversal-proof."
+  def avatar_object_path(owner_key) when is_binary(owner_key) do
+    unless owner_key =~ ~r/\A(user|pet)-\d+\z/,
+      do: raise(ArgumentError, "invalid avatar owner key")
+
+    Path.join([storage_dir(), @avatars_dir, owner_key])
+  end
+
+  @doc "The avatars subtree root (a subtree of `storage_dir`)."
+  def avatars_root, do: Path.join(storage_dir(), @avatars_dir)
+
+  @doc "Copies the purified `source_path` into avatar storage under `owner_key`."
+  # sobelow_skip ["Traversal.FileModule"]
+  # The destination is derived solely from the regex-validated owner key (see
+  # `avatar_object_path/1`); the source is a temp file we purified. No request string reaches it.
+  def store_avatar(owner_key, source_path) when is_binary(owner_key) do
+    dest = avatar_object_path(owner_key)
+
+    with :ok <- File.mkdir_p(Path.dirname(dest)),
+         {:ok, _bytes} <- File.copy(source_path, dest) do
+      :ok
+    end
+  end
+
+  @doc "Removes an avatar's bytes (best-effort; a missing object is not an error)."
+  # sobelow_skip ["Traversal.FileModule"]
+  # Path derived from the regex-validated owner key alone — never from input.
+  def delete_avatar(owner_key) when is_binary(owner_key) do
+    _ = File.rm(avatar_object_path(owner_key))
+    :ok
+  end
+
+  @doc "Whether an avatar's bytes are present."
+  def avatar_exists?(owner_key) when is_binary(owner_key),
+    do: File.exists?(avatar_object_path(owner_key))
+
   ## Staging — raw, un-purified uploads awaiting the async PurifyWorker (ADR-0005).
   #
   # Raw bytes live under a dedicated `_staging` subdir keyed by an opaque random token. This tree
