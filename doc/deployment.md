@@ -163,6 +163,28 @@ SES gotchas:
 - A brand-new SES account is **sandboxed** — it can only send *to* verified addresses until you
   request production access. Do that before onboarding real users.
 
+#### Why SES (vs. SendGrid) — decision record
+
+GoodMao2's outbound mail is **transactional and auth-critical only** (magic-link login,
+registration + email-change confirmations) — not marketing, and low volume. We evaluated Amazon
+SES against Twilio SendGrid on that basis and chose **SES**:
+
+- **Cost** — SES is ~$0.10 / 1,000 emails with no monthly floor (cents/month at our volume).
+  SendGrid's free tier is 100 emails/day, above which the plan floor is ~$20/month regardless of
+  actual volume.
+- **Deliverability** — both are enterprise-grade sending IPs and effectively even for low-volume
+  auth mail. SendGrid's edge (built-in suppression lists, analytics, dedicated-IP options) is
+  aimed at high-volume/list senders — a workload GoodMao2 doesn't have.
+- **Integration** — SES is already wired end-to-end (`config/runtime.exs`, the env template,
+  `ansible/`, and this runbook). SendGrid's cost is only that it's not the one already in place.
+
+**Not a lock-in:** Swoosh supports both, so switching is a ~10-line change — swap the adapter to
+`Swoosh.Adapters.Sendgrid` (`api_key: SENDGRID_API_KEY`, HTTP API over the same `Req` client),
+drop `gen_smtp` (only `SendRawEmail` needs it), and replace the three `AWS_SES_*` raises with one
+key. **Reconsider SendGrid if** a deploy fits entirely inside its free 100/day tier (simpler than
+exiting the SES sandbox), the host isn't on AWS and you want to skip IAM/SNS ceremony, or you
+later add volume/list email where its tooling earns the price.
+
 ## Server directory layout
 
 ```
