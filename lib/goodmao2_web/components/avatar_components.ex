@@ -71,6 +71,28 @@ defmodule Goodmao2Web.AvatarComponents do
   defp avatar_src("user", id, version), do: ~p"/avatars/user/#{id}?#{[v: version || 0]}"
   defp avatar_src("pet", id, version), do: ~p"/avatars/pet/#{id}?#{[v: version || 0]}"
 
+  @doc """
+  The square crop selector for an avatar upload (ADR-0020), placed inside the upload form after
+  the file input. Holds the four server-rendered `crop[...]` hidden inputs the `AvatarCropper`
+  JS hook fills as the user drags; `phx-update="ignore"` so the file-selection re-render never
+  wipes the JS-built preview or the crop values. The server re-validates and performs the crop.
+  """
+  attr :id, :string, required: true
+
+  def avatar_cropper(assigns) do
+    ~H"""
+    <div id={@id} phx-hook="AvatarCropper" phx-update="ignore" class="text-center">
+      <input type="hidden" name="crop[x]" />
+      <input type="hidden" name="crop[y]" />
+      <input type="hidden" name="crop[w]" />
+      <input type="hidden" name="crop[h]" />
+      <p class="avatar-cropper-hint text-base-content/60 mt-2 hidden text-xs">
+        {gettext("Drag or resize the circle to choose the visible area.")}
+      </p>
+    </div>
+    """
+  end
+
   defp avatar_alt(nil), do: gettext("Profile photo")
   defp avatar_alt(""), do: gettext("Profile photo")
   defp avatar_alt(name), do: gettext("%{name}'s profile photo", name: name)

@@ -628,10 +628,11 @@ defmodule Goodmao2Web.PetLiveTest do
 
       src = Path.join(System.tmp_dir!(), "gm_petav_#{System.unique_integer([:positive])}.png")
 
+      # A 40x20 source so a crop is observable in the stored object's dimensions.
       {_, 0} =
         System.cmd(
           "ffmpeg",
-          ~w(-hide_banner -v error -f lavfi -i color=c=orange:s=16x16 -frames:v 1 -y) ++ [src]
+          ~w(-hide_banner -v error -f lavfi -i color=c=orange:s=40x20 -frames:v 1 -y) ++ [src]
         )
 
       content = File.read!(src)
@@ -645,9 +646,10 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, "#pet-avatar-trigger")
       refute has_element?(lv, "#pet-avatar-form")
 
-      # Clicking the avatar opens the uploader popover.
+      # Clicking the avatar opens the uploader popover (with its crop selector).
       lv |> element("#pet-avatar-trigger") |> render_click()
       assert has_element?(lv, "#pet-avatar-form")
+      assert has_element?(lv, "#pet-avatar-cropper")
 
       photo =
         file_input(lv, "#pet-avatar-form", :avatar, [
@@ -659,13 +661,27 @@ defmodule Goodmao2Web.PetLiveTest do
       # The popover survives the file-selection re-render (it did not snap shut).
       assert has_element?(lv, "#pet-avatar-form")
 
-      lv |> form("#pet-avatar-form") |> render_submit()
+      # Submit with the crop the JS hook would have filled: the left square (20x20).
+      lv
+      |> form("#pet-avatar-form")
+      |> render_submit(%{"crop" => %{"x" => "0.0", "y" => "0.0", "w" => "0.5", "h" => "1.0"}})
 
       Oban.drain_queue(queue: :default)
       assert has_element?(lv, "#avatar-pet-#{pet.id} img")
       assert Goodmao2.Media.Avatars.get_avatar("pet", pet.id).status == "ready"
       # The popover closed after a successful upload.
       refute has_element?(lv, "#pet-avatar-form")
+
+      # The server cropped to the selected square.
+      path = Goodmao2.Media.Storage.avatar_object_path("pet-#{pet.id}")
+
+      {dims, 0} =
+        System.cmd(
+          "ffprobe",
+          ~w(-v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0) ++ [path]
+        )
+
+      assert String.trim(dims) == "20,20"
     end
 
     test "a viewer sees no upload trigger", %{conn: conn, user: user} do

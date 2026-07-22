@@ -259,7 +259,7 @@ defmodule Goodmao2Web.PetLive.Show do
 
   def handle_event("validate_avatar", _params, socket), do: {:noreply, socket}
 
-  def handle_event("save_avatar", _params, socket) do
+  def handle_event("save_avatar", params, socket) do
     pet = socket.assigns.pet
     user = socket.assigns.current_scope.user
 
@@ -270,7 +270,7 @@ defmodule Goodmao2Web.PetLive.Show do
 
     case staged do
       [{:ok, token}] ->
-        case Avatars.set_avatar("pet", pet.id, user, token) do
+        case Avatars.set_avatar("pet", pet.id, user, token, params["crop"]) do
           {:ok, avatar} ->
             {:noreply,
              socket
@@ -1108,9 +1108,10 @@ defmodule Goodmao2Web.PetLive.Show do
             id="pet-avatar-form"
             phx-submit="save_avatar"
             phx-change="validate_avatar"
-            class="absolute top-full z-40 mt-2 flex w-56 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 shadow"
+            class="absolute top-full z-40 mt-2 flex w-72 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 shadow"
           >
             <.live_file_input upload={@avatar_upload} class="file-input file-input-sm w-full" />
+            <.avatar_cropper id="pet-avatar-cropper" />
             <div class="flex gap-2">
               <button type="submit" class="btn btn-sm btn-primary" phx-disable-with="…">
                 {gettext("Set photo")}

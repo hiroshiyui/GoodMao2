@@ -61,6 +61,17 @@ and an authorization endpoint whose rules match the owner — not a log entry.**
   the nav, pet cards, pet header, `/users/settings`, and the mailbox render with no N+1. The nav
   avatar stays live via the global `UnreadBadges` on_mount hook.
 
+- **Cropping is picked on the client, cropped on the server.** The upload popover shows a
+  self-hosted, dependency-free square selector (`AvatarCropper` JS hook — no cropper library,
+  CSP-safe; the preview uses a `FileReader` *data* URL since `img-src` allows `data:` not
+  `blob:`). It reports the selection as **normalized fractions** (`crop[x|y|w|h] ∈ [0,1]`) of the
+  natural image — a square on-screen box maps to a square pixel crop because the preview keeps
+  aspect ratio. The crop is **advisory**: `Media.Avatars.set_avatar/5` sanitizes it into the Oban
+  args, and the purifier re-validates/clamps and applies it as a leading `crop=iw*w:ih*h:iw*x:ih*y`
+  filter **inside the same ffmpeg re-encode** that strips metadata and flattens alpha. A missing or
+  unusable crop ⇒ the full frame, exactly as before. A forged crop can only select a sub-rectangle
+  of the user's own upload, which still runs through the whole purifier.
+
 ## Consequences
 
 - **One hardening path.** Avatars inherit every ADR-0005 guarantee for free; there is no second,

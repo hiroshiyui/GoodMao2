@@ -42,14 +42,36 @@ defmodule Goodmao2.Media.Avatars do
   purify worker transactionally, so either both land or neither does. Returns `{:ok, avatar}` or
   `{:error, :unauthorized}` / a changeset / a reason.
   """
-  def set_avatar(owner_type, owner_id, %User{} = actor, staged_token)
+  def set_avatar(owner_type, owner_id, %User{} = actor, staged_token, crop \\ nil)
       when owner_type in @owner_types and is_binary(staged_token) do
     with :ok <- authorize_set(owner_type, owner_id, actor) do
-      upsert_and_enqueue(owner_type, owner_id, actor, staged_token)
+      upsert_and_enqueue(owner_type, owner_id, actor, staged_token, sanitize_crop(crop))
     end
   end
 
-  defp upsert_and_enqueue(owner_type, owner_id, actor, staged_token) do
+  # A square crop is advisory from the client (ADR-0020): keep only well-formed normalized
+  # fractions here, and the purifier re-validates/clamps again before applying. Anything else ⇒
+  # nil (full frame). Accepts the `%{"x"=>, …}` params map straight from the form.
+  defp sanitize_crop(%{"x" => x, "y" => y, "w" => w, "h" => h}) do
+    with {xf, _} <- to_float(x),
+         {yf, _} <- to_float(y),
+         {wf, _} <- to_float(w),
+         {hf, _} <- to_float(h),
+         true <-
+           xf >= 0 and yf >= 0 and wf > 0 and hf > 0 and xf + wf <= 1.001 and yf + hf <= 1.001 do
+      %{"x" => xf, "y" => yf, "w" => wf, "h" => hf}
+    else
+      _ -> nil
+    end
+  end
+
+  defp sanitize_crop(_), do: nil
+
+  defp to_float(n) when is_number(n), do: {n * 1.0, ""}
+  defp to_float(s) when is_binary(s), do: Float.parse(s)
+  defp to_float(_), do: :error
+
+  defp upsert_and_enqueue(owner_type, owner_id, actor, staged_token, crop) do
     changeset =
       Avatar.upsert_changeset(%Avatar{}, %{
         "owner_type" => owner_type,
@@ -66,7 +88,13 @@ defmodule Goodmao2.Media.Avatars do
       conflict_target: [:owner_type, :owner_id]
     )
     |> Multi.run(:enqueue, fn _repo, %{avatar: avatar} ->
-      Oban.insert(AvatarPurifyWorker.new(%{"avatar_id" => avatar.id, "token" => staged_token}))
+      Oban.insert(
+        AvatarPurifyWorker.new(%{
+          "avatar_id" => avatar.id,
+          "token" => staged_token,
+          "crop" => crop
+        })
+      )
     end)
     |> Repo.transaction()
     |> case do

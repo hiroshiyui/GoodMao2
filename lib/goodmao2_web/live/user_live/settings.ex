@@ -56,9 +56,10 @@ defmodule Goodmao2Web.UserLive.Settings do
             id="avatar_form"
             phx-submit="save_avatar"
             phx-change="validate_avatar"
-            class="absolute top-full z-40 mt-2 flex w-64 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 text-left shadow"
+            class="absolute top-full z-40 mt-2 flex w-72 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 text-left shadow"
           >
             <.live_file_input upload={@uploads.avatar} class="file-input file-input-sm w-full" />
+            <.avatar_cropper id="user-avatar-cropper" />
             <div class="flex gap-2">
               <.button variant="primary" phx-disable-with={gettext("Uploading...")}>
                 {gettext("Upload photo")}
@@ -363,7 +364,7 @@ defmodule Goodmao2Web.UserLive.Settings do
 
   def handle_event("validate_avatar", _params, socket), do: {:noreply, socket}
 
-  def handle_event("save_avatar", _params, socket) do
+  def handle_event("save_avatar", params, socket) do
     user = socket.assigns.current_scope.user
 
     staged =
@@ -373,7 +374,7 @@ defmodule Goodmao2Web.UserLive.Settings do
 
     case staged do
       [{:ok, token}] ->
-        case Avatars.set_avatar("user", user.id, user, token) do
+        case Avatars.set_avatar("user", user.id, user, token, params["crop"]) do
           {:ok, avatar} ->
             {:noreply,
              socket

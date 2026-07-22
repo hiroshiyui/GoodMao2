@@ -42,11 +42,17 @@ defmodule Goodmao2.Media.Purifier do
     }
   }
 
-  @doc "Purifies `source_path`. See the module doc for the guarantees."
-  def purify(source_path) do
+  @doc """
+  Purifies `source_path`. See the module doc for the guarantees.
+
+  `opts[:crop]` optionally requests a square crop (avatars, ADR-0020): a map of normalized
+  fractions `%{"x", "y", "w", "h"}` of the natural image. It is **advisory** — re-validated and
+  clamped here (`valid_crop/1`) and only applied to images; anything missing/invalid is ignored.
+  """
+  def purify(source_path, opts \\ []) do
     with {:ok, format} <- detect(source_path),
          {:ok, _size} <- within_size?(source_path, format) do
-      process(format, source_path)
+      process(format, source_path, opts)
     end
   end
 
@@ -96,7 +102,7 @@ defmodule Goodmao2.Media.Purifier do
 
   # --- Processing ------------------------------------------------------------
 
-  defp process({:image, format}, source) do
+  defp process({:image, format}, source, opts) do
     %{content_type: content_type, ext: ext} = @image_types[format]
 
     with {:ok, %{"streams" => streams}} <- probe(source),
@@ -107,6 +113,8 @@ defmodule Goodmao2.Media.Purifier do
       # Re-encode pixels, flatten any alpha onto opaque white, and strip every metadata block.
       # `flatten_alpha/0` composites the frame over an opaque box then drops the alpha plane, so
       # a transparent region cannot smuggle hidden pixels. Per-frame, so gif/webp animation survives.
+      # An optional square crop (avatars) is prepended to the chain, in input-relative units so it
+      # needs no pixel dimensions and re-validated/clamped here regardless of the client's request.
       args = [
         "-y",
         "-nostdin",
@@ -115,7 +123,7 @@ defmodule Goodmao2.Media.Purifier do
         "-i",
         source,
         "-filter_complex",
-        flatten_alpha(),
+        crop_prefix(opts[:crop]) <> flatten_alpha(),
         "-map",
         "[out]",
         "-map_metadata",
@@ -132,7 +140,7 @@ defmodule Goodmao2.Media.Purifier do
     end
   end
 
-  defp process({:video, format}, source) do
+  defp process({:video, format}, source, _opts) do
     spec = @video_types[format]
     out = temp_path(spec.ext)
 
@@ -145,6 +153,57 @@ defmodule Goodmao2.Media.Purifier do
       {:error, _} = error -> cleanup_and(out, error)
     end
   end
+
+  # A leading `crop=…,` filter (input-relative) when a valid square crop is requested, else "".
+  # Values are re-validated/clamped here (never trusting the client) and emitted with fixed
+  # precision, so nothing but bounded numeric literals reaches the ffmpeg argument.
+  defp crop_prefix(crop) do
+    case valid_crop(crop) do
+      {x, y, w, h} ->
+        "crop=iw*#{f(w)}:ih*#{f(h)}:iw*#{f(x)}:ih*#{f(y)},"
+
+      nil ->
+        ""
+    end
+  end
+
+  # Parse + clamp a normalized crop rect to a sane sub-rectangle, or `nil`. Accepts string- or
+  # atom-keyed maps (JSON worker args vs. a direct call).
+  defp valid_crop(crop) when is_map(crop) do
+    with x when is_float(x) <- clamp01(num(crop, "x")),
+         y when is_float(y) <- clamp01(num(crop, "y")),
+         w when is_float(w) <- num(crop, "w"),
+         h when is_float(h) <- num(crop, "h"),
+         w = min(max(w, 0.0), 1.0 - x),
+         h = min(max(h, 0.0), 1.0 - y),
+         true <- w > 0.0 and h > 0.0,
+         # Skip a no-op full-frame selection.
+         false <- x == 0.0 and y == 0.0 and w >= 1.0 and h >= 1.0 do
+      {x, y, w, h}
+    else
+      _ -> nil
+    end
+  end
+
+  defp valid_crop(_), do: nil
+
+  defp num(map, key) do
+    case Map.get(map, key) || atom_get(map, key) do
+      n when is_number(n) -> n * 1.0
+      _ -> nil
+    end
+  end
+
+  defp atom_get(map, key) do
+    Map.get(map, String.to_existing_atom(key))
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp clamp01(n) when is_float(n), do: n |> max(0.0) |> min(1.0)
+  defp clamp01(_), do: nil
+
+  defp f(v), do: :erlang.float_to_binary(v, decimals: 6)
 
   # Duplicate the frame, paint one copy fully opaque white, overlay the original (honouring its
   # alpha) on top, then force an alpha-less pixel format. Needs no knowledge of the dimensions.

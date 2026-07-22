@@ -17,8 +17,8 @@ defmodule Goodmao2.Media do
   @doc "The media config value for `key` (limits, storage_dir, …)."
   def config(key), do: Application.fetch_env!(:goodmao2, __MODULE__)[key]
 
-  @doc "Purifies one uploaded file. See `Goodmao2.Media.Purifier`."
-  defdelegate purify(source_path), to: Purifier
+  @doc "Purifies one uploaded file (`opts[:crop]` optional, avatars). See `Goodmao2.Media.Purifier`."
+  defdelegate purify(source_path, opts \\ []), to: Purifier
 
   @doc "Copies a raw upload into staging, returning `{:ok, token}`. See `Goodmao2.Media.Storage`."
   defdelegate stage_upload(source_path), to: Storage, as: :stage

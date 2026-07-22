@@ -20,11 +20,11 @@ defmodule Goodmao2.Media.AvatarPurifyWorker do
   alias Goodmao2.Media.{Avatars, Storage}
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"avatar_id" => avatar_id, "token" => token}}) do
+  def perform(%Oban.Job{args: %{"avatar_id" => avatar_id, "token" => token} = args}) do
     staged = Storage.staged_path(token)
 
     if File.exists?(staged) do
-      process(staged, token, avatar_id)
+      process(staged, token, avatar_id, args["crop"])
     else
       :ok
     end
@@ -33,8 +33,8 @@ defmodule Goodmao2.Media.AvatarPurifyWorker do
   # sobelow_skip ["Traversal.FileModule"]
   # The only File.rm targets `purified.path` — a temp file the purifier itself just generated,
   # never a user-controlled path. Staged bytes are removed via Storage.unstage/1 (validated token).
-  defp process(staged, token, avatar_id) do
-    case Media.purify(staged) do
+  defp process(staged, token, avatar_id, crop) do
+    case Media.purify(staged, crop: crop) do
       {:ok, %{kind: "image"} = purified} ->
         result = Avatars.attach_purified_avatar(avatar_id, purified)
         File.rm(purified.path)

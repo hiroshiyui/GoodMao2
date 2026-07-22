@@ -132,6 +132,9 @@ call them.
     visible to any authenticated user, a pet avatar is **`:read`-gated & IDOR-hidden**. A failed
     purify sends an **`avatar_failed`** bell. Rendered round-masked by the shared `<.avatar>`
     component (initials fallback); the nav avatar stays live via the `UnreadBadges` on_mount hook.
+    Uploads offer a **square crop**: the `AvatarCropper` JS hook reports a normalized
+    `crop[x|y|w|h]` selection, which `set_avatar/5` sanitizes and the **purifier applies as an
+    ffmpeg `crop` filter** in the same re-encode (advisory client-side, authoritative server-side).
 - **`Reports`** (`reports.ex`) — generated **health summary reports**
   ([ADR-0012](doc/adr/0012-vet-access-model.md)). `generate_report/3` (`:manage`) freezes a
   `jsonb` `content` snapshot over a date range built from `Logs.shareable_entries/3`, which
