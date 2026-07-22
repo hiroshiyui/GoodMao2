@@ -2,6 +2,7 @@ defmodule Goodmao2Web.UserLive.Login do
   use Goodmao2Web, :live_view
 
   alias Goodmao2.Accounts
+  alias Goodmao2.Accounts.RegistrationRateLimiter
 
   @impl true
   def render(assigns) do
@@ -112,7 +113,10 @@ defmodule Goodmao2Web.UserLive.Login do
   end
 
   def handle_event("submit_magic", %{"user" => %{"email" => email}}, socket) do
-    if user = Accounts.get_user_by_email(email) do
+    # Rate-limited per address (shared with registration) so the magic-link form can't be
+    # driven as an unbounded outbound-mail pump. Skipping the send when throttled is invisible
+    # here — the response below is already the same whether or not the address exists.
+    if (user = Accounts.get_user_by_email(email)) && RegistrationRateLimiter.check(email) == :ok do
       Accounts.deliver_login_instructions(
         user,
         &url(~p"/users/log-in/#{&1}")

@@ -55,6 +55,10 @@ config :goodmao2, Goodmao2.Mailer, adapter: Swoosh.Adapters.Local
 # overridden from env in config/runtime.exs and MUST be an SES-verified address.
 config :goodmao2, :mailer_from, {"GoodMao", "contact@example.com"}
 
+# Registration / magic-link email throttle (per target address, per hour) — see
+# Goodmao2.Accounts.RegistrationRateLimiter. Caps outbound auth mail to any one address.
+config :goodmao2, Goodmao2.Accounts, registration_emails_per_hour: 5
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
