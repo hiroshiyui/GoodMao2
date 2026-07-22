@@ -298,17 +298,21 @@ the locale-parity test + the `a11y-engineering` skill.
 - [x] The **`a11y-engineering` skill** (`.claude/skills/a11y-engineering/SKILL.md`) —
       written for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
       invariant `AGENTS.md` states; completes the project's seven-skill set.
-- [ ] **Co-hosting deployment note** — GoodMao shares its default HTTP port (`PORT`, default
-      `4000`) and dev ports (`4000`/`4001` http/https, `4002` test) with sibling Phoenix apps such
-      as Baudrate, so the two collide if run at their defaults on one host. In production the
-      listening port is `PORT`-driven, so co-hosting is just: give each app a distinct `PORT`, a
-      distinct Postgres role/database, and front both with one reverse proxy terminating TLS on
-      `443` and routing by hostname (the `443` in `runtime.exs` is only the canonical-URL host, not
-      a listener). To document as a deploy runbook.
-- [ ] **Ansible-driven deployment** — provisioning and releases will be automated with Ansible,
-      mirroring Baudrate's approach (see `my_ansible_playbooks`), so the two apps co-host under a
-      consistent, repeatable playbook (distinct `PORT` / Postgres role+db per app, shared reverse
-      proxy). Playbook not yet written.
+- [x] **Co-hosting deployment note** (`doc/deployment.md`) — the manual runbook for running
+      GoodMao2 in production alongside a sibling Phoenix app (Baudrate) on one host: a distinct
+      `PORT` (5000), Postgres role/db (`goodmao`/`goodmao2_prod`), systemd unit, `/opt/goodmao2`
+      tree, and nginx `server_name` per app, with one nginx terminating TLS and routing by
+      hostname (the `443` in `runtime.exs` is only the canonical-URL host, not a listener). Covers
+      the release build (`mix release` + `rel/overlays/bin/{server,migrate}` + `Goodmao2.Release`,
+      generated via `mix phx.gen.release`), the env file, migrate-before-activate, and the
+      **Amazon SES** mailer (`Swoosh.Adapters.AmazonSES`, `AWS_SES_*` + `MAILER_FROM_EMAIL` env,
+      verified-sender/sandbox caveats). Mirrors Baudrate's `ansible/` deploy conventions.
+- [ ] **Ansible-driven deployment** — provisioning and releases automated with Ansible, mirroring
+      **Baudrate's `ansible/`** (`setup-server.yml` + `deploy-baudrate.yml`: common/postgresql/
+      elixir/rust/nginx roles, SOPS secrets, server-side `mix release` from a git tag, timestamped
+      `releases/` + atomic `current` symlink, `bin/migrate` before swap, `/health` poll) so the two
+      apps co-host under one repeatable playbook. Playbook not yet written. (Note: the old
+      `my_ansible_playbooks` repo is unrelated — the live reference is Baudrate's in-repo `ansible/`.)
 
 ### 10. Accessibility & UX polish
 
@@ -357,11 +361,12 @@ With the v1.0.0 core, hardening, clinical-timeline, localization, engineering/op
 accessibility tranches shipped, these are the remaining threads — ordered by the value they
 unlock, not by size. Each is already scoped by an ADR or an existing section above.
 
-1. **Deployment: co-hosting runbook + Ansible** (ships v1.0.0 to a real host) — the two open
-   §9 items. Write the **co-hosting deploy note** (distinct `PORT` + Postgres role/db per app,
-   one reverse proxy terminating TLS on `443` and routing by hostname), then the **Ansible
-   playbook** that provisions and releases it, mirroring Baudrate's approach so GoodMao and its
-   siblings co-host under one repeatable playbook.
+1. **Deployment: Ansible playbook** (ships v1.0.0 to a real host) — the remaining §9 item. The
+   **co-hosting deploy note** (`doc/deployment.md`) and the release scaffolding + **Amazon SES**
+   mailer it documents are now shipped; what's left is the **Ansible playbook** that provisions
+   and releases GoodMao2, mirroring Baudrate's in-repo `ansible/` (roles, SOPS secrets, server-
+   side `mix release` from a tag, atomic `current` swap, migrate-before-activate, `/health` poll)
+   so GoodMao2 and its siblings co-host under one repeatable playbook.
 
 2. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
    escalation** and **dose-history retention GC** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md));
