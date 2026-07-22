@@ -639,9 +639,15 @@ defmodule Goodmao2Web.PetLiveTest do
 
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
 
-      # The manage-only upload control is present, and the fallback initials render until ready.
-      assert has_element?(lv, "#pet-avatar-form")
+      # The avatar (fallback initials) and its manage-only trigger render; the uploader popover
+      # is hidden until the avatar is clicked.
       assert has_element?(lv, "#avatar-pet-#{pet.id}")
+      assert has_element?(lv, "#pet-avatar-trigger")
+      refute has_element?(lv, "#pet-avatar-form")
+
+      # Clicking the avatar opens the uploader popover.
+      lv |> element("#pet-avatar-trigger") |> render_click()
+      assert has_element?(lv, "#pet-avatar-form")
 
       photo =
         file_input(lv, "#pet-avatar-form", :avatar, [
@@ -649,19 +655,26 @@ defmodule Goodmao2Web.PetLiveTest do
         ])
 
       render_upload(photo, "rex.png")
+
+      # The popover survives the file-selection re-render (it did not snap shut).
+      assert has_element?(lv, "#pet-avatar-form")
+
       lv |> form("#pet-avatar-form") |> render_submit()
 
       Oban.drain_queue(queue: :default)
       assert has_element?(lv, "#avatar-pet-#{pet.id} img")
       assert Goodmao2.Media.Avatars.get_avatar("pet", pet.id).status == "ready"
+      # The popover closed after a successful upload.
+      refute has_element?(lv, "#pet-avatar-form")
     end
 
-    test "a viewer sees no upload control", %{conn: conn, user: user} do
+    test "a viewer sees no upload trigger", %{conn: conn, user: user} do
       owner = user_fixture()
       pet = pet_fixture(owner)
       grant_fixture(pet, owner, user, "viewer")
 
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      refute has_element?(lv, "#pet-avatar-trigger")
       refute has_element?(lv, "#pet-avatar-form")
     end
   end

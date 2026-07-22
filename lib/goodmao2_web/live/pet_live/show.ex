@@ -37,6 +37,7 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:can_write?, Pets.can?(pet, user, :write))
          |> assign(:can_manage?, Pets.can?(pet, user, :manage))
          |> assign(:avatar_meta, Avatars.meta("pet", pet.id))
+         |> assign(:avatar_menu_open, false)
          |> assign(:filter, "all")
          |> assign(:page, 1)
          |> assign(:page_size, user.timeline_page_size || hd(@page_sizes))
@@ -250,6 +251,12 @@ defmodule Goodmao2Web.PetLive.Show do
 
   ## Pet profile photo (ADR-0020) — managers only; staged then purified async.
 
+  # The uploader popover's open state is server-owned so it survives the re-render a file
+  # selection triggers (a native <details> would snap shut). Click the avatar to toggle.
+  def handle_event("toggle_avatar_menu", _params, socket) do
+    {:noreply, update(socket, :avatar_menu_open, &(not &1))}
+  end
+
   def handle_event("validate_avatar", _params, socket), do: {:noreply, socket}
 
   def handle_event("save_avatar", _params, socket) do
@@ -268,6 +275,7 @@ defmodule Goodmao2Web.PetLive.Show do
             {:noreply,
              socket
              |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
+             |> assign(:avatar_menu_open, false)
              |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
 
           {:error, _} ->
@@ -289,6 +297,7 @@ defmodule Goodmao2Web.PetLive.Show do
         {:noreply,
          socket
          |> assign(:avatar_meta, nil)
+         |> assign(:avatar_menu_open, false)
          |> put_flash(:info, gettext("Profile photo removed."))}
 
       {:error, _} ->
@@ -554,6 +563,7 @@ defmodule Goodmao2Web.PetLive.Show do
         role={@role}
         can_manage?={@can_manage?}
         avatar_meta={@avatar_meta}
+        avatar_menu_open={@avatar_menu_open}
         avatar_upload={@uploads.avatar}
       />
 
@@ -1048,6 +1058,7 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :role, :string, default: nil
   attr :can_manage?, :boolean, default: false
   attr :avatar_meta, :map, default: nil
+  attr :avatar_menu_open, :boolean, default: false
   attr :avatar_upload, :map, required: true
 
   defp pet_header(assigns) do
@@ -1058,47 +1069,29 @@ defmodule Goodmao2Web.PetLive.Show do
       class="flex flex-wrap items-start justify-between gap-4"
     >
       <div class="flex items-start gap-3">
-        <div class="flex flex-col items-center gap-1">
-          <%!-- For a manager the avatar is the trigger for a click-to-open uploader popover
-                (CSP-safe <details> dropdown, like the nav menu); everyone else sees it plain. --%>
-          <details :if={@can_manage?} id="pet-avatar-menu" class="dropdown">
-            <summary
-              class="cursor-pointer list-none [&::-webkit-details-marker]:hidden"
-              title={gettext("Change profile photo")}
-              aria-label={gettext("Change profile photo")}
-            >
-              <.avatar
-                owner_type="pet"
-                owner_id={@pet.id}
-                name={@pet.name}
-                meta={@avatar_meta}
-                size={:xl}
-              />
-            </summary>
-            <.form
-              for={%{}}
-              id="pet-avatar-form"
-              phx-submit="save_avatar"
-              phx-change="validate_avatar"
-              class="dropdown-content z-40 mt-2 flex w-56 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 shadow"
-            >
-              <.live_file_input upload={@avatar_upload} class="file-input file-input-sm w-full" />
-              <div class="flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary" phx-disable-with="…">
-                  {gettext("Set photo")}
-                </button>
-                <button
-                  :if={@avatar_meta}
-                  type="button"
-                  class="btn btn-sm"
-                  phx-click="remove_avatar"
-                  data-confirm={gettext("Remove this pet's photo?")}
-                >
-                  {gettext("Remove")}
-                </button>
-              </div>
-            </.form>
-          </details>
+        <div class="relative flex flex-col items-center gap-1">
+          <%!-- For a manager the avatar is a click-to-open trigger for the uploader popover.
+                The open state is a server assign (not a native <details>) so it survives the
+                re-render a file selection triggers; everyone else sees the avatar plain. --%>
+          <button
+            :if={@can_manage?}
+            type="button"
+            id="pet-avatar-trigger"
+            phx-click="toggle_avatar_menu"
+            aria-expanded={to_string(@avatar_menu_open)}
+            aria-haspopup="menu"
+            title={gettext("Change profile photo")}
+            aria-label={gettext("Change profile photo")}
+            class="cursor-pointer rounded-full focus-visible:outline-none"
+          >
+            <.avatar
+              owner_type="pet"
+              owner_id={@pet.id}
+              name={@pet.name}
+              meta={@avatar_meta}
+              size={:xl}
+            />
+          </button>
 
           <.avatar
             :if={!@can_manage?}
@@ -1108,6 +1101,31 @@ defmodule Goodmao2Web.PetLive.Show do
             meta={@avatar_meta}
             size={:xl}
           />
+
+          <.form
+            :if={@can_manage? and @avatar_menu_open}
+            for={%{}}
+            id="pet-avatar-form"
+            phx-submit="save_avatar"
+            phx-change="validate_avatar"
+            class="absolute top-full z-40 mt-2 flex w-56 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 shadow"
+          >
+            <.live_file_input upload={@avatar_upload} class="file-input file-input-sm w-full" />
+            <div class="flex gap-2">
+              <button type="submit" class="btn btn-sm btn-primary" phx-disable-with="…">
+                {gettext("Set photo")}
+              </button>
+              <button
+                :if={@avatar_meta}
+                type="button"
+                class="btn btn-sm"
+                phx-click="remove_avatar"
+                data-confirm={gettext("Remove this pet's photo?")}
+              >
+                {gettext("Remove")}
+              </button>
+            </div>
+          </.form>
 
           <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/60 text-xs">
             {gettext("Processing…")}

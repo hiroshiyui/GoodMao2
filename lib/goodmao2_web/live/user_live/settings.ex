@@ -27,46 +27,52 @@ defmodule Goodmao2Web.UserLive.Settings do
 
       <section id="avatar-settings" aria-labelledby="avatar-heading" class="text-center">
         <h2 id="avatar-heading" class="sr-only">{gettext("Profile photo")}</h2>
-        <div class="flex flex-col items-center gap-1">
-          <%!-- The avatar is the trigger for a click-to-open uploader popover (CSP-safe
-                <details> dropdown, like the pet header and the nav menu). --%>
-          <details id="user-avatar-menu" class="dropdown">
-            <summary
-              class="cursor-pointer list-none [&::-webkit-details-marker]:hidden"
-              title={gettext("Change profile photo")}
-              aria-label={gettext("Change profile photo")}
-            >
-              <.avatar
-                owner_type="user"
-                owner_id={@current_scope.user.id}
-                name={@current_scope.user.display_name}
-                meta={@avatar_meta}
-                size={:xl}
-              />
-            </summary>
-            <.form
-              for={%{}}
-              id="avatar_form"
-              phx-submit="save_avatar"
-              phx-change="validate_avatar"
-              class="dropdown-content dropdown-center z-40 mt-2 flex w-64 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 text-left shadow"
-            >
-              <.live_file_input upload={@uploads.avatar} class="file-input file-input-sm w-full" />
-              <div class="flex gap-2">
-                <.button variant="primary" phx-disable-with={gettext("Uploading...")}>
-                  {gettext("Upload photo")}
-                </.button>
-                <.button
-                  :if={@avatar_meta}
-                  type="button"
-                  phx-click="remove_avatar"
-                  data-confirm={gettext("Remove your profile photo?")}
-                >
-                  {gettext("Remove")}
-                </.button>
-              </div>
-            </.form>
-          </details>
+        <div class="relative inline-flex flex-col items-center gap-1">
+          <%!-- The avatar is a click-to-open trigger for the uploader popover. The open state is
+                a server assign (not a native <details>) so it survives the re-render a file
+                selection triggers. Click the avatar to toggle. --%>
+          <button
+            type="button"
+            id="user-avatar-trigger"
+            phx-click="toggle_avatar_menu"
+            aria-expanded={to_string(@avatar_menu_open)}
+            aria-haspopup="menu"
+            title={gettext("Change profile photo")}
+            aria-label={gettext("Change profile photo")}
+            class="cursor-pointer rounded-full focus-visible:outline-none"
+          >
+            <.avatar
+              owner_type="user"
+              owner_id={@current_scope.user.id}
+              name={@current_scope.user.display_name}
+              meta={@avatar_meta}
+              size={:xl}
+            />
+          </button>
+
+          <.form
+            :if={@avatar_menu_open}
+            for={%{}}
+            id="avatar_form"
+            phx-submit="save_avatar"
+            phx-change="validate_avatar"
+            class="absolute top-full z-40 mt-2 flex w-64 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 text-left shadow"
+          >
+            <.live_file_input upload={@uploads.avatar} class="file-input file-input-sm w-full" />
+            <div class="flex gap-2">
+              <.button variant="primary" phx-disable-with={gettext("Uploading...")}>
+                {gettext("Upload photo")}
+              </.button>
+              <.button
+                :if={@avatar_meta}
+                type="button"
+                phx-click="remove_avatar"
+                data-confirm={gettext("Remove your profile photo?")}
+              >
+                {gettext("Remove")}
+              </.button>
+            </div>
+          </.form>
 
           <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/60 text-xs">
             {gettext("Your photo is being processed…")}
@@ -263,6 +269,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       |> assign(:email_form_current_password, nil)
       |> assign(:profile_form, to_form(profile_changeset))
       |> assign(:avatar_meta, Avatars.meta("user", user.id))
+      |> assign(:avatar_menu_open, false)
       |> assign(:push_configured, WebPush.vapid_configured?())
       |> assign(:push_supported, false)
       |> assign(:push_subscribed, false)
@@ -348,6 +355,12 @@ defmodule Goodmao2Web.UserLive.Settings do
 
   ## Profile photo (ADR-0020) — staged then purified async; the row broadcasts when ready.
 
+  # The uploader popover's open state is server-owned so it survives the re-render a file
+  # selection triggers (a native <details> would snap shut). Click the avatar to toggle.
+  def handle_event("toggle_avatar_menu", _params, socket) do
+    {:noreply, update(socket, :avatar_menu_open, &(not &1))}
+  end
+
   def handle_event("validate_avatar", _params, socket), do: {:noreply, socket}
 
   def handle_event("save_avatar", _params, socket) do
@@ -365,6 +378,7 @@ defmodule Goodmao2Web.UserLive.Settings do
             {:noreply,
              socket
              |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
+             |> assign(:avatar_menu_open, false)
              |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
 
           {:error, _} ->
@@ -384,6 +398,7 @@ defmodule Goodmao2Web.UserLive.Settings do
     {:noreply,
      socket
      |> assign(:avatar_meta, nil)
+     |> assign(:avatar_menu_open, false)
      |> put_flash(:info, gettext("Profile photo removed."))}
   end
 
