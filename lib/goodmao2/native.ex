@@ -9,6 +9,11 @@ defmodule Goodmao2.Native do
   """
   use Rustler, otp_app: :goodmao2, crate: "goodmao2_native"
 
-  @doc "Adds two integers in Rust. Placeholder NIF proving the native boundary."
+  @doc """
+  Adds two integers in Rust. Placeholder NIF proving the native boundary.
+
+  Raises `ArgumentError` on `i64` overflow (the Rust side returns a `BadArg` error term rather
+  than panicking across the boundary or silently wrapping).
+  """
   def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
 end

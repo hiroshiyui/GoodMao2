@@ -18,7 +18,8 @@ GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
   codes) and **WebAuthn/FIDO2** hardware security keys as a second factor. A pending-2FA stage
   gates every sign-in path (magic-link *and* password), so no session is issued until the factor
   passes; **required for the administrator**, opt-in for everyone else. TOTP secrets are
-  encrypted at rest and recovery codes are hashed; managed self-service on `/users/settings/two-factor`.
+  encrypted at rest, recovery codes are hashed, and a used TOTP code can't be replayed within
+  its window; managed self-service on `/users/settings/two-factor`.
 - **Pets** — create / list / view / edit, coat colour, and an owner-only **end-of-care**
   lifecycle transition (a status change, never a deletion — the record and timeline are
   preserved). An opt-in `history_hidden` flag exists-hides a pet's logs.
@@ -46,8 +47,8 @@ GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
   sync).
 - **Accessibility & ops** — skip-link, focus-visible ring, reduced-motion guard, a −/+
   text-size control and light/dark/system theme; a per-request Content-Security-Policy,
-  a `/health` endpoint, a `mix goodmao.doctor` preflight, and a supervised **Oban** cron
-  that prunes expired auth tokens.
+  per-address throttling of failed logins and auth emails, a `/health` endpoint, a
+  `mix goodmao.doctor` preflight, and a supervised **Oban** cron that prunes expired auth tokens.
 
 See [`doc/roadmap.md`](doc/roadmap.md) for what's deferred.
 

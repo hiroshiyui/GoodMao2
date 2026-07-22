@@ -18,7 +18,9 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   state machine), `Accounts.WebAuthn` (FIDO2 relying-party ceremonies via `wax_`, sign-count
   regression enforced), the supervised single-use `Accounts.WebAuthnChallenges` ETS store, and
   `Accounts.TotpVault` (AES-256-GCM secret-at-rest, keyed off `SECRET_KEY_BASE`). 2FA is
-  **required for the admin**, opt-in for everyone else.
+  **required for the admin**, opt-in for everyone else. Per-address ETS sliding-window abuse
+  throttles: `Accounts.RegistrationRateLimiter` (registration + magic-link email) and
+  `Accounts.LoginRateLimiter` (failed email+password logins, reset on success).
 - **Pets** (`pets.ex`) — pets, access grants, and the **resource-based authorization**
   core ([ADR-0014](adr/0014-resource-based-authorization.md)). Authorization is computed
   per request from an *effective* grant, never global.
@@ -68,8 +70,9 @@ Each context owns its schemas under `lib/goodmao2/<context>/`.
 
 ### `users` (Accounts.User — extends the phx.gen.auth table)
 `handle` (citext, unique), `display_name`, `is_admin`, plus the generated auth columns.
-Two-factor columns (ADR-0013): `totp_secret` (AES-256-GCM ciphertext, never plaintext) and
-`totp_confirmed_at` (nil ⇒ TOTP disabled). `timezone` (nullable IANA zone; nil ⇒ fall back to
+Two-factor columns (ADR-0013): `totp_secret` (AES-256-GCM ciphertext, never plaintext),
+`totp_confirmed_at` (nil ⇒ TOTP disabled), and `totp_last_used_at` (last-consumed TOTP window,
+passed as `since:` to reject same-window replay; nil until first use). `timezone` (nullable IANA zone; nil ⇒ fall back to
 the admin system default, then `Etc/UTC` — [ADR-0018](adr/0018-timezone-display-policy.md)).
 
 ### `webauthn_credentials` (Accounts.WebAuthnCredential) — FIDO2 security keys

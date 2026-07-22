@@ -66,12 +66,16 @@ call them.
   [ADR-0016](doc/adr/0016-scope-based-auth-and-first-user-admin.md)). Admin is a
   global role only; it grants **no access to pet data**. Also the **second-factor** core
   ([ADR-0013](doc/adr/0013-second-factor-authentication.md)): `Accounts.TwoFactor` (TOTP via
-  `nimble_totp` + `eqrcode`, single-use HMAC-hashed recovery codes, and `login_next_step/1`),
+  `nimble_totp` + `eqrcode`, single-use HMAC-hashed recovery codes, single-window replay
+  rejection at login via `totp_last_used_at` → `since:`, and `login_next_step/1`),
   `Accounts.WebAuthn` (FIDO2 security keys via `wax_`/`cbor`, sign-count regression enforced),
   the supervised single-use `Accounts.WebAuthnChallenges` ETS store, and `Accounts.TotpVault`
   (AES-256-GCM, keyed off `SECRET_KEY_BASE`). 2FA is **required for the admin**, opt-in for
   everyone else; secrets are encrypted/hashed at rest; security keys are **hard-deleted** (the
   soft-delete exception). The `:wax_` config (RP id/origin) lives in `config/{dev,test,runtime}.exs`.
+  Abuse throttles are per-address ETS sliding windows: `Accounts.RegistrationRateLimiter`
+  (registration + magic-link emails) and `Accounts.LoginRateLimiter` (failed email+password
+  logins — a success resets the counter, and the generic error adds no enumeration/lockout oracle).
 - **`Pets`** (`pets.ex`) — pets, `pet_accesses` grants, and the **resource-based
   authorization core** ([ADR-0014](doc/adr/0014-resource-based-authorization.md)). This is
   the security-critical module:

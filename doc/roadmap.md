@@ -292,7 +292,9 @@ the locale-parity test + the `a11y-engineering` skill.
       pending-2FA login stage gates **every** primary-auth path (magic-link and password), issuing
       no session token until the factor passes; **required for the admin**, opt-in for everyone
       else; TOTP secrets AES-256-GCM-encrypted at rest; security keys hard-deleted; brute-force
-      lockout; sudo-gated self-service at `/users/settings/two-factor`.
+      lockout on the 2FA stage plus a per-address throttle on failed password logins
+      (`Accounts.LoginRateLimiter`) and same-window TOTP replay rejection (`totp_last_used_at` →
+      `since:`); sudo-gated self-service at `/users/settings/two-factor`.
 - [x] **`mix goodmao.doctor` preflight task** — checks Erlang/Elixir vs `.tool-versions`, Postgres
       reachability + the `CREATEDB` privilege, deps fetched, asset installers, and (under
       `MIX_ENV=prod`) required secrets; PASS/WARN/FAIL per line, non-zero exit only on a hard FAIL

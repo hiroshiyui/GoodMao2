@@ -29,7 +29,9 @@ storage). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
   and defers to `complete_2fa_login/2`. Never issue a token straight from a login path that
   bypasses `login_next_step/1`. Second-factor secrets are **encrypted at rest** (TOTP via
   `Accounts.TotpVault`) or **HMAC-hashed** (recovery codes); never log or store them in
-  plaintext. The **admin must keep ≥1 factor** (`can_remove_second_factor?/2`). Security-key
+  plaintext. A **consumed TOTP code must not be replayable** within its window — verify with
+  `since: user.totp_last_used_at` and stamp it on success. The **admin must keep ≥1 factor**
+  (`can_remove_second_factor?/2`). Security-key
   credentials are **hard-deleted** — the one deliberate exception to the soft-delete rule
   (a revoked credential must never authenticate again).
 - **End-of-care is a lifecycle status transition, not a deletion** — the record and

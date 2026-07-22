@@ -77,7 +77,10 @@ admin, gating every primary-auth path through a new pending-2FA stage. Use `wax_
 - **Brute force is throttled.** The completion controller re-verifies every factor
   authoritatively (a LiveView can't set the cookie, and a crafted POST can't skip the check),
   counts attempts in the pending session, and **drops the session after 5 failures**. TOTP
-  replay within a 30 s window is rejected via `NimbleTOTP`'s `since:`.
+  replay within a 30 s window is rejected by persisting the last-consumed window in
+  `users.totp_last_used_at` and passing it as `NimbleTOTP`'s `since:` on the next verify (the
+  stamp is cleared when TOTP is disabled). The **primary** password step is throttled
+  separately by `Accounts.LoginRateLimiter` (per-address, failed attempts only, reset on success).
 
 ## Consequences
 
