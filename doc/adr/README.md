@@ -63,6 +63,7 @@ valid:
 | [0017](0017-rust-nif-native-boundary.md) | A Rust/Rustler native boundary for CPU-bound work | Accepted (scaffolding) |
 | [0018](0018-timezone-display-policy.md) | Timezone-aware display and input | Accepted (shipped) |
 | [0019](0019-medication-schedules-and-reminders.md) | Medication schedules, materialized doses, and reminders | Accepted (shipped) |
+| [0020](0020-profile-images.md) | Profile images (avatars) for users and pets | Accepted (shipped) |
 
 _Add a row per ADR as it lands._
 

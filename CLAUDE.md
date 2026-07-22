@@ -121,6 +121,17 @@ call them.
   writes id-keyed opaque objects under a configured `storage_dir` (physical path never stored —
   traversal-proof), served IDOR-hidden per request. `Media.OrphanJanitor` (daily Oban cron →
   `delete_orphans/0`) reclaims stray objects + stale staged uploads. `Media.RateLimiter` throttles uploads.
+  - **`Media.Avatars`** — optional **profile images** for users and pets ([ADR-0020](doc/adr/0020-profile-images.md)),
+    reusing the same `Purifier`/`Storage`/`Limits` primitives. One polymorphic `avatars` row per
+    owner (`owner_type` ∈ {`user`,`pet`}, unique on `(owner_type, owner_id)`); `set_avatar/4` stages
+    the upload and enqueues an **`AvatarPurifyWorker`** transactionally (images only — video
+    rejected), which stores the clean bytes under a **separate owner-keyed keyspace**
+    (`storage_dir/avatars/<owner-key>`, disjoint from media ids) and broadcasts. Setting a user
+    avatar is **self-only**; a pet avatar needs **`:manage`**. Served by `AvatarController`
+    (`/avatars/user/:id`, `/avatars/pet/:id`) with MediaController hardening — a user avatar is
+    visible to any authenticated user, a pet avatar is **`:read`-gated & IDOR-hidden**. A failed
+    purify sends an **`avatar_failed`** bell. Rendered round-masked by the shared `<.avatar>`
+    component (initials fallback); the nav avatar stays live via the `UnreadBadges` on_mount hook.
 - **`Reports`** (`reports.ex`) — generated **health summary reports**
   ([ADR-0012](doc/adr/0012-vet-access-model.md)). `generate_report/3` (`:manage`) freezes a
   `jsonb` `content` snapshot over a date range built from `Logs.shareable_entries/3`, which

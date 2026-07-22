@@ -257,6 +257,12 @@ rejects *and* the legitimate case still passes).
       `occurred_at` / `ended_at` future-guards; and **`:offset` paging** on `Logs.list_entries` /
       `shareable_entries` with render-side **Prev/Next paging of long report bodies** (frozen
       snapshot, `?page=N`, on both the authenticated and anonymous report pages)
+- [x] **Profile images (avatars)** for users and pets ([ADR-0020](adr/0020-profile-images.md)) —
+      one polymorphic `avatars` row per owner, purified off the request path by reusing the ADR-0005
+      `Purifier`/`Storage`/`Limits` primitives (images only), stored in an owner-keyed keyspace, and
+      served IDOR-hidden by `AvatarController` (user avatar app-visible; pet avatar `:read`-gated).
+      Rendered round-masked by the shared `<.avatar>` component; uploaded on `/users/settings` and
+      the pet header (`:manage`).
 
 ### 9. Engineering & ops maturity
 
