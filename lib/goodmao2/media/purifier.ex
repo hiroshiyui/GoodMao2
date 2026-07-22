@@ -32,6 +32,10 @@ defmodule Goodmao2.Media.Purifier do
     webp: %{content_type: "image/webp", ext: "webp"}
   }
 
+  # Smallest normalized crop dimension we'll honour. Below this, the value emitted with 6-decimal
+  # precision would round to `0.000000` and ffmpeg would reject the filter — so we drop to full frame.
+  @min_crop 1.0e-4
+
   @video_types %{
     mp4: %{content_type: "video/mp4", ext: "mp4", video: ~w(h264), audio: ~w(aac)},
     webm: %{
@@ -176,7 +180,9 @@ defmodule Goodmao2.Media.Purifier do
          h when is_float(h) <- num(crop, "h"),
          w = min(max(w, 0.0), 1.0 - x),
          h = min(max(h, 0.0), 1.0 - y),
-         true <- w > 0.0 and h > 0.0,
+         # Reject a degenerate crop: below the emitted precision (`f/1`, 6 decimals) a dimension
+         # would round to `0.000000` and ffmpeg would fail — fall back to the full frame instead.
+         true <- w >= @min_crop and h >= @min_crop,
          # Skip a no-op full-frame selection.
          false <- x == 0.0 and y == 0.0 and w >= 1.0 and h >= 1.0 do
       {x, y, w, h}

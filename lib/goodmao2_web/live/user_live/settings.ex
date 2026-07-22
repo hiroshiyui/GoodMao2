@@ -36,7 +36,8 @@ defmodule Goodmao2Web.UserLive.Settings do
             id="user-avatar-trigger"
             phx-click="toggle_avatar_menu"
             aria-expanded={to_string(@avatar_menu_open)}
-            aria-haspopup="menu"
+            aria-haspopup="dialog"
+            aria-controls="avatar_form"
             title={gettext("Change profile photo")}
             aria-label={gettext("Change profile photo")}
             class="cursor-pointer rounded-full focus-visible:outline-none"
@@ -58,6 +59,9 @@ defmodule Goodmao2Web.UserLive.Settings do
             phx-change="validate_avatar"
             class="absolute top-full z-40 mt-2 flex w-72 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 text-left shadow"
           >
+            <label for={@uploads.avatar.ref} class="sr-only">
+              {gettext("Choose a profile photo")}
+            </label>
             <.live_file_input upload={@uploads.avatar} class="file-input file-input-sm w-full" />
             <.avatar_cropper id="user-avatar-cropper" />
             <div class="flex gap-2">

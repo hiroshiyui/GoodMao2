@@ -1079,7 +1079,8 @@ defmodule Goodmao2Web.PetLive.Show do
             id="pet-avatar-trigger"
             phx-click="toggle_avatar_menu"
             aria-expanded={to_string(@avatar_menu_open)}
-            aria-haspopup="menu"
+            aria-haspopup="dialog"
+            aria-controls="pet-avatar-form"
             title={gettext("Change profile photo")}
             aria-label={gettext("Change profile photo")}
             class="cursor-pointer rounded-full focus-visible:outline-none"
@@ -1110,10 +1111,17 @@ defmodule Goodmao2Web.PetLive.Show do
             phx-change="validate_avatar"
             class="absolute top-full z-40 mt-2 flex w-72 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 shadow"
           >
+            <label for={@avatar_upload.ref} class="sr-only">
+              {gettext("Choose a profile photo")}
+            </label>
             <.live_file_input upload={@avatar_upload} class="file-input file-input-sm w-full" />
             <.avatar_cropper id="pet-avatar-cropper" />
             <div class="flex gap-2">
-              <button type="submit" class="btn btn-sm btn-primary" phx-disable-with="…">
+              <button
+                type="submit"
+                class="btn btn-sm btn-primary"
+                phx-disable-with={gettext("Saving…")}
+              >
                 {gettext("Set photo")}
               </button>
               <button

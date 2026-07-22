@@ -74,6 +74,17 @@ defmodule Goodmao2.Media.PurifierCropTest do
     end
   end
 
+  test "a sub-precision crop falls back to the full frame instead of failing ffmpeg" do
+    src = make_png(40, 20)
+    # w below the emitted 6-decimal precision would render as crop=iw*0.000000 and make ffmpeg
+    # fail; the purifier drops it to the full frame instead of erroring.
+    {:ok, purified} =
+      Purifier.purify(src, crop: %{"x" => 0.0, "y" => 0.0, "w" => 0.0000003, "h" => 1.0})
+
+    on_exit(fn -> File.rm(purified.path) end)
+    assert dims(purified.path) == {40, 20}
+  end
+
   test "an out-of-range crop is clamped to a valid sub-rectangle, not rejected" do
     src = make_png(40, 20)
     # x=-1 → 0, w=2 → 1 (full width), h=0.5 → half height: a valid 40x10 crop.

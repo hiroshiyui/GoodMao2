@@ -37,6 +37,10 @@ const AvatarCropper = {
     if (this.fileInput && this.onChange) {
       this.fileInput.removeEventListener("change", this.onChange)
     }
+    // The popover (and this hook) is added/removed from the DOM on every open/close, so the
+    // window-level pointer listeners MUST be detached here or they accumulate for the session.
+    if (this._onMove) window.removeEventListener("pointermove", this._onMove)
+    if (this._onUp) window.removeEventListener("pointerup", this._onUp)
   },
 
   buildDom() {
@@ -54,6 +58,11 @@ const AvatarCropper = {
     const box = document.createElement("div")
     box.className =
       "avatar-crop-box absolute cursor-move rounded-full border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]"
+    // Keyboard-operable (WCAG 2.1.1): focusable, announced, driven by arrow keys / +-/ below.
+    box.tabIndex = 0
+    box.setAttribute("role", "slider")
+    const label = this.el.getAttribute("data-crop-label")
+    if (label) box.setAttribute("aria-label", label)
 
     const handle = document.createElement("div")
     handle.className =
@@ -164,13 +173,57 @@ const AvatarCropper = {
       if (e.target === this.handle) onDown(e, "resize")
       else onDown(e, "move")
     })
+
+    // Keyboard path: arrows move, +/- resize. Element-scoped, so it's cleaned up with the box.
+    this.box.addEventListener("keydown", (e) => this.onKey(e))
+
     window.addEventListener("pointermove", onMove)
     window.addEventListener("pointerup", onUp)
 
-    // Remember listeners so destroyed() could detach if needed (window listeners are cheap;
-    // the hook element is removed with the popover, so leaks are bounded to the session).
+    // Remember the window listeners so destroyed() detaches them (the hook is re-mounted on
+    // every popover open, so leaving them attached would leak a pair per open).
     this._onMove = onMove
     this._onUp = onUp
+  },
+
+  onKey(e) {
+    if (!this.boxRect || !this.rendered) return
+    const STEP = 4 // px per arrow key
+    const RESIZE = 8 // px per +/-
+    let { left, top, size } = this.boxRect
+
+    switch (e.key) {
+      case "ArrowLeft":
+        left -= STEP
+        break
+      case "ArrowRight":
+        left += STEP
+        break
+      case "ArrowUp":
+        top -= STEP
+        break
+      case "ArrowDown":
+        top += STEP
+        break
+      case "+":
+      case "=":
+        size += RESIZE
+        break
+      case "-":
+      case "_":
+        size -= RESIZE
+        break
+      default:
+        return
+    }
+    e.preventDefault()
+
+    const r = this.rendered
+    size = Math.max(MIN_BOX, Math.min(size, Math.min(r.w, r.h)))
+    left = Math.max(r.left, Math.min(left, r.left + r.w - size))
+    top = Math.max(r.top, Math.min(top, r.top + r.h - size))
+    this.boxRect = { left, top, size }
+    this.applyBox()
   },
 
   applyBox() {

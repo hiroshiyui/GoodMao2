@@ -68,7 +68,7 @@ msgid "Access revoked."
 msgstr "已撤銷存取權。"
 
 #: lib/goodmao2_web/live/user_live/settings.ex:23
-#: lib/goodmao2_web/live/user_live/settings.ex:268
+#: lib/goodmao2_web/live/user_live/settings.ex:272
 #, elixir-autogen, elixir-format
 msgid "Account settings"
 msgstr "帳號設定"
@@ -89,7 +89,7 @@ msgstr "照護中"
 msgid "Add a pet"
 msgstr "新增寵物"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1262
+#: lib/goodmao2_web/live/pet_live/show.ex:1270
 #, elixir-autogen, elixir-format
 msgid "Add note, time, or visibility"
 msgstr "新增備註、時間或可見範圍"
@@ -116,14 +116,14 @@ msgstr "份量"
 
 #: lib/goodmao2_web/components/log_fields.ex:28
 #: lib/goodmao2_web/helpers.ex:470
-#: lib/goodmao2_web/live/pet_live/show.ex:1318
+#: lib/goodmao2_web/live/pet_live/show.ex:1326
 #, elixir-autogen, elixir-format
 msgid "Ate fully"
 msgstr "吃光光"
 
 #: lib/goodmao2_web/components/log_fields.ex:29
 #: lib/goodmao2_web/helpers.ex:471
-#: lib/goodmao2_web/live/pet_live/show.ex:1319
+#: lib/goodmao2_web/live/pet_live/show.ex:1327
 #, elixir-autogen, elixir-format
 msgid "Ate partially"
 msgstr "吃了一部分"
@@ -146,7 +146,7 @@ msgstr "正在嘗試重新連線"
 msgid "Back"
 msgstr "返回"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1141
+#: lib/goodmao2_web/live/pet_live/show.ex:1145
 #, elixir-autogen, elixir-format
 msgid "Back to pets"
 msgstr "返回寵物列表"
@@ -226,7 +226,7 @@ msgstr "無法撤銷該存取權。"
 msgid "Daily life"
 msgstr "日常生活"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:95
+#: lib/goodmao2_web/live/user_live/settings.ex:99
 #, elixir-autogen, elixir-format
 msgid "Display name"
 msgstr "顯示名稱"
@@ -242,7 +242,7 @@ msgstr "狗"
 msgid "Dose"
 msgstr "劑量"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1199
+#: lib/goodmao2_web/live/pet_live/show.ex:1207
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "編輯"
@@ -355,7 +355,7 @@ msgid "High"
 msgstr "偏多"
 
 #: lib/goodmao2_web/helpers.ex:250
-#: lib/goodmao2_web/live/pet_live/show.ex:1328
+#: lib/goodmao2_web/live/pet_live/show.ex:1336
 #, elixir-autogen, elixir-format
 msgid "High intake"
 msgstr "飲水偏多"
@@ -380,7 +380,7 @@ msgstr "類型"
 msgid "Limited"
 msgstr "限定"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1278
+#: lib/goodmao2_web/live/pet_live/show.ex:1286
 #, elixir-autogen, elixir-format
 msgid "Log %{type}"
 msgstr "記錄%{type}"
@@ -422,7 +422,7 @@ msgid "Low"
 msgstr "偏少"
 
 #: lib/goodmao2_web/helpers.ex:249
-#: lib/goodmao2_web/live/pet_live/show.ex:1327
+#: lib/goodmao2_web/live/pet_live/show.ex:1335
 #, elixir-autogen, elixir-format
 msgid "Low intake"
 msgstr "飲水偏少"
@@ -492,7 +492,7 @@ msgid "Normal"
 msgstr "正常"
 
 #: lib/goodmao2_web/helpers.ex:248
-#: lib/goodmao2_web/live/pet_live/show.ex:1326
+#: lib/goodmao2_web/live/pet_live/show.ex:1334
 #, elixir-autogen, elixir-format
 msgid "Normal intake"
 msgstr "飲水正常"
@@ -505,7 +505,7 @@ msgid "Not allowed."
 msgstr "沒有權限。"
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:361
-#: lib/goodmao2_web/live/pet_live/show.ex:1297
+#: lib/goodmao2_web/live/pet_live/show.ex:1305
 #, elixir-autogen, elixir-format
 msgid "Note"
 msgstr "備註"
@@ -538,7 +538,7 @@ msgstr "已離世"
 
 #: lib/goodmao2_web/live/pet_live/index.ex:27
 #: lib/goodmao2_web/live/pet_live/index.ex:48
-#: lib/goodmao2_web/live/user_live/settings.ex:238
+#: lib/goodmao2_web/live/user_live/settings.ex:242
 #, elixir-autogen, elixir-format
 msgid "Past pets"
 msgstr "過往的毛孩"
@@ -548,7 +548,7 @@ msgstr "過往的毛孩"
 msgid "People with access"
 msgstr "有存取權的人"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1170
+#: lib/goodmao2_web/live/pet_live/show.ex:1177
 #, elixir-autogen, elixir-format
 msgid "Pet actions"
 msgstr "寵物操作"
@@ -578,7 +578,7 @@ msgstr "主要"
 msgid "Private"
 msgstr "私人"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:304
+#: lib/goodmao2_web/live/user_live/settings.ex:308
 #, elixir-autogen, elixir-format
 msgid "Profile updated."
 msgstr "已更新個人資料。"
@@ -588,7 +588,7 @@ msgstr "已更新個人資料。"
 msgid "Public"
 msgstr "公開"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:100
+#: lib/goodmao2_web/live/user_live/settings.ex:104
 #, elixir-autogen, elixir-format
 msgid "Public @handle"
 msgstr "公開 @代號"
@@ -599,7 +599,7 @@ msgid "Quick log"
 msgstr "快速記錄"
 
 #: lib/goodmao2_web/components/log_fields.ex:30
-#: lib/goodmao2_web/live/pet_live/show.ex:1320
+#: lib/goodmao2_web/live/pet_live/show.ex:1328
 #, elixir-autogen, elixir-format
 msgid "Refused"
 msgstr "拒食"
@@ -645,7 +645,7 @@ msgstr "角色"
 msgid "Save"
 msgstr "儲存"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:123
+#: lib/goodmao2_web/live/user_live/settings.ex:127
 #, elixir-autogen, elixir-format
 msgid "Save profile"
 msgstr "儲存個人資料"
@@ -662,7 +662,7 @@ msgstr "已儲存。%{name} 的紀錄已保留。"
 
 #: lib/goodmao2_web/live/pet_live/medications.ex:359
 #: lib/goodmao2_web/live/user_live/password_settings.ex:73
-#: lib/goodmao2_web/live/user_live/settings.ex:122
+#: lib/goodmao2_web/live/user_live/settings.ex:126
 #: lib/goodmao2_web/live/user_live/vet_profile.ex:105
 #, elixir-autogen, elixir-format
 msgid "Saving..."
@@ -672,7 +672,8 @@ msgstr "儲存中..."
 #: lib/goodmao2_web/live/pet_live/form.ex:149
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:380
 #: lib/goodmao2_web/live/pet_live/show.ex:636
-#: lib/goodmao2_web/live/pet_live/show.ex:1276
+#: lib/goodmao2_web/live/pet_live/show.ex:1120
+#: lib/goodmao2_web/live/pet_live/show.ex:1284
 #, elixir-autogen, elixir-format
 msgid "Saving…"
 msgstr "儲存中…"
@@ -692,7 +693,7 @@ msgstr "性別"
 msgid "Shared care"
 msgstr "共同照護"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1191
+#: lib/goodmao2_web/live/pet_live/show.ex:1199
 #, elixir-autogen, elixir-format
 msgid "Sharing"
 msgstr "分享"
@@ -725,7 +726,7 @@ msgstr "狀態"
 
 #: lib/goodmao2_web/components/log_fields.ex:60
 #: lib/goodmao2_web/helpers.ex:261
-#: lib/goodmao2_web/live/pet_live/show.ex:1335
+#: lib/goodmao2_web/live/pet_live/show.ex:1343
 #, elixir-autogen, elixir-format
 msgid "Stool"
 msgstr "糞便"
@@ -759,7 +760,7 @@ msgstr "未知"
 
 #: lib/goodmao2_web/components/log_fields.ex:60
 #: lib/goodmao2_web/helpers.ex:260
-#: lib/goodmao2_web/live/pet_live/show.ex:1334
+#: lib/goodmao2_web/live/pet_live/show.ex:1342
 #, elixir-autogen, elixir-format
 msgid "Urine"
 msgstr "尿液"
@@ -780,7 +781,7 @@ msgid "Viewer"
 msgstr "檢視者"
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:370
-#: lib/goodmao2_web/live/pet_live/show.ex:1306
+#: lib/goodmao2_web/live/pet_live/show.ex:1314
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr "可見範圍"
@@ -826,7 +827,7 @@ msgid "What GoodMao does"
 msgstr "顧毛能做什麼"
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:365
-#: lib/goodmao2_web/live/pet_live/show.ex:1301
+#: lib/goodmao2_web/live/pet_live/show.ex:1309
 #, elixir-autogen, elixir-format
 msgid "When"
 msgstr "時間"
@@ -852,7 +853,7 @@ msgstr "你沒有為這隻寵物記錄的權限。"
 msgid "You are not allowed to manage sharing."
 msgstr "你沒有管理分享的權限。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:106
+#: lib/goodmao2_web/live/user_live/settings.ex:110
 #, elixir-autogen, elixir-format
 msgid "Your handle lets others invite you to a pet by @handle."
 msgstr "設定代號後，別人就能用 @代號 邀請你共同照護寵物。"
@@ -930,24 +931,24 @@ msgstr "跳至主要內容"
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
 msgstr "這隻寵物的歷史紀錄已隱藏。在飼主從「編輯」重新開啟前，時間軸將無法檢視。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:345
+#: lib/goodmao2_web/live/user_live/settings.ex:349
 #, elixir-autogen, elixir-format
 msgid "A link to confirm your email change has been sent to the new address."
 msgstr "確認變更電子郵件的連結已寄至新的信箱。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:148
+#: lib/goodmao2_web/live/user_live/settings.ex:152
 #, elixir-autogen, elixir-format
 msgid "Change Email"
 msgstr "變更電子郵件"
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:29
 #: lib/goodmao2_web/live/user_live/password_settings.ex:94
-#: lib/goodmao2_web/live/user_live/settings.ex:159
+#: lib/goodmao2_web/live/user_live/settings.ex:163
 #, elixir-autogen, elixir-format
 msgid "Change password"
 msgstr "變更密碼"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:147
+#: lib/goodmao2_web/live/user_live/settings.ex:151
 #, elixir-autogen, elixir-format
 msgid "Changing..."
 msgstr "變更中..."
@@ -963,7 +964,7 @@ msgid "Confirm your current password to set a new one."
 msgstr "請先確認目前的密碼，才能設定新密碼。"
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:53
-#: lib/goodmao2_web/live/user_live/settings.ex:141
+#: lib/goodmao2_web/live/user_live/settings.ex:145
 #, elixir-autogen, elixir-format
 msgid "Current password"
 msgstr "目前密碼"
@@ -971,7 +972,7 @@ msgstr "目前密碼"
 #: lib/goodmao2_web/live/user_live/login.ex:50
 #: lib/goodmao2_web/live/user_live/login.ex:75
 #: lib/goodmao2_web/live/user_live/registration.ex:30
-#: lib/goodmao2_web/live/user_live/settings.ex:133
+#: lib/goodmao2_web/live/user_live/settings.ex:137
 #, elixir-autogen, elixir-format
 msgid "Email"
 msgstr "電子郵件"
@@ -991,7 +992,7 @@ msgstr "新密碼"
 msgid "Save password"
 msgstr "儲存密碼"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:156
+#: lib/goodmao2_web/live/user_live/settings.ex:160
 #, elixir-autogen, elixir-format
 msgid "Your password is managed on its own page."
 msgstr "密碼在專屬頁面管理。"
@@ -1073,12 +1074,12 @@ msgstr "目前的密碼不正確，或新密碼不符合規則。"
 msgid "Don't have an account?"
 msgstr "還沒有帳號嗎？"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:253
+#: lib/goodmao2_web/live/user_live/settings.ex:257
 #, elixir-autogen, elixir-format
 msgid "Email change link is invalid or it has expired."
 msgstr "電子郵件變更連結無效或已過期。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:250
+#: lib/goodmao2_web/live/user_live/settings.ex:254
 #, elixir-autogen, elixir-format
 msgid "Email changed successfully."
 msgstr "電子郵件已成功變更。"
@@ -1240,7 +1241,7 @@ msgstr "放大文字"
 msgid "Text size"
 msgstr "文字大小"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1363
+#: lib/goodmao2_web/live/pet_live/show.ex:1371
 #, elixir-autogen, elixir-format
 msgid "%{count} entry"
 msgid_plural "%{count} entries"
@@ -1396,12 +1397,12 @@ msgstr "二"
 msgid "Wed"
 msgstr "三"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1366
+#: lib/goodmao2_web/live/pet_live/show.ex:1374
 #, elixir-autogen, elixir-format
 msgid "urgent"
 msgstr "緊急"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1367
+#: lib/goodmao2_web/live/pet_live/show.ex:1375
 #, elixir-autogen, elixir-format
 msgid "worth watching"
 msgstr "需留意"
@@ -1543,7 +1544,7 @@ msgstr "更多選項"
 msgid "Quick log shortcuts"
 msgstr "快速記錄捷徑"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1340
+#: lib/goodmao2_web/live/pet_live/show.ex:1348
 #, elixir-autogen, elixir-format
 msgid "Vomited"
 msgstr "嘔吐"
@@ -1673,7 +1674,7 @@ msgstr "已編輯"
 msgid "File is too large."
 msgstr "檔案太大。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1233
+#: lib/goodmao2_web/live/pet_live/show.ex:1241
 #, elixir-autogen, elixir-format
 msgid "JPEG, PNG, GIF, WEBP, MP4, or WEBM."
 msgstr "JPEG、PNG、GIF、WEBP、MP4 或 WEBM。"
@@ -1683,12 +1684,12 @@ msgstr "JPEG、PNG、GIF、WEBP、MP4 或 WEBM。"
 msgid "Life log photo"
 msgstr "生活記錄照片"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1230
+#: lib/goodmao2_web/live/pet_live/show.ex:1238
 #, elixir-autogen, elixir-format
 msgid "Photos or video"
 msgstr "照片或影片"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1246
+#: lib/goodmao2_web/live/pet_live/show.ex:1254
 #, elixir-autogen, elixir-format
 msgid "Remove file"
 msgstr "移除檔案"
@@ -1733,7 +1734,7 @@ msgstr "分享連結將於 %{t} 前有效。"
 msgid "Anyone with the link can read this report until it expires."
 msgstr "在連結到期前，任何持有連結的人都能閱讀這份報告。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:223
+#: lib/goodmao2_web/live/user_live/settings.ex:227
 #, elixir-autogen, elixir-format
 msgid "Are you a veterinarian? Submit your credentials to be verified."
 msgstr "你是獸醫嗎？提交你的專業資格以供驗證。"
@@ -1953,7 +1954,7 @@ msgstr "已產生報告。"
 msgid "Report not found."
 msgstr "找不到報告。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1183
+#: lib/goodmao2_web/live/pet_live/show.ex:1191
 #, elixir-autogen, elixir-format
 msgid "Reports"
 msgstr "報告"
@@ -2061,7 +2062,7 @@ msgstr "通過驗證的專業人員可被授予讀取權限，並撰寫獸醫註
 msgid "Verify"
 msgstr "通過驗證"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:226
+#: lib/goodmao2_web/live/user_live/settings.ex:230
 #: lib/goodmao2_web/live/user_live/vet_profile.ex:21
 #: lib/goodmao2_web/live/user_live/vet_profile.ex:64
 #, elixir-autogen, elixir-format
@@ -2104,7 +2105,7 @@ msgid "%{actor} removed your access to %{pet}."
 msgstr "%{actor} 移除了你對 %{pet} 的存取權。"
 
 #: lib/goodmao2_web/components/layouts.ex:214
-#: lib/goodmao2_web/live/message_live/index.ex:135
+#: lib/goodmao2_web/live/message_live/index.ex:137
 #, elixir-autogen, elixir-format
 msgid "%{count} unread message"
 msgid_plural "%{count} unread messages"
@@ -2162,7 +2163,7 @@ msgstr "與 %{name} 的對話"
 msgid "Conversation not found."
 msgstr "找不到對話。"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:150
+#: lib/goodmao2_web/live/notification_live/index.ex:152
 #, elixir-autogen, elixir-format
 msgid "Dismiss"
 msgstr "忽略"
@@ -2172,12 +2173,12 @@ msgstr "忽略"
 msgid "Every user receives this as a notification. Use it sparingly."
 msgstr "每位使用者都會收到這則通知，請斟酌使用。"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:90
+#: lib/goodmao2_web/live/notification_live/index.ex:92
 #, elixir-autogen, elixir-format
 msgid "Mark all read"
 msgstr "全部標為已讀"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:143
+#: lib/goodmao2_web/live/notification_live/index.ex:145
 #, elixir-autogen, elixir-format
 msgid "Mark read"
 msgstr "標為已讀"
@@ -2188,15 +2189,15 @@ msgstr "標為已讀"
 msgid "Message"
 msgstr "訊息"
 
-#: lib/goodmao2_web/live/message_live/index.ex:86
+#: lib/goodmao2_web/live/message_live/index.ex:88
 #, elixir-autogen, elixir-format
 msgid "Message someone (@handle or email)"
 msgstr "傳訊息給某人（@代號 或 電子郵件）"
 
 #: lib/goodmao2_web/components/layouts.ex:205
 #: lib/goodmao2_web/components/layouts.ex:208
-#: lib/goodmao2_web/live/message_live/index.ex:19
-#: lib/goodmao2_web/live/message_live/index.ex:73
+#: lib/goodmao2_web/live/message_live/index.ex:21
+#: lib/goodmao2_web/live/message_live/index.ex:75
 #, elixir-autogen, elixir-format
 msgid "Messages"
 msgstr "訊息"
@@ -2206,7 +2207,7 @@ msgstr "訊息"
 msgid "New log entry"
 msgstr "新增紀錄"
 
-#: lib/goodmao2_web/live/message_live/index.ex:102
+#: lib/goodmao2_web/live/message_live/index.ex:104
 #, elixir-autogen, elixir-format
 msgid "No conversations yet. Start one with someone you share a pet with."
 msgstr "目前還沒有對話。與共同照護寵物的人開始一段對話吧。"
@@ -2216,7 +2217,7 @@ msgstr "目前還沒有對話。與共同照護寵物的人開始一段對話吧
 msgid "No messages yet. Say hello."
 msgstr "目前還沒有訊息。打聲招呼吧。"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:99
+#: lib/goodmao2_web/live/notification_live/index.ex:101
 #, elixir-autogen, elixir-format
 msgid "Nothing yet. You'll hear about access changes, new logs, and announcements here."
 msgstr "目前沒有通知。存取權變更、新紀錄與公告都會顯示在這裡。"
@@ -2228,8 +2229,8 @@ msgstr "通知"
 
 #: lib/goodmao2_web/components/layouts.ex:179
 #: lib/goodmao2_web/components/layouts.ex:182
-#: lib/goodmao2_web/live/notification_live/index.ex:19
-#: lib/goodmao2_web/live/notification_live/index.ex:82
+#: lib/goodmao2_web/live/notification_live/index.ex:21
+#: lib/goodmao2_web/live/notification_live/index.ex:84
 #, elixir-autogen, elixir-format
 msgid "Notifications"
 msgstr "通知"
@@ -2261,7 +2262,7 @@ msgstr "傳送中…"
 msgid "Someone"
 msgstr "某人"
 
-#: lib/goodmao2_web/live/message_live/index.ex:91
+#: lib/goodmao2_web/live/message_live/index.ex:93
 #, elixir-autogen, elixir-format
 msgid "Start"
 msgstr "開始"
@@ -2271,12 +2272,12 @@ msgstr "開始"
 msgid "Title"
 msgstr "標題"
 
-#: lib/goodmao2_web/live/notification_live/index.ex:123
+#: lib/goodmao2_web/live/notification_live/index.ex:125
 #, elixir-autogen, elixir-format
 msgid "Unread"
 msgstr "未讀"
 
-#: lib/goodmao2_web/live/message_live/index.ex:48
+#: lib/goodmao2_web/live/message_live/index.ex:50
 #, elixir-autogen, elixir-format
 msgid "We couldn't start that conversation. You can only message people you share a pet with."
 msgstr "無法開始這段對話。你只能傳訊息給與你共同照護寵物的人。"
@@ -2311,17 +2312,17 @@ msgstr "無法儲存聯絡方式。"
 msgid "Could not save the keys."
 msgstr "無法儲存金鑰。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:436
+#: lib/goodmao2_web/live/user_live/settings.ex:440
 #, elixir-autogen, elixir-format
 msgid "Couldn't update push notifications. Please try again."
 msgstr "無法更新推播通知，請再試一次。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:215
+#: lib/goodmao2_web/live/user_live/settings.ex:219
 #, elixir-autogen, elixir-format
 msgid "Disable push"
 msgstr "關閉推播"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:206
+#: lib/goodmao2_web/live/user_live/settings.ex:210
 #, elixir-autogen, elixir-format
 msgid "Enable push"
 msgstr "開啟推播"
@@ -2336,7 +2337,7 @@ msgstr "產生金鑰"
 msgid "Generating…"
 msgstr "產生中…"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:194
+#: lib/goodmao2_web/live/user_live/settings.ex:198
 #, elixir-autogen, elixir-format
 msgid "Get notified about access changes, new logs, and announcements even when GoodMao is closed."
 msgstr "即使關閉 GoodMao，也能收到存取權變更、新紀錄與公告的通知。"
@@ -2351,7 +2352,7 @@ msgstr "已產生新的 Web Push 金鑰，現有的訂閱必須重新訂閱。"
 msgid "Not configured"
 msgstr "尚未設定"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:431
+#: lib/goodmao2_web/live/user_live/settings.ex:435
 #, elixir-autogen, elixir-format
 msgid "Notification permission was denied."
 msgstr "通知權限已被拒絕。"
@@ -2361,22 +2362,22 @@ msgstr "通知權限已被拒絕。"
 msgid "Public key"
 msgstr "公開金鑰"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:186
+#: lib/goodmao2_web/live/user_live/settings.ex:190
 #, elixir-autogen, elixir-format
 msgid "Push notifications"
 msgstr "推播通知"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:192
+#: lib/goodmao2_web/live/user_live/settings.ex:196
 #, elixir-autogen, elixir-format
 msgid "Push notifications are on for this device."
 msgstr "這部裝置已開啟推播通知。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:427
+#: lib/goodmao2_web/live/user_live/settings.ex:431
 #, elixir-autogen, elixir-format
 msgid "Push notifications disabled for this device."
 msgstr "已為這部裝置關閉推播通知。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:420
+#: lib/goodmao2_web/live/user_live/settings.ex:424
 #, elixir-autogen, elixir-format
 msgid "Push notifications enabled for this device."
 msgstr "已為這部裝置開啟推播通知。"
@@ -2403,7 +2404,7 @@ msgstr "儲存聯絡方式"
 msgid "System settings"
 msgstr "系統設定"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:190
+#: lib/goodmao2_web/live/user_live/settings.ex:194
 #, elixir-autogen, elixir-format
 msgid "This browser doesn't support push notifications."
 msgstr "這個瀏覽器不支援推播通知。"
@@ -2433,7 +2434,7 @@ msgstr "1. 掃描此 QR code"
 msgid "2. Enter the 6-digit code"
 msgstr "2. 輸入 6 位數驗證碼"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:167
+#: lib/goodmao2_web/live/user_live/settings.ex:171
 #, elixir-autogen, elixir-format
 msgid "Add a second step at sign-in with an authenticator app or a security key."
 msgstr "使用驗證器 App 或安全金鑰，在登入時增加第二道驗證步驟。"
@@ -2527,8 +2528,8 @@ msgstr "備援碼"
 msgid "Regenerate recovery codes"
 msgstr "重新產生備援碼"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1126
-#: lib/goodmao2_web/live/user_live/settings.ex:73
+#: lib/goodmao2_web/live/pet_live/show.ex:1130
+#: lib/goodmao2_web/live/user_live/settings.ex:77
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:149
 #, elixir-autogen, elixir-format
 msgid "Remove"
@@ -2680,7 +2681,7 @@ msgstr "啟用"
 msgid "Turn on two-step verification"
 msgstr "啟用兩步驟驗證"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:170
+#: lib/goodmao2_web/live/user_live/settings.ex:174
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:32
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:225
 #, elixir-autogen, elixir-format
@@ -2791,18 +2792,18 @@ msgstr "這不是有效的時區。"
 msgid "The default timezone for displaying and entering times, used for anyone who has not set their own preference."
 msgstr "顯示與輸入時間所用的預設時區，適用於尚未設定個人偏好的使用者。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:118
+#: lib/goodmao2_web/live/user_live/settings.ex:122
 #, elixir-autogen, elixir-format
 msgid "Times you log and view are shown in this zone. Left blank, the site default is used."
 msgstr "你記錄與檢視的時間會以此時區顯示。留空則使用網站預設。"
 
 #: lib/goodmao2_web/live/pet_live/medications.ex:354
-#: lib/goodmao2_web/live/user_live/settings.ex:112
+#: lib/goodmao2_web/live/user_live/settings.ex:116
 #, elixir-autogen, elixir-format
 msgid "Timezone"
 msgstr "時區"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:113
+#: lib/goodmao2_web/live/user_live/settings.ex:117
 #, elixir-autogen, elixir-format
 msgid "Use the site default"
 msgstr "使用網站預設"
@@ -2877,7 +2878,7 @@ msgstr "已給藥"
 msgid "Medication due"
 msgstr "用藥時間到了"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1176
+#: lib/goodmao2_web/live/pet_live/show.ex:1184
 #, elixir-autogen, elixir-format
 msgid "Medications"
 msgstr "用藥"
@@ -3221,7 +3222,7 @@ msgstr "影片"
 msgid "Video dimensions (pixels)"
 msgstr "影片尺寸（像素）"
 
-#: lib/goodmao2_web/components/avatar_components.ex:98
+#: lib/goodmao2_web/components/avatar_components.ex:106
 #, elixir-autogen, elixir-format
 msgid "%{name}'s profile photo"
 msgstr "%{name} 的大頭貼"
@@ -3231,30 +3232,30 @@ msgstr "%{name} 的大頭貼"
 msgid "Couldn't update this pet's photo."
 msgstr "無法更新這隻寵物的相片。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:387
+#: lib/goodmao2_web/live/user_live/settings.ex:391
 #, elixir-autogen, elixir-format
 msgid "Couldn't upload your photo."
 msgstr "無法上傳你的相片。"
 
 #: lib/goodmao2_web/live/pet_live/show.ex:279
-#: lib/goodmao2_web/live/user_live/settings.ex:383
+#: lib/goodmao2_web/live/user_live/settings.ex:387
 #, elixir-autogen, elixir-format
 msgid "Photo uploaded — it will appear once processed."
 msgstr "相片已上傳，處理完成後即會顯示。"
 
 #: lib/goodmao2_web/live/pet_live/show.ex:287
-#: lib/goodmao2_web/live/user_live/settings.ex:391
+#: lib/goodmao2_web/live/user_live/settings.ex:395
 #, elixir-autogen, elixir-format
 msgid "Please choose an image to upload."
 msgstr "請選擇要上傳的圖片。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1132
+#: lib/goodmao2_web/live/pet_live/show.ex:1136
 #, elixir-autogen, elixir-format
 msgid "Processing…"
 msgstr "處理中…"
 
-#: lib/goodmao2_web/components/avatar_components.ex:96
-#: lib/goodmao2_web/components/avatar_components.ex:97
+#: lib/goodmao2_web/components/avatar_components.ex:104
+#: lib/goodmao2_web/components/avatar_components.ex:105
 #: lib/goodmao2_web/live/user_live/settings.ex:29
 #, elixir-autogen, elixir-format
 msgid "Profile photo"
@@ -3266,22 +3267,22 @@ msgid "Profile photo couldn't be processed"
 msgstr "大頭貼無法處理"
 
 #: lib/goodmao2_web/live/pet_live/show.ex:301
-#: lib/goodmao2_web/live/user_live/settings.ex:403
+#: lib/goodmao2_web/live/user_live/settings.ex:407
 #, elixir-autogen, elixir-format
 msgid "Profile photo removed."
 msgstr "已移除大頭貼。"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1124
+#: lib/goodmao2_web/live/pet_live/show.ex:1128
 #, elixir-autogen, elixir-format
 msgid "Remove this pet's photo?"
 msgstr "要移除這隻寵物的相片嗎？"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:71
+#: lib/goodmao2_web/live/user_live/settings.ex:75
 #, elixir-autogen, elixir-format
 msgid "Remove your profile photo?"
 msgstr "要移除你的大頭貼嗎？"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1117
+#: lib/goodmao2_web/live/pet_live/show.ex:1121
 #, elixir-autogen, elixir-format
 msgid "Set photo"
 msgstr "設定相片"
@@ -3291,12 +3292,12 @@ msgstr "設定相片"
 msgid "The profile photo you uploaded couldn't be processed — check the format and try again."
 msgstr "你上傳的大頭貼無法處理 — 請確認格式後再試一次。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:65
+#: lib/goodmao2_web/live/user_live/settings.ex:69
 #, elixir-autogen, elixir-format
 msgid "Upload photo"
 msgstr "上傳相片"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:64
+#: lib/goodmao2_web/live/user_live/settings.ex:68
 #, elixir-autogen, elixir-format
 msgid "Uploading..."
 msgstr "上傳中…"
@@ -3306,20 +3307,31 @@ msgstr "上傳中…"
 msgid "You can't change this pet's photo."
 msgstr "你無法變更這隻寵物的相片。"
 
-#: lib/goodmao2_web/live/user_live/settings.ex:79
+#: lib/goodmao2_web/live/user_live/settings.ex:83
 #, elixir-autogen, elixir-format
 msgid "Your photo is being processed…"
 msgstr "你的相片正在處理中…"
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1083
 #: lib/goodmao2_web/live/pet_live/show.ex:1084
-#: lib/goodmao2_web/live/user_live/settings.ex:40
+#: lib/goodmao2_web/live/pet_live/show.ex:1085
 #: lib/goodmao2_web/live/user_live/settings.ex:41
+#: lib/goodmao2_web/live/user_live/settings.ex:42
 #, elixir-autogen, elixir-format
 msgid "Change profile photo"
 msgstr "變更大頭貼"
 
-#: lib/goodmao2_web/components/avatar_components.ex:90
+#: lib/goodmao2_web/live/pet_live/show.ex:1115
+#: lib/goodmao2_web/live/user_live/settings.ex:63
 #, elixir-autogen, elixir-format
-msgid "Drag or resize the circle to choose the visible area."
-msgstr "拖曳或縮放圓圈以選擇顯示範圍。"
+msgid "Choose a profile photo"
+msgstr "選擇大頭貼照片"
+
+#: lib/goodmao2_web/components/avatar_components.ex:89
+#, elixir-autogen, elixir-format
+msgid "Crop region"
+msgstr "裁切範圍"
+
+#: lib/goodmao2_web/components/avatar_components.ex:96
+#, elixir-autogen, elixir-format
+msgid "Drag the circle, or focus it and use the arrow keys to move and + / − to resize."
+msgstr "拖曳圓圈，或聚焦後以方向鍵移動、以 + / − 縮放。"

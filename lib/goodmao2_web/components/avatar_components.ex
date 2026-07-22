@@ -81,13 +81,19 @@ defmodule Goodmao2Web.AvatarComponents do
 
   def avatar_cropper(assigns) do
     ~H"""
-    <div id={@id} phx-hook="AvatarCropper" phx-update="ignore" class="text-center">
+    <div
+      id={@id}
+      phx-hook="AvatarCropper"
+      phx-update="ignore"
+      class="text-center"
+      data-crop-label={gettext("Crop region")}
+    >
       <input type="hidden" name="crop[x]" />
       <input type="hidden" name="crop[y]" />
       <input type="hidden" name="crop[w]" />
       <input type="hidden" name="crop[h]" />
       <p class="avatar-cropper-hint text-base-content/60 mt-2 hidden text-xs">
-        {gettext("Drag or resize the circle to choose the visible area.")}
+        {gettext("Drag the circle, or focus it and use the arrow keys to move and + / − to resize.")}
       </p>
     </div>
     """
