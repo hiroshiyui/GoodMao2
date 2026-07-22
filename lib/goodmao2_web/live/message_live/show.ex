@@ -31,6 +31,7 @@ defmodule Goodmao2Web.MessageLive.Show do
          |> assign(:page_title, gettext("Chat with %{name}", name: Layouts.account_label(other)))
          |> assign(:conversation, conversation)
          |> assign(:other_user, other)
+         |> assign(:other_avatar, Goodmao2.Media.Avatars.meta("user", other.id))
          |> assign(:compose_form, to_form(%{"body" => ""}, as: :message))
          |> stream(:messages, Messaging.list_messages(user, conversation))}
     end
@@ -80,6 +81,7 @@ defmodule Goodmao2Web.MessageLive.Show do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section
         id="message-thread-section"
@@ -95,6 +97,13 @@ defmodule Goodmao2Web.MessageLive.Show do
           >
             <.icon name="hero-arrow-left" class="size-4" />
           </.link>
+          <.avatar
+            owner_type="user"
+            owner_id={@other_user.id}
+            name={@other_user.display_name}
+            meta={@other_avatar}
+            size={:md}
+          />
           <h1 id="message-thread-heading" class="text-2xl font-semibold break-words">
             {Layouts.account_label(@other_user)}
           </h1>

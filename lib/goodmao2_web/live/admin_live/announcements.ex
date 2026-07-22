@@ -49,6 +49,7 @@ defmodule Goodmao2Web.AdminLive.Announcements do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section
         id="announcements-section"

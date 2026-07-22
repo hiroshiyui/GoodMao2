@@ -190,6 +190,7 @@ defmodule Goodmao2Web.PetLive.Reports do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="reports-section" aria-labelledby="reports-heading" class="mx-auto max-w-xl">
         <div class="flex items-center gap-2">
@@ -281,6 +282,7 @@ defmodule Goodmao2Web.PetLive.Reports do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="report-show" aria-labelledby="report-show-heading" class="mx-auto max-w-2xl">
         <div class="flex items-center justify-between gap-2 print:hidden">

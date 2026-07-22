@@ -7,6 +7,7 @@ defmodule Goodmao2Web.PetLive.Index do
   """
   use Goodmao2Web, :live_view
 
+  alias Goodmao2.Media.Avatars
   alias Goodmao2.Pets
 
   @impl true
@@ -24,6 +25,7 @@ defmodule Goodmao2Web.PetLive.Index do
      socket
      |> assign(:ended?, ended?)
      |> assign(:page_title, (ended? && gettext("Past pets")) || gettext("My pets"))
+     |> assign(:avatar_metas, Avatars.metas_for("pet", Enum.map(pets, & &1.id)))
      |> stream(:pets, pets, reset: true)
      |> assign(:pets_empty?, pets == [])}
   end
@@ -36,6 +38,7 @@ defmodule Goodmao2Web.PetLive.Index do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="pets-section" aria-labelledby="pets-heading">
         <header class="flex items-center justify-between gap-4">
@@ -80,7 +83,16 @@ defmodule Goodmao2Web.PetLive.Index do
           >
             <div class="card-body p-4">
               <div class="flex items-center justify-between gap-2">
-                <h2 class="pet-card-name card-title text-lg">{pet.name}</h2>
+                <div class="flex items-center gap-3">
+                  <.avatar
+                    owner_type="pet"
+                    owner_id={pet.id}
+                    name={pet.name}
+                    meta={@avatar_metas[pet.id]}
+                    size={:md}
+                  />
+                  <h2 class="pet-card-name card-title text-lg">{pet.name}</h2>
+                </div>
                 <span class="pet-card-species badge badge-ghost badge-sm">
                   {translate_species(pet.species)}
                 </span>

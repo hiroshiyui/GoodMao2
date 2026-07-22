@@ -64,6 +64,7 @@ defmodule Goodmao2Web.PetLive.EndOfCare do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="eol-section" aria-labelledby="eol-heading" class="mx-auto max-w-lg">
         <div class="flex items-center gap-2">

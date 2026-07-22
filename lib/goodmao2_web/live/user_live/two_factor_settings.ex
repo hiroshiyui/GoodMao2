@@ -24,6 +24,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <div class="mx-auto max-w-lg space-y-6" id="two-factor-settings">
         <div class="text-center">

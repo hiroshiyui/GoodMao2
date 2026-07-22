@@ -41,6 +41,10 @@ defmodule Goodmao2Web.Layouts do
     default: 0,
     doc: "live unread message count for the nav mailbox badge"
 
+  attr :current_user_avatar, :map,
+    default: nil,
+    doc: "the signed-in user's avatar meta (%{status, version}) for the nav avatar"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -79,6 +83,7 @@ defmodule Goodmao2Web.Layouts do
                   current_scope={@current_scope}
                   unread_notifications={@unread_notifications}
                   unread_messages={@unread_messages}
+                  current_user_avatar={@current_user_avatar}
                   id_prefix="m-"
                 />
               </ul>
@@ -95,6 +100,7 @@ defmodule Goodmao2Web.Layouts do
               current_scope={@current_scope}
               unread_notifications={@unread_notifications}
               unread_messages={@unread_messages}
+              current_user_avatar={@current_user_avatar}
             />
             <li>
               <.font_size_controls />
@@ -154,6 +160,7 @@ defmodule Goodmao2Web.Layouts do
   attr :current_scope, :map, default: nil
   attr :unread_notifications, :integer, default: 0
   attr :unread_messages, :integer, default: 0
+  attr :current_user_avatar, :map, default: nil
   attr :id_prefix, :string, default: ""
 
   defp nav_links(assigns) do
@@ -232,8 +239,16 @@ defmodule Goodmao2Web.Layouts do
         <.link
           navigate={~p"/users/settings"}
           id={"#{@id_prefix}nav-settings"}
-          class="btn btn-ghost btn-sm"
+          class="btn btn-ghost btn-sm gap-2"
         >
+          <.avatar
+            owner_type="user"
+            owner_id={@current_scope.user.id}
+            name={@current_scope.user.display_name}
+            meta={@current_user_avatar}
+            size={:sm}
+            id={"#{@id_prefix}nav-avatar"}
+          />
           {account_label(@current_scope.user)}
         </.link>
       </li>

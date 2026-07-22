@@ -9,6 +9,7 @@ defmodule Goodmao2Web.PetLive.Show do
 
   alias Goodmao2.{Accounts, Logs, Media, Pets}
   alias Goodmao2.Accounts.User
+  alias Goodmao2.Media.Avatars
   alias Goodmao2.Logs.LogEntry
   alias Goodmao2Web.CalendarGrid
 
@@ -35,6 +36,7 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:history_hidden?, pet.history_hidden)
          |> assign(:can_write?, Pets.can?(pet, user, :write))
          |> assign(:can_manage?, Pets.can?(pet, user, :manage))
+         |> assign(:avatar_meta, Avatars.meta("pet", pet.id))
          |> assign(:filter, "all")
          |> assign(:page, 1)
          |> assign(:page_size, user.timeline_page_size || hd(@page_sizes))
@@ -55,6 +57,11 @@ defmodule Goodmao2Web.PetLive.Show do
            # The larger per-kind cap gates the client upload; the purifier re-checks each file
            # against its own image/video byte cap (Media.Limits), so this is only a coarse ceiling.
            max_file_size: Media.Limits.get(:max_video_bytes)
+         )
+         |> allow_upload(:avatar,
+           accept: ~w(.jpg .jpeg .png .gif .webp),
+           max_entries: 1,
+           max_file_size: Media.Limits.get(:max_image_bytes)
          )
          |> load_entries()
          |> load_weight()}
@@ -241,6 +248,54 @@ defmodule Goodmao2Web.PetLive.Show do
     end
   end
 
+  ## Pet profile photo (ADR-0020) — managers only; staged then purified async.
+
+  def handle_event("validate_avatar", _params, socket), do: {:noreply, socket}
+
+  def handle_event("save_avatar", _params, socket) do
+    pet = socket.assigns.pet
+    user = socket.assigns.current_scope.user
+
+    staged =
+      consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
+        {:ok, Media.stage_upload(path)}
+      end)
+
+    case staged do
+      [{:ok, token}] ->
+        case Avatars.set_avatar("pet", pet.id, user, token) do
+          {:ok, avatar} ->
+            {:noreply,
+             socket
+             |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
+             |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
+
+          {:error, _} ->
+            Media.unstage_upload(token)
+            {:noreply, put_flash(socket, :error, gettext("Couldn't update this pet's photo."))}
+        end
+
+      _ ->
+        {:noreply, put_flash(socket, :error, gettext("Please choose an image to upload."))}
+    end
+  end
+
+  def handle_event("remove_avatar", _params, socket) do
+    pet = socket.assigns.pet
+    user = socket.assigns.current_scope.user
+
+    case Avatars.delete_avatar("pet", pet.id, user) do
+      :ok ->
+        {:noreply,
+         socket
+         |> assign(:avatar_meta, nil)
+         |> put_flash(:info, gettext("Profile photo removed."))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("You can't change this pet's photo."))}
+    end
+  end
+
   defp save_quicklog(socket, type, params) do
     pet = socket.assigns.pet
     user = socket.assigns.current_scope.user
@@ -397,6 +452,12 @@ defmodule Goodmao2Web.PetLive.Show do
     {:noreply, socket |> maybe_refresh_month() |> maybe_refresh_weight(entry)}
   end
 
+  # A pet avatar rides the pet's timeline topic (ADR-0020); a non-ready meta ⇒ show the fallback.
+  def handle_info({:avatar_updated, "pet", _id, meta}, socket) do
+    meta = if meta.status == "ready", do: meta, else: nil
+    {:noreply, assign(socket, :avatar_meta, meta)}
+  end
+
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   # In calendar view, a live create/update/delete can change the month's day buckets — and
@@ -486,8 +547,15 @@ defmodule Goodmao2Web.PetLive.Show do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
-      <.pet_header pet={@pet} role={@role} can_manage?={@can_manage?} />
+      <.pet_header
+        pet={@pet}
+        role={@role}
+        can_manage?={@can_manage?}
+        avatar_meta={@avatar_meta}
+        avatar_upload={@uploads.avatar}
+      />
 
       <div
         :if={@history_hidden?}
@@ -979,6 +1047,8 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :pet, :map, required: true
   attr :role, :string, default: nil
   attr :can_manage?, :boolean, default: false
+  attr :avatar_meta, :map, default: nil
+  attr :avatar_upload, :map, required: true
 
   defp pet_header(assigns) do
     ~H"""
@@ -987,37 +1057,95 @@ defmodule Goodmao2Web.PetLive.Show do
       aria-labelledby="pet-name"
       class="flex flex-wrap items-start justify-between gap-4"
     >
-      <div>
-        <div class="flex items-center gap-2">
-          <.link
-            navigate={~p"/pets"}
-            id="pet-back"
-            class="btn btn-ghost btn-sm btn-circle"
-            aria-label={gettext("Back to pets")}
-          >
-            <.icon name="hero-arrow-left" class="size-4" />
-          </.link>
-          <h1 id="pet-name" class="text-2xl font-semibold">{@pet.name}</h1>
-          <span :if={@role} id="pet-role-badge" class="badge badge-ghost badge-sm">
-            {translate_role(@role)}
-          </span>
+      <div class="flex items-start gap-3">
+        <div class="flex flex-col items-center gap-1">
+          <%!-- For a manager the avatar is the trigger for a click-to-open uploader popover
+                (CSP-safe <details> dropdown, like the nav menu); everyone else sees it plain. --%>
+          <details :if={@can_manage?} id="pet-avatar-menu" class="dropdown">
+            <summary
+              class="cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+              title={gettext("Change profile photo")}
+              aria-label={gettext("Change profile photo")}
+            >
+              <.avatar
+                owner_type="pet"
+                owner_id={@pet.id}
+                name={@pet.name}
+                meta={@avatar_meta}
+                size={:xl}
+              />
+            </summary>
+            <.form
+              for={%{}}
+              id="pet-avatar-form"
+              phx-submit="save_avatar"
+              phx-change="validate_avatar"
+              class="dropdown-content z-40 mt-2 flex w-56 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 shadow"
+            >
+              <.live_file_input upload={@avatar_upload} class="file-input file-input-sm w-full" />
+              <div class="flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary" phx-disable-with="…">
+                  {gettext("Set photo")}
+                </button>
+                <button
+                  :if={@avatar_meta}
+                  type="button"
+                  class="btn btn-sm"
+                  phx-click="remove_avatar"
+                  data-confirm={gettext("Remove this pet's photo?")}
+                >
+                  {gettext("Remove")}
+                </button>
+              </div>
+            </.form>
+          </details>
+
+          <.avatar
+            :if={!@can_manage?}
+            owner_type="pet"
+            owner_id={@pet.id}
+            name={@pet.name}
+            meta={@avatar_meta}
+            size={:xl}
+          />
+
+          <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/60 text-xs">
+            {gettext("Processing…")}
+          </p>
         </div>
-        <p class="pet-header-meta text-base-content/60 mt-1 text-sm">
-          {[translate_species(@pet.species), translate_sex(@pet.sex), @pet.breed, @pet.color]
-          |> Enum.filter(&(&1 && &1 != ""))
-          |> Enum.join(" · ")}
-        </p>
-        <p
-          :if={@pet.lifecycle_status != "active"}
-          id="pet-lifecycle"
-          class="text-base-content/60 mt-1 flex items-center gap-1 text-sm"
-        >
-          <.icon name={lifecycle_icon(@pet.lifecycle_status)} class="size-4" />
-          {translate_lifecycle(@pet.lifecycle_status)}
-          <span :if={@pet.ended_at}>
-            · <time datetime={DateTime.to_iso8601(@pet.ended_at)}>{format_date(@pet.ended_at)}</time>
-          </span>
-        </p>
+        <div>
+          <div class="flex items-center gap-2">
+            <.link
+              navigate={~p"/pets"}
+              id="pet-back"
+              class="btn btn-ghost btn-sm btn-circle"
+              aria-label={gettext("Back to pets")}
+            >
+              <.icon name="hero-arrow-left" class="size-4" />
+            </.link>
+            <h1 id="pet-name" class="text-2xl font-semibold">{@pet.name}</h1>
+            <span :if={@role} id="pet-role-badge" class="badge badge-ghost badge-sm">
+              {translate_role(@role)}
+            </span>
+          </div>
+          <p class="pet-header-meta text-base-content/60 mt-1 text-sm">
+            {[translate_species(@pet.species), translate_sex(@pet.sex), @pet.breed, @pet.color]
+            |> Enum.filter(&(&1 && &1 != ""))
+            |> Enum.join(" · ")}
+          </p>
+          <p
+            :if={@pet.lifecycle_status != "active"}
+            id="pet-lifecycle"
+            class="text-base-content/60 mt-1 flex items-center gap-1 text-sm"
+          >
+            <.icon name={lifecycle_icon(@pet.lifecycle_status)} class="size-4" />
+            {translate_lifecycle(@pet.lifecycle_status)}
+            <span :if={@pet.ended_at}>
+              ·
+              <time datetime={DateTime.to_iso8601(@pet.ended_at)}>{format_date(@pet.ended_at)}</time>
+            </span>
+          </p>
+        </div>
       </div>
 
       <nav id="pet-actions" class="flex gap-2" aria-label={gettext("Pet actions")}>

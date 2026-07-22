@@ -191,6 +191,7 @@ defmodule Goodmao2Web.PetLive.Medications do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="medications" aria-labelledby="medications-heading" class="mx-auto max-w-2xl">
         <div class="flex items-center gap-2">

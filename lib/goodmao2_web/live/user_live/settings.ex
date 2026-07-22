@@ -4,6 +4,8 @@ defmodule Goodmao2Web.UserLive.Settings do
   on_mount {Goodmao2Web.UserAuth, :require_sudo_mode}
 
   alias Goodmao2.Accounts
+  alias Goodmao2.Media
+  alias Goodmao2.Media.Avatars
   alias Goodmao2.Notifications.WebPush
 
   @impl true
@@ -14,6 +16,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <div class="text-center">
         <.header>
@@ -21,6 +24,57 @@ defmodule Goodmao2Web.UserLive.Settings do
           <:subtitle>{gettext("Manage your profile and email address")}</:subtitle>
         </.header>
       </div>
+
+      <section id="avatar-settings" aria-labelledby="avatar-heading" class="text-center">
+        <h2 id="avatar-heading" class="sr-only">{gettext("Profile photo")}</h2>
+        <div class="flex flex-col items-center gap-1">
+          <%!-- The avatar is the trigger for a click-to-open uploader popover (CSP-safe
+                <details> dropdown, like the pet header and the nav menu). --%>
+          <details id="user-avatar-menu" class="dropdown">
+            <summary
+              class="cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+              title={gettext("Change profile photo")}
+              aria-label={gettext("Change profile photo")}
+            >
+              <.avatar
+                owner_type="user"
+                owner_id={@current_scope.user.id}
+                name={@current_scope.user.display_name}
+                meta={@avatar_meta}
+                size={:xl}
+              />
+            </summary>
+            <.form
+              for={%{}}
+              id="avatar_form"
+              phx-submit="save_avatar"
+              phx-change="validate_avatar"
+              class="dropdown-content dropdown-center z-40 mt-2 flex w-64 flex-col gap-2 rounded-box border border-base-200 bg-base-100 p-3 text-left shadow"
+            >
+              <.live_file_input upload={@uploads.avatar} class="file-input file-input-sm w-full" />
+              <div class="flex gap-2">
+                <.button variant="primary" phx-disable-with={gettext("Uploading...")}>
+                  {gettext("Upload photo")}
+                </.button>
+                <.button
+                  :if={@avatar_meta}
+                  type="button"
+                  phx-click="remove_avatar"
+                  data-confirm={gettext("Remove your profile photo?")}
+                >
+                  {gettext("Remove")}
+                </.button>
+              </div>
+            </.form>
+          </details>
+
+          <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/60 text-xs">
+            {gettext("Your photo is being processed…")}
+          </p>
+        </div>
+      </section>
+
+      <div class="divider" />
 
       <.form
         for={@profile_form}
@@ -200,15 +254,23 @@ defmodule Goodmao2Web.UserLive.Settings do
     email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
     profile_changeset = Accounts.change_user_profile(user, %{}, validate_unique: false)
 
+    # The nav's UnreadBadges on_mount already subscribes this process to the user's avatar topic
+    # and passes `{:avatar_updated, "user", …}` through, so our handle_info below reacts too.
     socket =
       socket
       |> assign(:page_title, gettext("Account settings"))
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:email_form_current_password, nil)
       |> assign(:profile_form, to_form(profile_changeset))
+      |> assign(:avatar_meta, Avatars.meta("user", user.id))
       |> assign(:push_configured, WebPush.vapid_configured?())
       |> assign(:push_supported, false)
       |> assign(:push_subscribed, false)
+      |> allow_upload(:avatar,
+        accept: ~w(.jpg .jpeg .png .webp .gif),
+        max_entries: 1,
+        max_file_size: Media.Limits.get(:max_image_bytes)
+      )
 
     {:ok, socket}
   end
@@ -284,6 +346,47 @@ defmodule Goodmao2Web.UserLive.Settings do
     end
   end
 
+  ## Profile photo (ADR-0020) — staged then purified async; the row broadcasts when ready.
+
+  def handle_event("validate_avatar", _params, socket), do: {:noreply, socket}
+
+  def handle_event("save_avatar", _params, socket) do
+    user = socket.assigns.current_scope.user
+
+    staged =
+      consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
+        {:ok, Media.stage_upload(path)}
+      end)
+
+    case staged do
+      [{:ok, token}] ->
+        case Avatars.set_avatar("user", user.id, user, token) do
+          {:ok, avatar} ->
+            {:noreply,
+             socket
+             |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
+             |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
+
+          {:error, _} ->
+            Media.unstage_upload(token)
+            {:noreply, put_flash(socket, :error, gettext("Couldn't upload your photo."))}
+        end
+
+      _ ->
+        {:noreply, put_flash(socket, :error, gettext("Please choose an image to upload."))}
+    end
+  end
+
+  def handle_event("remove_avatar", _params, socket) do
+    user = socket.assigns.current_scope.user
+    :ok = Avatars.delete_avatar("user", user.id, user)
+
+    {:noreply,
+     socket
+     |> assign(:avatar_meta, nil)
+     |> put_flash(:info, gettext("Profile photo removed."))}
+  end
+
   ## Web Push (ADR-0011 Stage 2) — events pushed up by the PushManager JS hook.
 
   def handle_event(
@@ -316,6 +419,15 @@ defmodule Goodmao2Web.UserLive.Settings do
     {:noreply,
      put_flash(socket, :error, gettext("Couldn't update push notifications. Please try again."))}
   end
+
+  @impl true
+  def handle_info({:avatar_updated, "user", _id, meta}, socket) do
+    # `mark_failed`/`delete` broadcast a non-ready meta; treat a dropped row as "no avatar".
+    meta = if meta.status == "ready", do: meta, else: nil
+    {:noreply, assign(socket, :avatar_meta, meta)}
+  end
+
+  def handle_info(_msg, socket), do: {:noreply, socket}
 
   # (Password change moved to Goodmao2Web.UserLive.PasswordSettings — gated by the
   # current password in addition to sudo mode.)

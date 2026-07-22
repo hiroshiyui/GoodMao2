@@ -98,6 +98,7 @@ defmodule Goodmao2Web.PetLive.Access do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="access-section" aria-labelledby="access-heading" class="mx-auto max-w-xl">
         <div class="flex items-center gap-2">

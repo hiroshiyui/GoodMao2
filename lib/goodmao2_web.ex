@@ -90,6 +90,8 @@ defmodule Goodmao2Web do
       import Goodmao2Web.LogFields
       # Life-log media rendering (shared by the timeline and the entry page)
       import Goodmao2Web.MediaComponents
+      # Round-masked profile images for users and pets (ADR-0020)
+      import Goodmao2Web.AvatarComponents
       # Health-summary report rendering + the shared weight-trend chart
       import Goodmao2Web.ReportComponents
       # App-wide view helpers (label translations, log summaries, formatting)

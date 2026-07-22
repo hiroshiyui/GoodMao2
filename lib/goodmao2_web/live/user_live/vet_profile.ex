@@ -57,6 +57,7 @@ defmodule Goodmao2Web.UserLive.VetProfile do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="vet-profile-section" aria-labelledby="vet-profile-heading" class="mx-auto max-w-xl">
         <.header>

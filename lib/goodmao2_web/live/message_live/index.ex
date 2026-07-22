@@ -23,7 +23,12 @@ defmodule Goodmao2Web.MessageLive.Index do
 
   defp load_conversations(socket) do
     user = socket.assigns.current_scope.user
-    assign(socket, :conversations, Messaging.list_conversations(user))
+    conversations = Messaging.list_conversations(user)
+    ids = Enum.map(conversations, & &1.other_user.id)
+
+    socket
+    |> assign(:conversations, conversations)
+    |> assign(:avatar_metas, Goodmao2.Media.Avatars.metas_for("user", ids))
   end
 
   @impl true
@@ -62,6 +67,7 @@ defmodule Goodmao2Web.MessageLive.Index do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <section id="messages-section" aria-labelledby="messages-heading" class="mx-auto max-w-xl">
         <h1 id="messages-heading" class="text-2xl font-semibold">{gettext("Messages")}</h1>
@@ -102,16 +108,25 @@ defmodule Goodmao2Web.MessageLive.Index do
           >
             <.link navigate={~p"/messages/#{entry.conversation.id}"} class="block hover:opacity-80">
               <div class="card-body flex-row items-center justify-between gap-3 p-3">
-                <div class="min-w-0">
-                  <p class="conversation-other font-medium break-words">
-                    {Layouts.account_label(entry.other_user)}
-                  </p>
-                  <p
-                    :if={entry.conversation.last_message_at}
-                    class="conversation-time text-base-content/50 text-xs"
-                  >
-                    {format_datetime(entry.conversation.last_message_at)}
-                  </p>
+                <div class="flex min-w-0 items-center gap-3">
+                  <.avatar
+                    owner_type="user"
+                    owner_id={entry.other_user.id}
+                    name={entry.other_user.display_name}
+                    meta={@avatar_metas[entry.other_user.id]}
+                    size={:md}
+                  />
+                  <div class="min-w-0">
+                    <p class="conversation-other font-medium break-words">
+                      {Layouts.account_label(entry.other_user)}
+                    </p>
+                    <p
+                      :if={entry.conversation.last_message_at}
+                      class="conversation-time text-base-content/50 text-xs"
+                    >
+                      {format_datetime(entry.conversation.last_message_at)}
+                    </p>
+                  </div>
                 </div>
                 <span
                   :if={entry.unread > 0}

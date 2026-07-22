@@ -58,6 +58,11 @@ defmodule Goodmao2Web.Router do
     pipe_through [:serve_media, :require_authenticated_user]
 
     get "/media/:id", MediaController, :show
+
+    # Profile images (ADR-0020), resolved by owner id. A user avatar is visible to any
+    # authenticated user; a pet avatar re-applies that pet's read authorization (IDOR-hidden).
+    get "/avatars/user/:id", AvatarController, :user
+    get "/avatars/pet/:id", AvatarController, :pet
   end
 
   # Purified media for a `public` entry, served anonymously via its parent entry's share token

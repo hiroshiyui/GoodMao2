@@ -22,6 +22,7 @@ defmodule Goodmao2Web.UserLive.PasswordSettings do
       current_scope={@current_scope}
       unread_notifications={@unread_notifications}
       unread_messages={@unread_messages}
+      current_user_avatar={@current_user_avatar}
     >
       <div class="text-center">
         <.header>
