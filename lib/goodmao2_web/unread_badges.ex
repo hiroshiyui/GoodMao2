@@ -7,9 +7,11 @@ defmodule Goodmao2Web.UnreadBadges do
   meta (`@current_user_avatar`, for the nav avatar). On the connected socket it subscribes to the
   user's notification, message, and avatar PubSub topics and attaches a process-level
   `:handle_info` hook: `{:notifications_changed, …}` / `{:messages_changed, …}` update the badge
-  assign and **halt** (individual LiveViews never see them); `{:avatar_updated, "user", …}` updates
-  the nav avatar but **passes through** (`:cont`) so a LiveView that also tracks its own avatar
-  (e.g. `/users/settings`) still reacts; every other message passes through. Added to the
+  assign and **pass through** (`:cont`) so a LiveView that also renders that list (the feed at
+  `/notifications`, the inbox at `/messages`) still re-streams; `{:avatar_updated, "user", …}`
+  updates the nav avatar and likewise passes through so a LiveView tracking its own avatar
+  (e.g. `/users/settings`) still reacts; every other message passes through. Because the hook
+  already subscribes, those LiveViews must **not** subscribe again. Added to the
   `:require_authenticated_user` live_session's `on_mount` list.
   """
   import Phoenix.Component, only: [assign: 3, assign_new: 3]
@@ -46,11 +48,13 @@ defmodule Goodmao2Web.UnreadBadges do
     end
   end
 
+  # Pass through (`:cont`), not `:halt`: the feed (`/notifications`) and inbox (`/messages`)
+  # LiveViews also handle these to re-stream their lists. The hook is their sole subscription.
   defp handle_badge_message({:notifications_changed, %{unread: n}}, socket),
-    do: {:halt, assign(socket, :unread_notifications, n)}
+    do: {:cont, assign(socket, :unread_notifications, n)}
 
   defp handle_badge_message({:messages_changed, %{unread: n}}, socket),
-    do: {:halt, assign(socket, :unread_messages, n)}
+    do: {:cont, assign(socket, :unread_messages, n)}
 
   # Keep the nav avatar live, but pass through so a LiveView tracking its own avatar still reacts.
   defp handle_badge_message({:avatar_updated, "user", _id, meta}, socket),

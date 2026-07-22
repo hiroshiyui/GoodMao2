@@ -52,4 +52,25 @@ defmodule Goodmao2Web.NotificationLiveTest do
 
     refute has_element?(lv, "#notification-#{n.id}")
   end
+
+  test "a new notification streams into the open feed without a reload", %{
+    conn: conn,
+    user: user
+  } do
+    # The UnreadBadges on_mount hook subscribes the process and attaches a :handle_info hook that
+    # runs BEFORE this LiveView's own handle_info. That hook must PASS {:notifications_changed, _}
+    # through (:cont), not halt it, or this feed never re-streams. Drive the message through the
+    # hook chain deterministically (a raw send is FIFO before the next render).
+    {:ok, lv, _html} = live(conn, ~p"/notifications")
+    assert has_element?(lv, "#notifications-empty")
+
+    {:ok, n} =
+      Notifications.create(user.id, "announcement", %{"title" => "Fresh", "body" => "Live"})
+
+    send(lv.pid, {:notifications_changed, %{unread: 1}})
+    render(lv)
+
+    assert has_element?(lv, "#notifications-#{n.id}")
+    assert has_element?(lv, ".notification-title", "Fresh")
+  end
 end

@@ -11,9 +11,9 @@ defmodule Goodmao2Web.MessageLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    user = socket.assigns.current_scope.user
-    if connected?(socket), do: Messaging.subscribe(user)
-
+    # The `UnreadBadges` on_mount hook already subscribes this process to the user's message
+    # topic and passes `{:messages_changed, _}` through to our handle_info below — subscribing
+    # again here would double-deliver and reload the list twice.
     {:ok,
      socket
      |> assign(:page_title, gettext("Messages"))

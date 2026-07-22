@@ -11,8 +11,10 @@ defmodule Goodmao2Web.NotificationLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    # The `UnreadBadges` on_mount hook already subscribes this process to the user's
+    # notification topic and passes `{:notifications_changed, _}` through to our handle_info
+    # below — subscribing again here would double-deliver and re-stream twice.
     user = socket.assigns.current_scope.user
-    if connected?(socket), do: Notifications.subscribe(user)
 
     {:ok,
      socket
