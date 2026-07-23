@@ -7,11 +7,16 @@ import Config
 # before starting your production server.
 config :goodmao2, Goodmao2Web.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 
-# Force using SSL in production. This also sets the "strict-security-transport" header,
-# known as HSTS. If you have a health check endpoint, you may want to exclude it below.
-# Note `:force_ssl` is required to be set at compile-time.
+# Force using SSL in production. If you have a health check endpoint, you may want to
+# exclude it below. Note `:force_ssl` is required to be set at compile-time.
+#
+# HSTS is deliberately OFF here: nginx terminates TLS and emits the policy of record
+# (2 years, includeSubDomains, preload). Leaving Plug.SSL's default on too sent the header
+# twice, and RFC 6797 says a browser processes only the FIRST -- so the weaker one-year
+# policy without `includeSubDomains` won, quietly making the site ineligible for the
+# preload list. Behind any other proxy, that proxy must send HSTS itself.
 config :goodmao2, Goodmao2Web.Endpoint,
-  force_ssl: [rewrite_on: [:x_forwarded_proto]],
+  force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: false],
   exclude: [
     # paths: ["/health"],
     hosts: ["localhost", "127.0.0.1"]

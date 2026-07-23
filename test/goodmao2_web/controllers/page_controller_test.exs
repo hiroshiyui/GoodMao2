@@ -8,6 +8,15 @@ defmodule Goodmao2Web.PageControllerTest do
     assert response =~ "shareable health timeline"
   end
 
+  test "GET / carries its own page title", %{conn: conn} do
+    response = conn |> get(~p"/") |> html_response(200)
+
+    # The root layout appends " · GoodMao" unconditionally, so a missing title renders a
+    # bare separator -- the first thing a search engine indexes and a screen reader reads.
+    assert response =~ "Health timeline for the pets you love"
+    refute response =~ ~r|<title[^>]*>\s*·|
+  end
+
   test "GET / renders the font-size controls next to the theme toggle", %{conn: conn} do
     response = conn |> get(~p"/") |> html_response(200)
     assert response =~ ~s(id="font-size-controls")

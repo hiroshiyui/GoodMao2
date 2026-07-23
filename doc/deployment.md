@@ -364,7 +364,9 @@ server {
 
     ssl_certificate     /etc/letsencrypt/live/goodmao.tw/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/goodmao.tw/privkey.pem;
-    add_header Strict-Transport-Security "max-age=31536000" always;
+    # nginx owns HSTS. `force_ssl` in config/prod.exs sets `hsts: false` so the header is
+    # sent once -- a browser honours only the first, so a duplicate would override this.
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
 
     # digested static assets straight from disk
     location /assets/ { alias /opt/goodmao2/static/assets/; expires 1y; access_log off; }
