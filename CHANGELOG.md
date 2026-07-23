@@ -8,6 +8,36 @@ skill).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-07-23
+
+### Changed
+
+- **Each log-entry visibility scope now says what it does.** The three scopes shipped as bare
+  words — Private / Limited / Public — with nothing stating who can read the entry. The
+  difference is not cosmetic: `private` hides an entry from co-caretakers and vets who
+  otherwise read the whole timeline, and `public` is readable by anyone holding the link, with
+  no account at all. A privacy control an owner has to guess at is one that gets set wrong.
+  Every option now carries its meaning in the label (a native `<option>` renders one line of
+  plain text, so it cannot travel any other way, and it is what a screen reader announces),
+  the current choice is restated under the field and tied to it with `aria-describedby`, and
+  the timeline badge explains itself on hover and to assistive technology. Both places an owner
+  sets visibility render one shared component, so the wording cannot drift between them.
+  Translated in all three locales. **No change to the data model, the read filters, or the
+  owner-only rule** ([ADR-0004](doc/adr/0004-log-visibility.md)) — this only makes the existing
+  behaviour legible.
+
+### Documentation
+
+- **The docs caught up with the product.** `README.md` described neither medication schedules,
+  health reports, notifications and Web Push, messaging, avatars, per-viewer timezones, nor the
+  installable app, and omitted Rust from the prerequisites although `mix compile` builds the NIF
+  crate. `doc/architecture.md` was missing the `avatars` table, the native boundary, and the PWA
+  entirely. `doc/roadmap.md` still listed "PWA / service worker / offline" as explicitly out of
+  scope — now narrowed to **offline operation only**, which remains out of scope and always was
+  the real objection. `AGENTS.md` and `CLAUDE.md` gained the PWA invariants, and
+  `doc/web-application-development-common-practices.md` a section on the ways installability
+  fails silently.
+
 ## [1.0.2] - 2026-07-23
 
 ### Fixed
