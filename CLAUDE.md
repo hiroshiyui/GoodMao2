@@ -225,6 +225,22 @@ partitions its x-axis strictly by calendar day (faint x/y scale lines; per-day d
 date/weight on click via the `WeightChart` JS hook (a native `<title>` gives the hover fallback in
 the hook-less static report).
 
+**Installable app (PWA).** `priv/static/manifest.json` + committed `any`/`maskable` icons, linked
+from `root.html.heex` alongside the iOS-only `apple-touch-icon` / `apple-mobile-web-app-*` tags
+(Safari ignores the manifest). The service worker is a **separate `service_worker` esbuild
+profile** built to `priv/static/service_worker.js` — the **site root**, so its scope can be `/` —
+registered app-wide from `app.js`, not from the push hook. It displays/routes Web Push and
+precaches **only** `priv/static/offline.html`; **no application page is ever cached** (all
+authenticated and per-viewer, and the cache is shared across the browser profile), and the fetch
+handler is scoped to navigations. Anything new served from the site root must be added to **both**
+`static_paths/0` and the nginx static `location` regex. Installability is pinned by
+`test/goodmao2_web/pwa_test.exs` because a browser reports nothing when it judges a site
+uninstallable — the prompt just never appears. Two JS hooks exist for the installed-app case:
+`DisclosureState` keeps `<details>` panels open across LiveView patches (DOM-only state is
+otherwise stripped by morphdom — it was collapsing the QuickLog panel mid-IME-composition), and
+`reconnect_flash.js` holds the reconnect banners behind a 2s grace period so waking a phone
+doesn't flash a connection error.
+
 ## Non-obvious conventions
 
 - **End-of-care is a lifecycle status transition, not a deletion** — the pet record and
