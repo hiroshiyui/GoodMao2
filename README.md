@@ -42,6 +42,33 @@ GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
   **actively purified with ffmpeg** (magic-byte typing, EXIF/GPS stripped by re-encode,
   codec allow-list + duration cap), stored as id-keyed opaque objects and served only via
   an authorized, IDOR-hidden `GET /media/:id`.
+- **Profile images** — optional avatars for users *and* pets, purified through the same
+  ffmpeg pipeline (images only) with an in-browser square crop that the server re-applies
+  authoritatively. A pet's avatar is `:read`-gated like the rest of its data.
+- **Medication schedules & reminders** — recurring schedules in the schedule's own timezone,
+  materialized into durable dose slots. Marking a dose given is an atomic claim (two
+  caretakers can't double-record) that writes a normal `medication` entry, so there is one
+  timeline and no parallel history. Overdue slots age to `missed`, and a cron worker reminds
+  every caretaker who can act.
+- **Health summary reports** — a frozen, point-in-time snapshot over a date range, generated
+  by an owner and readable by any effective grant. Private entries are excluded from the
+  snapshot itself, so an optional **expiring share link** can be handed to a vet who has no
+  account. Only the token's SHA-256 hash is stored.
+- **Notifications & Web Push** — an in-site bell feed (grants, new logs respecting per-entry
+  visibility, medication reminders, admin announcements) whose copy is rendered at read time
+  rather than stored, with unread badges that update live across every page. The same rows
+  drive **Web Push** to the phone: RFC 8291/8188/8292 hand-rolled on `:crypto`, an SSRF-safe
+  DNS-pinned outbound client, and an encrypted VAPID key.
+- **Private messaging** — a 1:1 mailbox between users who already share a pet, with read
+  cursors and soft-deleted messages. Attempting to message anyone else returns one uniform
+  error whether they are unknown, yourself, or simply unshared.
+- **Timezones** — times are stored UTC and resolved per viewer (user preference → system
+  default → UTC), so every timestamp, `datetime-local` input, and calendar day-bucket reflects
+  the reader's own clock.
+- **Installable app (PWA)** — a web app manifest, maskable icons, and safe-area-aware layout
+  make GoodMao installable to a phone's home screen, which is where pet care actually gets
+  logged. **It is not an offline app**: no page is ever cached (they are all authenticated and
+  per-viewer), only a small static page shown when a navigation finds no connection.
 - **i18n** — every user-visible string goes through Gettext, with the `en`, `zh_TW`, and
   `ja_JP` catalogs **fully translated** and culturally localized (a locale switcher, a
   per-culture brand wordmark, and a locale-parity test that keeps the three in structural
@@ -51,14 +78,20 @@ GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
   per-address throttling of failed logins and auth emails, a `/health` endpoint, a
   `mix goodmao.doctor` preflight, and a supervised **Oban** cron that prunes expired auth tokens.
 
-See [`doc/roadmap.md`](doc/roadmap.md) for what's deferred.
+GoodMao is deployed and in production; [`doc/deployment.md`](doc/deployment.md) is the
+go-live runbook (Ansible provisioning, SOPS-encrypted secrets, SES mail, DNS, backups), and
+[`doc/roadmap.md`](doc/roadmap.md) covers what's deferred.
 
 ## Prerequisites
 
 - Elixir `~> 1.15` / OTP 26+ (developed on Elixir 1.19 / OTP 28)
 - PostgreSQL (a `goodmao2` role with `CREATEDB`; see `config/dev.exs` / `config/test.exs`)
 - **`ffmpeg` + `ffprobe`** on `PATH` — required to upload/purify LifeLog media (photos and
-  videos); the rest of the app runs without them
+  videos) and profile images; the rest of the app runs without them
+- **Rust** — `mix compile` builds the `native/goodmao2_native` crate
+  ([ADR-0017](doc/adr/0017-rust-nif-native-boundary.md)). The version is pinned by
+  `rust-toolchain.toml`, which `rustup` installs automatically; without a toolchain the
+  project does not compile at all
 
 ## Getting started
 
@@ -95,18 +128,32 @@ mix test test/goodmao2/pets_test.exs
 
 ```
 lib/goodmao2/            # contexts (domain)
-  accounts.ex            #   auth + profile/handle + first-user-admin  (phx.gen.auth)
+  accounts.ex            #   auth + profile/handle + first-user-admin + 2FA  (phx.gen.auth)
   pets.ex                #   pets, access grants, resource authorization
   logs.ex                #   structured entries + timeline + revisions + PubSub
-  media.ex               #   purified LifeLog photos/videos (ffmpeg + id-keyed storage)
+  media.ex               #   purified LifeLog photos/videos + avatars (ffmpeg, id-keyed)
+  medications.ex         #   schedules, materialized dose slots, reminders
+  reports.ex             #   frozen health-summary snapshots + expiring share links
+  notifications.ex       #   bell feed + Web Push dispatch
+  messaging.ex           #   1:1 mailbox (shared-pet gated)
+  settings.ex            #   admin-managed key/value system settings (ETS-cached)
+  timezone.ex            #   per-viewer timezone resolution + UTC<->local conversion
+  native.ex              #   Rust NIF boundary (native/goodmao2_native)
 lib/goodmao2_web/
-  live/pet_live/         #   Index · Form · Show(QuickLog+timeline) · LogEntry · Access · EndOfCare
-  live/admin_live.ex     #   read-only /admin site overview
-  controllers/           #   media (GET /media/:id) · health · locale · session
-  helpers.ex             #   enum-label translations + log summaries
+  live/pet_live/         #   Index · Form · Show(QuickLog+timeline) · LogEntry · Access ·
+                         #   EndOfCare · Medications · Reports
+  live/user_live/        #   settings, 2FA, vet profile
+  live/admin_live.ex     #   read-only /admin overview + vet-credential review queue
+  controllers/           #   media · avatars · reports · shared entries · push · health
+  helpers.ex             #   enum-label translations + log summaries + clinical flags
   components/layouts.ex  #   app shell / nav
+assets/js/               # LiveView hooks + the service worker (built to the site root)
+native/goodmao2_native/  # Rust NIF crate (Rustler; toolchain pinned by rust-toolchain.toml)
+ansible/                 # server provisioning + release deployment (SOPS-encrypted secrets)
 doc/architecture.md      # contexts, schema, authorization
 doc/roadmap.md           # what's built and what's deferred
+doc/deployment.md        # go-live runbook, DNS/mail, backups
+doc/adr/                 # why the architectural turns were taken
 ```
 
 ## License
