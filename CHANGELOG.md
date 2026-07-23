@@ -8,6 +8,41 @@ skill).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-23
+
+GoodMao installs to a phone's home screen. Pet care is logged on a phone at the moment it
+happens, so a home-screen icon and a standalone window fit that far better than finding a
+browser tab.
+
+### Added
+
+- **Installable as a Progressive Web App.** A web app manifest declares a `standalone` app that
+  opens at **`/pets`** — where you actually work, not the landing page — with long-press
+  **shortcuts** to Pets, Notifications, and Messages. Ships a generated paw icon set in the brand
+  terracotta on cream, at 192 and 512 in both `any` and **`maskable`** purposes; the maskable
+  variants keep the mark inside the safe zone so Android's adaptive shapes don't clip it. iOS
+  ignores the manifest entirely, so it also gets an `apple-touch-icon` and the
+  `apple-mobile-web-app-*` meta tags. `viewport-fit=cover` plus `env(safe-area-inset-*)` padding,
+  scoped to `@media (display-mode: standalone)`, keeps the installed window clear of the notch and
+  home indicator while leaving browser tabs untouched.
+- Tests covering the installability contract, including that **every icon path the manifest
+  references is actually served** — a missing `static_paths/0` entry 404s silently with no build
+  error, and would otherwise only surface on a phone.
+
+### Fixed
+
+- **The service worker now registers on every page.** It was registered only by the `PushManager`
+  hook, which mounts on the settings page alone, so a visitor who never opened settings had no
+  service worker and could not meet the browser's installability criteria. This was the actual
+  blocker to installing the app; the fetch handler had been in place for it all along.
+
+### Known limitations
+
+- The service worker is a network passthrough, so **the installed app shows the browser's offline
+  error when there is no connection**. Genuine offline support is a larger design question for a
+  LiveView app — the timeline is server-rendered over a WebSocket, so offline logging would need
+  client-side queueing — and is deliberately deferred.
+
 ## [0.2.2] - 2026-07-23
 
 Bug fixes found while putting the first production deployment through its paces. Two of them
