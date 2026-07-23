@@ -8,6 +8,25 @@ skill).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-07-23
+
+### Fixed
+
+- **The installed app now shows a page when the phone is offline.** The service worker's fetch
+  handler was a bare network passthrough, so a navigation with no connection produced the
+  browser's own error page. It now precaches one self-contained static page and serves it when a
+  navigation fails. Nothing else is cached deliberately: every GoodMao page is authenticated,
+  per-viewer and live, so caching one would risk showing one person's records to whoever opens the
+  app next. Only navigations are intercepted — assets, the LiveView socket and API calls go
+  straight to the network.
+- **nginx serves the web app manifest off disk.** The static-file location still carried a
+  `site.webmanifest` filename inherited from a sibling project, which GoodMao never used, so
+  `/manifest.json` missed the block and was proxied into the application on every request instead
+  of being served beside the service worker.
+- **CI builds the service worker before running the suite.** `priv/static/service_worker.js` is a
+  git-ignored esbuild output, so a fresh checkout had nothing to serve and the PWA test failed on
+  every run since 0.3.0 — including both release commits.
+
 ## [0.3.1] - 2026-07-23
 
 ### Fixed
