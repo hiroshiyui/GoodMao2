@@ -7,4 +7,4 @@
 # operate the sibling Baudrate deploy, reuse the same GPG key here.
 creation_rules:
   - path_regex: \.sops\.yml$
-    pgp: "REPLACE_WITH_YOUR_GPG_FINGERPRINT"
+    pgp: "37A45B21B45EA42EBE6CE74C9F353471AF05D276"
