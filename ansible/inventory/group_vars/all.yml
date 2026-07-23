@@ -34,5 +34,10 @@ elixir_version: "1.19.5"
 
 # Mailer — Amazon SES (non-secret bits; credentials live in all.sops.yml).
 # MAILER_FROM_EMAIL defaults to no-reply@<domain> unless overridden here.
-aws_ses_region: "us-east-1"
+#
+# SES identities are REGION-SCOPED: goodmao.tw is verified in ap-northeast-3
+# (Osaka) and its Easy DKIM CNAMEs are pinned to that region. Changing this
+# without re-verifying the domain there breaks sending — the app still boots,
+# then every send fails as an unverified identity. See doc/deployment.md.
+aws_ses_region: "ap-northeast-3"
 mailer_from_name: "GoodMao"
