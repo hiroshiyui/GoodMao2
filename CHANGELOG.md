@@ -8,6 +8,44 @@ skill).
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-07-23
+
+### Fixed
+
+- **The last six untranslated strings now render in Chinese and Japanese.** Two authentication
+  flashes, the mailbox conversation `aria-label`, and the weight chart's screen-reader table
+  caption and column header had shipped with empty translations, falling back to English. Four
+  of the six were an `aria-label` and a screen-reader-only table — so the only people who met
+  the untranslated text were the ones the localization exists for. `zh_TW` and `ja_JP` are now
+  at zero untranslated entries.
+
+### Added
+
+- **The locale-parity test asserts completeness and placeholder survival**
+  (`test/goodmao2/locale_parity_test.exs`). The six strings above shipped while it passed, and
+  it was right to pass: it checked that the catalogs carry the same msgids with no fuzzy
+  entries, and they did. A merged-but-empty `msgstr` is structurally identical to a translated
+  one, and Gettext falls back to the msgid silently — nothing broke and nothing warned. Every
+  entry in a target locale must now carry a non-empty `msgstr` (`en` is the source locale,
+  where empty legitimately means "identical to the msgid"), and every `%{placeholder}` in a
+  msgid must survive into its translation — dropping one raises at render time in that locale
+  alone. Both assertions were verified to fail on injected defects, not merely to pass.
+
+### Documentation
+
+- **A `v1.1.0` milestone chapter collects the deferred tail.** The v1.0.0 chapter had no
+  unchecked items left, so the remaining work survived only as "Follow-up:" asides inside
+  shipped entries. All of it is now one chapter with a stated theme — coordination — and each
+  item names the failure mode it addresses: medication snooze/escalation, notification
+  batching, dose-history retention GC, per-pet timezones, the media and sharing follow-ups, and
+  the operational items a live deployment created (an offline backup of the GPG key that
+  decrypts every deployment secret, one restore drill, and optional HSTS preload submission).
+  Localization completeness is the first item shipped from it.
+- The shipped v1.0.0 chapter **drops its 63 checkboxes** — a page of `[x]` reads as a form to
+  fill in rather than a record of what was built. Three stale statuses in the ADR index
+  (0004, 0005, 0009) were corrected: each said *deferred* while the ADR itself, and the code,
+  said shipped.
+
 ## [1.0.3] - 2026-07-23
 
 ### Changed
