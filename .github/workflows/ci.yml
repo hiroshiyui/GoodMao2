@@ -60,6 +60,23 @@ jobs:
           key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ runner.os }}-mix-
 
+      # The esbuild binary lives in _build, so the cache above appears to cover it -- but a
+      # cache is only *saved* when its key misses, and this key is mix.lock. The entry was
+      # written before the service-worker step existed, so every run since restored a cache
+      # with no binary, hit the key exactly, and never re-saved: esbuild was re-downloaded
+      # from npm on every build. One 504 from the registry then failed CI (run 30009215295).
+      #
+      # A separate cache fixes that: it misses once, saves, and hits thereafter. Keyed on
+      # config/config.exs rather than the version literal -- `mix esbuild.install --if-missing`
+      # keeps whatever binary it finds, so a key that did not change on a version bump would
+      # silently build the app with the old esbuild. Hashing the file that declares the version
+      # cannot drift from it; the cost is one extra download when any config changes.
+      - name: Cache the esbuild binary
+        uses: actions/cache@v6
+        with:
+          path: _build/esbuild-*
+          key: ${{ runner.os }}-esbuild-${{ hashFiles('config/config.exs') }}
+
       - name: Install dependencies
         run: mix deps.get
 
@@ -82,7 +99,17 @@ jobs:
       # has no service worker to serve and the PWA test 404s. Only this bundle is needed --
       # the manifest and icons are committed, and no test asserts on the app/CSS bundles.
       - name: Build the service worker bundle
-        run: mix esbuild.install --if-missing && mix esbuild service_worker
+        # On a cache miss this reaches npm, which fails often enough to matter -- a single 504
+        # took down an otherwise green build. Retry before giving up so a registry blip does
+        # not read as a broken commit.
+        run: |
+          for attempt in 1 2 3; do
+            mix esbuild.install --if-missing && break
+            echo "esbuild install failed (attempt $attempt/3); retrying in $((attempt * 5))s"
+            sleep $((attempt * 5))
+          done
+          mix esbuild.install --if-missing
+          mix esbuild service_worker
 
       - name: Run tests
         run: mix test
