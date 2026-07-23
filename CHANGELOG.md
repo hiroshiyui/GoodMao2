@@ -8,6 +8,38 @@ skill).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-23
+
+**GoodMao is live.** The first production release: running at
+[goodmao.tw](https://goodmao.tw) on its own domain, over TLS, with mail delivery verified,
+Web Push working end to end, and installable to a phone's home screen.
+
+Nothing about the product changed at 1.0.0 — the features arrived across 0.1.0 through
+0.3.2. What changed is the commitment: the version now communicates compatibility rather
+than progress toward a first launch, and the data in production is real. Migrations from
+here are expected to preserve it.
+
+What a caretaker gets: pets with a full end-of-care lifecycle; a live, filterable timeline
+of structured log entries with photos and video; per-pet sharing with family, co-caretakers
+and vets, each at its own capability level; recurring medication schedules with reminders;
+health summary reports that can be shared with a vet by link; a private mailbox; and an
+in-site notification feed that can reach a phone as a push notification. In English,
+Traditional Chinese and Japanese, in the viewer's own timezone, with two-factor
+authentication available to everyone and required of the administrator.
+
+### Fixed
+
+- **HSTS is sent once, by nginx.** `force_ssl` left Plug.SSL's own HSTS default on while
+  nginx sent a stronger policy, so the header went out twice. RFC 6797 has a browser
+  process only the *first*, which meant the weaker one-year policy without
+  `includeSubDomains` won — quietly making the site ineligible for the HSTS preload list
+  despite the configuration asking for it. Plug.SSL now sets `hsts: false` and nginx owns
+  the policy of record.
+- **Static assets send one `Cache-Control`.** nginx's `expires` directive emits its own
+  header alongside the explicit `add_header`, and again only the first counts — so
+  fingerprinted assets advertised a bare `max-age` and lost `immutable`. Both static
+  locations now set a single complete header.
+
 ## [0.3.2] - 2026-07-23
 
 ### Fixed
