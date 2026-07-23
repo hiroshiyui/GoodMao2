@@ -8,6 +8,42 @@ skill).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-23
+
+A deployment-readiness release. No application code changed — the built artifact is functionally
+identical to 0.2.0 — but the first production go-live surfaced gaps in the deployment
+configuration and runbook that are fixed here.
+
+### Fixed
+
+- **Amazon SES region now points at the verified identity.** `aws_ses_region` defaulted to
+  `us-east-1`, but the `goodmao.tw` identity is verified in `ap-northeast-3` (Osaka) and its Easy
+  DKIM CNAMEs are region-pinned. SES identities are region-scoped, so the mismatch failed in the
+  worst possible way: `config/runtime.exs` reads the variable at boot, the release starts cleanly,
+  and then *every* send fails as an unverified identity. The value now carries a comment
+  explaining why it must track the region the domain was verified in.
+
+### Added
+
+- **SOPS-encrypted production secrets** (`ansible/inventory/group_vars/all.sops.yml`) holding the
+  database password, `secret_key_base`, and the SES IAM credential, with `.sops.yaml` pointed at
+  the operator's GPG key. Only values are encrypted, so keys stay diffable; the file is safe to
+  commit because decryption requires the operator's private key.
+- **A first go-live checklist** in `doc/deployment.md` — an ordered, one-time path through the
+  work Ansible cannot do for you: SES production access and DNS, admin registration and its
+  mandatory 2FA enrolment, the runtime-only settings (Web Push VAPID keys, default timezone, media
+  limits), and the database/media backups that are **not** yet automated.
+- **The SES DNS contract**, documented: the five records the identity needs (three Easy DKIM
+  CNAMEs plus the custom MAIL FROM `MX`/SPF pair, alongside DMARC), why SPF belongs on the
+  `mail.` subdomain rather than the apex, and `dig` commands to verify each from outside. Includes
+  the **Gandi trailing-dot trap** — an unterminated value silently gets the zone origin appended,
+  which SES reports as a missing domain while the domain is demonstrably fine — and how to tell a
+  local zone error from AWS-side DKIM key-publication lag. Also records that the zone has no apex
+  `MX`, so nothing receives mail at the domain.
+- **The SES-vs-SendGrid decision record**, capturing why SES was chosen for transactional auth
+  mail (no monthly floor, deliverability parity at low volume, already integrated), the ~10-line
+  Swoosh path to switch, and the conditions that would justify revisiting it.
+
 ## [0.2.0] - 2026-07-23
 
 The full product build-out on top of the 0.1.0 MVP core: media and log editing, medication
