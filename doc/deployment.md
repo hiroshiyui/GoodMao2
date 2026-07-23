@@ -55,12 +55,16 @@ A one-time, ordered checklist for the **first** deploy. Each step links to its d
 - [ ] **Set the system default timezone** at `/admin/settings` (else falls back to `Etc/UTC`, ADR-0018).
 - [ ] **Review media upload limits** at `/admin/settings` (`Media.Limits`).
 
-**Before onboarding real users — data safety (not yet automated):**
+**Before onboarding real users — data safety:**
 
-- [ ] **(you) Postgres backups** — a scheduled `pg_dump`/pgBackRest with off-host retention.
-      The Ansible roles provision Postgres but do **not** set up backups.
-- [ ] **(you) Media backups** — `MEDIA_STORAGE_DIR` (`/opt/goodmao2/shared/media/`) holds the
-      only copy of purified LifeLog media; it survives releases but nothing backs it up.
+- [x] **(you) Backups** — enable the hosting provider's automatic whole-server backups. One
+      snapshot covers Postgres *and* `MEDIA_STORAGE_DIR` (`/opt/goodmao2/shared/media/`, the
+      only copy of purified LifeLog media) without the two drifting apart. The Ansible roles
+      provision Postgres but deliberately set up **no** application-level backup of their own —
+      see [Backups](#backups) for what that choice implies on restore.
+- [ ] **(you) Back up the GPG key offline** — the key that decrypts
+      `ansible/inventory/group_vars/all.sops.yml` is the single point of failure for every
+      deployment secret, and it is the one thing a server snapshot does not protect.
 - [ ] **Confirm your rollback path** — migrations are **not** auto-rolled-back (see [Rollback](#rollback)),
       so a restorable DB backup is your real safety net for a bad migration.
 
@@ -421,3 +425,33 @@ sudo systemctl restart goodmao2
 Schema migrations are **not** auto-rolled-back; if a release migrated the DB, roll it back
 explicitly with `bin/goodmao2 eval 'Goodmao2.Release.rollback(Goodmao2.Repo, <version>)'`
 before serving the older code.
+
+## Backups
+
+**Backups are the hosting provider's job** (Vultr automatic backups, enabled on the instance
+since 2026-07-23). There is deliberately no application-level backup automation: whole-server
+snapshots already cover both things that matter and cannot drift apart — the Postgres data
+directory and the `MEDIA_STORAGE_DIR` tree, which a `pg_dump` alone would miss.
+
+What that choice implies, so a restore holds no surprises:
+
+- **Snapshots are crash-consistent, not clean.** One taken mid-write looks to Postgres like a
+  power cut; it replays WAL on boot and comes up healthy. Recovery lines in the log after a
+  restore are expected, not a fault.
+- **The unit of recovery is the whole server, and the RPO is a day.** There is no
+  point-in-time recovery, so a restore reverts everyone's data to the snapshot — it cannot
+  retrieve one pet's timeline. Most of that need is met in the schema instead: log entries are
+  soft-deleted (`deleted_at`, [ADR-0008](adr/0008-soft-delete.md)), edits snapshot the prior
+  state into `log_entry_revisions`, and end-of-care preserves the pet and its history rather
+  than deleting it.
+- **`SECRET_KEY_BASE` must be restored with the data.** 2FA TOTP secrets
+  (`Accounts.TotpVault`) and the Web Push VAPID private key (`WebPush.VapidVault`) are
+  AES-256-GCM encrypted with a key derived from it. Restoring the database under a *different*
+  secret leaves those rows undecryptable: no user can complete a TOTP challenge, and push
+  dispatch fails. The value lives in `ansible/inventory/group_vars/all.sops.yml`, which is
+  committed encrypted — so it survives with the repo, **provided the GPG key that decrypts it
+  does**. That key is the one thing no server snapshot protects; keep an offline copy.
+- **Verify by restoring, once, while nothing is on fire.** Bring a snapshot up on a throwaway
+  instance and confirm the app boots, `/health` returns 200, an existing user can pass a TOTP
+  challenge (which proves the secret matches), and a `life` log's photo still loads (which
+  proves the media tree came along).
