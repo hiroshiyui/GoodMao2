@@ -35,9 +35,41 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(data.title || "GoodMao", options))
 })
 
-// Network-first passthrough — needed for PWA installability on some browsers.
+// Offline fallback. Chrome will not offer to install a PWA unless the service worker can
+// answer a *navigation* while offline, so a bare `fetch()` passthrough is not enough — the
+// one precached page is what makes the app installable.
+//
+// GoodMao's pages are all authenticated, per-viewer and live, so caching them would serve
+// one user's data to whoever opens the app next. Nothing but this static shell is cached.
+const CACHE = "goodmao-offline-v1"
+const OFFLINE_URL = "/offline.html"
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.add(new Request(OFFLINE_URL, { cache: "reload" })))
+      .then(() => self.skipWaiting())
+  )
+})
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  )
+})
+
+// Navigations only — everything else (assets, the LiveView socket, API calls) goes straight
+// to the network untouched.
 self.addEventListener("fetch", (event) => {
-  event.respondWith(fetch(event.request))
+  if (event.request.mode !== "navigate") return
+
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(OFFLINE_URL, { cacheName: CACHE }))
+  )
 })
 
 self.addEventListener("notificationclick", (event) => {

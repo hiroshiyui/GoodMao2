@@ -18,7 +18,8 @@ defmodule Goodmao2Web do
   """
 
   def static_paths,
-    do: ~w(assets fonts images favicon.ico robots.txt service_worker.js manifest.json)
+    do:
+      ~w(assets fonts images favicon.ico robots.txt service_worker.js manifest.json offline.html)
 
   def router do
     quote do

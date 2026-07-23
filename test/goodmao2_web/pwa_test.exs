@@ -72,5 +72,25 @@ defmodule Goodmao2Web.PWATest do
       # A fetch handler is part of the installability criteria.
       assert conn.resp_body =~ "addEventListener(\"fetch\""
     end
+
+    test "precaches an offline page, which is what makes Chrome offer to install", %{conn: conn} do
+      body = conn |> get(~p"/service_worker.js") |> response(200)
+
+      # Chrome will not show an install prompt unless the worker can answer a *navigation*
+      # while offline; a bare fetch() passthrough silently fails that check.
+      assert body =~ "/offline.html"
+      assert body =~ "addEventListener(\"install\""
+      assert body =~ ~s(mode!=="navigate") or body =~ ~s(mode !== "navigate")
+    end
+
+    test "serves the precached offline page as a self-contained static file", %{conn: conn} do
+      conn = get(conn, ~p"/offline.html")
+
+      assert conn.status == 200
+      # It must render with no server, no session and no digested assets, so nothing may be
+      # linked in from outside the file itself.
+      refute conn.resp_body =~ ~s(<link)
+      refute conn.resp_body =~ ~s(<script src)
+    end
   end
 end
