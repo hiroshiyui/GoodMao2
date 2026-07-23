@@ -73,6 +73,19 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, ".timeline-entry-type", "Food")
     end
 
+    test "the QuickLog disclosures preserve their open state across patches", %{
+      conn: conn,
+      user: user
+    } do
+      # <details> `open` is DOM-only state the server never renders, so a phx-change
+      # patch would otherwise snap the panel shut mid-entry -- taking focus, and any
+      # in-flight IME composition, with it. The DisclosureState hook re-applies it.
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      assert has_element?(lv, "details#quicklog-more-options[phx-hook='DisclosureState']")
+    end
+
     test "a submitted occurred_at is interpreted in the user's timezone (ADR-0018)", %{
       conn: conn,
       user: user

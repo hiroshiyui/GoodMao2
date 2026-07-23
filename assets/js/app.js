@@ -29,6 +29,7 @@ import WebAuthn from "./webauthn_hook.js"
 import TimezoneDetect from "./timezone_detect.js"
 import AvatarCropper from "./avatar_cropper_hook.js"
 import WeightChart from "./weight_chart_hook.js"
+import DisclosureState from "./disclosure_state_hook.js"
 
 // Reveal pointer-glow: track the cursor over an element marked phx-hook="PointerGlow"
 // (paired with the .gm-glow CSS) and expose its position as CSS custom properties.
@@ -149,6 +150,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     TimezoneDetect,
     AvatarCropper,
     WeightChart,
+    DisclosureState,
   },
 })
 

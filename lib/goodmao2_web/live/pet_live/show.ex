@@ -635,7 +635,12 @@ defmodule Goodmao2Web.PetLive.Show do
 
           <%!-- Manual path: full fields + note/time/visibility. Behind a disclosure when a
                fast path exists, shown directly for types that need real input. --%>
-          <details :if={@presets != []} class="quicklog-more-options mt-3">
+          <details
+            :if={@presets != []}
+            id="quicklog-more-options"
+            phx-hook="DisclosureState"
+            class="quicklog-more-options mt-3"
+          >
             <summary class="cursor-pointer text-sm text-base-content/70">
               {gettext("More options")}
             </summary>
@@ -1262,7 +1267,12 @@ defmodule Goodmao2Web.PetLive.Show do
         </p>
       </div>
 
-      <details :if={@collapse_extras} class="quicklog-more">
+      <details
+        :if={@collapse_extras}
+        id="quicklog-more-extras"
+        phx-hook="DisclosureState"
+        class="quicklog-more"
+      >
         <summary class="cursor-pointer text-sm text-base-content/70">
           {gettext("Add note, time, or visibility")}
         </summary>
