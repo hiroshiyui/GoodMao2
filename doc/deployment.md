@@ -19,10 +19,14 @@ A one-time, ordered checklist for the **first** deploy. Each step links to its d
 
 **Ahead of time (lead-time items — start these first):**
 
-- [ ] **(you) Amazon SES production access** — a fresh SES account is *sandboxed* (can only mail
-      verified addresses). Verify a sender identity, mint an IAM credential scoped to
-      `ses:SendRawEmail`, and **request production access** — approval isn't instant. See
-      [Mailer — Amazon SES](#mailer--amazon-ses). Without it, real users can't confirm accounts.
+- [ ] **(you) Amazon SES identity + DNS** — verify the domain in the **`ap-northeast-3`** region,
+      enable Easy DKIM, and publish the five records at Gandi (mind the
+      [trailing-dot trap](#-the-gandi-trailing-dot-trap)). See
+      [Required DNS records](#required-dns-records).
+- [ ] **(you) SES production access** — a fresh SES account is *sandboxed* (can only mail verified
+      addresses). Mint an IAM credential scoped to `ses:SendRawEmail` and **request production
+      access** — approval isn't instant, so start it as soon as the identity verifies. Without it,
+      real users can't confirm accounts.
 - [ ] **(you) DNS** — point the domain's A/AAAA record at the host **before** provisioning, so
       Let's Encrypt (certbot) can issue the cert.
 - [ ] **(you) A host** — Debian 12 with SSH; co-hosts with Baudrate (see [collision surface](#the-collision-surface)).
@@ -135,7 +139,7 @@ DATABASE_URL=ecto://goodmao:<pw>@localhost/goodmao2_prod
 MEDIA_STORAGE_DIR=/opt/goodmao2/shared/media
 
 # --- mailer: Amazon SES (see below) ---
-AWS_SES_REGION=us-east-1
+AWS_SES_REGION=ap-northeast-3   # MUST match the region the identity is verified in
 AWS_SES_ACCESS_KEY_ID=<iam key with ses:SendRawEmail>
 AWS_SES_SECRET_ACCESS_KEY=<iam secret>
 MAILER_FROM_EMAIL=no-reply@goodmao.tw   # MUST be SES-verified
@@ -184,6 +188,85 @@ drop `gen_smtp` (only `SendRawEmail` needs it), and replace the three `AWS_SES_*
 key. **Reconsider SendGrid if** a deploy fits entirely inside its free 100/day tier (simpler than
 exiting the SES sandbox), the host isn't on AWS and you want to skip IAM/SNS ceremony, or you
 later add volume/list email where its tooling earns the price.
+
+#### SES region — `ap-northeast-3` (Osaka)
+
+**SES identities are region-scoped.** The `goodmao.tw` identity is verified in
+**`ap-northeast-3`** (ARN `arn:aws:ses:ap-northeast-3:…:identity/goodmao.tw`), and the Easy DKIM
+CNAME targets are region-pinned (`….dkim.ap-northeast-3.amazonses.com`). So:
+
+```yaml
+# ansible/inventory/group_vars/all.yml
+aws_ses_region: ap-northeast-3
+```
+
+`config/runtime.exs` falls back to `us-east-1` when `AWS_SES_REGION` is unset — where this
+identity **does not exist**. The failure mode is nasty: the app boots perfectly and then *every*
+send fails with an unverified-identity error. The IAM credential must work in this region too.
+Changing region later means regenerating the DKIM tokens and redoing the DNS records below.
+
+#### Required DNS records
+
+Five records, published at the registrar (Gandi). The DKIM CNAMEs both **prove ownership** and
+sign outbound mail; the `mail.goodmao.tw` pair backs the **custom MAIL FROM** domain so the
+envelope sender is ours rather than a subdomain of `amazonses.com`.
+
+| Name | Type | Value | Purpose |
+| ---- | ---- | ----- | ------- |
+| `<token1>._domainkey` | CNAME | `<token1>.dkim.ap-northeast-3.amazonses.com.` | Easy DKIM |
+| `<token2>._domainkey` | CNAME | `<token2>.dkim.ap-northeast-3.amazonses.com.` | Easy DKIM |
+| `<token3>._domainkey` | CNAME | `<token3>.dkim.ap-northeast-3.amazonses.com.` | Easy DKIM |
+| `mail`                | MX    | `10 feedback-smtp.ap-northeast-3.amazonses.com.` | custom MAIL FROM |
+| `mail`                | TXT   | `"v=spf1 include:amazonses.com ~all"` | SPF for the MAIL FROM domain |
+| `_dmarc`              | TXT   | `"v=DMARC1; p=none;"` | DMARC (monitor-only to start) |
+
+The three `<token>`s are generated per identity — take them from the SES console's **Publish DNS
+records** panel (use the copy buttons or *Download .csv record set*; never re-type them, a single
+wrong character fails verification silently).
+
+**SPF belongs on `mail`, not the apex.** SPF is checked against the *envelope* sender
+(Return-Path), which is `mail.goodmao.tw` once custom MAIL FROM is active. DMARC still passes:
+DKIM signs as `d=goodmao.tw`, and `mail.goodmao.tw` shares an organizational domain with the apex
+under relaxed alignment. An apex SPF record is optional anti-spoofing hygiene, not an SES
+requirement. Leave *Behavior on MX failure* at **"Use default MAIL FROM domain"** so a resolution
+failure downgrades to `amazonses.com` instead of dropping mail.
+
+##### ⚠️ The Gandi trailing-dot trap
+
+Gandi's DNS editor treats an **unterminated** value as *relative* and appends the zone origin. Paste
+AWS's values verbatim and you silently get:
+
+```
+wztxstzgep2ww5pz7mygwi4lcfzxn7lx.dkim.ap-northeast-3.amazonses.com.goodmao.tw.   ← dead end
+                                                                    ^^^^^^^^^^
+```
+
+The record resolves to `NXDOMAIN`, SES reports *"The DNS server could not find the specified
+domain name"*, and verification hangs — while the domain itself is demonstrably fine (the error
+dialog even echoes your real SOA serial). **Every CNAME and MX value must end in a `.`.** Gandi's
+own records (`gm1.gandimail.net.`, `webredir.vip.gandi.net.`) all do — use them as the reference.
+The bulk fix is the **進階查看 / Advanced view** zone-file editor; take a **儲存備份 / Save backup**
+first.
+
+Verify from the outside before waiting on SES:
+
+```sh
+dig +short CNAME <token1>._domainkey.goodmao.tw   # => <token1>.dkim.ap-northeast-3.amazonses.com.
+dig +short MX    mail.goodmao.tw                  # => 10 feedback-smtp.ap-northeast-3.amazonses.com.
+dig +short TXT   mail.goodmao.tw                  # => "v=spf1 include:amazonses.com ~all"
+```
+
+If a `_domainkey` name resolves but yields no `p=…` key, query AWS's target **directly**
+(`dig TXT <token>.dkim.ap-northeast-3.amazonses.com`). An empty answer there is AWS-side
+publication lag on freshly generated keys — not a zone problem, and it clears on its own. SES
+retries for **72 hours**.
+
+#### Inbound mail — there is none
+
+The zone has **no apex `MX`** (the `mail` MX above serves SES's MAIL FROM only), so nothing
+receives mail at `goodmao.tw`. Sending is unaffected — SES handles bounces and complaints — but
+there is no `postmaster@`/`abuse@` inbox and no local destination for a DMARC `rua=`. Point any
+reporting address at a mailbox you actually control, or add an apex MX first.
 
 ## Server directory layout
 
