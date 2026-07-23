@@ -73,7 +73,12 @@ defmodule Goodmao2Web.Layouts do
         </div>
         <nav id="site-nav" aria-label={gettext("Primary")} class="flex-none">
           <%!-- Mobile: everything collapses into a hamburger disclosure (CSP-safe, no JS). --%>
-          <details id="nav-menu" class="dropdown dropdown-end lg:hidden">
+          <details
+            id="nav-menu"
+            phx-hook="DisclosureState"
+            data-close-on-navigate
+            class="dropdown dropdown-end lg:hidden"
+          >
             <summary id="nav-menu-toggle" class="btn btn-ghost btn-sm" aria-label={gettext("Menu")}>
               <.icon name="hero-bars-3" class="size-5" />
             </summary>
@@ -338,7 +343,12 @@ defmodule Goodmao2Web.Layouts do
 
   def locale_switcher(assigns) do
     ~H"""
-    <details class={["dropdown", @class]} id="locale-switcher">
+    <details
+      class={["dropdown", @class]}
+      id="locale-switcher"
+      phx-hook="DisclosureState"
+      data-close-on-navigate
+    >
       <summary class="btn btn-ghost btn-sm" aria-label={gettext("Change language")}>
         <.icon name="hero-language" class="size-4" />
         <span class="hidden sm:inline">{Locale.label(@locale)}</span>

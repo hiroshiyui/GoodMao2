@@ -86,6 +86,25 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, "details#quicklog-more-options[phx-hook='DisclosureState']")
     end
 
+    test "the layout dropdowns preserve state but still close on navigation", %{
+      conn: conn,
+      user: user
+    } do
+      # Same bug class as the QuickLog panel: the live unread badges render *inside*
+      # #nav-menu, so a PubSub badge update would otherwise close an open mobile menu.
+      # These opt into data-close-on-navigate so tapping one of their own links still
+      # dismisses them instead of leaving the menu open over the new page.
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      for id <- ~w(nav-menu locale-switcher) do
+        assert has_element?(
+                 lv,
+                 "details##{id}[phx-hook='DisclosureState'][data-close-on-navigate]"
+               )
+      end
+    end
+
     test "a submitted occurred_at is interpreted in the user's timezone (ADR-0018)", %{
       conn: conn,
       user: user
