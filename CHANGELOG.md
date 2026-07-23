@@ -8,6 +8,26 @@ skill).
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-07-23
+
+### Fixed
+
+- **Waking a phone no longer flashes a connection error.** Locking the screen or switching
+  apps suspends the LiveView socket, so returning to the installed app showed a red "We can't
+  find the internet" banner that cleared a moment later — alarming, and for a connection that
+  was never really lost. The banners no longer reveal themselves the instant the socket drops;
+  a `MutationObserver` watches the same `phx-client-error` / `phx-server-error` classes and
+  shows them only after two seconds of sustained disconnection. Hiding stays immediate. A blip
+  is now silent, while a real outage still reports, a beat later.
+
+### Changed
+
+- **Backups are documented as the hosting provider's responsibility.** Automatic whole-server
+  backups cover Postgres and the media tree together, which an application-level `pg_dump`
+  would not; `doc/deployment.md` now records the decision and what it implies on restore —
+  notably that `SECRET_KEY_BASE` must be restored alongside the data, or encrypted 2FA secrets
+  and the Web Push signing key become undecryptable.
+
 ## [1.0.1] - 2026-07-23
 
 ### Fixed
