@@ -252,6 +252,53 @@ defmodule Goodmao2Web.PetLiveTest do
       refute has_element?(lv, ".timeline-entry-type")
     end
 
+    test "the visibility picker explains what each scope means", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      {:ok, _lv, html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # Bare enum labels do not say who can read the entry, and getting this wrong is a
+      # privacy leak, not a cosmetic slip. A native <option> renders one line of plain text,
+      # so the meaning has to travel inside the label itself.
+      assert html =~ "Private — Only you and whoever recorded it"
+      assert html =~ "Limited — Everyone you share this pet with"
+      assert html =~ "Public — Anyone with the link you create"
+
+      # The current choice is restated below the field and tied to it for screen readers.
+      assert html =~ ~s(class="visibility-hint)
+      assert html =~ "aria-describedby"
+    end
+
+    test "a non-owner is offered no visibility picker at all", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grant_fixture(pet, owner, user, "co_caretaker")
+
+      {:ok, _lv, html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # Only owners may set visibility (ADR-0004); the explanation must not leak the control.
+      refute html =~ "visibility-hint"
+      refute html =~ "Only you and whoever recorded it"
+    end
+
+    test "a non-limited entry's badge explains itself on the timeline", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+
+      {:ok, _entry} =
+        Goodmao2.Logs.create_entry(user, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "visibility" => "private"
+        })
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      badge = element(lv, ".timeline-entry-visibility") |> render()
+
+      # A one-word badge is not self-explanatory: hover gets the title, and a screen reader
+      # (which never sees a title attribute) gets the same sentence spelled out.
+      assert badge =~ ~s(title="Only you and whoever recorded it")
+      assert badge =~ "sr-only"
+    end
+
     test "an urgent entry carries a clinical-flag chip on the timeline", %{conn: conn, user: user} do
       pet = pet_fixture(user)
 

@@ -66,6 +66,37 @@ defmodule Goodmao2Web.Helpers do
   def translate_visibility("public"), do: gettext("Public")
   def translate_visibility(other), do: other
 
+  @doc """
+  Who can actually read an entry at each visibility scope ([ADR-0004](adr/0004-log-visibility.md)),
+  phrased for the owner choosing it.
+
+  The bare enum labels ("Private", "Limited", "Public") do not say what they do, and the
+  difference matters: `private` hides an entry from co-caretakers and vets who otherwise read
+  the whole timeline, and `public` is readable by anyone holding the link, account or not. A
+  label the owner has to guess at is a privacy control that gets set wrong.
+
+  Written from the owner's perspective ("you"), since only owners may set visibility.
+  """
+  def visibility_hint("private"), do: gettext("Only you and whoever recorded it")
+  def visibility_hint("limited"), do: gettext("Everyone you share this pet with")
+  def visibility_hint("public"), do: gettext("Anyone with the link you create")
+  def visibility_hint(_other), do: nil
+
+  @doc """
+  A `<select>` option label carrying its own explanation — `"Private — Only you and whoever
+  recorded it"`.
+
+  A native `<option>` renders one line of plain text (no markup, no description slot), so the
+  meaning has to travel inside the label or it is lost the moment the menu opens. Screen
+  readers announce the option text, so this is also what a non-sighted owner hears.
+  """
+  def visibility_option_label(visibility) do
+    case visibility_hint(visibility) do
+      nil -> translate_visibility(visibility)
+      hint -> translate_visibility(visibility) <> " — " <> hint
+    end
+  end
+
   ## Log type labels
 
   def log_type_label("food"), do: gettext("Food")

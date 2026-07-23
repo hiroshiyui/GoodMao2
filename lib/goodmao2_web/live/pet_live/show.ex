@@ -842,11 +842,15 @@ defmodule Goodmao2Web.PetLive.Show do
               <.icon name={flag.icon} class="size-3" /> {flag.label}
             </li>
           </ul>
+          <%!-- The badge is a one-word status; the title says what it means on hover, and the
+          sr-only span gives the same sentence to a screen reader, which gets no title. --%>
           <span
             :if={@entry.visibility != "limited"}
             class="timeline-entry-visibility badge badge-ghost badge-xs"
+            title={visibility_hint(@entry.visibility)}
           >
             {translate_visibility(@entry.visibility)}
+            <span class="sr-only">— {visibility_hint(@entry.visibility)}</span>
           </span>
         </div>
         <p class="timeline-entry-summary text-sm break-words">
@@ -1314,12 +1318,10 @@ defmodule Goodmao2Web.PetLive.Show do
     />
     <div class="grid gap-3 sm:grid-cols-2">
       <.input field={@form[:occurred_at]} type="datetime-local" label={gettext("When")} />
-      <.input
+      <.visibility_select
         :if={@role == "owner"}
         field={@form[:visibility]}
-        type="select"
-        label={gettext("Visibility")}
-        options={Enum.map(LogEntry.visibilities(), &{translate_visibility(&1), &1})}
+        visibilities={LogEntry.visibilities()}
       />
     </div>
     """

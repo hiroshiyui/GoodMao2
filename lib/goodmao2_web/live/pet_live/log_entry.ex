@@ -239,7 +239,10 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
               {format_datetime(@entry.occurred_at)}
             </time>
-            <span class="badge badge-ghost badge-xs">{translate_visibility(@entry.visibility)}</span>
+            <span class="badge badge-ghost badge-xs" title={visibility_hint(@entry.visibility)}>
+              {translate_visibility(@entry.visibility)}
+              <span class="sr-only">— {visibility_hint(@entry.visibility)}</span>
+            </span>
             <span :if={@entry.edit_count > 0} id="log-edit-count" class="badge badge-ghost badge-xs">
               {gettext("Edited %{n} of %{max}", n: @entry.edit_count, max: Logs.max_edits())}
             </span>
@@ -356,12 +359,10 @@ defmodule Goodmao2Web.PetLive.LogEntry do
           />
           <div class="grid gap-3 sm:grid-cols-2">
             <.input field={@form[:occurred_at]} type="datetime-local" label={gettext("When")} />
-            <.input
+            <.visibility_select
               :if={@role == "owner"}
               field={@form[:visibility]}
-              type="select"
-              label={gettext("Visibility")}
-              options={Enum.map(LogEntry.visibilities(), &{translate_visibility(&1), &1})}
+              visibilities={LogEntry.visibilities()}
             />
           </div>
 

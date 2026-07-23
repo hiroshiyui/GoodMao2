@@ -29,6 +29,7 @@ defmodule Goodmao2Web.CoreComponents do
   use Phoenix.Component
   use Gettext, backend: Goodmao2Web.Gettext
 
+  alias Goodmao2Web.Helpers
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -297,6 +298,45 @@ defmodule Goodmao2Web.CoreComponents do
         />
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
+    """
+  end
+
+  @doc """
+  The log-entry visibility picker, with each scope explained.
+
+  Visibility is a privacy control ([ADR-0004](adr/0004-log-visibility.md)) whose three enum
+  labels — Private / Limited / Public — say nothing about who can read the entry. `private`
+  hides it from co-caretakers and vets who otherwise see the whole timeline, and `public` is
+  readable by anyone holding the link, with no account at all. So each option carries its
+  meaning in the label, and the current choice is restated underneath and linked to the select
+  with `aria-describedby`, which is what a screen reader announces after the field name.
+
+  Shared by both places an owner sets visibility (QuickLog on `PetLive.Show`, and the edit form
+  on `PetLive.LogEntry`) so the wording cannot drift between them. Only owners may set
+  visibility, so callers render this behind their own role check.
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :visibilities, :list, required: true, doc: "the allowed scopes, from LogEntry"
+  attr :id, :string, default: nil
+
+  def visibility_select(assigns) do
+    assigns =
+      assign_new(assigns, :hint_id, fn -> "#{assigns.id || assigns.field.id}-hint" end)
+
+    ~H"""
+    <div>
+      <.input
+        field={@field}
+        id={@id}
+        type="select"
+        label={gettext("Visibility")}
+        options={Enum.map(@visibilities, &{Helpers.visibility_option_label(&1), &1})}
+        aria-describedby={@hint_id}
+      />
+      <p id={@hint_id} class="visibility-hint mt-1 text-xs text-base-content/60">
+        {Helpers.visibility_hint(to_string(@field.value || "limited"))}
+      </p>
     </div>
     """
   end
