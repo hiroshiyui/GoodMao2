@@ -333,7 +333,8 @@ the locale-parity test + the `a11y-engineering` skill.
 
 Delivered 2026-07-18 as one tranche — small CSS/HEEx edits in `assets/css/app.css`,
 `components/layouts.ex`, `components/layouts/root.html.heex`, `components/core_components.ex`,
-and a `PointerGlow` hook in `assets/js/app.js`.
+and a `PointerGlow` hook in `assets/js/app.js`. The **installable PWA** (2026-07-23, v0.3.0)
+was added to this section later; the mobile fixes that followed it are in the changelog.
 
 - [x] **Skip-to-content link** → `#main-content` (`tabindex="-1"`), visually hidden until focused
       (`.gm-skip-link`, WCAG 2.4.1 bypass block).
@@ -354,8 +355,21 @@ and a `PointerGlow` hook in `assets/js/app.js`.
 - [x] **Reveal pointer-glow** — the `PointerGlow` LiveView hook + `.gm-glow` surface; the hook
       never attaches its listener under `prefers-reduced-motion`.
 
-**Explicitly out of scope** (antithetical to a LiveView monolith): PWA / service worker /
-offline; no-JS progressive-enhancement form fallbacks. Phoenix hero-icons already satisfy
+- [x] **Installable PWA** — a web app manifest + maskable icons, a root-scope service worker,
+      and `viewport-fit=cover` + `env(safe-area-inset-*)` under
+      `@media (display-mode: standalone)`. **This reverses the "out of scope" call below**: the
+      objection was that offline operation is antithetical to a LiveView monolith, and that
+      still holds — GoodMao caches **no** application page. What shipped is narrower and
+      unrelated to offline use: a home-screen icon and a standalone window, which suit logging
+      pet care on a phone at the moment it happens far better than finding a browser tab. The
+      service worker precaches exactly one static page, shown when a navigation fails with no
+      connection, because a fetch handler that answers navigations is an installability
+      criterion — not because the app works offline. It does not.
+
+**Explicitly out of scope** (antithetical to a LiveView monolith): **offline operation** — no
+application page is ever cached, and there is no background sync or offline write queue;
+no-JS progressive-enhancement form fallbacks. (The *installable* half of "PWA" shipped above.)
+Phoenix hero-icons already satisfy
 [ADR-0010's](adr/README.md) self-hosted/SSR-safe/tree-shaken requirements, so no separate
 icon vendoring is needed. GoodMao ships a light/dark/system theme toggle.
 
@@ -390,5 +404,10 @@ purification (`Media.PurifyWorker`) + the orphan-object janitor (ADR-0005), whic
 Amazon SES mailer, release scaffolding, and the **Ansible playbook** (`ansible/`) that ships
 v1.0.0 to a real host alongside Baudrate.
 
-With deployment shipped, the public **v1.0.0** can be tagged and released; the coordination /
-notification polish above is quality-of-life that can follow at any pace.
+**v1.0.0 shipped on 2026-07-23** and GoodMao is live at
+[goodmao.tw](https://goodmao.tw) — its own domain, TLS, Amazon SES mail, Web Push, and
+installable to a phone's home screen. The patch releases that followed the same day
+(`1.0.1`, `1.0.2`) were operational corrections found by using the deployed app, not new
+scope: duplicated security headers where the weaker copy silently won, and a reconnect banner
+that fired every time a phone woke from sleep. The coordination / notification polish above is
+quality-of-life that can follow at any pace.
