@@ -30,6 +30,7 @@ import TimezoneDetect from "./timezone_detect.js"
 import AvatarCropper from "./avatar_cropper_hook.js"
 import WeightChart from "./weight_chart_hook.js"
 import DisclosureState from "./disclosure_state_hook.js"
+import initReconnectFlash from "./reconnect_flash.js"
 
 // Reveal pointer-glow: track the cursor over an element marked phx-hook="PointerGlow"
 // (paired with the .gm-glow CSS) and expose its position as CSS custom properties.
@@ -158,6 +159,9 @@ const liveSocket = new LiveSocket("/live", Socket, {
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
+
+// Watch for the disconnect classes before connecting, so the very first drop is covered.
+initReconnectFlash()
 
 // connect if there are any LiveViews on the page
 liveSocket.connect()

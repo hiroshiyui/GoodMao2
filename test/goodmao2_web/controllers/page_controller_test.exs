@@ -17,6 +17,19 @@ defmodule Goodmao2Web.PageControllerTest do
     refute response =~ ~r|<title[^>]*>\s*·|
   end
 
+  test "GET / ships the reconnect banners hidden and unwired", %{conn: conn} do
+    response = conn |> get(~p"/") |> html_response(200)
+
+    assert response =~ ~s(id="client-error")
+    assert response =~ ~s(id="server-error")
+
+    # Revealing these the instant the socket drops flashed a red error every time a phone
+    # woke from sleep. assets/js/reconnect_flash.js now reveals them after a grace period,
+    # so the server-rendered markup must NOT re-add the immediate wiring.
+    refute response =~ "phx-disconnected"
+    refute response =~ "phx-connected"
+  end
+
   test "GET / renders the font-size controls next to the theme toggle", %{conn: conn} do
     response = conn |> get(~p"/") |> html_response(200)
     assert response =~ ~s(id="font-size-controls")

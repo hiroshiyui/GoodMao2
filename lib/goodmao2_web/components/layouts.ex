@@ -302,12 +302,15 @@ defmodule Goodmao2Web.Layouts do
       <.flash kind={:info} flash={@flash} />
       <.flash kind={:error} flash={@flash} />
 
+      <%!-- The two reconnect banners carry no phx-connected/phx-disconnected wiring: revealing
+    them the instant the socket drops meant locking a phone or switching apps flashed a red
+    error on return. `assets/js/reconnect_flash.js` watches the same classes and holds the
+    banner back through a short grace period, so a blip stays silent and a real outage still
+    reports. --%>
       <.flash
         id="client-error"
         kind={:error}
         title={gettext("We can't find the internet")}
-        phx-disconnected={show(".phx-client-error #client-error") |> JS.remove_attribute("hidden")}
-        phx-connected={hide("#client-error") |> JS.set_attribute({"hidden", ""})}
         hidden
       >
         {gettext("Attempting to reconnect")}
@@ -318,8 +321,6 @@ defmodule Goodmao2Web.Layouts do
         id="server-error"
         kind={:error}
         title={gettext("Something went wrong!")}
-        phx-disconnected={show(".phx-server-error #server-error") |> JS.remove_attribute("hidden")}
-        phx-connected={hide("#server-error") |> JS.set_attribute({"hidden", ""})}
         hidden
       >
         {gettext("Attempting to reconnect")}
