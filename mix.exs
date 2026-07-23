@@ -4,7 +4,7 @@ defmodule Goodmao2.MixProject do
   def project do
     [
       app: :goodmao2,
-      version: "0.3.0",
+      version: "0.3.1",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,

@@ -8,6 +8,20 @@ skill).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-07-23
+
+### Fixed
+
+- **The flash toast no longer overflows a phone screen.** It ran off the right edge and took its
+  close button with it, so the message looked permanent with no way to dismiss it. The width was
+  rem-only (`w-80` = 20rem), but the app's baseline is `html { font-size: 125% }` and the
+  text-size control reaches 175% — rendering the toast at 400–560px against roughly 372px of
+  usable width on a 412px phone. It is now capped by a viewport-relative `max-width`, keeping the
+  intended width on larger screens while never exceeding the display at any text size.
+- **Toasts respect the safe area in the installed app.** Being fixed-position they sit outside the
+  app shell, so they missed the inset added in 0.3.0 and a top-anchored flash could render under
+  the status bar.
+
 ## [0.3.0] - 2026-07-23
 
 GoodMao installs to a phone's home screen. Pet care is logged on a phone at the moment it
