@@ -353,4 +353,23 @@ html { font-size: 125%; }
   display: none;
 }
 
+/* Installed (standalone) app. `viewport-fit=cover` lets the page draw into the notch and
+   home-indicator areas so the background reaches the screen edges; pad the chrome back out
+   with the safe-area insets so nothing sits under them. Browser tabs are unaffected — the
+   insets are 0 there, and the query only matches once the app is installed. */
+@media (display-mode: standalone) {
+  #site-header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  #app-shell {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  #site-footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* This file is for your main application CSS */

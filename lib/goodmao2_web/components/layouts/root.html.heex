@@ -2,7 +2,9 @@
 <html lang={Goodmao2Web.Locale.html_lang(Gettext.get_locale(Goodmao2Web.Gettext))}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <%!-- viewport-fit=cover lets the installed (standalone) app draw into the notch/home-bar
+          area; the shell pads itself back out with the safe-area insets. --%>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <meta name="vapid-public-key" content={Goodmao2.Settings.get("vapid_public_key") || ""} />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdf6ef" />
@@ -11,6 +13,14 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🐾</text></svg>"
     />
+    <%!-- Installable web app. iOS ignores the manifest's icons and display mode, so it needs
+          the apple-touch-icon and its own meta tags alongside the standard ones. --%>
+    <link rel="manifest" href={~p"/manifest.json"} />
+    <link rel="apple-touch-icon" href={~p"/images/icons/apple-touch-icon.png"} />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="GoodMao" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <.live_title default={brand_name()} suffix={" · " <> brand_name()}>
       {assigns[:page_title]}
     </.live_title>

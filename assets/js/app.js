@@ -162,6 +162,18 @@ window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 // connect if there are any LiveViews on the page
 liveSocket.connect()
 
+// Register the service worker on every page so the app is installable from a first visit.
+// The PushManager hook also registers it, but that hook only mounts on the settings page --
+// relying on it alone meant a visitor never met the installability criteria. register() is
+// idempotent: a second call resolves to the existing registration.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service_worker.js", {scope: "/"}).catch(() => {
+      /* installability is a progressive enhancement — a failed registration is not fatal */
+    })
+  })
+}
+
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
