@@ -8,6 +8,38 @@ skill).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-07-23
+
+Bug fixes found while putting the first production deployment through its paces. Two of them
+made the app effectively unusable for entering Chinese or Japanese text — the locales half this
+project is built for.
+
+### Fixed
+
+- **Typing into a QuickLog field no longer closes the form.** A `<details>` element's open state
+  is DOM-only and absent from the server render, so every `phx-change` echo patched the "More
+  options" panel back to closed on the very first keystroke — taking focus, and with it any
+  in-flight IME composition, so bopomofo could never be composed into a character. A new
+  `DisclosureState` hook remembers the state on `toggle` and re-applies it after each update.
+  The panel closing affected every user; it was simply most destructive for IME input.
+- **The mobile menu and locale switcher no longer snap shut on unrelated updates.** The live
+  unread badges render *inside* `#nav-menu`, so a notification or message arriving over PubSub
+  patched the element and closed an open menu. Both dropdowns now reuse `DisclosureState` with an
+  opt-in `data-close-on-navigate`, which preserves state across unrelated patches while still
+  dismissing the menu when one of its own links is tapped. Only `redirect`/`patch` navigation
+  closes it — `phx:page-loading-start` also fires for ordinary events flagged `phx-page-loading`.
+- **`phx-change` is now held while an IME is composing** (`blockPhxChangeWhileComposing`, which
+  LiveView defaults to off) and re-fired on `compositionend`, so a server round-trip can no longer
+  patch a focused input mid-character. Applies to every `phx-change` input in the app.
+- **Setting a first password no longer asks for a password that does not exist.** Registration is
+  magic-link only, so a new account has no `hashed_password`; the page nonetheless demanded users
+  "confirm your current password" and marked the field required, so the browser blocked submission
+  until they invented a value the server then discarded. It now titles itself **Set password**,
+  explains that sign-in is by magic link, and omits the field — matching
+  `User.validate_current_password/2`, which already skipped the check in this case. Accounts that
+  do have a password see the unchanged gated form, and the controller's authoritative
+  re-verification is untouched.
+
 ## [0.2.1] - 2026-07-23
 
 A deployment-readiness release. No application code changed — the built artifact is functionally
