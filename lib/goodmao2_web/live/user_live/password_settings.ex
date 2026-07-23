@@ -7,6 +7,13 @@ defmodule Goodmao2Web.UserLive.PasswordSettings do
   current-password check verified server-side. Submitting hands off to
   `UserSessionController.update_password/2` (via `phx-trigger-action`), which re-verifies
   the current password and re-establishes the session after the token rotation.
+
+  Registration is magic-link only, so a new account has **no password at all**
+  (`hashed_password` is `nil`). For those users this page is a *set*-password form: the
+  current-password input is omitted entirely, matching
+  `User.validate_current_password/2`, which skips the check when there is nothing to
+  verify against. Rendering a required field whose value is then discarded is what made
+  this page confusing to first-time users.
   """
   use Goodmao2Web, :live_view
 
@@ -26,8 +33,16 @@ defmodule Goodmao2Web.UserLive.PasswordSettings do
     >
       <div class="text-center">
         <.header>
-          {gettext("Change password")}
-          <:subtitle>{gettext("Confirm your current password to set a new one.")}</:subtitle>
+          {@page_title}
+          <:subtitle>
+            <%= if @has_password? do %>
+              {gettext("Confirm your current password to set a new one.")}
+            <% else %>
+              {gettext(
+                "Your account has no password yet — you sign in with a magic link. Set one to sign in with a password too."
+              )}
+            <% end %>
+          </:subtitle>
         </.header>
       </div>
 
@@ -48,6 +63,7 @@ defmodule Goodmao2Web.UserLive.PasswordSettings do
           value={@current_email}
         />
         <.input
+          :if={@has_password?}
           field={@password_form[:current_password]}
           type="password"
           label={gettext("Current password")}
@@ -88,10 +104,15 @@ defmodule Goodmao2Web.UserLive.PasswordSettings do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
+    has_password? = not is_nil(user.hashed_password)
 
     socket =
       socket
-      |> assign(:page_title, gettext("Change password"))
+      |> assign(
+        :page_title,
+        if(has_password?, do: gettext("Change password"), else: gettext("Set password"))
+      )
+      |> assign(:has_password?, has_password?)
       |> assign(:current_email, user.email)
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)

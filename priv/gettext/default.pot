@@ -662,7 +662,7 @@ msgid "Saved. %{name}'s record is preserved."
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/medications.ex:352
-#: lib/goodmao2_web/live/user_live/password_settings.ex:73
+#: lib/goodmao2_web/live/user_live/password_settings.ex:87
 #: lib/goodmao2_web/live/user_live/settings.ex:126
 #: lib/goodmao2_web/live/user_live/vet_profile.ex:105
 #, elixir-autogen, elixir-format
@@ -743,7 +743,7 @@ msgstr ""
 msgid "Symptom"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:256
+#: lib/goodmao2_web/components/report_components.ex:280
 #: lib/goodmao2_web/live/pet_live/show.ex:675
 #, elixir-autogen, elixir-format
 msgid "Timeline"
@@ -941,8 +941,7 @@ msgstr ""
 msgid "Change Email"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:29
-#: lib/goodmao2_web/live/user_live/password_settings.ex:94
+#: lib/goodmao2_web/live/user_live/password_settings.ex:111
 #: lib/goodmao2_web/live/user_live/settings.ex:163
 #, elixir-autogen, elixir-format
 msgid "Change password"
@@ -953,17 +952,17 @@ msgstr ""
 msgid "Changing..."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:69
+#: lib/goodmao2_web/live/user_live/password_settings.ex:83
 #, elixir-autogen, elixir-format
 msgid "Confirm new password"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:30
+#: lib/goodmao2_web/live/user_live/password_settings.ex:39
 #, elixir-autogen, elixir-format
 msgid "Confirm your current password to set a new one."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:53
+#: lib/goodmao2_web/live/user_live/password_settings.ex:67
 #: lib/goodmao2_web/live/user_live/settings.ex:145
 #, elixir-autogen, elixir-format
 msgid "Current password"
@@ -982,12 +981,12 @@ msgstr ""
 msgid "Manage your profile and email address"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:61
+#: lib/goodmao2_web/live/user_live/password_settings.ex:75
 #, elixir-autogen, elixir-format
 msgid "New password"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:74
+#: lib/goodmao2_web/live/user_live/password_settings.ex:88
 #, elixir-autogen, elixir-format
 msgid "Save password"
 msgstr ""
@@ -997,7 +996,7 @@ msgstr ""
 msgid "Your password is managed on its own page."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:80
+#: lib/goodmao2_web/live/user_live/password_settings.ex:94
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:215
 #, elixir-autogen, elixir-format
 msgid "← Back to account settings"
@@ -1550,17 +1549,17 @@ msgstr ""
 msgid "Vomited"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:154
+#: lib/goodmao2_web/components/report_components.ex:178
 #, elixir-autogen, elixir-format
 msgid "Date"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:87
+#: lib/goodmao2_web/components/report_components.ex:97
 #, elixir-autogen, elixir-format
 msgid "Weight trend"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:435
+#: lib/goodmao2_web/components/report_components.ex:459
 #, elixir-autogen, elixir-format
 msgid "no change"
 msgstr ""
@@ -1800,7 +1799,7 @@ msgstr ""
 msgid "Delete this report?"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:229
+#: lib/goodmao2_web/components/report_components.ex:253
 #, elixir-autogen, elixir-format
 msgid "Entries"
 msgstr ""
@@ -1863,7 +1862,7 @@ msgstr ""
 msgid "No credentials are awaiting review."
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:258
+#: lib/goodmao2_web/components/report_components.ex:282
 #, elixir-autogen, elixir-format
 msgid "No entries in this period."
 msgstr ""
@@ -1888,12 +1887,12 @@ msgstr ""
 msgid "Pending review"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:227
+#: lib/goodmao2_web/components/report_components.ex:251
 #, elixir-autogen, elixir-format
 msgid "Period"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:225
+#: lib/goodmao2_web/components/report_components.ex:249
 #, elixir-autogen, elixir-format
 msgid "Pet"
 msgstr ""
@@ -2021,7 +2020,7 @@ msgstr ""
 msgid "Submit for review"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:239
+#: lib/goodmao2_web/components/report_components.ex:263
 #, elixir-autogen, elixir-format
 msgid "Summary"
 msgstr ""
@@ -2954,7 +2953,7 @@ msgstr ""
 msgid "You are not allowed to manage medications here."
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:310
+#: lib/goodmao2_web/components/report_components.ex:334
 #, elixir-autogen, elixir-format
 msgid "%{from}–%{to} of %{total}"
 msgstr ""
@@ -2974,7 +2973,7 @@ msgstr ""
 msgid "%{v} lb"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:433
+#: lib/goodmao2_web/components/report_components.ex:457
 #, elixir-autogen, elixir-format
 msgid "+%{w}"
 msgstr ""
@@ -2994,13 +2993,13 @@ msgstr ""
 msgid "Hamster"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:319
+#: lib/goodmao2_web/components/report_components.ex:343
 #: lib/goodmao2_web/live/pet_live/show.ex:801
 #, elixir-autogen, elixir-format
 msgid "Next"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:305
+#: lib/goodmao2_web/components/report_components.ex:329
 #: lib/goodmao2_web/live/pet_live/show.ex:786
 #, elixir-autogen, elixir-format
 msgid "Previous"
@@ -3016,7 +3015,7 @@ msgstr ""
 msgid "Reptile"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:297
+#: lib/goodmao2_web/components/report_components.ex:321
 #: lib/goodmao2_web/live/pet_live/show.ex:776
 #, elixir-autogen, elixir-format
 msgid "Timeline pages"
@@ -3027,7 +3026,7 @@ msgstr ""
 msgid "Weight (%{unit})"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:434
+#: lib/goodmao2_web/components/report_components.ex:458
 #, elixir-autogen, elixir-format
 msgid "−%{w}"
 msgstr ""
@@ -3357,17 +3356,27 @@ msgstr ""
 msgid "You must re-authenticate to access this page."
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:155
+#: lib/goodmao2_web/components/report_components.ex:179
 #, elixir-autogen, elixir-format
 msgid "Average weight"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:149
+#: lib/goodmao2_web/components/report_components.ex:173
 #, elixir-autogen, elixir-format
 msgid "Daily average weight"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:144
+#: lib/goodmao2_web/components/report_components.ex:168
 #, elixir-autogen, elixir-format
 msgid "Daily average weight — %{shown} of %{total} days (evenly sampled)"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:111
+#, elixir-autogen, elixir-format
+msgid "Set password"
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:41
+#, elixir-autogen, elixir-format
+msgid "Your account has no password yet — you sign in with a magic link. Set one to sign in with a password too."
 msgstr ""

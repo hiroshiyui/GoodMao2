@@ -661,7 +661,7 @@ msgid "Saved. %{name}'s record is preserved."
 msgstr "保存しました。%{name}の記録は保持されています。"
 
 #: lib/goodmao2_web/live/pet_live/medications.ex:352
-#: lib/goodmao2_web/live/user_live/password_settings.ex:73
+#: lib/goodmao2_web/live/user_live/password_settings.ex:87
 #: lib/goodmao2_web/live/user_live/settings.ex:126
 #: lib/goodmao2_web/live/user_live/vet_profile.ex:105
 #, elixir-autogen, elixir-format
@@ -742,7 +742,7 @@ msgstr "いきみ（⚠ 猫は緊急）"
 msgid "Symptom"
 msgstr "症状"
 
-#: lib/goodmao2_web/components/report_components.ex:256
+#: lib/goodmao2_web/components/report_components.ex:280
 #: lib/goodmao2_web/live/pet_live/show.ex:675
 #, elixir-autogen, elixir-format
 msgid "Timeline"
@@ -940,8 +940,7 @@ msgstr "メール変更を確認するリンクを新しいアドレスに送信
 msgid "Change Email"
 msgstr "メールアドレスを変更"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:29
-#: lib/goodmao2_web/live/user_live/password_settings.ex:94
+#: lib/goodmao2_web/live/user_live/password_settings.ex:111
 #: lib/goodmao2_web/live/user_live/settings.ex:163
 #, elixir-autogen, elixir-format
 msgid "Change password"
@@ -952,17 +951,17 @@ msgstr "パスワードを変更"
 msgid "Changing..."
 msgstr "変更中..."
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:69
+#: lib/goodmao2_web/live/user_live/password_settings.ex:83
 #, elixir-autogen, elixir-format
 msgid "Confirm new password"
 msgstr "新しいパスワードの確認"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:30
+#: lib/goodmao2_web/live/user_live/password_settings.ex:39
 #, elixir-autogen, elixir-format
 msgid "Confirm your current password to set a new one."
 msgstr "新しいパスワードを設定するには、現在のパスワードを確認してください。"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:53
+#: lib/goodmao2_web/live/user_live/password_settings.ex:67
 #: lib/goodmao2_web/live/user_live/settings.ex:145
 #, elixir-autogen, elixir-format
 msgid "Current password"
@@ -981,12 +980,12 @@ msgstr "メールアドレス"
 msgid "Manage your profile and email address"
 msgstr "プロフィールとメールアドレスの管理"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:61
+#: lib/goodmao2_web/live/user_live/password_settings.ex:75
 #, elixir-autogen, elixir-format
 msgid "New password"
 msgstr "新しいパスワード"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:74
+#: lib/goodmao2_web/live/user_live/password_settings.ex:88
 #, elixir-autogen, elixir-format
 msgid "Save password"
 msgstr "パスワードを保存"
@@ -996,7 +995,7 @@ msgstr "パスワードを保存"
 msgid "Your password is managed on its own page."
 msgstr "パスワードは専用ページで管理します。"
 
-#: lib/goodmao2_web/live/user_live/password_settings.ex:80
+#: lib/goodmao2_web/live/user_live/password_settings.ex:94
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:215
 #, elixir-autogen, elixir-format
 msgid "← Back to account settings"
@@ -1548,17 +1547,17 @@ msgstr "クイック記録のショートカット"
 msgid "Vomited"
 msgstr "嘔吐"
 
-#: lib/goodmao2_web/components/report_components.ex:154
+#: lib/goodmao2_web/components/report_components.ex:178
 #, elixir-autogen, elixir-format
 msgid "Date"
 msgstr "日付"
 
-#: lib/goodmao2_web/components/report_components.ex:87
+#: lib/goodmao2_web/components/report_components.ex:97
 #, elixir-autogen, elixir-format
 msgid "Weight trend"
 msgstr "体重の推移"
 
-#: lib/goodmao2_web/components/report_components.ex:435
+#: lib/goodmao2_web/components/report_components.ex:459
 #, elixir-autogen, elixir-format
 msgid "no change"
 msgstr "変化なし"
@@ -1798,7 +1797,7 @@ msgstr "レポートを削除"
 msgid "Delete this report?"
 msgstr "このレポートを削除しますか？"
 
-#: lib/goodmao2_web/components/report_components.ex:229
+#: lib/goodmao2_web/components/report_components.ex:253
 #, elixir-autogen, elixir-format
 msgid "Entries"
 msgstr "記録数"
@@ -1861,7 +1860,7 @@ msgstr "リンクの有効期限"
 msgid "No credentials are awaiting review."
 msgstr "審査待ちの資格情報はありません。"
 
-#: lib/goodmao2_web/components/report_components.ex:258
+#: lib/goodmao2_web/components/report_components.ex:282
 #, elixir-autogen, elixir-format
 msgid "No entries in this period."
 msgstr "この期間に記録はありません。"
@@ -1886,12 +1885,12 @@ msgstr "獣医ロールを付与できるのは、認証済みの獣医のみで
 msgid "Pending review"
 msgstr "審査中"
 
-#: lib/goodmao2_web/components/report_components.ex:227
+#: lib/goodmao2_web/components/report_components.ex:251
 #, elixir-autogen, elixir-format
 msgid "Period"
 msgstr "期間"
 
-#: lib/goodmao2_web/components/report_components.ex:225
+#: lib/goodmao2_web/components/report_components.ex:249
 #, elixir-autogen, elixir-format
 msgid "Pet"
 msgstr "ペット"
@@ -2019,7 +2018,7 @@ msgstr "専門（任意）"
 msgid "Submit for review"
 msgstr "審査に提出"
 
-#: lib/goodmao2_web/components/report_components.ex:239
+#: lib/goodmao2_web/components/report_components.ex:263
 #, elixir-autogen, elixir-format
 msgid "Summary"
 msgstr "サマリー"
@@ -2950,7 +2949,7 @@ msgstr "開始日"
 msgid "You are not allowed to manage medications here."
 msgstr "ここで投薬を管理する権限がありません。"
 
-#: lib/goodmao2_web/components/report_components.ex:310
+#: lib/goodmao2_web/components/report_components.ex:334
 #, elixir-autogen, elixir-format
 msgid "%{from}–%{to} of %{total}"
 msgstr "%{total} 件中 %{from}–%{to} 件"
@@ -2970,7 +2969,7 @@ msgstr "%{v} kg"
 msgid "%{v} lb"
 msgstr "%{v} lb"
 
-#: lib/goodmao2_web/components/report_components.ex:433
+#: lib/goodmao2_web/components/report_components.ex:457
 #, elixir-autogen, elixir-format
 msgid "+%{w}"
 msgstr "+%{w}"
@@ -2990,13 +2989,13 @@ msgstr "魚"
 msgid "Hamster"
 msgstr "ハムスター"
 
-#: lib/goodmao2_web/components/report_components.ex:319
+#: lib/goodmao2_web/components/report_components.ex:343
 #: lib/goodmao2_web/live/pet_live/show.ex:801
 #, elixir-autogen, elixir-format
 msgid "Next"
 msgstr "次へ"
 
-#: lib/goodmao2_web/components/report_components.ex:305
+#: lib/goodmao2_web/components/report_components.ex:329
 #: lib/goodmao2_web/live/pet_live/show.ex:786
 #, elixir-autogen, elixir-format
 msgid "Previous"
@@ -3012,7 +3011,7 @@ msgstr "ウサギ"
 msgid "Reptile"
 msgstr "爬虫類"
 
-#: lib/goodmao2_web/components/report_components.ex:297
+#: lib/goodmao2_web/components/report_components.ex:321
 #: lib/goodmao2_web/live/pet_live/show.ex:776
 #, elixir-autogen, elixir-format
 msgid "Timeline pages"
@@ -3023,7 +3022,7 @@ msgstr "タイムラインのページ"
 msgid "Weight (%{unit})"
 msgstr "体重（%{unit}）"
 
-#: lib/goodmao2_web/components/report_components.ex:434
+#: lib/goodmao2_web/components/report_components.ex:458
 #, elixir-autogen, elixir-format
 msgid "−%{w}"
 msgstr "−%{w}"
@@ -3353,17 +3352,27 @@ msgstr ""
 msgid "You must re-authenticate to access this page."
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:155
+#: lib/goodmao2_web/components/report_components.ex:179
 #, elixir-autogen, elixir-format
 msgid "Average weight"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:149
+#: lib/goodmao2_web/components/report_components.ex:173
 #, elixir-autogen, elixir-format
 msgid "Daily average weight"
 msgstr ""
 
-#: lib/goodmao2_web/components/report_components.ex:144
+#: lib/goodmao2_web/components/report_components.ex:168
 #, elixir-autogen, elixir-format
 msgid "Daily average weight — %{shown} of %{total} days (evenly sampled)"
 msgstr ""
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:111
+#, elixir-autogen, elixir-format
+msgid "Set password"
+msgstr "パスワードを設定"
+
+#: lib/goodmao2_web/live/user_live/password_settings.ex:41
+#, elixir-autogen, elixir-format
+msgid "Your account has no password yet — you sign in with a magic link. Set one to sign in with a password too."
+msgstr "このアカウントにはまだパスワードがありません。現在はマジックリンクでサインインしています。パスワードを設定すると、パスワードでもサインインできます。"

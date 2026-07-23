@@ -9,11 +9,27 @@ defmodule Goodmao2Web.UserLive.PasswordSettingsTest do
     test "renders the isolated change-password page", %{conn: conn} do
       {:ok, _lv, html} =
         conn
-        |> log_in_user(user_fixture())
+        |> log_in_user(set_password(user_fixture()))
         |> live(~p"/users/settings/password")
 
       assert html =~ "Change password"
       assert html =~ "Current password"
+      assert html =~ "New password"
+      assert html =~ "Save password"
+    end
+
+    test "renders a set-password page when the account has no password", %{conn: conn} do
+      # Registration is magic-link only, so a fresh account has no password at all.
+      # Asking it to confirm a "current password" it does not have is nonsense, so the
+      # field is omitted entirely (User.validate_current_password/2 skips the check).
+      {:ok, _lv, html} =
+        conn
+        |> log_in_user(user_fixture())
+        |> live(~p"/users/settings/password")
+
+      assert html =~ "Set password"
+      assert html =~ "no password yet"
+      refute html =~ "Current password"
       assert html =~ "New password"
       assert html =~ "Save password"
     end
@@ -36,6 +52,39 @@ defmodule Goodmao2Web.UserLive.PasswordSettingsTest do
         |> follow_redirect(conn, ~p"/users/log-in")
 
       assert conn.resp_body =~ "You must re-authenticate to access this page."
+    end
+  end
+
+  describe "set password (account has none)" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "sets a password without supplying a current one", %{conn: conn, user: user} do
+      new_password = "a brand new valid password"
+      refute user.hashed_password
+
+      {:ok, lv, _html} = live(conn, ~p"/users/settings/password")
+
+      form =
+        form(lv, "#password_form", %{
+          "user" => %{
+            "email" => user.email,
+            "password" => new_password,
+            "password_confirmation" => new_password
+          }
+        })
+
+      render_submit(form)
+      new_password_conn = follow_trigger_action(form, conn)
+
+      assert redirected_to(new_password_conn) == ~p"/users/settings"
+
+      assert Phoenix.Flash.get(new_password_conn.assigns.flash, :info) =~
+               "Password updated successfully"
+
+      assert Accounts.get_user_by_email_and_password(user.email, new_password)
     end
   end
 
