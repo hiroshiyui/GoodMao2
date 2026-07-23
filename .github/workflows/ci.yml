@@ -78,5 +78,11 @@ jobs:
       - name: Static security scan (Sobelow)
         run: mix sobelow --config
 
+      # priv/static/service_worker.js is a git-ignored esbuild output, so a fresh checkout
+      # has no service worker to serve and the PWA test 404s. Only this bundle is needed --
+      # the manifest and icons are committed, and no test asserts on the app/CSS bundles.
+      - name: Build the service worker bundle
+        run: mix esbuild.install --if-missing && mix esbuild service_worker
+
       - name: Run tests
         run: mix test
