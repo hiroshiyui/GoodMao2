@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   localization, timezone display, medication schedules, the Rust native boundary, deferred
   media/revisions/notifications).
 - **`doc/web-application-development-common-practices.md`** — product-agnostic engineering
-  lessons (security/data-modeling/testing/ops), each with the failure mode behind it.
+  lessons (security/data-modeling/testing/ops/PWA), each with the failure mode behind it.
 
 ## Commands
 

@@ -245,3 +245,48 @@ failure mode that motivates it — the reasoning matters more than the rule.
   mixed.
 - **Re-run format before committing.** A formatting-only fixup commit is pure noise that one
   pre-commit check would have prevented.
+
+## 11. Progressive web apps: installability fails silently
+
+- **Treat installability as a checklist the browser grades in secret.** Nothing in the UI
+  says why a site can't be installed: the prompt simply never appears. Verify against the
+  browser's own audit (Lighthouse, or the install entry's wording — "Install app" vs. merely
+  "Add to Home screen"), not against your reading of the criteria. Better still, diff against
+  a deployment already known to install; a working reference settles in minutes what the
+  documentation leaves ambiguous, and the criteria have changed more than once — including
+  requirements that were announced, then rolled back.
+- **Register the service worker app-wide, not inside a feature.** Registering it from the
+  hook that owns push notifications means it only ever runs on the settings page — and, if
+  registration is gated behind a configured push key, possibly never. Installability then
+  depends on which page a visitor happened to open. Register unconditionally at boot.
+- **A build artifact that is served must be built wherever it is tested.** A bundle that is
+  git-ignored exists on the developer's machine and nowhere else, so a fresh checkout serves
+  a 404 and the test that fetches it fails on every CI run — noise that trains everyone to
+  ignore a red build. Either build it in CI or commit it; don't let "works locally" be the
+  difference.
+- **Assert that every URL the manifest names is actually served.** A manifest is a list of
+  URLs, and a wrong path is invisible until an install silently fails. One test that fetches
+  each icon it references catches renames and digest-path surprises that no amount of reading
+  the JSON will.
+- **Never cache authenticated pages in a service worker.** Its cache is shared by every
+  visitor to the browser profile, so a cached page can be served to the next person who opens
+  the app. Precache a static shell for the offline case and let everything user-specific go to
+  the network. Scope the fetch handler to navigations only — intercepting assets, websockets,
+  and API calls buys nothing and risks breaking live updates.
+- **The installed app has no browser chrome to save you.** No URL bar, no reload button, no
+  back gesture out of a stuck state. A fixed-position element that overflows — a toast, a
+  modal — has no escape hatch and no way to dismiss it. Constrain such elements to the
+  viewport (`max-width` relative to `100vw`, not to a font-relative unit), and account for
+  the notch: `viewport-fit=cover` plus `env(safe-area-inset-*)` on anything pinned to an edge.
+- **`display-mode: standalone` is a second rendering mode; test in it.** Layout bugs that
+  only appear once installed will not show up in a browser tab, and are precisely the ones
+  users can't work around.
+- **A service worker outlives the deploy that replaced it.** The old one keeps controlling
+  open pages until every tab closes, so "I deployed the fix and it didn't work" is usually a
+  stale worker, not a bad fix. Version the cache, claim clients on activate, and when
+  verifying, fully close the app first — otherwise you are testing the previous release.
+- **Don't surface transient connection errors immediately.** Suspending is normal in an
+  installed app: locking the screen or switching apps drops the socket, and a banner that
+  fires the instant it drops greets every wake with an error for a connection that was never
+  really lost. Hold the warning behind a short grace period; keep recovery instant. A real
+  outage still reports, a beat later (see §6).
