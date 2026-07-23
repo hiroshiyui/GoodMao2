@@ -52,10 +52,14 @@ server {
     # --- Security headers ---
     # NOTE: add_header in location blocks REPLACES server-level headers (nginx
     # quirk). Static asset locations below must re-include essential headers.
+    #
+    # HSTS only. The application sets X-Content-Type-Options, X-Frame-Options,
+    # Referrer-Policy and the nonce-based CSP on its own responses
+    # (:put_secure_browser_headers + Plugs.ContentSecurityPolicy), so repeating
+    # them here would send each one twice on every proxied page. Responses nginx
+    # serves itself -- static files and the 502 page -- never reach the
+    # application, so those locations set what they need explicitly.
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-    add_header X-Content-Type-Options    "nosniff" always;
-    add_header X-Frame-Options           "DENY" always;
-    add_header Referrer-Policy           "strict-origin-when-cross-origin" always;
 
     # --- Gzip compression ---
     gzip on;
@@ -189,5 +193,10 @@ server {
     location = /goodmao2-502.html {
         root /usr/share/nginx/html;
         internal;
+        # The application is down by definition here, so nothing else will set these.
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+        add_header X-Content-Type-Options    "nosniff" always;
+        add_header X-Frame-Options           "DENY" always;
+        add_header Referrer-Policy           "strict-origin-when-cross-origin" always;
     }
 }

@@ -48,6 +48,8 @@ defmodule Goodmao2Web.AvatarController do
     |> put_resp_content_type(content_type, nil)
     |> put_resp_header("x-content-type-options", "nosniff")
     |> put_resp_header("content-security-policy", "default-src 'none'; sandbox")
+    # These bytes skip the :browser pipeline, so nothing upstream sets this for them.
+    |> put_resp_header("x-frame-options", "DENY")
     |> put_resp_header("content-disposition", "inline")
     |> put_resp_header("cache-control", "private, no-cache")
   end

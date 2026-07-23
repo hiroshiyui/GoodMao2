@@ -10,7 +10,11 @@ defmodule Goodmao2Web.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {Goodmao2Web.Layouts, :root}
     plug :protect_from_forgery
-    plug :put_secure_browser_headers
+    # Phoenix's defaults cover referrer-policy, nosniff and x-permitted-cross-domain-policies
+    # but send no X-Frame-Options, leaning on the CSP `frame-ancestors` below. Keep the
+    # legacy header too -- it is the app, not the proxy, that owns its own response headers,
+    # so nothing is sent twice.
+    plug :put_secure_browser_headers, %{"x-frame-options" => "DENY"}
     plug Goodmao2Web.Plugs.ContentSecurityPolicy
     plug :fetch_current_scope_for_user
     plug Goodmao2Web.Plugs.Timezone
