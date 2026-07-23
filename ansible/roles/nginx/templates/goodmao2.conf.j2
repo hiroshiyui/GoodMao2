@@ -122,7 +122,7 @@ server {
     # --- Non-fingerprinted static files (short cache) ---
     # Phoenix `~p` may resolve to digest-stamped filenames (e.g.
     # favicon-abc123.svg), so patterns use [^/]* to match both variants.
-    location ~ ^/(fonts|images|favicon[^/]*\.(ico|svg)|robots[^/]*\.txt|service_worker[^/]*\.js|site[^/]*\.webmanifest) {
+    location ~ ^/(fonts|images|favicon[^/]*\.(ico|svg)|robots[^/]*\.txt|service_worker[^/]*\.js|manifest[^/]*\.json|offline[^/]*\.html) {
         root {{ static_path }};
         expires 1h;
         add_header Cache-Control "public";
