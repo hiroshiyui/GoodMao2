@@ -8,6 +8,23 @@ skill).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-07-23
+
+### Fixed
+
+- **Security headers are sent once, by the application.** nginx repeated
+  `X-Content-Type-Options` and `Referrer-Policy` at the server level, so every proxied page
+  carried them twice. The values matched, so nothing was weakened — but it is the shape of
+  the two bugs fixed in 1.0.0, where a duplicate quietly decided policy, and it left two
+  places to edit for one decision. nginx now sets only HSTS, which it owns as the TLS
+  terminator; responses it serves without the application (static files, the 502 page) set
+  theirs explicitly.
+- **`X-Frame-Options: DENY` no longer depends on the proxy.** Phoenix sends none of its own,
+  leaning on the CSP `frame-ancestors` directive, so nginx had been the sole source — and
+  removing it there would have dropped it silently. The application now sets it, as do the
+  media and avatar controllers, whose byte-serving routes bypass the browser pipeline
+  entirely.
+
 ## [1.0.0] - 2026-07-23
 
 **GoodMao is live.** The first production release: running at
