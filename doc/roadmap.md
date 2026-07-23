@@ -1,12 +1,18 @@
 # GoodMao — Roadmap
 
-_Last updated: 2026-07-21_
+_Last updated: 2026-07-23_
 
 ## Overview
 
 GoodMao was built **depth-first from the core**: the heart of the product
 (effortless structured logging → shareable, authorized timeline) ships first and fully.
 This tracks what's done and what's intentionally deferred.
+
+**[Milestone v1.0.0](#milestone-v100) shipped on 2026-07-23** and is live at
+[goodmao.tw](https://goodmao.tw); every item in that chapter is `[x]`.
+**[Milestone v1.1.0](#milestone-v110)** gathers what was deferred past it — coordination
+polish, per-pet timezones, the media/sharing tail, and the operational items a live
+deployment created.
 
 > A **hardening audit** (2026-07-18) reviewed the app across backend/domain, UI/UX/a11y,
 > and tooling. It fed the **Near-term hardening**,
@@ -34,8 +40,9 @@ and why error copy stays honest without leaking ([ADR-0007](adr/0007-error-repor
 
 The first public release: the depth-first core (structured logging → shareable, authorized
 timeline), the enforcement-gap hardening, and the clinical-timeline, localization,
-engineering/ops, and accessibility tranches. Each section below tracks both what shipped and
-what was consciously deferred past v1.0.0. Future milestones will be added as sibling chapters.
+engineering/ops, and accessibility tranches. **Released 2026-07-23**; every item below is
+shipped, and what was consciously deferred past it now lives in
+[Milestone v1.1.0](#milestone-v110).
 
 **Status key:** `[x]` shipped · `[~]` partially shipped · `[ ]` deferred.
 
@@ -142,7 +149,7 @@ rejects *and* the legitimate case still passes).
       **Given** (an atomic claim that writes a normal `medication` timeline entry) or **Skipped**,
       and everyone sees who handled it, live. An Oban cron (`ReminderWorker`, `*/15`) fills the
       dose horizon, ages overdue slots to `missed`, and fans out a de-duped `medication_due` bell +
-      Web Push to effective `:write` caretakers. UI: `PetLive.Medications`. Follow-ups: snooze /
+      Web Push to effective `:write` caretakers. UI: `PetLive.Medications`. Follow-ups in [v1.1.0](#milestone-v110): snooze /
       escalation, per-pet timezones, dose-history retention GC
 - [x] LifeLog media (photos/videos) with active purification ([ADR-0005](adr/0005-media-storage.md);
       Phase 1) — a `life` log can carry JPEG/PNG/GIF/WEBP images and MP4/WEBM video, uploaded
@@ -155,7 +162,7 @@ rejects *and* the legitimate case still passes).
       staged and the entry appears immediately, then each file is purified + attached in the
       background (live via PubSub; a failure sends the uploader a `media_failed` bell). A daily
       `Media.OrphanJanitor` reclaims stray objects + stale staged uploads, and share-token media
-      serving shipped with per-entry share links (ADR-0004). Follow-up: attach media to an
+      serving shipped with per-entry share links (ADR-0004). Follow-up in [v1.1.0](#milestone-v110): attach media to an
       existing entry
 - [x] Log **edit revisions** audit trail + edit-count cap ([ADR-0009](adr/0009-log-edit-revisions.md); Phase 1)
       — each real edit snapshots the prior state into `log_entry_revisions` and bumps a
@@ -190,7 +197,7 @@ rejects *and* the legitimate case still passes).
       crypto hand-rolled on `:crypto` (no external lib); an Oban `PushDispatchWorker` hooked at the
       single `Notifications.create/3` choke point; a service worker + opt-in on `/users/settings`.
       **VAPID keys are admin-generated in the Web UI** (`/admin/settings`), the private key encrypted
-      at rest. New **mailbox messages** push too (`Messaging.MessagePushWorker`). Follow-up:
+      at rest. New **mailbox messages** push too (`Messaging.MessagePushWorker`). Follow-up in [v1.1.0](#milestone-v110):
       notification batching/digest.
 - [x] Per-entry **share links** (public token) + anonymous shared entry/media
       ([ADR-0004](adr/0004-log-visibility.md); Phase 3) — an owner setting an entry to `public`
@@ -207,7 +214,8 @@ rejects *and* the legitimate case still passes).
       role on grant *and* re-grant; `Reports` freezes a point-in-time snapshot (private entries
       excluded) served to an authenticated grant or through an **expiring** anonymous share
       token (`GET /reports/shared/:token`, existence-hidden). Report bodies now **offset-page**
-      for long snapshots (roadmap §8). Follow-ups: per-entry public share links, report media serving
+      for long snapshots (roadmap §8). Follow-ups: per-entry public share links (shipped), report media serving
+      ([v1.1.0](#milestone-v110))
 
 ### 7. Localization & typography
 
@@ -241,7 +249,8 @@ rejects *and* the legitimate case still passes).
       `occurred_at`, report share expiry) are parsed *from* it back to UTC; the calendar buckets
       by **local** day. A user sets their zone on `/users/settings` (browser-prefilled), an admin
       the system default on `/admin/settings`. Backed by the pure-Elixir `tz` database (no runtime
-      HTTP). Follow-up: per-pet timezones (resolution is per-viewer today).
+      HTTP). Follow-up in [v1.1.0](#milestone-v110): per-pet timezones
+      (resolution is per-viewer today).
 
 ### 8. Platform & data model
 
@@ -378,26 +387,15 @@ icon vendoring is needed. GoodMao ships a light/dark/system theme toggle.
 - User references that are audit-only (`recorded_by_user_id`, `granted_by_user_id`,
   `created_by_user_id`) are stored without FK navigations, a deliberate
   cascade-path decision.
-- The `life` log type ships as a **text-only** daily-life note (authored from QuickLog,
-  caption required); only its photo/video enrichment is deferred with the media work above.
+- The `life` log type carries **photos and videos** (ADR-0005 Phase 1, shipped); the note text
+  is still required, so a media-only entry is not possible.
   The `visibility` `public` scope + per-entry share token is now **fully shipped** (ADR-0004):
   minted for owner-set public entries, served anonymously (entry + media) via
   `/entries/shared/:token`, revocable by narrowing or an optional expiry.
 
-## What's next
+### v1.0.0 — released
 
-With the v1.0.0 core, hardening, clinical-timeline, localization, engineering/ops, and
-accessibility tranches shipped, these are the remaining threads — ordered by the value they
-unlock, not by size. Each is already scoped by an ADR or an existing section above.
-
-1. **Coordination & notification polish** (incremental follow-ups) — medication **snooze /
-   escalation** and **dose-history retention GC** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md));
-   **notification batching / digest** so bursts don't spam the bell + push
-   ([ADR-0011](adr/0011-notifications-and-messaging.md)); and **per-pet timezones** (resolution
-   is per-viewer today) shared across medications and display
-   ([ADR-0018](adr/0018-timezone-display-policy.md)).
-
-**Shipped since this list was first drafted:** per-entry public share links + anonymous
+**Shipped since this chapter was first drafted:** per-entry public share links + anonymous
 shared-entry/media endpoints (ADR-0004); the **async media pipeline** — off-request-path ffmpeg
 purification (`Media.PurifyWorker`) + the orphan-object janitor (ADR-0005), which closed the last
 `[~]` in §8; and the **deployment tranche** (§9) — the co-hosting note (`doc/deployment.md`),
@@ -407,7 +405,88 @@ v1.0.0 to a real host alongside Baudrate.
 **v1.0.0 shipped on 2026-07-23** and GoodMao is live at
 [goodmao.tw](https://goodmao.tw) — its own domain, TLS, Amazon SES mail, Web Push, and
 installable to a phone's home screen. The patch releases that followed the same day
-(`1.0.1`, `1.0.2`) were operational corrections found by using the deployed app, not new
-scope: duplicated security headers where the weaker copy silently won, and a reconnect banner
-that fired every time a phone woke from sleep. The coordination / notification polish above is
-quality-of-life that can follow at any pace.
+(`1.0.1`–`1.0.3`) were corrections found by using the deployed app, not new scope: duplicated
+security headers where the weaker copy silently won, a reconnect banner that fired every time a
+phone woke from sleep, and visibility scopes that named themselves without saying what they did.
+
+## Milestone: v1.1.0
+
+Everything below was **consciously deferred past v1.0.0** — nothing here blocked shipping, and
+nothing here is new scope invented after the fact. Each item already has an ADR or a §-section
+above that scoped it out; this chapter only gathers them in one place so the tail is a list
+rather than a set of asides.
+
+The theme is **coordination**: v1.0.0 made a shared timeline possible, and what's left is
+mostly about several people (and several pets) coordinating around it without the app becoming
+noisy. None of it is urgent, and the order below is by the value it unlocks, not by size.
+
+**Status key:** `[x]` shipped · `[~]` partially shipped · `[ ]` deferred.
+
+### 1. Coordination & notification polish
+
+The failure mode this addresses: a household with three caretakers and two pets gets a bell and
+a push for every event, so the signal that matters — a missed dose — arrives in the same stream
+as everything else and is learned to be ignored.
+
+- [ ] **Medication snooze / escalation** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md))
+      — a reminder that can be deferred rather than only given/skipped, and one that escalates to
+      other caretakers when a dose goes unhandled. Today `ReminderWorker` ages an overdue slot to
+      `missed` and stops there; nobody is told twice, and nobody else is told at all.
+- [ ] **Notification batching / digest** ([ADR-0011](adr/0011-notifications-and-messaging.md))
+      — collapse a burst into one notification. Every bell row funnels through
+      `Notifications.create/3`, so the choke point to batch at already exists.
+- [ ] **Dose-history retention GC** ([ADR-0019](adr/0019-medication-schedules-and-reminders.md))
+      — `medication_doses` grows one row per slot per schedule forever. A long-lived daily
+      schedule is ~365 rows a year per pet; the timeline entries are the record worth keeping,
+      not the slots.
+
+### 2. Per-pet timezones
+
+- [ ] **Resolve the display zone per pet, not only per viewer**
+      ([ADR-0018](adr/0018-timezone-display-policy.md)). Times resolve through the *viewer's*
+      preference today, which is right for one household in one place and wrong the moment a
+      pet is boarded, rehomed across zones, or watched by a caretaker who travels: the same
+      dose reads as a different hour to two people coordinating on it. Medication schedules
+      already store their own IANA zone, so the pattern exists — this extends it to display and
+      makes the two agree.
+
+### 3. Media & sharing follow-ups
+
+- [ ] **Attach media to an existing entry** ([ADR-0005](adr/0005-media-storage.md)) — media can
+      only be added while creating a `life` log, so a photo taken a minute later needs a second
+      entry.
+- [ ] **Media in shared reports** ([ADR-0012](adr/0012-vet-access-model.md)) — a health summary
+      freezes text only. A vet reading a shared report sees that a wound was logged, not the
+      photo of it, which is often the point.
+- [ ] **Media-only life logs** — the note text is required, so a photo cannot stand alone.
+
+### 4. Localization completeness
+
+- [ ] **Six strings are untranslated in `zh_TW` and `ja_JP`** — the weight-chart labels
+      ("Average weight", "Daily average weight", and its sampled variant), "Conversation
+      messages", and the two re-authentication flash messages. The locale-parity test asserts
+      *structural* parity (same msgids, no fuzzy entries) and passes, which is exactly why this
+      went unnoticed: parity is not completeness. Small and self-contained.
+
+### 5. Operations
+
+- [ ] **Back up the GPG key offline** — the key decrypting
+      `ansible/inventory/group_vars/all.sops.yml` is the single point of failure for every
+      deployment secret, including the `SECRET_KEY_BASE` that 2FA secrets and the VAPID key are
+      encrypted with. Provider snapshots do not protect it (see
+      [`deployment.md`](deployment.md#backups)).
+- [ ] **Do one restore drill** — bring a snapshot up on a throwaway instance and confirm the app
+      boots, a user passes a TOTP challenge, and a life-log photo loads. An unverified backup is
+      a belief, not a backup.
+- [ ] **Submit to the HSTS preload list** (optional) — the header has qualified since 1.0.1.
+      Effectively permanent, and it commits every `*.goodmao.tw` subdomain to HTTPS forever, so
+      it is a deliberate choice rather than an oversight.
+
+### Not planned
+
+- **Offline operation** — no application page is cached, and there is no background sync or
+  offline write queue. See §10 of the v1.0.0 chapter: this is antithetical to a LiveView
+  monolith, and the installable app deliberately does not imply it.
+- **No-JS progressive-enhancement form fallbacks.**
+- Everything in [Deferred / future entities](architecture.md#deferred--future-entities) that no
+  item above claims.
