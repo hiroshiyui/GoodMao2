@@ -133,6 +133,12 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
+  // Hold phx-change while an IME is composing, and re-fire it on compositionend.
+  // GoodMao ships zh_TW and ja_JP, where text is entered through an IME (bopomofo,
+  // pinyin, kana): each keystroke would otherwise round-trip a phx-change, and the
+  // resulting patch to the focused input tears down the composition buffer mid-word.
+  // LiveView defaults this to false; see phoenix_live_view#3322.
+  blockPhxChangeWhileComposing: true,
   hooks: {
     ...colocatedHooks,
     PointerGlow,
