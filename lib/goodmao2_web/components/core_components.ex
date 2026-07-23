@@ -59,8 +59,12 @@ defmodule Goodmao2Web.CoreComponents do
       class="toast toast-top toast-end z-50"
       {@rest}
     >
+      <%!-- The width cap is viewport-relative, not another rem width: the app's baseline is
+            `html { font-size: 125% }` and the text-size control goes to 175%, so a fixed
+            `w-80` renders at 400-560px and overruns a phone screen -- taking the close
+            button off the right edge with it. 2rem matches the toast's own padding. --%>
       <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
+        "alert w-80 sm:w-96 max-w-[calc(100vw-2rem)] text-wrap",
         @kind == :info && "alert-info",
         @kind == :error && "alert-error"
       ]}>

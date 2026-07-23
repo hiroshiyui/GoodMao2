@@ -370,6 +370,13 @@ html { font-size: 125%; }
   #site-footer {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* Toasts are fixed-position and sit outside the shell, so they need their own inset
+     or a top-anchored flash renders under the status bar. */
+  .toast {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* This file is for your main application CSS */
