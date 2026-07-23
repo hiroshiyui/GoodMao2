@@ -3333,7 +3333,7 @@ msgstr "拖曳圓圈，或聚焦後以方向鍵移動、以 + / − 縮放。"
 #: lib/goodmao2_web/live/message_live/show.ex:117
 #, elixir-autogen, elixir-format
 msgid "Conversation messages"
-msgstr ""
+msgstr "對話訊息"
 
 #: lib/goodmao2_web/live/message_live/index.ex:99
 #, elixir-autogen, elixir-format
@@ -3344,27 +3344,27 @@ msgstr "找不到對話。"
 #: lib/goodmao2_web/user_auth.ex:419
 #, elixir-autogen, elixir-format
 msgid "You must log in to access this page."
-msgstr ""
+msgstr "請先登入才能存取此頁面。"
 
 #: lib/goodmao2_web/user_auth.ex:348
 #, elixir-autogen, elixir-format
 msgid "You must re-authenticate to access this page."
-msgstr ""
+msgstr "請重新驗證身分才能存取此頁面。"
 
 #: lib/goodmao2_web/components/report_components.ex:179
 #, elixir-autogen, elixir-format
 msgid "Average weight"
-msgstr ""
+msgstr "平均體重"
 
 #: lib/goodmao2_web/components/report_components.ex:173
 #, elixir-autogen, elixir-format
 msgid "Daily average weight"
-msgstr ""
+msgstr "每日平均體重"
 
 #: lib/goodmao2_web/components/report_components.ex:168
 #, elixir-autogen, elixir-format
 msgid "Daily average weight — %{shown} of %{total} days (evenly sampled)"
-msgstr ""
+msgstr "每日平均體重 — 共 %{total} 天中的 %{shown} 天（等距取樣）"
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:113
 #, elixir-autogen, elixir-format

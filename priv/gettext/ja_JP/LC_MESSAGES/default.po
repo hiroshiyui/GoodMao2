@@ -3333,7 +3333,7 @@ msgstr "円をドラッグ、またはフォーカスして矢印キーで移動
 #: lib/goodmao2_web/live/message_live/show.ex:117
 #, elixir-autogen, elixir-format
 msgid "Conversation messages"
-msgstr ""
+msgstr "会話のメッセージ"
 
 #: lib/goodmao2_web/live/message_live/index.ex:99
 #, elixir-autogen, elixir-format
@@ -3344,27 +3344,27 @@ msgstr "会話が見つかりません。"
 #: lib/goodmao2_web/user_auth.ex:419
 #, elixir-autogen, elixir-format
 msgid "You must log in to access this page."
-msgstr ""
+msgstr "このページにアクセスするにはログインしてください。"
 
 #: lib/goodmao2_web/user_auth.ex:348
 #, elixir-autogen, elixir-format
 msgid "You must re-authenticate to access this page."
-msgstr ""
+msgstr "このページにアクセスするには再認証してください。"
 
 #: lib/goodmao2_web/components/report_components.ex:179
 #, elixir-autogen, elixir-format
 msgid "Average weight"
-msgstr ""
+msgstr "平均体重"
 
 #: lib/goodmao2_web/components/report_components.ex:173
 #, elixir-autogen, elixir-format
 msgid "Daily average weight"
-msgstr ""
+msgstr "1日の平均体重"
 
 #: lib/goodmao2_web/components/report_components.ex:168
 #, elixir-autogen, elixir-format
 msgid "Daily average weight — %{shown} of %{total} days (evenly sampled)"
-msgstr ""
+msgstr "1日の平均体重 — 全 %{total} 日のうち %{shown} 日（等間隔でサンプリング）"
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:113
 #, elixir-autogen, elixir-format
