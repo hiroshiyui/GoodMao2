@@ -66,6 +66,14 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
 
 Each context owns its schemas under `lib/goodmao2/<context>/`.
 
+**Native boundary** — `Goodmao2.Native` ([ADR-0017](adr/0017-rust-nif-native-boundary.md))
+loads the `native/goodmao2_native` Rustler crate, built automatically by `mix compile` with the
+toolchain pinned by `rust-toolchain.toml`. It currently exposes only a placeholder `add/2`:
+this is **proven scaffolding**, deliberately landed empty so the first genuinely CPU-bound need
+(image/video work, large-timeline aggregation) does not also have to litigate the build system.
+`Cargo.lock` is committed; the built `priv/native/*.so` is a platform-specific, git-ignored
+artifact, so a release built on one OS/arch will not run on another.
+
 ## Data model
 
 ### `users` (Accounts.User — extends the phx.gen.auth table)
@@ -150,6 +158,21 @@ is no `pet_id` in the serving URL to forge), `kind` (image/video), the magic-byt
 the id and never stored** (path-traversal-proof). Bytes are re-encoded/remuxed by ffmpeg to
 strip EXIF/GPS/metadata, written under a configured `storage_dir` outside any served path, and
 inserted with the log in one transaction. Soft-deleted via `deleted_at`.
+
+### `avatars` (Media.Avatar) — profile images for users and pets
+
+One row per owner ([ADR-0020](adr/0020-profile-images.md)), keyed by a **polymorphic**
+`(owner_type, owner_id)` — `owner_type` is constrained to `user` / `pet` and carries a unique
+index, so `Media.Avatars.set_avatar/5` upserts rather than accumulating. There is **no FK
+navigation**: the pair spans two tables and is only ever resolved by the owning context,
+matching the repo's audit-only id-column convention. `status` tracks the async purify
+(`processing` → `ready` / `failed`), mirroring the media pipeline: the upload is staged, an
+`AvatarPurifyWorker` is enqueued transactionally, and only a clean re-encode is stored — images
+only, video rejected. Bytes live under a **separate owner-keyed keyspace**
+(`storage_dir/avatars/<owner-key>`, disjoint from media ids) so the two can never collide.
+Authorization differs by owner: setting a **user** avatar is self-only and reading it needs only
+authentication; a **pet** avatar needs `:manage` to set and `:read` to view, IDOR-hidden like
+any other pet resource.
 
 ### `medication_schedules` / `medication_doses` (Medications.*) — schedules + dose slots
 
@@ -289,11 +312,43 @@ reject pending `VetProfile`s). `AdminLive.Announcements` (`/admin/announcements`
 `:require_admin` gate) composes an admin **announcement** broadcast to every user. Admin is a
 global role only — it grants **no** access to pet data, so these pages read none.
 
+Avatars are served by `AvatarController` at `GET /avatars/user/:id` and `/avatars/pet/:id`,
+with the same hardening as media and authorization split by owner: a user avatar is visible to
+any authenticated user, a pet avatar is `:read`-gated and IDOR-hidden. They render round-masked
+through the shared `<.avatar>` component (initials fallback), and the nav avatar stays live via
+the `UnreadBadges` on_mount hook. The upload offers a square crop — the `AvatarCropper` JS hook
+reports a normalized selection which the purifier applies as an ffmpeg `crop` filter in the
+same re-encode: advisory on the client, authoritative on the server.
+
 Purified life-log media is served by `MediaController` at `GET /media/:id` (a dedicated
 `:serve_media` pipeline — session + scope, no HTML negotiation), which re-applies the parent
 log's read authorization, hides existence with `not_found`, sets hardened headers, and
 supports `Range`. Uploads flow through `PetLive.Show` (LiveView `allow_upload`) and never hand
 the browser a direct storage URL.
+
+### Installable app (PWA)
+
+GoodMao is installable to a phone's home screen. There is no ADR for this — it changes how the
+app is delivered, not how it is built, and the one architectural question it raised (what may
+be cached) was answered by *nothing*, below.
+`priv/static/manifest.json` and its `any` + `maskable` icons are committed static files; the
+root layout links the manifest and the iOS-only `apple-touch-icon` / `apple-mobile-web-app-*`
+tags that Safari needs because it ignores the manifest entirely.
+
+The service worker (`assets/js/service_worker.js`) is bundled by a **separate `service_worker`
+esbuild profile** to `priv/static/service_worker.js` — the site root, so its scope can be `/` —
+and is registered app-wide from `app.js`, not from the push hook, so a first-time visitor meets
+the installability criteria on any page. It does three things: displays and routes Web Push
+notifications (ADR-0011 Stage 2), and precaches `priv/static/offline.html` to answer a
+navigation that fails with no connection. **No application page is ever cached** — every
+GoodMao page is authenticated, per-viewer and live, and the worker's cache is shared across the
+whole browser profile — and the fetch handler is scoped to navigations only, leaving assets,
+the LiveView socket, and API calls untouched.
+
+Installability is enforced by `test/goodmao2_web/pwa_test.exs` rather than by inspection,
+because a browser that judges a site uninstallable reports nothing: the prompt simply never
+appears. The suite fetches every icon path the manifest names, so a rename or a wrong path
+fails the build instead of silently disabling installation.
 
 `ReportController` serves an anonymous, print-friendly health summary at
 `GET /reports/shared/:token` (the `:browser` pipeline, no authentication). It renders a report's
