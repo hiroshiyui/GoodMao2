@@ -49,6 +49,33 @@ storage). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
   suffix is unconditional, so a page with **no** title renders `GoodMao · GoodMao` — give every
   real page an explicit title (only a transient redirect-only mount may skip it). Never set the
   bare brand as a page title (it would double).
+- **GoodMao is an installable PWA; installability breaks silently.** No error appears when a
+  browser decides a site is not installable — the prompt simply stops showing — so the
+  criteria are held by tests (`test/goodmao2_web/pwa_test.exs`), not by inspection. Keep all
+  of it true:
+  - `priv/static/manifest.json` and its icons (192 **and** 512, `any` **and** `maskable`) are
+    committed, and **every path the manifest names must actually be served** — the test
+    fetches each one.
+  - The service worker is built by the **`service_worker` esbuild profile** to
+    `priv/static/service_worker.js` — the **site root**, never under `/assets`, or its scope
+    can't be `/`. It is registered **app-wide in `app.js`**, not from a feature hook: gating
+    registration behind a page (or a configured push key) means most visitors never meet the
+    criteria. Because it is a git-ignored build output, CI builds it before `mix test`.
+  - The worker precaches **only `priv/static/offline.html`** and intercepts **navigations
+    only**. Never cache an authenticated response: the cache is shared across the browser
+    profile, so a cached page can be served to the next person who opens the app.
+  - Any new file served from the site root must be added to **both** `static_paths/0`
+    (`goodmao2_web.ex`) and the nginx static `location` regex
+    (`ansible/roles/nginx/templates/goodmao2.conf.j2`).
+- **The installed app has no browser chrome.** There is no URL bar, reload button, or back
+  gesture to escape a stuck state, so fixed-position UI must stay reachable: cap widths
+  against the **viewport** (`max-w-[calc(100vw-2rem)]`), never against a font-relative unit
+  alone — the baseline is `html { font-size: 125% }` and the user control reaches 175%. Keep
+  anything pinned to an edge inside `env(safe-area-inset-*)` under
+  `@media (display-mode: standalone)`. **Do not re-add `phx-disconnected`/`phx-connected` to
+  the reconnect banners** in `layouts.ex`: suspending is normal on a phone, and immediate
+  reveal flashed an error on every screen unlock — `assets/js/reconnect_flash.js` owns the
+  grace period.
 - Run **`mix precommit`** before finishing. Tests mirror `lib/` under `test/`
   (`DataCase` for contexts, `ConnCase` for LiveViews); test DB uses the `goodmao2` role.
 
