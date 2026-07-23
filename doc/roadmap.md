@@ -315,8 +315,9 @@ the locale-parity test + the `a11y-engineering` skill.
   (`lib/mix/tasks/goodmao.doctor.ex`). A single `doctor` verb (`mix` is the entry point).
 - **Locale-parity test** across `en` / `zh_TW` / `ja_JP` (`test/goodmao2/locale_parity_test.exs`)
   — asserts *structural* parity: identical domain and msgid sets across locales, no `#, fuzzy`
-  entries, and `.pot` templates fully merged. (Translation *completeness* stays deferred with the
-  locale switcher below; the scaffolded catalogs are intentionally untranslated.)
+  entries, and `.pot` templates fully merged. (It gained completeness and placeholder assertions
+  after v1.0.0 — see [v1.1.0 §4](#4-localization-completeness--shipped-2026-07-23) for why parity
+  alone let six strings ship untranslated.)
 - The **`a11y-engineering` skill** (`.claude/skills/a11y-engineering/SKILL.md`) —
   written for HEEx/LiveView + daisyUI/Tailwind + Gettext. Formalizes the accessibility-first
   invariant `AGENTS.md` states; completes the project's seven-skill set.
@@ -421,6 +422,8 @@ The theme is **coordination**: v1.0.0 made a shared timeline possible, and what'
 mostly about several people (and several pets) coordinating around it without the app becoming
 noisy. None of it is urgent, and the order below is by the value it unlocks, not by size.
 
+**Progress:** §4 (localization completeness) shipped on 2026-07-23; §1–3 and §5 are open.
+
 **Status key:** `[x]` shipped · `[~]` partially shipped · `[ ]` deferred.
 
 ### 1. Coordination & notification polish
@@ -461,13 +464,23 @@ as everything else and is learned to be ignored.
       photo of it, which is often the point.
 - [ ] **Media-only life logs** — the note text is required, so a photo cannot stand alone.
 
-### 4. Localization completeness
+### 4. Localization completeness — shipped 2026-07-23
 
-- [ ] **Six strings are untranslated in `zh_TW` and `ja_JP`** — the weight-chart labels
-      ("Average weight", "Daily average weight", and its sampled variant), "Conversation
-      messages", and the two re-authentication flash messages. The locale-parity test asserts
-      *structural* parity (same msgids, no fuzzy entries) and passes, which is exactly why this
-      went unnoticed: parity is not completeness. Small and self-contained.
+- [x] **The last six untranslated strings** — two auth flashes, the mailbox `aria-label`, and
+      the weight chart's screen-reader table caption and column header. `zh_TW` and `ja_JP` are
+      now at **zero** untranslated entries.
+- [x] **The parity test now asserts completeness, not only parity.** The six had shipped
+      through v1.0.0 while the test passed, and it was right to pass: it checked that the
+      catalogs share the same msgids with no fuzzy entries, and they did. A merged-but-empty
+      `msgstr` is structurally identical to a translated one, and Gettext falls back to the
+      msgid silently — so nothing broke, nothing warned, and four of the six were an
+      `aria-label` and a screen-reader-only table, met only by the users the localization exists
+      for. Every entry in a target locale must now carry a non-empty `msgstr` (`en` is the
+      source, where empty legitimately means "same as the msgid").
+- [x] **Placeholder parity** — every `%{name}` in a msgid must survive into its translation.
+      Dropping one raises at render time in that locale alone, which is the least likely place
+      anyone looks. Both new assertions were verified to fail on injected defects, not merely
+      to pass.
 
 ### 5. Operations
 
