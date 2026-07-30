@@ -8,6 +8,25 @@ skill).
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-07-30
+
+### Fixed
+
+- **Images no longer re-download in full on every page load and PWA launch.** Media and
+  avatar responses carried `private, no-cache` with no validator, so the browser had nothing
+  to revalidate against and refetched every image's bytes each visit. Both endpoints now send
+  a strong `ETag` and answer a matching `If-None-Match` with an empty `304`: a purified media
+  object is immutable per id, so its id is the validator; an avatar's validator is its
+  version — the same value that already cache-busts the URL — so a re-upload at the same URL
+  invalidates correctly. The conditional check runs strictly *after* the per-request
+  authorization (or share-token) check, so a revoked grant or un-shared entry still takes
+  effect on the very next request; only the byte transfer is skipped, and a stranger
+  presenting the correct `ETag` still gets the existence-hiding `404`.
+
+### Changed
+
+- **CI reuses the cached esbuild binary** instead of re-downloading it on every run.
+
 ## [1.0.4] - 2026-07-23
 
 ### Fixed
