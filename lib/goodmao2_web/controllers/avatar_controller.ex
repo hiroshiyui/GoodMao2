@@ -6,7 +6,9 @@ defmodule Goodmao2Web.AvatarController do
   owner's view authorization is re-applied per request: a user avatar is visible to any
   authenticated user; a pet avatar requires `:read` on that pet. An avatar the caller can't read —
   or that isn't ready — is reported as `not_found`, exactly like one that doesn't exist. Responses
-  are locked down (`nosniff`, a `default-src 'none'` sandbox CSP, `inline` disposition).
+  are locked down (`nosniff`, a `default-src 'none'` sandbox CSP, `inline` disposition) and carry a
+  strong `ETag` derived from the avatar's version (the same value that cache-busts the URL), so
+  repeat views answer `If-None-Match` with a `304` — checked strictly *after* authorization.
   """
   use Goodmao2Web, :controller
 
@@ -23,10 +25,17 @@ defmodule Goodmao2Web.AvatarController do
     actor = conn.assigns.current_scope.user
 
     with {:ok, id} <- parse_id(id_param),
-         {:ok, {content_type, path}} <-
+         {:ok, {content_type, path, version}} <-
            Avatars.fetch_avatar_object_for_user(owner_type, id, actor),
          true <- File.exists?(path) do
-      conn |> harden(content_type) |> send_file(200, path)
+      etag = ~s("v#{version}")
+      conn = conn |> harden(content_type) |> put_resp_header("etag", etag)
+
+      if none_match?(conn, etag) do
+        send_resp(conn, 304, "")
+      else
+        send_file(conn, 200, path)
+      end
     else
       _ -> conn |> put_status(:not_found) |> text("Not found")
     end
@@ -52,5 +61,18 @@ defmodule Goodmao2Web.AvatarController do
     |> put_resp_header("x-frame-options", "DENY")
     |> put_resp_header("content-disposition", "inline")
     |> put_resp_header("cache-control", "private, no-cache")
+  end
+
+  defp none_match?(conn, etag) do
+    case get_req_header(conn, "if-none-match") do
+      [header] ->
+        header
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.any?(&(&1 == etag or &1 == "W/" <> etag or &1 == "*"))
+
+      _ ->
+        false
+    end
   end
 end

@@ -200,17 +200,20 @@ defmodule Goodmao2.Media.Avatars do
   @doc """
   Fetches a servable avatar object the caller may view, or `{:error, :not_found}` (ADR-0020).
 
-  Returns `{:ok, {content_type, path}}` only when the owner has an avatar whose bytes are present
-  and the caller is authorized (any authenticated user for a user avatar; `:read` on the pet for a
-  pet avatar). Existence-hidden: an avatar the caller can't read looks like none at all.
+  Returns `{:ok, {content_type, path, version}}` only when the owner has an avatar whose bytes are
+  present and the caller is authorized (any authenticated user for a user avatar; `:read` on the
+  pet for a pet avatar). Existence-hidden: an avatar the caller can't read looks like none at all.
+  The `version` is the same value `meta/2` exposes for URL cache-busting, so the controller can use
+  it as an `ETag` that changes exactly when the bytes do.
   """
   def fetch_avatar_object_for_user(owner_type, owner_id, %User{} = actor)
       when owner_type in @owner_types do
     with :ok <- authorize_view(owner_type, owner_id, actor),
-         %Avatar{content_type: ct} when is_binary(ct) <- get_avatar(owner_type, owner_id),
+         %Avatar{content_type: ct} = avatar when is_binary(ct) <-
+           get_avatar(owner_type, owner_id),
          key = owner_key(owner_type, owner_id),
          true <- Storage.avatar_exists?(key) do
-      {:ok, {ct, Storage.avatar_object_path(key)}}
+      {:ok, {ct, Storage.avatar_object_path(key), version(avatar)}}
     else
       _ -> {:error, :not_found}
     end

@@ -41,6 +41,52 @@ defmodule Goodmao2Web.AvatarControllerTest do
     assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
     assert get_resp_header(conn, "content-disposition") == ["inline"]
     assert ["default-src 'none'; sandbox"] = get_resp_header(conn, "content-security-policy")
+    assert get_resp_header(conn, "cache-control") == ["private, no-cache"]
+    assert [~s("v) <> _] = get_resp_header(conn, "etag")
+  end
+
+  test "answers a matching If-None-Match with an empty 304", %{conn: conn} do
+    owner = user_fixture()
+    set_ready_avatar("user", owner.id, owner)
+    etag = ~s("v#{Avatars.meta("user", owner.id).version}")
+
+    conn =
+      conn
+      |> log_in_user(user_fixture())
+      |> put_req_header("if-none-match", etag)
+      |> get(~p"/avatars/user/#{owner.id}")
+
+    assert response(conn, 304) == ""
+    assert get_resp_header(conn, "etag") == [etag]
+  end
+
+  test "a stale If-None-Match (pre-re-upload ETag) still gets the full bytes", %{conn: conn} do
+    owner = user_fixture()
+    set_ready_avatar("user", owner.id, owner)
+
+    conn =
+      conn
+      |> log_in_user(user_fixture())
+      |> put_req_header("if-none-match", ~s("v0"))
+      |> get(~p"/avatars/user/#{owner.id}")
+
+    assert conn.status == 200
+    assert response(conn, 200) != ""
+  end
+
+  test "If-None-Match never bypasses pet-avatar authorization", %{conn: conn} do
+    owner = user_fixture()
+    pet = pet_fixture(owner)
+    set_ready_avatar("pet", pet.id, owner)
+    etag = ~s("v#{Avatars.meta("pet", pet.id).version}")
+
+    conn =
+      conn
+      |> log_in_user(user_fixture())
+      |> put_req_header("if-none-match", etag)
+      |> get(~p"/avatars/pet/#{pet.id}")
+
+    assert conn.status == 404
   end
 
   test "requires authentication", %{conn: conn} do

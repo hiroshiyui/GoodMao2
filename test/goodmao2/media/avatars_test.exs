@@ -170,10 +170,11 @@ defmodule Goodmao2.Media.AvatarsTest do
 
       viewer = user_fixture()
 
-      assert {:ok, {"image/png", path}} =
+      assert {:ok, {"image/png", path, version}} =
                Avatars.fetch_avatar_object_for_user("user", owner.id, viewer)
 
       assert File.exists?(path)
+      assert version == Avatars.meta("user", owner.id).version
     end
 
     test "a pet avatar requires :read; others are existence-hidden", %{owner: owner, pet: pet} do
@@ -184,7 +185,9 @@ defmodule Goodmao2.Media.AvatarsTest do
       grant_fixture(pet, owner, reader, "viewer")
       stranger = user_fixture()
 
-      assert {:ok, {"image/png", _}} = Avatars.fetch_avatar_object_for_user("pet", pet.id, reader)
+      assert {:ok, {"image/png", _, _}} =
+               Avatars.fetch_avatar_object_for_user("pet", pet.id, reader)
+
       assert Avatars.fetch_avatar_object_for_user("pet", pet.id, stranger) == {:error, :not_found}
     end
 

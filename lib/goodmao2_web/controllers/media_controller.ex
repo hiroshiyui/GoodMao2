@@ -6,7 +6,10 @@ defmodule Goodmao2Web.MediaController do
   parent log's read authorization (grant + ADR-0004 visibility + recorder + hidden-history) is
   re-applied per request. An asset the caller can't read is reported as `not_found`, exactly
   like one that doesn't exist. Responses are locked down (`nosniff`, a `default-src 'none'`
-  sandbox CSP, `inline` disposition) and support `Range` for video seeking.
+  sandbox CSP, `inline` disposition) and support `Range` for video seeking. Objects are
+  immutable per id, so responses carry a strong `ETag` and honor `If-None-Match` with a `304`
+  — checked strictly *after* authorization, so repeat views skip the byte transfer without
+  weakening the per-request access check.
   """
   use Goodmao2Web, :controller
 
@@ -24,7 +27,7 @@ defmodule Goodmao2Web.MediaController do
          {:ok, asset} <- Media.fetch_asset_for_user(user, id),
          path = Storage.object_path(asset.id),
          true <- File.exists?(path) do
-      conn |> harden(asset) |> send_bytes(path, asset.byte_size)
+      conn |> harden(asset) |> send_cached_bytes(asset, path)
     else
       _ -> conn |> put_status(:not_found) |> text("Not found")
     end
@@ -41,7 +44,7 @@ defmodule Goodmao2Web.MediaController do
          %Media.MediaAsset{} = asset <- Enum.find(assets, &(&1.id == id)),
          path = Storage.object_path(asset.id),
          true <- File.exists?(path) do
-      conn |> harden(asset) |> send_bytes(path, asset.byte_size)
+      conn |> harden(asset) |> send_cached_bytes(asset, path)
     else
       _ -> conn |> put_status(:not_found) |> text("Not found")
     end
@@ -67,7 +70,36 @@ defmodule Goodmao2Web.MediaController do
     |> put_resp_header("x-frame-options", "DENY")
     |> put_resp_header("content-disposition", "inline")
     |> put_resp_header("cache-control", "private, no-cache")
+    |> put_resp_header("etag", etag(asset))
     |> put_resp_header("accept-ranges", "bytes")
+  end
+
+  # A purified object is immutable per id (a re-upload mints a new id), so the id is a valid
+  # strong validator. The `if-none-match` check runs only after the full authorization check
+  # above succeeded, so a 304 leaks nothing a 200 wouldn't — revocation still bites instantly.
+  defp etag(asset), do: ~s("media-#{asset.id}")
+
+  defp send_cached_bytes(conn, asset, path) do
+    if none_match?(conn, etag(asset)) do
+      send_resp(conn, 304, "")
+    else
+      send_bytes(conn, path, asset.byte_size)
+    end
+  end
+
+  # If-None-Match takes precedence over Range (RFC 9110 §13.1.2) — a matching range request
+  # gets the 304 too, and the browser reuses its cached bytes.
+  defp none_match?(conn, etag) do
+    case get_req_header(conn, "if-none-match") do
+      [header] ->
+        header
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.any?(&(&1 == etag or &1 == "W/" <> etag or &1 == "*"))
+
+      _ ->
+        false
+    end
   end
 
   # Single-range support (enough for video seeking); anything malformed is a 416.

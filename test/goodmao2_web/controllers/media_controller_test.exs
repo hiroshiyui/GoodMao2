@@ -57,6 +57,51 @@ defmodule Goodmao2Web.MediaControllerTest do
     assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
     assert get_resp_header(conn, "content-disposition") == ["inline"]
     assert ["default-src 'none'; sandbox"] = get_resp_header(conn, "content-security-policy")
+    assert get_resp_header(conn, "cache-control") == ["private, no-cache"]
+    assert get_resp_header(conn, "etag") == [~s("media-#{asset.id}")]
+  end
+
+  test "answers a matching If-None-Match with an empty 304 (after authorization)", %{conn: conn} do
+    owner = user_fixture()
+    pet = pet_fixture(owner)
+    asset = make_asset(owner, pet)
+
+    conn =
+      conn
+      |> log_in_user(owner)
+      |> put_req_header("if-none-match", ~s("media-#{asset.id}"))
+      |> get(~p"/media/#{asset.id}")
+
+    assert response(conn, 304) == ""
+    assert get_resp_header(conn, "etag") == [~s("media-#{asset.id}")]
+  end
+
+  test "a stale If-None-Match still gets the full bytes", %{conn: conn} do
+    owner = user_fixture()
+    pet = pet_fixture(owner)
+    asset = make_asset(owner, pet)
+
+    conn =
+      conn
+      |> log_in_user(owner)
+      |> put_req_header("if-none-match", ~s("media-0"))
+      |> get(~p"/media/#{asset.id}")
+
+    assert byte_size(response(conn, 200)) == asset.byte_size
+  end
+
+  test "If-None-Match never bypasses authorization (still 404 for a stranger)", %{conn: conn} do
+    owner = user_fixture()
+    pet = pet_fixture(owner)
+    asset = make_asset(owner, pet)
+
+    conn =
+      conn
+      |> log_in_user(user_fixture())
+      |> put_req_header("if-none-match", ~s("media-#{asset.id}"))
+      |> get(~p"/media/#{asset.id}")
+
+    assert conn.status == 404
   end
 
   test "hides an inaccessible asset as not found (IDOR)", %{conn: conn} do
@@ -113,6 +158,19 @@ defmodule Goodmao2Web.MediaControllerTest do
       assert byte_size(response(conn, 200)) == asset.byte_size
       assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
       assert ["default-src 'none'; sandbox"] = get_resp_header(conn, "content-security-policy")
+    end
+
+    test "answers a matching If-None-Match with a 304 (token still required)", %{conn: conn} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      {asset, token} = public_asset_and_token(owner, pet)
+
+      conn =
+        conn
+        |> put_req_header("if-none-match", ~s("media-#{asset.id}"))
+        |> get(~p"/entries/shared/#{token}/media/#{asset.id}")
+
+      assert response(conn, 304) == ""
     end
 
     test "a token can't reach another entry's media (IDOR, 404)", %{conn: conn} do
