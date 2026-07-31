@@ -81,7 +81,13 @@ defmodule Goodmao2.Media.PurifyWorker do
     Goodmao2.Notifications.create(params.uploaded_by_user_id, "media_failed", %{
       "pet_id" => params.pet_id,
       "log_entry_id" => params.log_entry_id,
-      "reason" => to_string(reason)
+      "reason" => reason_string(reason)
     })
   end
+
+  # Purify reasons are atoms, but never let an unexpected shape (an exception struct, a tuple)
+  # crash the failure path itself: the staged file is already unstaged by now, so a crash here
+  # would retry into a silent no-op — no bell, no media, no error.
+  defp reason_string(reason) when is_atom(reason), do: to_string(reason)
+  defp reason_string(_reason), do: "processing_failed"
 end

@@ -351,6 +351,11 @@ defmodule Goodmao2.Media.Purifier do
   # sobelow_skip ["CI.System"]
   # Fixed executable + argument list (no shell); `source` is a file path passed as an argv
   # element, so no command string is interpolated.
+  #
+  # stderr must NOT be merged into stdout here: ffprobe can emit decoder noise on stderr while
+  # still exiting 0 (e.g. ffmpeg 5.x probing a multi-frame phone JPEG), and merged noise
+  # corrupts the JSON. Stderr passes through to the VM's log instead. Decode failures are
+  # normalized to `:probe_failed` so every purify error reason stays a plain atom.
   defp probe(source) do
     args = [
       "-v",
@@ -362,8 +367,10 @@ defmodule Goodmao2.Media.Purifier do
       source
     ]
 
-    case System.cmd("ffprobe", args, stderr_to_stdout: true) do
-      {out, 0} -> Jason.decode(out)
+    with {out, 0} <- System.cmd("ffprobe", args),
+         {:ok, parsed} <- Jason.decode(out) do
+      {:ok, parsed}
+    else
       _ -> {:error, :probe_failed}
     end
   end
