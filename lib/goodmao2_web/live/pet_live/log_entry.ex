@@ -9,7 +9,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
   """
   use Goodmao2Web, :live_view
 
-  alias Goodmao2.{Accounts, Logs, Pets}
+  alias Goodmao2.{Accounts, Logs, Media, Pets}
   alias Goodmao2.Logs.LogEntry
 
   @impl true
@@ -19,12 +19,20 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     with {:ok, pet} <- Pets.fetch_pet(user, pet_id),
          entry when not is_nil(entry) <- Logs.get_entry(user, pet, id) do
       role = Pets.effective_role(pet, user)
+      if connected?(socket), do: Logs.subscribe(pet)
 
       {:ok,
        socket
        |> assign(:pet, pet)
        |> assign(:role, role)
        |> assign(:page_title, gettext("%{type} entry", type: log_type_label(entry.type)))
+       |> allow_upload(:media,
+         accept: ~w(.jpg .jpeg .png .gif .webp .mp4 .webm),
+         max_entries: Media.config(:max_entries),
+         # The larger per-kind cap gates the client upload; the purifier re-checks each file
+         # against its own image/video byte cap (Media.Limits), so this is only a coarse ceiling.
+         max_file_size: Media.Limits.upload_byte_cap(:max_video_bytes)
+       )
        |> load_entry(entry)}
     else
       _ ->
@@ -122,6 +130,58 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     end
   end
 
+  # Media management on a `life` entry (ADR-0005 follow-up): stage each raw upload and enqueue
+  # its purify job, exactly like QuickLog — the media appears live once purified (PubSub).
+  def handle_event("validate_media", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel_media_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :media, ref)}
+  end
+
+  def handle_event("save_media", _params, socket) do
+    %{current_scope: %{user: user}, pet: pet, entry: entry} = socket.assigns
+
+    staged =
+      socket
+      |> consume_uploaded_entries(:media, fn %{path: path}, _entry ->
+        {:ok, Media.stage_upload(path)}
+      end)
+      |> Enum.flat_map(fn
+        {:ok, token} -> [%{token: token}]
+        _ -> []
+      end)
+
+    case Media.add_media_to_life_log(user, pet, entry, staged) do
+      :ok ->
+        {:noreply,
+         put_flash(socket, :info, gettext("Uploading — your files will appear once processed."))}
+
+      error ->
+        Enum.each(staged, &Media.unstage_upload(&1.token))
+        {:noreply, put_flash(socket, :error, media_error_message(error))}
+    end
+  end
+
+  def handle_event("delete_media", %{"id" => id}, socket) do
+    %{current_scope: %{user: user}, pet: pet, entry: entry} = socket.assigns
+
+    id =
+      case Integer.parse(to_string(id)) do
+        {n, ""} -> n
+        _ -> 0
+      end
+
+    case Media.delete_media_asset(user, pet, entry, id) do
+      {:ok, _} ->
+        {:noreply, put_flash(socket, :info, gettext("File removed."))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Couldn't remove that file."))}
+    end
+  end
+
   # Share-link expiry (ADR-0004) — owner-only, only meaningful while the entry is public. The
   # datetime-local wall-clock is interpreted in the viewer's timezone and stored UTC.
   def handle_event("set_share_expiry", %{"expires_at" => value}, socket) do
@@ -156,6 +216,54 @@ defmodule Goodmao2Web.PetLive.LogEntry do
         {:noreply, put_flash(socket, :error, gettext("Couldn't update the share link."))}
     end
   end
+
+  defp media_error_message({:error, :no_files}), do: gettext("Choose a file first.")
+
+  defp media_error_message({:error, :media_limit}),
+    do:
+      gettext("This entry already holds its maximum of %{max} files.",
+        max: Media.config(:max_entries)
+      )
+
+  defp media_error_message({:error, :rate_limited}),
+    do: gettext("You've uploaded a lot recently — please try again later.")
+
+  defp media_error_message(_), do: gettext("Couldn't add those files. Please try again.")
+
+  # Live timeline events for this pet (the purify workers re-broadcast the entry as each file
+  # lands, so newly added media appears without a reload). Re-fetch through the authorized
+  # read path rather than trusting the broadcast payload.
+  @impl true
+  def handle_info({:entry_updated, %LogEntry{id: id}}, socket) do
+    %{current_scope: %{user: user}, pet: pet, entry: entry} = socket.assigns
+
+    if id == entry.id do
+      case Logs.get_entry(user, pet, id) do
+        nil ->
+          {:noreply, socket}
+
+        updated ->
+          # Keep whatever the viewer has typed: a media attach changes no form field, and
+          # rebuilding the form here would wipe an in-progress edit mid-keystroke.
+          {:noreply, socket |> load_entry(updated) |> assign(:form, socket.assigns.form)}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:entry_deleted, %LogEntry{id: id}}, socket) do
+    if id == socket.assigns.entry.id do
+      {:noreply,
+       socket
+       |> put_flash(:error, gettext("This entry was deleted."))
+       |> push_navigate(to: ~p"/pets/#{socket.assigns.pet.id}")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info(_msg, socket), do: {:noreply, socket}
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
@@ -324,6 +432,99 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             </form>
           </div>
         </div>
+      </section>
+
+      <section
+        :if={@entry.type == "life" and @can_edit?}
+        id="log-media-section"
+        aria-labelledby="log-media-heading"
+        class="mt-6"
+      >
+        <h2 id="log-media-heading" class="text-lg font-semibold">{gettext("Photos & videos")}</h2>
+        <p class="text-base-content/60 text-sm">
+          {gettext("Up to %{max} files per entry. Removing one frees its slot.",
+            max: Media.config(:max_entries)
+          )}
+        </p>
+
+        <ul :if={@entry.media_assets != []} class="mt-3 flex flex-wrap gap-3">
+          <li
+            :for={asset <- @entry.media_assets}
+            id={"log-media-item-#{asset.id}"}
+            class="log-media-item flex flex-col items-start gap-1"
+          >
+            <img
+              :if={asset.kind == "image"}
+              src={~p"/media/#{asset.id}"}
+              alt={media_alt(asset)}
+              loading="lazy"
+              class="border-base-200 max-h-32 rounded border"
+            />
+            <video
+              :if={asset.kind == "video"}
+              src={~p"/media/#{asset.id}"}
+              controls
+              preload="metadata"
+              class="border-base-200 max-h-32 rounded border"
+            />
+            <button
+              type="button"
+              id={"log-media-remove-#{asset.id}"}
+              phx-click="delete_media"
+              phx-value-id={asset.id}
+              data-confirm={gettext("Remove this file from the entry?")}
+              class="btn btn-ghost btn-xs text-error"
+            >
+              <.icon name="hero-trash" class="size-4" /> {gettext("Remove")}
+            </button>
+          </li>
+        </ul>
+
+        <form
+          id="log-media-form"
+          phx-change="validate_media"
+          phx-submit="save_media"
+          class="mt-3 space-y-2"
+        >
+          <label for={@uploads.media.ref} class="fieldset-label text-sm">
+            {gettext("Add photos or video")}
+          </label>
+          <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
+          <p class="text-base-content/50 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
+          <ul class="space-y-1">
+            <li
+              :for={upload <- @uploads.media.entries}
+              id={"log-media-upload-#{upload.ref}"}
+              class="flex items-center gap-2 text-sm"
+            >
+              <span class="min-w-0 flex-1 truncate">{upload.client_name}</span>
+              <button
+                type="button"
+                phx-click="cancel_media_upload"
+                phx-value-ref={upload.ref}
+                class="btn btn-ghost btn-xs"
+                aria-label={gettext("Remove file")}
+              >
+                <.icon name="hero-x-mark" class="size-4" />
+              </button>
+              <span :for={err <- upload_errors(@uploads.media, upload)} class="text-error text-xs">
+                {Goodmao2Web.PetLive.Show.upload_error_to_string(err)}
+              </span>
+            </li>
+          </ul>
+          <p :for={err <- upload_errors(@uploads.media)} class="text-error text-xs">
+            {Goodmao2Web.PetLive.Show.upload_error_to_string(err)}
+          </p>
+          <.button
+            type="submit"
+            id="log-media-submit"
+            class="btn btn-primary btn-sm"
+            disabled={@uploads.media.entries == []}
+            phx-disable-with={gettext("Uploading…")}
+          >
+            {gettext("Add files")}
+          </.button>
+        </form>
       </section>
 
       <section

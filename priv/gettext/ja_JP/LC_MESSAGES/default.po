@@ -174,7 +174,7 @@ msgstr "品種"
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:131
 #: lib/goodmao2_web/live/pet_live/form.ex:158
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:379
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:580
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:109
 #, elixir-autogen, elixir-format
 msgid "Cancel"
@@ -504,7 +504,7 @@ msgstr "水分は普通"
 msgid "Not allowed."
 msgstr "許可されていません。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:357
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:558
 #: lib/goodmao2_web/live/pet_live/show.ex:1316
 #, elixir-autogen, elixir-format
 msgid "Note"
@@ -670,7 +670,7 @@ msgstr "保存中..."
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:126
 #: lib/goodmao2_web/live/pet_live/form.ex:149
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:374
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:575
 #: lib/goodmao2_web/live/pet_live/show.ex:629
 #: lib/goodmao2_web/live/pet_live/show.ex:1125
 #: lib/goodmao2_web/live/pet_live/show.ex:1295
@@ -824,7 +824,7 @@ msgstr "体重の単位"
 msgid "What GoodMao does"
 msgstr "グッドマオでできること"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:361
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:562
 #: lib/goodmao2_web/live/pet_live/show.ex:1320
 #, elixir-autogen, elixir-format
 msgid "When"
@@ -1561,7 +1561,7 @@ msgstr "体重の推移"
 msgid "no change"
 msgstr "変化なし"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:27
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:28
 #, elixir-autogen, elixir-format
 msgid "%{type} entry"
 msgstr "%{type}の記録"
@@ -1571,27 +1571,27 @@ msgstr "%{type}の記録"
 msgid "Assessment"
 msgstr "所見"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:213
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:321
 #, elixir-autogen, elixir-format
 msgid "Back to %{name}"
 msgstr "%{name} に戻る"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:110
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:118
 #, elixir-autogen, elixir-format
 msgid "Changes saved."
 msgstr "変更を保存しました。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:227
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:335
 #, elixir-autogen, elixir-format
 msgid "Current entry"
 msgstr "現在の記録"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:337
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:538
 #, elixir-autogen, elixir-format
 msgid "Each saved change keeps a snapshot. %{left} edits left."
 msgstr "変更を保存するたびにスナップショットが残ります。あと %{left} 回編集できます。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:335
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:536
 #, elixir-autogen, elixir-format
 msgid "Edit entry"
 msgstr "記録を編集"
@@ -1601,27 +1601,27 @@ msgstr "記録を編集"
 msgid "Edit entry or view its history"
 msgstr "記録を編集または履歴を表示"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:398
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:599
 #, elixir-autogen, elixir-format
 msgid "Edit history"
 msgstr "編集履歴"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:247
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:355
 #, elixir-autogen, elixir-format
 msgid "Edited %{n} of %{max}"
 msgstr "%{max} 回中 %{n} 回編集"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:33
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:41
 #, elixir-autogen, elixir-format
 msgid "Entry not found."
 msgstr "記録が見つかりません。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:400
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:601
 #, elixir-autogen, elixir-format
 msgid "No edits yet — this entry is as first recorded."
 msgstr "まだ編集はありません——この記録は最初に記録されたままです。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:416
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:617
 #, elixir-autogen, elixir-format
 msgid "Previous value:"
 msgstr "以前の内容："
@@ -1631,27 +1631,27 @@ msgstr "以前の内容："
 msgid "Recommendation"
 msgstr "推奨"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:376
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:577
 #, elixir-autogen, elixir-format
 msgid "Save changes"
 msgstr "変更を保存"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:393
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:594
 #, elixir-autogen, elixir-format
 msgid "This entry has reached its nine-edit limit and can no longer be changed."
 msgstr "この記録は9回の編集上限に達したため、これ以上変更できません。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:115
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:123
 #, elixir-autogen, elixir-format
 msgid "This entry has reached its nine-edit limit."
 msgstr "この記録は9回の編集上限に達しました。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:118
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:126
 #, elixir-autogen, elixir-format
 msgid "You are not allowed to edit this entry."
 msgstr "この記録を編集する権限がありません。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:193
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:301
 #, elixir-autogen, elixir-format
 msgid "a former caretaker"
 msgstr "以前の世話人"
@@ -1666,6 +1666,7 @@ msgstr "編集済み"
 msgid "File is too large."
 msgstr "ファイルが大きすぎます。"
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:493
 #: lib/goodmao2_web/live/pet_live/show.ex:1247
 #, elixir-autogen, elixir-format
 msgid "JPEG, PNG, GIF, WEBP, MP4, or WEBM."
@@ -1681,6 +1682,7 @@ msgstr "生活記録の写真"
 msgid "Photos or video"
 msgstr "写真または動画"
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:506
 #: lib/goodmao2_web/live/pet_live/show.ex:1260
 #, elixir-autogen, elixir-format
 msgid "Remove file"
@@ -1701,6 +1703,7 @@ msgstr "このファイル形式は使用できません。"
 msgid "Too many files."
 msgstr "ファイルが多すぎます。"
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:229
 #: lib/goodmao2_web/live/pet_live/show.ex:389
 #, elixir-autogen, elixir-format
 msgid "You've uploaded a lot recently — please try again later."
@@ -2521,6 +2524,7 @@ msgstr "リカバリーコード"
 msgid "Regenerate recovery codes"
 msgstr "リカバリーコードを再生成"
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:478
 #: lib/goodmao2_web/live/pet_live/show.ex:1136
 #: lib/goodmao2_web/live/user_live/settings.ex:77
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:149
@@ -3046,68 +3050,68 @@ msgstr "%{page} ページ目"
 msgid "%{brand} shared entry"
 msgstr "%{brand} の共有記録"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:265
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:373
 #, elixir-autogen, elixir-format
 msgid "Anyone with this link can view just this entry while it stays public. Set the entry to Limited or Private to revoke it."
 msgstr "このリンクを持つ人は、この記録が公開されている間だけ閲覧できます。記録を「限定」または「非公開」にすると取り消せます。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:130
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:190
 #, elixir-autogen, elixir-format
 msgid "Choose an expiry date and time."
 msgstr "有効期限の日時を選択してください。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:322
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:430
 #, elixir-autogen, elixir-format
 msgid "Clear expiry"
 msgstr "有効期限を解除"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:287
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:395
 #, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr "コピー"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:156
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:216
 #, elixir-autogen, elixir-format
 msgid "Couldn't update the share link."
 msgstr "共有リンクを更新できませんでした。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:295
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:403
 #, elixir-autogen, elixir-format
 msgid "Expires %{when}"
 msgstr "%{when} に期限切れ"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:292
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:305
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:400
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:413
 #, elixir-autogen, elixir-format
 msgid "Expiry"
 msgstr "有効期限"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:297
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:405
 #, elixir-autogen, elixir-format
 msgid "No expiry — active while public."
 msgstr "有効期限なし — 公開中は有効です。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:153
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:213
 #, elixir-autogen, elixir-format
 msgid "Pick a time in the future."
 msgstr "未来の時刻を選択してください。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:313
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:421
 #, elixir-autogen, elixir-format
 msgid "Set expiry"
 msgstr "有効期限を設定"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:262
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:370
 #, elixir-autogen, elixir-format
 msgid "Share link"
 msgstr "共有リンク"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:278
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:386
 #, elixir-autogen, elixir-format
 msgid "Share link URL"
 msgstr "共有リンクの URL"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:150
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:210
 #, elixir-autogen, elixir-format
 msgid "Share link updated."
 msgstr "共有リンクを更新しました。"
@@ -3122,7 +3126,7 @@ msgstr "共有された記録"
 msgid "Shared via a link for this single entry. The owner can revoke it at any time."
 msgstr "この単一の記録をリンクで共有しています。飼い主はいつでも取り消せます。"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:135
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:195
 #, elixir-autogen, elixir-format
 msgid "That date couldn't be read."
 msgstr "その日付を読み取れませんでした。"
@@ -3390,3 +3394,68 @@ msgstr "このペットを共有している人全員"
 #, elixir-autogen, elixir-format
 msgid "Only you and whoever recorded it"
 msgstr "あなたと記録した人だけ"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:525
+#, elixir-autogen, elixir-format
+msgid "Add files"
+msgstr "ファイルを追加"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:490
+#, elixir-autogen, elixir-format
+msgid "Add photos or video"
+msgstr "写真または動画を追加"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:220
+#, elixir-autogen, elixir-format
+msgid "Choose a file first."
+msgstr "まずファイルを選択してください。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:231
+#, elixir-autogen, elixir-format
+msgid "Couldn't add those files. Please try again."
+msgstr "ファイルを追加できませんでした。もう一度お試しください。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:181
+#, elixir-autogen, elixir-format
+msgid "Couldn't remove that file."
+msgstr "ファイルを削除できませんでした。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:178
+#, elixir-autogen, elixir-format
+msgid "File removed."
+msgstr "ファイルを削除しました。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:443
+#, elixir-autogen, elixir-format
+msgid "Photos & videos"
+msgstr "写真と動画"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:475
+#, elixir-autogen, elixir-format
+msgid "Remove this file from the entry?"
+msgstr "この記録からこのファイルを削除しますか？"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:224
+#, elixir-autogen, elixir-format
+msgid "This entry already holds its maximum of %{max} files."
+msgstr "この記録はすでに上限の %{max} 件のファイルを含んでいます。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:259
+#, elixir-autogen, elixir-format
+msgid "This entry was deleted."
+msgstr "この記録は削除されました。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:445
+#, elixir-autogen, elixir-format
+msgid "Up to %{max} files per entry. Removing one frees its slot."
+msgstr "1 件の記録につき最大 %{max} ファイルです。削除すると空きができます。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:159
+#, elixir-autogen, elixir-format
+msgid "Uploading — your files will appear once processed."
+msgstr "アップロード中——処理が完了するとファイルが表示されます。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:523
+#, elixir-autogen, elixir-format
+msgid "Uploading…"
+msgstr "アップロード中…"

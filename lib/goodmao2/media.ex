@@ -105,6 +105,106 @@ defmodule Goodmao2.Media do
   end
 
   @doc """
+  Attaches more uploaded media to an **existing** `life` entry — the ADR-0005 follow-up, used by
+  the single-entry page to add or re-upload files after creation.
+
+  `staged` is a list of `%{token, caption}` from `stage_upload/1`, exactly as in
+  `create_life_log/4`, and rides the same pipeline: one transactional `PurifyWorker` job per
+  file, each attaching its ready row and re-broadcasting. Requires the same right as editing
+  the entry (`Logs.can_edit?/3` — so a live, visible entry and `:write`), the caller under the
+  hourly upload cap, and room under the per-entry media cap (existing + new). Adding media is
+  **not** an edit — it snapshots no revision and does not count against the nine-edit limit.
+  """
+  def add_media_to_life_log(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, staged)
+      when is_list(staged) do
+    cond do
+      entry.type != "life" or entry.pet_id != pet.id or not is_nil(entry.deleted_at) ->
+        {:error, :unauthorized}
+
+      not Logs.can_edit?(user, pet, entry) ->
+        {:error, :unauthorized}
+
+      staged == [] ->
+        {:error, :no_files}
+
+      media_count(entry.id) + length(staged) > config(:max_entries) ->
+        {:error, :media_limit}
+
+      RateLimiter.check(user.id) == {:error, :rate_limited} ->
+        {:error, :rate_limited}
+
+      true ->
+        enqueue_purify_jobs(user, entry, staged)
+    end
+  end
+
+  defp media_count(log_entry_id) do
+    Repo.aggregate(
+      from(m in MediaAsset, where: m.log_entry_id == ^log_entry_id and is_nil(m.deleted_at)),
+      :count
+    )
+  end
+
+  # All-or-nothing enqueue, mirroring `do_create/4`: every staged file gets its purify job or
+  # none does (no row changes here — the media rows land asynchronously via the workers).
+  defp enqueue_purify_jobs(user, entry, staged) do
+    multi =
+      staged
+      |> Enum.with_index()
+      |> Enum.reduce(Multi.new(), fn {s, i}, m ->
+        Multi.run(m, {:purify, i}, fn _repo, _changes ->
+          Oban.insert(
+            PurifyWorker.new(%{
+              "token" => s.token,
+              "log_entry_id" => entry.id,
+              "pet_id" => entry.pet_id,
+              "uploaded_by_user_id" => user.id,
+              "caption" => s[:caption]
+            })
+          )
+        end)
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, _} -> :ok
+      {:error, _step, reason, _changes} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Soft-deletes one media asset of a `life` entry (stamps `deleted_at`; the bytes stay, owned by
+  the soft-deleted row — ADR-0008). Requires the same right as editing the entry
+  (`Logs.can_edit?/3`); the asset must belong to `entry`. Existence is hidden — an asset the
+  caller may not touch is `{:error, :not_found}`. Re-broadcasts the entry so live viewers see
+  the media disappear.
+  """
+  def delete_media_asset(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, asset_id) do
+    asset =
+      Repo.one(
+        from m in MediaAsset,
+          where: m.id == ^asset_id and m.log_entry_id == ^entry.id and is_nil(m.deleted_at)
+      )
+
+    with %MediaAsset{} <- asset,
+         true <- entry.pet_id == pet.id and is_nil(entry.deleted_at),
+         true <- Logs.can_edit?(user, pet, entry) do
+      asset
+      |> Ecto.Changeset.change(deleted_at: DateTime.utc_now(:second))
+      |> Repo.update()
+      |> case do
+        {:ok, deleted} ->
+          broadcast_entry_updated(entry.pet_id, entry.id)
+          {:ok, deleted}
+
+        {:error, _} = error ->
+          error
+      end
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
+  @doc """
   Attaches one **already-purified** media object to its log entry (ADR-0005) — the `PurifyWorker`'s
   landing step. Inserts the ready `media_assets` row and writes the clean bytes; if the write
   fails the row rolls back. On success re-broadcasts the parent entry (media preloaded) so live

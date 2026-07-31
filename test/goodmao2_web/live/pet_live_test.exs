@@ -696,6 +696,59 @@ defmodule Goodmao2Web.PetLiveTest do
       assert render(lv) =~ "timeline-media"
       assert has_element?(lv, ".timeline-media img")
     end
+
+    test "adds media to an existing entry from its page, then removes it", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+      {:ok, entry} = Goodmao2.Media.create_life_log(user, pet, %{"note" => "walkies"}, [])
+
+      src = Path.join(System.tmp_dir!(), "gm_add_#{System.unique_integer([:positive])}.png")
+
+      {_, 0} =
+        System.cmd(
+          "ffmpeg",
+          ~w(-hide_banner -v error -f lavfi -i color=c=blue:s=16x16 -frames:v 1 -y) ++ [src]
+        )
+
+      content = File.read!(src)
+      File.rm(src)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      assert has_element?(lv, "#log-media-section")
+      assert has_element?(lv, "#log-media-form")
+
+      photo =
+        file_input(lv, "#log-media-form", :media, [
+          %{name: "later.png", content: content, type: "image/png"}
+        ])
+
+      render_upload(photo, "later.png")
+      lv |> form("#log-media-form") |> render_submit()
+
+      # The purify worker attaches the asset and re-broadcasts; the page updates live.
+      Oban.drain_queue(queue: :default)
+
+      asset = Goodmao2.Repo.get_by!(Goodmao2.Media.MediaAsset, log_entry_id: entry.id)
+
+      assert has_element?(lv, "#log-media-item-#{asset.id} img")
+
+      # Removing it soft-deletes the asset and clears it from the page.
+      lv |> element("#log-media-remove-#{asset.id}") |> render_click()
+      refute has_element?(lv, "#log-media-item-#{asset.id}")
+      assert Goodmao2.Repo.reload(asset).deleted_at
+    end
+
+    test "a viewer sees the media but no management section", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      {:ok, entry} = Goodmao2.Media.create_life_log(owner, pet, %{"note" => "hi"}, [])
+      grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      refute has_element?(lv, "#log-media-section")
+    end
   end
 
   describe "Pet profile photo (ADR-0020)" do

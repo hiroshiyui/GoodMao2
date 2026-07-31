@@ -210,6 +210,112 @@ defmodule Goodmao2.MediaTest do
     end
   end
 
+  describe "add_media_to_life_log/4 (ADR-0005 follow-up)" do
+    setup %{owner: owner, pet: pet} do
+      {:ok, entry} = Media.create_life_log(owner, pet, %{"note" => "first"}, [])
+      %{entry: entry}
+    end
+
+    test "enqueues purification and the worker attaches to the existing entry", %{
+      owner: owner,
+      pet: pet,
+      entry: entry
+    } do
+      {:ok, token} = Media.stage_upload(make_png())
+
+      assert :ok = Media.add_media_to_life_log(owner, pet, entry, [%{token: token}])
+      Oban.drain_queue(queue: :default)
+
+      [asset] =
+        Goodmao2.Repo.all(from a in Media.MediaAsset, where: a.log_entry_id == ^entry.id)
+
+      assert asset.kind == "image"
+      assert Storage.exists?(asset.id)
+      refute File.exists?(Storage.staged_path(token))
+    end
+
+    test "a viewer may not add media", %{owner: owner, pet: pet, entry: entry} do
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+
+      assert Media.add_media_to_life_log(viewer, pet, entry, [%{token: "sometoken"}]) ==
+               {:error, :unauthorized}
+    end
+
+    test "refuses a non-life entry and an empty file list", %{
+      owner: owner,
+      pet: pet,
+      entry: entry
+    } do
+      food = log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      assert Media.add_media_to_life_log(owner, pet, food, [%{token: "sometoken"}]) ==
+               {:error, :unauthorized}
+
+      assert Media.add_media_to_life_log(owner, pet, entry, []) == {:error, :no_files}
+    end
+
+    test "the per-entry cap counts already-attached media", %{
+      owner: owner,
+      pet: pet,
+      entry: entry
+    } do
+      for _ <- 1..Media.config(:max_entries) do
+        %Media.MediaAsset{}
+        |> Media.MediaAsset.changeset(%{
+          "log_entry_id" => entry.id,
+          "pet_id" => pet.id,
+          "kind" => "image",
+          "content_type" => "image/png",
+          "byte_size" => 1
+        })
+        |> Goodmao2.Repo.insert!()
+      end
+
+      assert Media.add_media_to_life_log(owner, pet, entry, [%{token: "sometoken"}]) ==
+               {:error, :media_limit}
+    end
+  end
+
+  describe "delete_media_asset/4" do
+    setup %{owner: owner, pet: pet} do
+      {:ok, purified} = Media.purify(make_png())
+      on_exit(fn -> File.rm(purified.path) end)
+      {entry, asset} = attach_asset(owner, pet, purified)
+      %{entry: entry, asset: asset}
+    end
+
+    test "the owner soft-deletes an asset; reads no longer include it", %{
+      owner: owner,
+      pet: pet,
+      entry: entry,
+      asset: asset
+    } do
+      assert {:ok, deleted} = Media.delete_media_asset(owner, pet, entry, asset.id)
+      assert deleted.deleted_at
+      # The bytes stay with the soft-deleted row (ADR-0008); reads filter it out.
+      assert Storage.exists?(asset.id)
+      assert Media.fetch_asset_for_user(owner, asset.id) == {:error, :not_found}
+    end
+
+    test "a viewer gets not_found (existence hidden)", %{
+      owner: owner,
+      pet: pet,
+      entry: entry,
+      asset: asset
+    } do
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+
+      assert Media.delete_media_asset(viewer, pet, entry, asset.id) == {:error, :not_found}
+    end
+
+    test "an asset of a different entry is not_found", %{owner: owner, pet: pet, asset: asset} do
+      other = log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      assert Media.delete_media_asset(owner, pet, other, asset.id) == {:error, :not_found}
+    end
+  end
+
   describe "fetch_asset_for_user/2" do
     setup %{owner: owner, pet: pet} do
       {:ok, purified} = Media.purify(make_png())

@@ -94,9 +94,11 @@ S3-compatible object store is a later option behind the same seam).
   job) is a follow-up; deletes are **soft** ([ADR-0008](0008-soft-delete.md)) and keep the
   bytes, so reclamation belongs to that janitor.
 - **Shipped since v1:** async purification (`Media.PurifyWorker`, staging + background attach),
-  the orphan-object **janitor** (`Media.OrphanJanitor`, daily cron), and share-token media serving.
-- **Follow-ups (not in v1):** "attach more media to an existing life
-  log"; public **shared** media serving mirroring the ADR-0004 token route; antivirus
+  the orphan-object **janitor** (`Media.OrphanJanitor`, daily cron), share-token media serving,
+  and **attach/remove media on an existing life log** (the single-entry page;
+  `Media.add_media_to_life_log/4` + `Media.delete_media_asset/4`, gated by the same right as
+  editing the entry, capped per entry, not counted as an edit).
+- **Follow-ups (not in v1):** public **shared** media serving mirroring the ADR-0004 token route; antivirus
   scanning; async/background processing at scale (Oban); reusing the media pipeline for
   owner-uploaded pet avatars (today a bare URL string).
 

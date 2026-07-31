@@ -175,7 +175,7 @@ msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:131
 #: lib/goodmao2_web/live/pet_live/form.ex:158
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:379
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:580
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:109
 #, elixir-autogen, elixir-format
 msgid "Cancel"
@@ -505,7 +505,7 @@ msgstr ""
 msgid "Not allowed."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:357
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:558
 #: lib/goodmao2_web/live/pet_live/show.ex:1316
 #, elixir-autogen, elixir-format
 msgid "Note"
@@ -671,7 +671,7 @@ msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:126
 #: lib/goodmao2_web/live/pet_live/form.ex:149
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:374
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:575
 #: lib/goodmao2_web/live/pet_live/show.ex:629
 #: lib/goodmao2_web/live/pet_live/show.ex:1125
 #: lib/goodmao2_web/live/pet_live/show.ex:1295
@@ -825,7 +825,7 @@ msgstr ""
 msgid "What GoodMao does"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:361
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:562
 #: lib/goodmao2_web/live/pet_live/show.ex:1320
 #, elixir-autogen, elixir-format
 msgid "When"
@@ -1563,7 +1563,7 @@ msgstr ""
 msgid "no change"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:27
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:28
 #, elixir-autogen, elixir-format
 msgid "%{type} entry"
 msgstr ""
@@ -1573,27 +1573,27 @@ msgstr ""
 msgid "Assessment"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:213
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:321
 #, elixir-autogen, elixir-format
 msgid "Back to %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:110
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:118
 #, elixir-autogen, elixir-format
 msgid "Changes saved."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:227
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:335
 #, elixir-autogen, elixir-format
 msgid "Current entry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:337
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:538
 #, elixir-autogen, elixir-format
 msgid "Each saved change keeps a snapshot. %{left} edits left."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:335
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:536
 #, elixir-autogen, elixir-format
 msgid "Edit entry"
 msgstr ""
@@ -1603,27 +1603,27 @@ msgstr ""
 msgid "Edit entry or view its history"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:398
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:599
 #, elixir-autogen, elixir-format
 msgid "Edit history"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:247
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:355
 #, elixir-autogen, elixir-format
 msgid "Edited %{n} of %{max}"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:33
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:41
 #, elixir-autogen, elixir-format
 msgid "Entry not found."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:400
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:601
 #, elixir-autogen, elixir-format
 msgid "No edits yet — this entry is as first recorded."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:416
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:617
 #, elixir-autogen, elixir-format
 msgid "Previous value:"
 msgstr ""
@@ -1633,27 +1633,27 @@ msgstr ""
 msgid "Recommendation"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:376
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:577
 #, elixir-autogen, elixir-format
 msgid "Save changes"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:393
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:594
 #, elixir-autogen, elixir-format
 msgid "This entry has reached its nine-edit limit and can no longer be changed."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:115
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:123
 #, elixir-autogen, elixir-format
 msgid "This entry has reached its nine-edit limit."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:118
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:126
 #, elixir-autogen, elixir-format
 msgid "You are not allowed to edit this entry."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:193
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:301
 #, elixir-autogen, elixir-format
 msgid "a former caretaker"
 msgstr ""
@@ -1668,6 +1668,7 @@ msgstr ""
 msgid "File is too large."
 msgstr ""
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:493
 #: lib/goodmao2_web/live/pet_live/show.ex:1247
 #, elixir-autogen, elixir-format
 msgid "JPEG, PNG, GIF, WEBP, MP4, or WEBM."
@@ -1683,6 +1684,7 @@ msgstr ""
 msgid "Photos or video"
 msgstr ""
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:506
 #: lib/goodmao2_web/live/pet_live/show.ex:1260
 #, elixir-autogen, elixir-format
 msgid "Remove file"
@@ -1703,6 +1705,7 @@ msgstr ""
 msgid "Too many files."
 msgstr ""
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:229
 #: lib/goodmao2_web/live/pet_live/show.ex:389
 #, elixir-autogen, elixir-format
 msgid "You've uploaded a lot recently — please try again later."
@@ -2525,6 +2528,7 @@ msgstr ""
 msgid "Regenerate recovery codes"
 msgstr ""
 
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:478
 #: lib/goodmao2_web/live/pet_live/show.ex:1136
 #: lib/goodmao2_web/live/user_live/settings.ex:77
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:149
@@ -3050,68 +3054,68 @@ msgstr ""
 msgid "%{brand} shared entry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:265
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:373
 #, elixir-autogen, elixir-format
 msgid "Anyone with this link can view just this entry while it stays public. Set the entry to Limited or Private to revoke it."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:130
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:190
 #, elixir-autogen, elixir-format
 msgid "Choose an expiry date and time."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:322
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:430
 #, elixir-autogen, elixir-format
 msgid "Clear expiry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:287
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:395
 #, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:156
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:216
 #, elixir-autogen, elixir-format
 msgid "Couldn't update the share link."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:295
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:403
 #, elixir-autogen, elixir-format
 msgid "Expires %{when}"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:292
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:305
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:400
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:413
 #, elixir-autogen, elixir-format
 msgid "Expiry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:297
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:405
 #, elixir-autogen, elixir-format
 msgid "No expiry — active while public."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:153
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:213
 #, elixir-autogen, elixir-format
 msgid "Pick a time in the future."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:313
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:421
 #, elixir-autogen, elixir-format
 msgid "Set expiry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:262
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:370
 #, elixir-autogen, elixir-format
 msgid "Share link"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:278
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:386
 #, elixir-autogen, elixir-format
 msgid "Share link URL"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:150
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:210
 #, elixir-autogen, elixir-format
 msgid "Share link updated."
 msgstr ""
@@ -3126,7 +3130,7 @@ msgstr ""
 msgid "Shared via a link for this single entry. The owner can revoke it at any time."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex:135
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:195
 #, elixir-autogen, elixir-format
 msgid "That date couldn't be read."
 msgstr ""
@@ -3393,4 +3397,69 @@ msgstr ""
 #: lib/goodmao2_web/helpers.ex:80
 #, elixir-autogen, elixir-format
 msgid "Only you and whoever recorded it"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:525
+#, elixir-autogen, elixir-format
+msgid "Add files"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:490
+#, elixir-autogen, elixir-format
+msgid "Add photos or video"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:220
+#, elixir-autogen, elixir-format
+msgid "Choose a file first."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:231
+#, elixir-autogen, elixir-format
+msgid "Couldn't add those files. Please try again."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:181
+#, elixir-autogen, elixir-format
+msgid "Couldn't remove that file."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:178
+#, elixir-autogen, elixir-format
+msgid "File removed."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:443
+#, elixir-autogen, elixir-format
+msgid "Photos & videos"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:475
+#, elixir-autogen, elixir-format
+msgid "Remove this file from the entry?"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:224
+#, elixir-autogen, elixir-format
+msgid "This entry already holds its maximum of %{max} files."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:259
+#, elixir-autogen, elixir-format
+msgid "This entry was deleted."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:445
+#, elixir-autogen, elixir-format
+msgid "Up to %{max} files per entry. Removing one frees its slot."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:159
+#, elixir-autogen, elixir-format
+msgid "Uploading — your files will appear once processed."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex:523
+#, elixir-autogen, elixir-format
+msgid "Uploading…"
 msgstr ""

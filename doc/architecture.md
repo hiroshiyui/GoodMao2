@@ -34,8 +34,10 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   fans out a `medication_due` bell + Web Push to effective `:write` caretakers, de-duped.
 - **Media** (`media.ex`) — purified photos/videos attached to `life` logs (ADR-0005):
   ffmpeg-based purification (`Media.Purifier`), an id-keyed storage seam (`Media.Storage`),
-  atomic create with the log, an upload rate limiter (`Media.RateLimiter`), and the
-  authorization for the serving endpoint.
+  atomic create with the log, add/remove on an existing entry from its page
+  (`add_media_to_life_log/4` / soft-deleting `delete_media_asset/4` — same right as editing
+  the entry, per-entry cap, not an edit), an upload rate limiter (`Media.RateLimiter`), and
+  the authorization for the serving endpoint.
 - **Reports** (`reports.ex`) — generated, point-in-time **health summary reports** for a pet
   ([ADR-0012](adr/0012-vet-access-model.md)): a frozen `content` snapshot over a date range
   (built from `Logs.shareable_entries/3`, which **excludes every private entry**), read by any

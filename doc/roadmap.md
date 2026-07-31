@@ -163,8 +163,8 @@ rejects *and* the legitimate case still passes).
   staged and the entry appears immediately, then each file is purified + attached in the
   background (live via PubSub; a failure sends the uploader a `media_failed` bell). A daily
   `Media.OrphanJanitor` reclaims stray objects + stale staged uploads, and share-token media
-  serving shipped with per-entry share links (ADR-0004). Follow-up in [v1.1.0](#milestone-v110): attach media to an
-  existing entry
+  serving shipped with per-entry share links (ADR-0004), and the single-entry page can
+  add/remove media after creation (the v1.1.0 follow-up, shipped 2026-07-31)
 - Log **edit revisions** audit trail + edit-count cap ([ADR-0009](adr/0009-log-edit-revisions.md); Phase 1)
   — each real edit snapshots the prior state into `log_entry_revisions` and bumps a
   denormalized `edit_count`; the 10th edit is refused; a no-op consumes no life; the snapshot
@@ -456,9 +456,10 @@ as everything else and is learned to be ignored.
 
 ### 3. Media & sharing follow-ups
 
-- [ ] **Attach media to an existing entry** ([ADR-0005](adr/0005-media-storage.md)) — media can
-      only be added while creating a `life` log, so a photo taken a minute later needs a second
-      entry.
+- [x] **Attach media to an existing entry** ([ADR-0005](adr/0005-media-storage.md)) — shipped
+      2026-07-31: the single-entry page manages a `life` log's media — add files through the
+      same staging/purify pipeline (respecting the per-entry cap) and soft-delete existing
+      ones, gated by the same right as editing the entry; neither counts as an edit.
 - [ ] **Media in shared reports** ([ADR-0012](adr/0012-vet-access-model.md)) — a health summary
       freezes text only. A vet reading a shared report sees that a wound was logged, not the
       photo of it, which is often the point.
