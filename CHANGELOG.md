@@ -8,6 +8,27 @@ skill).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-31
+
+### Added
+
+- **A life log's photos and videos can now be managed after creation** from the single-entry
+  page — the ADR-0005 follow-up. Anyone who may edit the entry can add files (through the
+  same staging → purification pipeline as QuickLog, respecting the per-entry file cap and the
+  hourly upload rate limit) and remove existing ones (a soft delete — the bytes stay). Neither
+  counts against the nine-edit revision budget. The page now also follows the pet's live
+  timeline topic, so a freshly purified file appears without a reload — and a failed upload no
+  longer forces a second entry to try again.
+
+### Fixed
+
+- **Uploading a phone photo with an embedded second frame no longer fails purification.**
+  Pixel/iPhone-style JPEGs carrying an Ultra HDR gain map or motion-photo frame — and animated
+  PNGs — made the purifier's ffmpeg re-encode abort (the single-image muxer refuses a second
+  frame), so the upload landed as a `media_failed` bell with no image attached. Still-image
+  output is now pinned to the primary frame, which is also the purifier's contract: only the
+  primary decoded pixels survive. GIF and WebP animation is unaffected.
+
 ## [1.0.5] - 2026-07-30
 
 ### Fixed
