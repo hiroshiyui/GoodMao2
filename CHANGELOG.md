@@ -8,6 +8,18 @@ skill).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-31
+
+### Added
+
+- **Media uploads show a live progress bar per file.** A multi-MB photo on a slow uplink gave
+  no feedback between submit and the "processing" flash — a stalled upload and a slowly
+  grinding one looked identical. Each selected file now renders a native `<progress>` bar
+  (with a localized accessible name) that fills as the chunks stream, in both the QuickLog
+  form and the entry page's media form. The bar stays at 0% until submit — uploads only start
+  then — and the two forms' selected-files lists are now one shared `<.upload_file_list>`
+  component.
+
 ## [1.1.1] - 2026-07-31
 
 ### Fixed
