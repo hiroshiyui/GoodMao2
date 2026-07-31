@@ -8,6 +8,20 @@ skill).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-07-31
+
+### Fixed
+
+- **A media upload can no longer vanish silently when ffprobe is noisy.** On hosts with older
+  ffmpeg (Debian 12's 5.1), probing a multi-frame phone JPEG emits decoder errors on stderr
+  while still exiting 0. The purifier merged stderr into the JSON it parses, so the probe
+  failed with a raw exception struct as the reason — and the purify worker's failure path
+  crashed stringifying it *after* discarding the staged file, so the retry completed as a
+  no-op: no media, no `media_failed` bell. ffprobe's stderr now stays out of the JSON (it goes
+  to the application log), unparseable probe output is classified as a clean `probe_failed`,
+  and the failure bell tolerates any reason shape — a failed upload is now always visible,
+  never silent.
+
 ## [1.1.0] - 2026-07-31
 
 ### Added
