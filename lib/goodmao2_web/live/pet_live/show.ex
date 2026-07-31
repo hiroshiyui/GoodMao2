@@ -402,12 +402,6 @@ defmodule Goodmao2Web.PetLive.Show do
     {:noreply, put_flash(socket, :error, gettext("Couldn't save that entry. Please try again."))}
   end
 
-  @doc false
-  def upload_error_to_string(:too_large), do: gettext("File is too large.")
-  def upload_error_to_string(:too_many_files), do: gettext("Too many files.")
-  def upload_error_to_string(:not_accepted), do: gettext("That file type isn't accepted.")
-  def upload_error_to_string(_), do: gettext("That file can't be used.")
-
   # Live updates only mutate the streamed list on **page 1** in list view — a new entry belongs
   # at the top of the newest page. Deeper pages are a stable offset slice, so a create there is
   # ignored (it'll be seen by paging or on the next reset). Edits/deletes act only on entries in
@@ -1245,30 +1239,7 @@ defmodule Goodmao2Web.PetLive.Show do
         </label>
         <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
         <p class="text-base-content/50 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
-        <ul class="space-y-1">
-          <li
-            :for={entry <- @uploads.media.entries}
-            id={"upload-entry-#{entry.ref}"}
-            class="flex items-center gap-2 text-sm"
-          >
-            <span class="min-w-0 flex-1 truncate">{entry.client_name}</span>
-            <button
-              type="button"
-              phx-click="cancel_upload"
-              phx-value-ref={entry.ref}
-              class="btn btn-ghost btn-xs"
-              aria-label={gettext("Remove file")}
-            >
-              <.icon name="hero-x-mark" class="size-4" />
-            </button>
-            <span :for={err <- upload_errors(@uploads.media, entry)} class="text-error text-xs">
-              {upload_error_to_string(err)}
-            </span>
-          </li>
-        </ul>
-        <p :for={err <- upload_errors(@uploads.media)} class="text-error text-xs">
-          {upload_error_to_string(err)}
-        </p>
+        <.upload_file_list upload={@uploads.media} cancel_event="cancel_upload" />
       </div>
 
       <details

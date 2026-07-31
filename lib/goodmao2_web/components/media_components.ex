@@ -12,6 +12,7 @@ defmodule Goodmao2Web.MediaComponents do
   use Phoenix.Component
   use Gettext, backend: Goodmao2Web.Gettext
 
+  import Goodmao2Web.CoreComponents, only: [icon: 1]
   import Goodmao2Web.Helpers, only: [media_alt: 1]
 
   use Phoenix.VerifiedRoutes,
@@ -56,4 +57,55 @@ defmodule Goodmao2Web.MediaComponents do
 
   defp asset_src(asset, nil), do: ~p"/media/#{asset.id}"
   defp asset_src(asset, token), do: ~p"/entries/shared/#{token}/media/#{asset.id}"
+
+  @doc """
+  The selected-files list of a media upload form: one row per file with a live progress bar
+  (`entry.progress` streams in while the chunks upload), a cancel button firing `cancel_event`
+  with the entry ref, and per-file + form-level upload errors. Shared by the QuickLog form
+  (`PetLive.Show`) and the entry page's media form (`PetLive.LogEntry`).
+  """
+  attr :upload, Phoenix.LiveView.UploadConfig, required: true
+  attr :cancel_event, :string, required: true
+
+  def upload_file_list(assigns) do
+    ~H"""
+    <ul class="space-y-1">
+      <li
+        :for={entry <- @upload.entries}
+        id={"upload-entry-#{entry.ref}"}
+        class="flex items-center gap-2 text-sm"
+      >
+        <span class="min-w-0 flex-1 truncate">{entry.client_name}</span>
+        <progress
+          class="progress progress-primary w-24 shrink-0"
+          value={entry.progress}
+          max="100"
+          aria-label={gettext("Upload progress for %{name}", name: entry.client_name)}
+        >
+          {entry.progress}%
+        </progress>
+        <button
+          type="button"
+          phx-click={@cancel_event}
+          phx-value-ref={entry.ref}
+          class="btn btn-ghost btn-xs"
+          aria-label={gettext("Remove file")}
+        >
+          <.icon name="hero-x-mark" class="size-4" />
+        </button>
+        <span :for={err <- upload_errors(@upload, entry)} class="text-error text-xs">
+          {upload_error_label(err)}
+        </span>
+      </li>
+    </ul>
+    <p :for={err <- upload_errors(@upload)} class="text-error text-xs">
+      {upload_error_label(err)}
+    </p>
+    """
+  end
+
+  defp upload_error_label(:too_large), do: gettext("File is too large.")
+  defp upload_error_label(:too_many_files), do: gettext("Too many files.")
+  defp upload_error_label(:not_accepted), do: gettext("That file type isn't accepted.")
+  defp upload_error_label(_), do: gettext("That file can't be used.")
 end

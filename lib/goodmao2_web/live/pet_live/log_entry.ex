@@ -491,30 +491,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
           </label>
           <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
           <p class="text-base-content/50 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
-          <ul class="space-y-1">
-            <li
-              :for={upload <- @uploads.media.entries}
-              id={"log-media-upload-#{upload.ref}"}
-              class="flex items-center gap-2 text-sm"
-            >
-              <span class="min-w-0 flex-1 truncate">{upload.client_name}</span>
-              <button
-                type="button"
-                phx-click="cancel_media_upload"
-                phx-value-ref={upload.ref}
-                class="btn btn-ghost btn-xs"
-                aria-label={gettext("Remove file")}
-              >
-                <.icon name="hero-x-mark" class="size-4" />
-              </button>
-              <span :for={err <- upload_errors(@uploads.media, upload)} class="text-error text-xs">
-                {Goodmao2Web.PetLive.Show.upload_error_to_string(err)}
-              </span>
-            </li>
-          </ul>
-          <p :for={err <- upload_errors(@uploads.media)} class="text-error text-xs">
-            {Goodmao2Web.PetLive.Show.upload_error_to_string(err)}
-          </p>
+          <.upload_file_list upload={@uploads.media} cancel_event="cancel_media_upload" />
           <.button
             type="submit"
             id="log-media-submit"
