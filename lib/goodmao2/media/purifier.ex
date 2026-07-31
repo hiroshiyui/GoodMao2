@@ -121,21 +121,21 @@ defmodule Goodmao2.Media.Purifier do
       # a transparent region cannot smuggle hidden pixels. Per-frame, so gif/webp animation survives.
       # An optional square crop (avatars) is prepended to the chain, in input-relative units so it
       # needs no pixel dimensions and re-validated/clamped here regardless of the client's request.
-      args = [
-        "-y",
-        "-nostdin",
-        "-v",
-        "error",
-        "-i",
-        source,
-        "-filter_complex",
-        crop_prefix(opts[:crop]) <> flatten_alpha(),
-        "-map",
-        "[out]",
-        "-map_metadata",
-        "-1",
-        out
-      ]
+      args =
+        [
+          "-y",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          source,
+          "-filter_complex",
+          crop_prefix(opts[:crop]) <> flatten_alpha(),
+          "-map",
+          "[out]",
+          "-map_metadata",
+          "-1"
+        ] ++ single_frame_flags(format) ++ [out]
 
       with :ok <- run("ffmpeg", args),
            {:ok, size} <- output_size(out) do
@@ -212,6 +212,15 @@ defmodule Goodmao2.Media.Purifier do
   defp clamp01(_), do: nil
 
   defp f(v), do: :erlang.float_to_binary(v, decimals: 6)
+
+  # JPEG and PNG outputs go through ffmpeg's single-image `image2` muxer, which aborts the whole
+  # encode if the decoder emits a second frame — which real uploads do (APNG, and phone-camera
+  # multi-picture/motion JPEGs carrying an extra embedded frame). Keep only the primary frame for
+  # those formats; gif/webp use animation-capable muxers, so their animation still survives.
+  defp single_frame_flags(format) when format in [:jpeg, :png],
+    do: ["-frames:v", "1", "-update", "1"]
+
+  defp single_frame_flags(_format), do: []
 
   # Duplicate the frame, paint one copy fully opaque white, overlay the original (honouring its
   # alpha) on top, then force an alpha-less pixel format. Needs no knowledge of the dimensions.
