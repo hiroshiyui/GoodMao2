@@ -73,7 +73,7 @@ defmodule Goodmao2Web.UserLive.VetProfile do
           </span>
           <p
             :if={@profile.verification_status == "rejected"}
-            class="text-base-content/60 mt-2 text-sm"
+            class="text-base-content/70 mt-2 text-sm"
           >
             {gettext("Your last submission was not accepted. You may correct and resubmit it.")}
           </p>
@@ -108,7 +108,7 @@ defmodule Goodmao2Web.UserLive.VetProfile do
         </.form>
 
         <div class="mt-8 text-center">
-          <.link navigate={~p"/users/settings"} class="text-base-content/60 text-sm">
+          <.link navigate={~p"/users/settings"} class="text-base-content/70 text-sm">
             {gettext("Back to account settings")}
           </.link>
         </div>

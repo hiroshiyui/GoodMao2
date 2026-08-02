@@ -17,6 +17,7 @@ defmodule Goodmao2.Accounts.RegistrationRateLimiter do
 
   @table :registration_email_rate
   @window_seconds 3600
+  @sweep_interval_ms :timer.minutes(10)
 
   def start_link(_opts), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
@@ -30,8 +31,31 @@ defmodule Goodmao2.Accounts.RegistrationRateLimiter do
       write_concurrency: true
     ])
 
+    schedule_sweep()
     {:ok, nil}
   end
+
+  # Rows are keyed by an unauthenticated, attacker-chosen address and nothing else ever
+  # removes them, so a flood of distinct addresses would grow the table without bound (each
+  # is its own key, so the per-address cap never engages). Expired windows are dropped here.
+  @impl true
+  def handle_info(:sweep, state) do
+    cutoff = System.system_time(:second) - @window_seconds
+
+    @table
+    |> :ets.foldl(
+      fn {key, times}, stale ->
+        if Enum.any?(times, &(&1 > cutoff)), do: stale, else: [key | stale]
+      end,
+      []
+    )
+    |> Enum.each(&:ets.delete(@table, &1))
+
+    schedule_sweep()
+    {:noreply, state}
+  end
+
+  defp schedule_sweep, do: Process.send_after(self(), :sweep, @sweep_interval_ms)
 
   @doc "Records a send for `email`, or `{:error, :rate_limited}` if over the hourly cap."
   def check(email) when is_binary(email) do

@@ -118,7 +118,7 @@ defmodule Goodmao2Web.MessageLive.Show do
           class="mt-6 space-y-2"
         >
           <li
-            class="hidden only:block text-base-content/60 py-8 text-center"
+            class="hidden only:block text-base-content/70 py-8 text-center"
             id="message-thread-empty"
           >
             {gettext("No messages yet. Say hello.")}

@@ -178,34 +178,48 @@ defmodule Goodmao2.Medications do
           preload: [schedule: s]
       )
 
-    Enum.each(due, &remind_one/1)
-    {:ok, length(due)}
+    {:ok, Enum.count(due, &(remind_one(&1) == :ok))}
   end
 
   defp remind_one(%Dose{} = dose) do
-    pet = Repo.get(Pet, dose.pet_id)
-    schedule = dose.schedule
+    # Claim the slot *before* fanning out, not after. The cron fires every 15 minutes, so a
+    # sweep that overruns its interval — or an Oban retry after this job died partway down
+    # the list — would otherwise re-read the same still-unstamped row and send every
+    # caretaker a second bell and phone push for one pill. This conditional update is the
+    # lock: whichever runner flips `reminded_at` first gets the 1, the loser gets 0 and
+    # stays silent.
+    {claimed, _} =
+      Repo.update_all(
+        from(d in Dose, where: d.id == ^dose.id and is_nil(d.reminded_at)),
+        set: [reminded_at: now()]
+      )
 
-    payload = %{
-      "pet_id" => pet.id,
-      "pet_name" => pet.name,
-      "schedule_id" => schedule.id,
-      "dose_id" => dose.id,
-      "medication_name" => schedule.medication_name,
-      "dose" => schedule.dose,
-      "due_at" => DateTime.to_iso8601(dose.due_at)
-    }
+    with 1 <- claimed,
+         %Pet{} = pet <- Repo.get(Pet, dose.pet_id) do
+      schedule = dose.schedule
 
-    pet
-    |> Pets.list_effective_accesses()
-    |> Enum.filter(&(&1.role in @write_roles))
-    |> Enum.map(& &1.user_id)
-    |> Enum.uniq()
-    |> Enum.each(&Goodmao2.Notifications.create(&1, "medication_due", payload))
+      payload = %{
+        "pet_id" => pet.id,
+        "pet_name" => pet.name,
+        "schedule_id" => schedule.id,
+        "dose_id" => dose.id,
+        "medication_name" => schedule.medication_name,
+        "dose" => schedule.dose,
+        "due_at" => DateTime.to_iso8601(dose.due_at)
+      }
 
-    # Stamp so the next sweep doesn't re-nudge this slot.
-    Repo.update_all(from(d in Dose, where: d.id == ^dose.id), set: [reminded_at: now()])
-    :ok
+      pet
+      |> Pets.list_effective_accesses()
+      |> Enum.filter(&(&1.role in @write_roles))
+      |> Enum.map(& &1.user_id)
+      |> Enum.uniq()
+      |> Enum.each(&Goodmao2.Notifications.create(&1, "medication_due", payload))
+
+      :ok
+    else
+      # Claimed by a concurrent sweep, or the pet is gone — either way, nothing to send.
+      _ -> :skip
+    end
   end
 
   ## Claiming a dose

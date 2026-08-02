@@ -184,9 +184,19 @@ defmodule Goodmao2Web.PetLive.Show do
   end
 
   def handle_event("cal_month", %{"delta" => delta}, socket) do
-    month = CalendarGrid.add_months(socket.assigns.cal_month, String.to_integer(delta))
+    # `delta` arrives over the socket, so it is attacker-controlled: parse it rather than
+    # `String.to_integer/1`, which raises and takes the LiveView down. The buttons only ever
+    # send -1 or 1, so anything else is ignored instead of scrolling the calendar arbitrarily.
+    case Integer.parse(to_string(delta)) do
+      {n, ""} when n in [-1, 1] ->
+        month = CalendarGrid.add_months(socket.assigns.cal_month, n)
 
-    {:noreply, socket |> assign(:cal_month, month) |> assign(:selected_day, nil) |> load_month()}
+        {:noreply,
+         socket |> assign(:cal_month, month) |> assign(:selected_day, nil) |> load_month()}
+
+      _ ->
+        {:noreply, socket}
+    end
   end
 
   def handle_event("select_day", %{"day" => day}, socket) do
@@ -576,14 +586,17 @@ defmodule Goodmao2Web.PetLive.Show do
       >
         <div class="card-body p-4">
           <h2 id="quicklog-heading" class="text-lg font-semibold">{gettext("Quick log")}</h2>
-          <p class="text-base-content/60 text-sm">
+          <p class="text-base-content/70 text-sm">
             {gettext("One tap to record what just happened.")}
           </p>
 
+          <%!-- A group of toggle buttons, not tabs: `role="tab"` promises arrow-key roving and
+          an associated tabpanel, neither of which exists here, so a screen reader announces
+          navigation that doesn't work. Same idiom as #timeline-view-toggle below. --%>
           <div
             id="quicklog-types"
             class="mt-3 flex flex-wrap gap-2"
-            role="tablist"
+            role="group"
             aria-label={gettext("Log type")}
           >
             <button
@@ -592,8 +605,7 @@ defmodule Goodmao2Web.PetLive.Show do
               id={"quicklog-type-#{type}"}
               phx-click="select_type"
               phx-value-type={type}
-              role="tab"
-              aria-selected={to_string(@quicklog_type == type)}
+              aria-pressed={to_string(@quicklog_type == type)}
               class={[
                 "quicklog-type-chip btn btn-sm",
                 (@quicklog_type == type && "btn-primary") || "btn-ghost"
@@ -603,7 +615,16 @@ defmodule Goodmao2Web.PetLive.Show do
             </button>
           </div>
 
-          <p :if={@quick_error} id="quicklog-error" class="text-error mt-3 text-sm">{@quick_error}</p>
+          <%!-- role="alert" because a failed one-tap log changes nothing else on screen: without it
+          a screen-reader user taps "Ate fully" and gets silence either way. --%>
+          <p
+            :if={@quick_error}
+            id="quicklog-error"
+            role="alert"
+            class="text-error mt-3 text-sm"
+          >
+            {@quick_error}
+          </p>
 
           <%!-- Fast path: each common value is its own button that logs in a single tap. --%>
           <div
@@ -752,7 +773,7 @@ defmodule Goodmao2Web.PetLive.Show do
         />
 
         <ol :if={@view == "list"} id="timeline" phx-update="stream" class="mt-4 space-y-2">
-          <li class="hidden only:block text-base-content/60 py-8 text-center" id="timeline-empty">
+          <li class="hidden only:block text-base-content/70 py-8 text-center" id="timeline-empty">
             {gettext("No entries yet. Use Quick log above to start recording.")}
           </li>
           <li
@@ -785,7 +806,7 @@ defmodule Goodmao2Web.PetLive.Show do
             <.icon name="hero-arrow-left" class="size-4" /> {gettext("Previous")}
           </button>
 
-          <span id="timeline-page-status" class="text-base-content/60 tabular-nums">
+          <span id="timeline-page-status" class="text-base-content/70 tabular-nums">
             {gettext("Page %{page}", page: @page)}
           </span>
 
@@ -857,7 +878,7 @@ defmodule Goodmao2Web.PetLive.Show do
           {@entry.note}
         </p>
         <.media_grid :if={@entry.media_assets != []} assets={@entry.media_assets} />
-        <p class="timeline-entry-time text-base-content/50 mt-1 text-xs">
+        <p class="timeline-entry-time text-base-content/70 mt-1 text-xs">
           <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
             {format_datetime(@entry.occurred_at)}
           </time>
@@ -940,7 +961,7 @@ defmodule Goodmao2Web.PetLive.Show do
             <th
               :for={i <- 0..6}
               scope="col"
-              class="text-base-content/60 p-1 text-center text-xs font-semibold"
+              class="text-base-content/70 p-1 text-center text-xs font-semibold"
             >
               <abbr title={weekday_long(i)} class="no-underline">{weekday_short(i)}</abbr>
             </th>
@@ -973,7 +994,7 @@ defmodule Goodmao2Web.PetLive.Show do
             {gettext("Back to month")}
           </button>
         </div>
-        <p :if={@day_entries == []} class="text-base-content/60 py-4 text-sm">
+        <p :if={@day_entries == []} class="text-base-content/70 py-4 text-sm">
           {gettext("No entries on this day.")}
         </p>
         <ol :if={@day_entries != []} class="mt-2 space-y-2">
@@ -1079,7 +1100,7 @@ defmodule Goodmao2Web.PetLive.Show do
             aria-controls="pet-avatar-form"
             title={gettext("Change profile photo")}
             aria-label={gettext("Change profile photo")}
-            class="cursor-pointer rounded-full focus-visible:outline-none"
+            class="gm-avatar-trigger cursor-pointer rounded-full"
           >
             <.avatar
               owner_type="pet"
@@ -1132,7 +1153,7 @@ defmodule Goodmao2Web.PetLive.Show do
             </div>
           </.form>
 
-          <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/60 text-xs">
+          <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/70 text-xs">
             {gettext("Processing…")}
           </p>
         </div>
@@ -1151,7 +1172,7 @@ defmodule Goodmao2Web.PetLive.Show do
               {translate_role(@role)}
             </span>
           </div>
-          <p class="pet-header-meta text-base-content/60 mt-1 text-sm">
+          <p class="pet-header-meta text-base-content/70 mt-1 text-sm">
             {[translate_species(@pet.species), translate_sex(@pet.sex), @pet.breed, @pet.color]
             |> Enum.filter(&(&1 && &1 != ""))
             |> Enum.join(" · ")}
@@ -1159,7 +1180,7 @@ defmodule Goodmao2Web.PetLive.Show do
           <p
             :if={@pet.lifecycle_status != "active"}
             id="pet-lifecycle"
-            class="text-base-content/60 mt-1 flex items-center gap-1 text-sm"
+            class="text-base-content/70 mt-1 flex items-center gap-1 text-sm"
           >
             <.icon name={lifecycle_icon(@pet.lifecycle_status)} class="size-4" />
             {translate_lifecycle(@pet.lifecycle_status)}
@@ -1238,7 +1259,7 @@ defmodule Goodmao2Web.PetLive.Show do
           {gettext("Photos or video")}
         </label>
         <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
-        <p class="text-base-content/50 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
+        <p class="text-base-content/70 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
         <.upload_file_list upload={@uploads.media} cancel_event="cancel_upload" />
       </div>
 

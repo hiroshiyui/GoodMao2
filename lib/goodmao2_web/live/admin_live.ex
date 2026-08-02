@@ -46,12 +46,12 @@ defmodule Goodmao2Web.AdminLive do
           <dd id="admin-registration-gate" class="text-right font-medium">
             <%= if @site_owner_email do %>
               <span class="badge badge-success badge-sm">{gettext("Restricted")}</span>
-              <p class="text-base-content/60 mt-1 text-xs font-normal">
+              <p class="text-base-content/70 mt-1 text-xs font-normal">
                 {gettext("Only %{email} may create the first account.", email: @site_owner_email)}
               </p>
             <% else %>
               <span class="badge badge-warning badge-sm">{gettext("Open")}</span>
-              <p class="text-base-content/60 mt-1 text-xs font-normal">
+              <p class="text-base-content/70 mt-1 text-xs font-normal">
                 {gettext("The first account to register becomes the administrator.")}
               </p>
             <% end %>
@@ -59,7 +59,7 @@ defmodule Goodmao2Web.AdminLive do
         </div>
       </dl>
 
-      <p class="text-base-content/60 text-sm">
+      <p class="text-base-content/70 text-sm">
         {gettext("Administration is a global role. It grants no access to any pet's data.")}
       </p>
 
@@ -76,7 +76,7 @@ defmodule Goodmao2Web.AdminLive do
         <h2 id="vet-verifications-heading" class="text-lg font-semibold">
           {gettext("Veterinarian verifications")}
         </h2>
-        <p class="text-base-content/60 mt-1 text-sm">
+        <p class="text-base-content/70 mt-1 text-sm">
           {gettext("Review submitted credentials before the vet role can be granted anywhere.")}
         </p>
 
@@ -84,7 +84,7 @@ defmodule Goodmao2Web.AdminLive do
           <li
             :if={@pending_vets == []}
             id="pending-vet-profiles-empty"
-            class="text-base-content/60 py-4 text-center"
+            class="text-base-content/70 py-4 text-center"
           >
             {gettext("No credentials are awaiting review.")}
           </li>

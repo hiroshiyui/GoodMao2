@@ -102,7 +102,7 @@ defmodule Goodmao2Web.MessageLive.Index do
           <li
             :if={@conversations == []}
             id="conversations-empty"
-            class="text-base-content/60 py-8 text-center"
+            class="text-base-content/70 py-8 text-center"
           >
             {gettext("No conversations yet. Start one with someone you share a pet with.")}
           </li>
@@ -127,7 +127,7 @@ defmodule Goodmao2Web.MessageLive.Index do
                     </p>
                     <p
                       :if={entry.conversation.last_message_at}
-                      class="conversation-time text-base-content/50 text-xs"
+                      class="conversation-time text-base-content/70 text-xs"
                     >
                       {format_datetime(entry.conversation.last_message_at)}
                     </p>
@@ -136,6 +136,7 @@ defmodule Goodmao2Web.MessageLive.Index do
                 <span
                   :if={entry.unread > 0}
                   class="conversation-unread badge badge-primary badge-sm"
+                  role="img"
                   aria-label={
                     ngettext("%{count} unread message", "%{count} unread messages", entry.unread,
                       count: entry.unread

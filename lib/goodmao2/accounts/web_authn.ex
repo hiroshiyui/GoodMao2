@@ -217,14 +217,26 @@ defmodule Goodmao2.Accounts.WebAuthn do
                  credentials
                ) do
             {:ok, auth_data} ->
-              now = DateTime.utc_now() |> DateTime.truncate(:second)
+              # Wax returns the counter but deliberately leaves the comparison to us
+              # (its own docs point at WebAuthn §7.2 step 17), so this must happen here.
+              if sign_count_regressed?(credential.sign_count, auth_data.sign_count) do
+                Logger.warning(
+                  "accounts.webauthn_sign_count_regression user_id=#{user.id} " <>
+                    "credential_id=#{Base.url_encode64(credential_id, padding: false)} " <>
+                    "stored=#{credential.sign_count} presented=#{auth_data.sign_count}"
+                )
 
-              credential
-              |> WebAuthnCredential.update_changeset(%{
-                sign_count: auth_data.sign_count,
-                last_used_at: now
-              })
-              |> Repo.update()
+                {:error, :sign_count_regression}
+              else
+                now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+                credential
+                |> WebAuthnCredential.update_changeset(%{
+                  sign_count: auth_data.sign_count,
+                  last_used_at: now
+                })
+                |> Repo.update()
+              end
 
             {:error, _} = err ->
               Logger.warning(
@@ -259,6 +271,13 @@ defmodule Goodmao2.Accounts.WebAuthn do
 
   defp reduce_cbor_binaries([_ | _] = list), do: Enum.map(list, &reduce_cbor_binaries/1)
   defp reduce_cbor_binaries(v), do: v
+
+  # WebAuthn §7.2 step 17. A counter that fails to advance means two authenticators are
+  # answering for one credential — the signal that a key was cloned. Authenticators that
+  # don't implement a counter report 0 forever, and the spec exempts exactly that case;
+  # a counter that has moved before and now reports 0 is a regression, not an exemption.
+  defp sign_count_regressed?(0, 0), do: false
+  defp sign_count_regressed?(stored, presented), do: presented <= stored
 
   defp url_decode64(b64) when is_binary(b64) do
     case Base.url_decode64(b64, padding: false) do

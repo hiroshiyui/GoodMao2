@@ -124,7 +124,7 @@ defmodule Goodmao2Web.Layouts do
       </main>
 
       <footer id="site-footer" class="border-t border-base-200 px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto flex max-w-4xl flex-col items-center gap-2 text-center text-sm text-base-content/60">
+        <div class="mx-auto flex max-w-4xl flex-col items-center gap-2 text-center text-sm text-base-content/70">
           <p>
             <span aria-hidden="true">🐾</span>
             {gettext("GoodMao — a shareable health timeline for the pets you love.")}
@@ -189,6 +189,7 @@ defmodule Goodmao2Web.Layouts do
             :if={@unread_notifications > 0}
             id={"#{@id_prefix}nav-notifications-badge"}
             class="badge badge-primary badge-sm"
+            role="img"
             aria-label={
               ngettext(
                 "%{count} unread notification",
@@ -215,6 +216,7 @@ defmodule Goodmao2Web.Layouts do
             :if={@unread_messages > 0}
             id={"#{@id_prefix}nav-messages-badge"}
             class="badge badge-primary badge-sm"
+            role="img"
             aria-label={
               ngettext(
                 "%{count} unread message",

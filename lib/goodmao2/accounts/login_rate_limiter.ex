@@ -23,6 +23,7 @@ defmodule Goodmao2.Accounts.LoginRateLimiter do
 
   @table :login_attempt_rate
   @window_seconds 3600
+  @sweep_interval_ms :timer.minutes(10)
 
   def start_link(_opts), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
@@ -36,8 +37,32 @@ defmodule Goodmao2.Accounts.LoginRateLimiter do
       write_concurrency: true
     ])
 
+    schedule_sweep()
     {:ok, nil}
   end
+
+  # Rows are keyed by an unauthenticated, attacker-chosen address, and `clear/1` only fires
+  # on a *successful* login — which never happens for a synthetic one. Without this sweep a
+  # flood of distinct addresses grows the table forever (each is its own key, so the
+  # per-address cap never engages) until the node runs out of memory.
+  @impl true
+  def handle_info(:sweep, state) do
+    cutoff = System.system_time(:second) - @window_seconds
+
+    @table
+    |> :ets.foldl(
+      fn {key, times}, stale ->
+        if Enum.any?(times, &(&1 > cutoff)), do: stale, else: [key | stale]
+      end,
+      []
+    )
+    |> Enum.each(&:ets.delete(@table, &1))
+
+    schedule_sweep()
+    {:noreply, state}
+  end
+
+  defp schedule_sweep, do: Process.send_after(self(), :sweep, @sweep_interval_ms)
 
   @doc "Returns `:ok` while failures for `email` are under the hourly cap, else `{:error, :rate_limited}`."
   def check(email) when is_binary(email) do

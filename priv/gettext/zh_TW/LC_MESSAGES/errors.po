@@ -95,3 +95,57 @@ msgstr "必須等於 %{number}"
 ## From Goodmao2.Accounts.User.profile_changeset/3 (ADR-0018)
 msgid "is not a valid timezone"
 msgstr "不是有效的時區"
+
+## Custom changeset messages. `mix gettext.extract` cannot see `message:`/`add_error/3`
+## strings, so every message below is maintained by hand — adding a new one to a schema
+## means adding its msgid here too, or that locale silently falls back to English.
+## From Goodmao2.Accounts.User (handle + email + password rules)
+msgid "may only contain lowercase letters, numbers, dots and underscores"
+msgstr "只能包含小寫字母、數字、點與底線"
+
+msgid "must start with a letter or number"
+msgstr "必須以字母或數字開頭"
+
+msgid "may not end with a dot"
+msgstr "結尾不可為點"
+
+msgid "may not contain consecutive dots"
+msgstr "不可包含連續的點"
+
+msgid "must have the @ sign and no spaces"
+msgstr "必須包含 @ 符號且不得有空格"
+
+msgid "did not change"
+msgstr "沒有變更"
+
+msgid "does not match password"
+msgstr "與密碼不符"
+
+msgid "is not valid"
+msgstr "無效"
+
+## From Goodmao2.Pets.PetAccess (grant rules)
+msgid "already has a grant for this pet"
+msgstr "已擁有此毛小孩的存取權"
+
+msgid "must be in the future"
+msgstr "必須是未來的時間"
+
+## From Goodmao2.Pets.Pet and Goodmao2.Logs.LogEntry (backdating rules)
+msgid "cannot be in the future"
+msgstr "不可為未來的時間"
+
+## From Goodmao2.Medications.Schedule (ADR-0019)
+msgid "needs at least one dose time"
+msgstr "至少需要一個服藥時間"
+
+msgid "cannot be before the start date"
+msgstr "不可早於開始日期"
+
+## From Goodmao2.Reports.HealthSummaryReport (ADR-0012)
+msgid "must be on or after the start date"
+msgstr "必須等於或晚於開始日期"
+
+## From Goodmao2.Messaging.Conversation (canonical pair invariant)
+msgid "must be an ordered, distinct pair"
+msgstr "必須是有序且相異的配對"

@@ -209,7 +209,7 @@ defmodule Goodmao2Web.PetLive.Medications do
         <section id="doses-due" aria-labelledby="doses-heading" class="mt-6">
           <h2 id="doses-heading" class="text-lg font-semibold">{gettext("Doses due")}</h2>
 
-          <p :if={@doses == []} class="text-base-content/60 mt-1 text-sm">
+          <p :if={@doses == []} class="text-base-content/70 mt-1 text-sm">
             {gettext("No upcoming doses.")}
           </p>
 
@@ -223,7 +223,7 @@ defmodule Goodmao2Web.PetLive.Medications do
                 <p class="dose-title font-medium">
                   {dose.schedule.medication_name} · {dose.schedule.dose}
                 </p>
-                <p class="text-base-content/60 text-xs">
+                <p class="text-base-content/70 text-xs">
                   <time datetime={DateTime.to_iso8601(dose.due_at)}>{format_datetime(dose.due_at)}</time>
                   · <span class="dose-status">{dose_status_label(dose.status)}</span>
                 </p>
@@ -270,7 +270,7 @@ defmodule Goodmao2Web.PetLive.Medications do
                     {gettext("Paused")}
                   </span>
                 </p>
-                <p class="text-base-content/60 text-xs">
+                <p class="text-base-content/70 text-xs">
                   {times_label(schedule.times_of_day)} · {schedule.timezone}
                 </p>
               </div>

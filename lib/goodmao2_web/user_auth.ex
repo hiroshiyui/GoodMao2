@@ -70,9 +70,16 @@ defmodule Goodmao2Web.UserAuth do
       :setup_required ->
         # Stash a fresh TOTP secret for the forced-enrollment page to render as a QR.
         # It is set AFTER put_pending_2fa because that clears the session.
+        #
+        # `:pending_2fa_setup_allowed` marks this pending session as the *enrollment* flow.
+        # Without it, a `:challenge` user — pending state, factor already enrolled — is
+        # indistinguishable from a just-enrolled one, and could both re-enroll (overwriting
+        # the real factor) and POST the enrollment tail to get a token without ever
+        # presenting a factor.
         conn
         |> put_pending_2fa(user, params)
         |> put_session(:pending_2fa_setup_secret, Accounts.generate_totp_secret())
+        |> put_session(:pending_2fa_setup_allowed, true)
         |> redirect(to: ~p"/users/two-factor/setup")
     end
   end
@@ -125,6 +132,7 @@ defmodule Goodmao2Web.UserAuth do
     |> delete_session(:pending_2fa_remember_me)
     |> delete_session(:pending_2fa_attempts)
     |> delete_session(:pending_2fa_setup_secret)
+    |> delete_session(:pending_2fa_setup_allowed)
   end
 
   @doc """

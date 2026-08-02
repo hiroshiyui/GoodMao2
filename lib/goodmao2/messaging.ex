@@ -144,14 +144,22 @@ defmodule Goodmao2.Messaging do
   `nil` (existence hidden).
   """
   def fetch_conversation(%User{} = user, id) do
-    conversation =
-      Repo.one(
-        from c in Conversation,
-          where: c.id == ^id and is_nil(c.deleted_at),
-          preload: [participants: :user]
-      )
+    # A malformed id identifies no conversation, so it existence-hides like any other miss
+    # rather than crashing the LiveView with an Ecto cast error (see `Goodmao2.ID`).
+    case Goodmao2.ID.normalize(id) do
+      {:ok, id} ->
+        conversation =
+          Repo.one(
+            from c in Conversation,
+              where: c.id == ^id and is_nil(c.deleted_at),
+              preload: [participants: :user]
+          )
 
-    if conversation && participant?(conversation.id, user.id), do: conversation, else: nil
+        if conversation && participant?(conversation.id, user.id), do: conversation, else: nil
+
+      _ ->
+        nil
+    end
   end
 
   @doc "Lists the caller's conversations, most-recently-active first, with unread counts."

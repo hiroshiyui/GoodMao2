@@ -111,3 +111,58 @@ msgstr ""
 ## From Goodmao2.Accounts.User.profile_changeset/3 (ADR-0018)
 msgid "is not a valid timezone"
 msgstr ""
+
+## Custom changeset messages. `mix gettext.extract` cannot see `message:`/`add_error/3`
+## strings, so every message below is maintained by hand — adding a new one to a schema
+## means adding its msgid here too, or that locale silently falls back to English.
+
+## From Goodmao2.Accounts.User (handle + email + password rules)
+msgid "may only contain lowercase letters, numbers, dots and underscores"
+msgstr ""
+
+msgid "must start with a letter or number"
+msgstr ""
+
+msgid "may not end with a dot"
+msgstr ""
+
+msgid "may not contain consecutive dots"
+msgstr ""
+
+msgid "must have the @ sign and no spaces"
+msgstr ""
+
+msgid "did not change"
+msgstr ""
+
+msgid "does not match password"
+msgstr ""
+
+msgid "is not valid"
+msgstr ""
+
+## From Goodmao2.Pets.PetAccess (grant rules)
+msgid "already has a grant for this pet"
+msgstr ""
+
+msgid "must be in the future"
+msgstr ""
+
+## From Goodmao2.Pets.Pet and Goodmao2.Logs.LogEntry (backdating rules)
+msgid "cannot be in the future"
+msgstr ""
+
+## From Goodmao2.Medications.Schedule (ADR-0019)
+msgid "needs at least one dose time"
+msgstr ""
+
+msgid "cannot be before the start date"
+msgstr ""
+
+## From Goodmao2.Reports.HealthSummaryReport (ADR-0012)
+msgid "must be on or after the start date"
+msgstr ""
+
+## From Goodmao2.Messaging.Conversation (canonical pair invariant)
+msgid "must be an ordered, distinct pair"
+msgstr ""

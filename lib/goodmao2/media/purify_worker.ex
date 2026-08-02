@@ -20,7 +20,7 @@ defmodule Goodmao2.Media.PurifyWorker do
   cleanly. A hard crash in the narrow window between the attach commit and the unstage could, on
   retry, attach the same file twice (a duplicate photo) — tolerated as cosmetic and rare.
   """
-  use Oban.Worker, queue: :default, max_attempts: 3
+  use Oban.Worker, queue: :media, max_attempts: 3
 
   alias Goodmao2.Media
   alias Goodmao2.Media.Storage

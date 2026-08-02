@@ -334,7 +334,7 @@ defmodule Goodmao2Web.CoreComponents do
         options={Enum.map(@visibilities, &{Helpers.visibility_option_label(&1), &1})}
         aria-describedby={@hint_id}
       />
-      <p id={@hint_id} class="visibility-hint mt-1 text-xs text-base-content/60">
+      <p id={@hint_id} class="visibility-hint mt-1 text-xs text-base-content/70">
         {Helpers.visibility_hint(to_string(@field.value || "limited"))}
       </p>
     </div>

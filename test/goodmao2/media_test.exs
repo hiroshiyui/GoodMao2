@@ -163,6 +163,7 @@ defmodule Goodmao2.MediaTest do
       assert File.exists?(Storage.staged_path(token))
 
       # Draining the queue runs the PurifyWorker, which attaches the ready asset.
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       [asset] = Goodmao2.Repo.all(from a in Media.MediaAsset, where: a.log_entry_id == ^entry.id)
@@ -196,6 +197,7 @@ defmodule Goodmao2.MediaTest do
       {:ok, token} = Media.stage_upload(bad)
 
       {:ok, entry} = Media.create_life_log(owner, pet, %{"note" => "oops"}, [%{token: token}])
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       assert [] ==
@@ -224,6 +226,7 @@ defmodule Goodmao2.MediaTest do
       {:ok, token} = Media.stage_upload(make_png())
 
       assert :ok = Media.add_media_to_life_log(owner, pet, entry, [%{token: token}])
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       [asset] =

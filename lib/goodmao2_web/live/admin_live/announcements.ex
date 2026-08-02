@@ -70,7 +70,7 @@ defmodule Goodmao2Web.AdminLive.Announcements do
           </h1>
         </div>
 
-        <p class="text-base-content/60 mt-2 text-sm">
+        <p class="text-base-content/70 mt-2 text-sm">
           {gettext("Every user receives this as a notification. Use it sparingly.")}
         </p>
 

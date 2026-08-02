@@ -295,6 +295,23 @@ defmodule Goodmao2.LogsTest do
       assert {:ok, _} = Logs.delete_entry(co, pet, entry)
     end
 
+    test "a caretaker demoted to viewer may no longer delete what they recorded", %{
+      owner: owner,
+      pet: pet
+    } do
+      co = user_fixture()
+      grant_fixture(pet, owner, co, "co_caretaker")
+      entry = log_entry_fixture(co, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      # Demoting is the deliberate way to withdraw write rights while keeping read access;
+      # `recorded_by_user_id` still points at them, which must not substitute for capability.
+      {:ok, _} =
+        Goodmao2.Pets.grant_access(owner, pet, %{"identifier" => co.email, "role" => "viewer"})
+
+      assert Logs.update_entry(co, pet, entry, %{"note" => "changed"}) == {:error, :unauthorized}
+      assert Logs.delete_entry(co, pet, entry) == {:error, :unauthorized}
+    end
+
     test "an owner may delete any entry, including a vet's vet_note", %{owner: owner, pet: pet} do
       vet = user_fixture()
       grant_fixture(pet, owner, vet, "vet")

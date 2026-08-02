@@ -124,7 +124,14 @@ defmodule Goodmao2.MixProject do
         "compile --warnings-as-errors",
         "deps.unlock --unused",
         "format",
+        # Two advisory databases, deliberately: `deps.audit` (mix_audit) reads the
+        # elixir-security-advisories repo, `hex.audit` reads hex.pm's own retirement +
+        # advisory data. They do not agree — CVE-2026-65623 (bandit) was in hex.pm's DB
+        # and absent from mix_audit's, so the gate passed on a vulnerable build.
         "deps.audit",
+        # Shelled out rather than listed directly: `hex.audit` lives in the Hex archive,
+        # which an alias's task lookup doesn't resolve.
+        "cmd mix hex.audit",
         "sobelow --config",
         "test"
       ]

@@ -32,7 +32,12 @@
   default: true;
   prefersdark: false;
   color-scheme: "light";
-  /* Warm cream canvas; content surfaces float on daisyUI's depth shadow. */
+  /* Warm cream canvas; content surfaces float on daisyUI's depth shadow.
+
+     The token *pairs* below all clear WCAG AA, but the alpha modifiers used for secondary
+     copy do not: on this canvas `text-base-content/50` is 3.11:1 and `/60` is 4.15:1, both
+     under the 4.5:1 floor for normal text. `/70` (5.67:1 light, 7.11:1 dark) is the lowest
+     step that passes in both themes — keep informational text at `/70` or stronger. */
   --color-base-100: #fdf6ef; /* cream — the page canvas (@gm-cream) */
   --color-base-200: #f4ebe0; /* a step down */
   --color-base-300: #e8dccd; /* recessed / borders */
@@ -233,6 +238,16 @@ html { font-size: 125%; }
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: var(--radius-field, 0.25rem);
+}
+
+/* The avatar upload triggers are circular, so the shared rule's border-radius would draw a
+   near-square ring around them. They previously carried `focus-visible:outline-none` to avoid
+   that, which — because the rule above is zero-specificity `:where()` — removed the keyboard
+   focus indicator outright (WCAG 2.4.7). This restores it in the right shape. */
+.gm-avatar-trigger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 9999px;
 }
 
 /* Skip-to-content link: visually hidden until it receives focus (WCAG 2.4.1). */

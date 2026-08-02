@@ -109,21 +109,29 @@ defmodule Goodmao2Web.UserLive.TwoFactorSetup do
 
   @impl true
   def mount(_params, session, socket) do
-    user = socket.assigns.pending_2fa_user
-    secret = session["pending_2fa_setup_secret"] || Accounts.generate_totp_secret()
-    uri = Accounts.totp_uri(secret, user.email)
+    # Enrollment is only for a session that entered via `:setup_required`. A `:challenge`
+    # user reaching here would be handed a *fresh* secret, and confirming it calls
+    # `enable_totp/2`, silently replacing the factor they were supposed to be proving —
+    # and wiping the recovery codes with it. Password alone must never re-enroll a factor.
+    if session["pending_2fa_setup_allowed"] == true do
+      user = socket.assigns.pending_2fa_user
+      secret = session["pending_2fa_setup_secret"] || Accounts.generate_totp_secret()
+      uri = Accounts.totp_uri(secret, user.email)
 
-    socket =
-      socket
-      |> assign(:page_title, gettext("Set up two-step verification"))
-      |> assign(:step, :enroll)
-      |> assign(:secret, secret)
-      |> assign(:secret_base32, Base.encode32(secret, padding: false))
-      |> assign(:qr_data_uri, Accounts.totp_qr_data_uri(uri))
-      |> assign(:recovery_codes, [])
-      |> assign(:totp_form, to_form(%{"totp_code" => ""}, as: "user"))
+      socket =
+        socket
+        |> assign(:page_title, gettext("Set up two-step verification"))
+        |> assign(:step, :enroll)
+        |> assign(:secret, secret)
+        |> assign(:secret_base32, Base.encode32(secret, padding: false))
+        |> assign(:qr_data_uri, Accounts.totp_qr_data_uri(uri))
+        |> assign(:recovery_codes, [])
+        |> assign(:totp_form, to_form(%{"totp_code" => ""}, as: "user"))
 
-    {:ok, socket}
+      {:ok, socket}
+    else
+      {:ok, push_navigate(socket, to: ~p"/users/two-factor")}
+    end
   end
 
   @impl true

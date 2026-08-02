@@ -84,16 +84,27 @@ defmodule Goodmao2Web.UserTwoFactorController do
 
   # --- Post-setup completion (forced-enrollment path) ---
   #
-  # Reachable only in the pending state; issues the session ONLY once the user actually
-  # has a second factor enrolled — closing a setup-skip bypass.
+  # This is the tail of the *enrollment* flow, not a factor check — it verifies nothing. So
+  # it must be reachable only from a session that entered via `:setup_required`, which
+  # `:pending_2fa_setup_allowed` records. The enrolled-factor test alone is not a gate: a
+  # `:challenge` user (password verified, factor already enrolled) satisfies it the instant
+  # primary auth succeeds, so without the marker a stolen password alone would mint a
+  # session token here with no code, key, or recovery code ever presented.
   def complete(conn, _params) do
     with_pending(conn, fn conn, user ->
-      if Accounts.totp_enabled?(user) or Accounts.webauthn_enabled?(user) do
-        conn
-        |> put_flash(:info, gettext("Two-factor authentication is now on."))
-        |> UserAuth.complete_2fa_login(user)
-      else
-        redirect(conn, to: ~p"/users/two-factor/setup")
+      setup_flow? = get_session(conn, :pending_2fa_setup_allowed) == true
+
+      cond do
+        not setup_flow? ->
+          redirect(conn, to: ~p"/users/two-factor")
+
+        Accounts.totp_enabled?(user) or Accounts.webauthn_enabled?(user) ->
+          conn
+          |> put_flash(:info, gettext("Two-factor authentication is now on."))
+          |> UserAuth.complete_2fa_login(user)
+
+        true ->
+          redirect(conn, to: ~p"/users/two-factor/setup")
       end
     end)
   end

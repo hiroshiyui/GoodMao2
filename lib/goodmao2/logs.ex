@@ -177,9 +177,10 @@ defmodule Goodmao2.Logs do
   any entry when the pet's history is hidden.
   """
   def get_entry(%User{} = user, %Pet{} = pet, id) do
-    if pet.history_hidden do
-      nil
-    else
+    # A malformed id identifies no entry, so it resolves to the same `nil` as a missing one
+    # rather than crashing the caller with an Ecto cast error (see `Goodmao2.ID`).
+    with false <- pet.history_hidden,
+         {:ok, id} <- Goodmao2.ID.normalize(id) do
       role = Pets.effective_role(pet, user)
 
       entry =
@@ -190,6 +191,8 @@ defmodule Goodmao2.Logs do
         )
 
       if entry && can_view_entry?(entry, user.id, role), do: entry, else: nil
+    else
+      _ -> nil
     end
   end
 
@@ -363,6 +366,12 @@ defmodule Goodmao2.Logs do
 
       {:error, :entry, %Ecto.Changeset{} = changeset, _changes} ->
         {:error, changeset}
+
+      # The `:revision` step can fail too (a constraint, a snapshot that won't serialize).
+      # Matching only `:entry` turned that into a CaseClauseError — a 500 in place of a
+      # recoverable error the caller already knows how to render.
+      {:error, _step, reason, _changes} ->
+        {:error, reason}
     end
   end
 
@@ -439,14 +448,14 @@ defmodule Goodmao2.Logs do
   @doc """
   Soft-deletes an entry (stamps `deleted_at`).
 
-  An owner may delete any entry; anyone else may delete only what they recorded.
-  Refused when the pet's history is hidden.
+  An owner may delete any entry; anyone else needs write capability for the entry's type
+  *and* must be its recorder. Refused when the pet's history is hidden.
   """
   def delete_entry(%User{} = user, %Pet{} = pet, %LogEntry{} = entry) do
     role = Pets.effective_role(pet, user)
 
     with :ok <- ensure_visible(pet),
-         :ok <- authorize_modify(role, user, entry) do
+         :ok <- authorize_delete(role, user, entry) do
       case entry
            |> Ecto.Changeset.change(deleted_at: DateTime.utc_now() |> DateTime.truncate(:second))
            |> Repo.update() do
@@ -481,6 +490,19 @@ defmodule Goodmao2.Logs do
        do: :ok
 
   defp authorize_modify(_role, _user, _entry), do: {:error, :unauthorized}
+
+  # Deleting is a write, so it needs the same capability `update_entry/4` demands — being the
+  # recorder is not enough. A `co_caretaker` demoted to `viewer` keeps `recorded_by_user_id`
+  # on everything they logged, and without the capability check that stale attribution alone
+  # would let them erase it. An owner short-circuits because `authorize_write/2` reserves
+  # `vet_note` for vets, and an owner must still be able to delete one from their pet.
+  defp authorize_delete("owner", _user, _entry), do: :ok
+
+  defp authorize_delete(role, user, entry) do
+    with :ok <- authorize_write(role, entry.type) do
+      authorize_modify(role, user, entry)
+    end
+  end
 
   defp authorize_visibility_change(role, entry, attrs) do
     new_visibility = attrs["visibility"]

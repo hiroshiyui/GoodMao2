@@ -112,6 +112,16 @@ defmodule Goodmao2.PetsTest do
       assert {:ok, _} = Pets.fetch_pet(viewer, pet.id, require: :read)
       assert Pets.fetch_pet(viewer, pet.id, require: :manage) == {:error, :not_found}
     end
+
+    test "a malformed id is not-found rather than an Ecto cast crash" do
+      user = user_fixture()
+
+      # These arrive as route/socket params from crawlers, stale links, and probes; an
+      # Ecto.Query.CastError here would 400 the page and file an error report.
+      for id <- ["abc", "1abc", "", "0", "-1", "9999999999999999999999"] do
+        assert Pets.fetch_pet(user, id) == {:error, :not_found}
+      end
+    end
   end
 
   describe "grant/revoke" do

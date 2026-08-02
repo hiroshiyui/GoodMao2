@@ -146,7 +146,7 @@ defmodule Goodmao2Web.PetLive.Access do
                 label={gettext("Access expires (optional)")}
               />
             </div>
-            <p class="text-base-content/60 text-xs">
+            <p class="text-base-content/70 text-xs">
               {gettext(
                 "Tip: give a veterinarian a time-boxed expiry so their access ends after the visit."
               )}
@@ -161,7 +161,7 @@ defmodule Goodmao2Web.PetLive.Access do
           {gettext("People with access")}
         </h2>
         <ul id="accesses" phx-update="stream" class="mt-3 space-y-2">
-          <li class="hidden only:block text-base-content/60 py-4 text-center" id="accesses-empty">
+          <li class="hidden only:block text-base-content/70 py-4 text-center" id="accesses-empty">
             {gettext("No one else has access yet.")}
           </li>
           <li
@@ -174,7 +174,7 @@ defmodule Goodmao2Web.PetLive.Access do
                 <p class="access-row-user font-medium break-words">
                   {Layouts.account_label(access.user)}
                 </p>
-                <p class="access-row-meta text-base-content/60 text-sm">
+                <p class="access-row-meta text-base-content/70 text-sm">
                   {translate_role(access.role)}
                   <span :if={access.expires_at}>
                     · {gettext("until %{t}", t: format_datetime(access.expires_at))}

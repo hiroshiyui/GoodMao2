@@ -165,7 +165,7 @@ defmodule Goodmao2Web.AdminLive.Settings do
               </span>
             </div>
 
-            <p class="text-base-content/60 text-sm">
+            <p class="text-base-content/70 text-sm">
               {gettext(
                 "Web Push lets followers receive notifications with GoodMao closed. Generate a keypair to enable it."
               )}
@@ -221,7 +221,7 @@ defmodule Goodmao2Web.AdminLive.Settings do
             <h2 id="timezone-heading" class="text-lg font-semibold">
               {gettext("System timezone")}
             </h2>
-            <p class="text-base-content/60 text-sm">
+            <p class="text-base-content/70 text-sm">
               {gettext(
                 "The default timezone for displaying and entering times, used for anyone who has not set their own preference."
               )}
@@ -251,7 +251,7 @@ defmodule Goodmao2Web.AdminLive.Settings do
             <h2 id="media-limits-heading" class="text-lg font-semibold">
               {gettext("Media upload limits")}
             </h2>
-            <p class="text-base-content/60 text-sm">
+            <p class="text-base-content/70 text-sm">
               {gettext(
                 "Caps applied to purified LifeLog photos and videos. Sizes are in bytes and dimensions in pixels; set any field to 0 to lift that limit."
               )}

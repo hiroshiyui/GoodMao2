@@ -56,6 +56,7 @@ defmodule Goodmao2.Media.AvatarsTest do
       assert avatar.owner_id == owner.id
       refute Storage.avatar_exists?("user-#{owner.id}")
 
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       ready = Avatars.get_avatar("user", owner.id)
@@ -67,6 +68,7 @@ defmodule Goodmao2.Media.AvatarsTest do
 
     test "a manager sets a pet's avatar", %{owner: owner, pet: pet} do
       assert {:ok, %Avatar{}} = Avatars.set_avatar("pet", pet.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
       assert Avatars.get_avatar("pet", pet.id).status == "ready"
     end
@@ -92,6 +94,7 @@ defmodule Goodmao2.Media.AvatarsTest do
       # Left square of a 40x20 upload: x=0,y=0,w=0.5,h=1.0 → a 20x20 stored object.
       crop = %{"x" => "0.0", "y" => "0.0", "w" => "0.5", "h" => "1.0"}
       {:ok, _} = Avatars.set_avatar("user", owner.id, owner, staged_png("40x20"), crop)
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       assert Avatars.get_avatar("user", owner.id).status == "ready"
@@ -102,6 +105,7 @@ defmodule Goodmao2.Media.AvatarsTest do
       # Negative offset is rejected by sanitize_crop ⇒ nil ⇒ no crop ⇒ the whole 40x20 frame.
       crop = %{"x" => "-1.0", "y" => "0.0", "w" => "0.5", "h" => "0.5"}
       {:ok, _} = Avatars.set_avatar("user", owner.id, owner, staged_png("40x20"), crop)
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       assert object_dims("user", owner.id) == {40, 20}
@@ -109,10 +113,12 @@ defmodule Goodmao2.Media.AvatarsTest do
 
     test "a replacement reprocesses the one row", %{owner: owner} do
       {:ok, first} = Avatars.set_avatar("user", owner.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       {:ok, second} = Avatars.set_avatar("user", owner.id, owner, staged_png())
       assert second.id == first.id
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       assert Avatars.get_avatar("user", owner.id).status == "ready"
@@ -127,6 +133,7 @@ defmodule Goodmao2.Media.AvatarsTest do
       {:ok, token} = Media.stage_upload(bad)
 
       {:ok, _} = Avatars.set_avatar("user", owner.id, owner, token)
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       assert Avatars.get_avatar("user", owner.id) == nil
@@ -152,6 +159,7 @@ defmodule Goodmao2.Media.AvatarsTest do
       {:ok, token} = Media.stage_upload(path)
 
       {:ok, _} = Avatars.set_avatar("user", owner.id, owner, token)
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       assert Avatars.get_avatar("user", owner.id) == nil
@@ -166,6 +174,7 @@ defmodule Goodmao2.Media.AvatarsTest do
   describe "fetch_avatar_object_for_user/3 (existence-hidden)" do
     test "a user avatar is visible to any authenticated user", %{owner: owner} do
       {:ok, _} = Avatars.set_avatar("user", owner.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       viewer = user_fixture()
@@ -179,6 +188,7 @@ defmodule Goodmao2.Media.AvatarsTest do
 
     test "a pet avatar requires :read; others are existence-hidden", %{owner: owner, pet: pet} do
       {:ok, _} = Avatars.set_avatar("pet", pet.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       reader = user_fixture()
@@ -201,6 +211,7 @@ defmodule Goodmao2.Media.AvatarsTest do
   describe "delete_avatar/3" do
     test "removes the row and bytes", %{owner: owner} do
       {:ok, _} = Avatars.set_avatar("user", owner.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
       assert Storage.avatar_exists?("user-#{owner.id}")
 

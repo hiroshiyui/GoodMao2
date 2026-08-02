@@ -56,9 +56,13 @@ defmodule Goodmao2Web.AvatarComponents do
         class="size-full object-cover"
         loading="lazy"
       />
+      <%!-- role="img" so the label replaces the initials: on a generic span ARIA prohibits
+      aria-label, and a screen reader would announce the bare letter "H" instead of whose
+      photo this stands in for. --%>
       <span
         :if={!@ready?}
         class="flex size-full items-center justify-center bg-base-300 font-semibold text-base-content/70"
+        role="img"
         aria-label={avatar_alt(@name)}
       >
         {initials(@name)}
@@ -92,7 +96,7 @@ defmodule Goodmao2Web.AvatarComponents do
       <input type="hidden" name="crop[y]" />
       <input type="hidden" name="crop[w]" />
       <input type="hidden" name="crop[h]" />
-      <p class="avatar-cropper-hint text-base-content/60 mt-2 hidden text-xs">
+      <p class="avatar-cropper-hint text-base-content/70 mt-2 hidden text-xs">
         {gettext("Drag the circle, or focus it and use the arrow keys to move and + / − to resize.")}
       </p>
     </div>

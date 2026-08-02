@@ -109,9 +109,12 @@ config :goodmao2, :default_timezone, "Etc/UTC"
 # orphan janitor (sweeps stray storage/staged bytes), and the medication reminder worker.
 # On-demand jobs (enqueued from contexts): notification fan-out, Web Push dispatch, and media
 # purification (Media.PurifyWorker — ffmpeg off the request path).
+# Media purification gets its own queue: ffmpeg jobs are the only ones that run a child
+# process for minutes at a time, and sharing `default` meant a burst of large uploads could
+# occupy every slot and stall medication reminders, push, and the bell feed site-wide.
 config :goodmao2, Oban,
   repo: Goodmao2.Repo,
-  queues: [default: 10],
+  queues: [default: 10, media: 4],
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [

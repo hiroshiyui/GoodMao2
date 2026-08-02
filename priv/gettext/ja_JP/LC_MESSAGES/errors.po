@@ -95,3 +95,57 @@ msgstr "%{number}と等しい必要があります"
 ## From Goodmao2.Accounts.User.profile_changeset/3 (ADR-0018)
 msgid "is not a valid timezone"
 msgstr "有効なタイムゾーンではありません"
+
+## Custom changeset messages. `mix gettext.extract` cannot see `message:`/`add_error/3`
+## strings, so every message below is maintained by hand — adding a new one to a schema
+## means adding its msgid here too, or that locale silently falls back to English.
+## From Goodmao2.Accounts.User (handle + email + password rules)
+msgid "may only contain lowercase letters, numbers, dots and underscores"
+msgstr "小文字・数字・ドット・アンダースコアのみ使用できます"
+
+msgid "must start with a letter or number"
+msgstr "英字または数字で始まる必要があります"
+
+msgid "may not end with a dot"
+msgstr "ドットで終わることはできません"
+
+msgid "may not contain consecutive dots"
+msgstr "連続したドットは使用できません"
+
+msgid "must have the @ sign and no spaces"
+msgstr "@ を含み、空白を含まない必要があります"
+
+msgid "did not change"
+msgstr "変更されていません"
+
+msgid "does not match password"
+msgstr "パスワードが一致しません"
+
+msgid "is not valid"
+msgstr "無効です"
+
+## From Goodmao2.Pets.PetAccess (grant rules)
+msgid "already has a grant for this pet"
+msgstr "このペットのアクセス権をすでに持っています"
+
+msgid "must be in the future"
+msgstr "未来の日時である必要があります"
+
+## From Goodmao2.Pets.Pet and Goodmao2.Logs.LogEntry (backdating rules)
+msgid "cannot be in the future"
+msgstr "未来の日時にはできません"
+
+## From Goodmao2.Medications.Schedule (ADR-0019)
+msgid "needs at least one dose time"
+msgstr "少なくとも1つの服用時刻が必要です"
+
+msgid "cannot be before the start date"
+msgstr "開始日より前にはできません"
+
+## From Goodmao2.Reports.HealthSummaryReport (ADR-0012)
+msgid "must be on or after the start date"
+msgstr "開始日以降である必要があります"
+
+## From Goodmao2.Messaging.Conversation (canonical pair invariant)
+msgid "must be an ordered, distinct pair"
+msgstr "順序付けされた重複のないペアである必要があります"

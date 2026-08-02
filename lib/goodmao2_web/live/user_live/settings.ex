@@ -40,7 +40,7 @@ defmodule Goodmao2Web.UserLive.Settings do
             aria-controls="avatar_form"
             title={gettext("Change profile photo")}
             aria-label={gettext("Change profile photo")}
-            class="cursor-pointer rounded-full focus-visible:outline-none"
+            class="gm-avatar-trigger cursor-pointer rounded-full"
           >
             <.avatar
               owner_type="user"
@@ -79,7 +79,7 @@ defmodule Goodmao2Web.UserLive.Settings do
             </div>
           </.form>
 
-          <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/60 text-xs">
+          <p :if={@avatar_meta[:status] == "processing"} class="text-base-content/70 text-xs">
             {gettext("Your photo is being processed…")}
           </p>
         </div>
@@ -106,7 +106,7 @@ defmodule Goodmao2Web.UserLive.Settings do
           autocomplete="off"
           spellcheck="false"
         />
-        <p class="text-base-content/60 text-xs">
+        <p class="text-base-content/70 text-xs">
           {gettext("Your handle lets others invite you to a pet by @handle.")}
         </p>
         <.input
@@ -118,7 +118,7 @@ defmodule Goodmao2Web.UserLive.Settings do
           options={Goodmao2.Timezone.all()}
           phx-hook="TimezoneDetect"
         />
-        <p class="text-base-content/60 text-xs">
+        <p class="text-base-content/70 text-xs">
           {gettext(
             "Times you log and view are shown in this zone. Left blank, the site default is used."
           )}
@@ -156,7 +156,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       <div class="divider" />
 
       <div id="password-settings-link" class="text-center">
-        <p class="text-base-content/60 mb-2 text-sm">
+        <p class="text-base-content/70 mb-2 text-sm">
           {gettext("Your password is managed on its own page.")}
         </p>
         <.link navigate={~p"/users/settings/password"} class="btn btn-soft btn-primary">
@@ -167,7 +167,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       <div class="divider" />
 
       <div id="two-factor-settings-link" class="text-center">
-        <p class="text-base-content/60 mb-2 text-sm">
+        <p class="text-base-content/70 mb-2 text-sm">
           {gettext("Add a second step at sign-in with an authenticator app or a security key.")}
         </p>
         <.link navigate={~p"/users/settings/two-factor"} class="btn btn-soft btn-primary">
@@ -188,7 +188,7 @@ defmodule Goodmao2Web.UserLive.Settings do
         class="text-center"
       >
         <h2 id="push-heading" class="font-semibold">{gettext("Push notifications")}</h2>
-        <p class="text-base-content/60 mt-1 mb-2 text-sm" aria-live="polite">
+        <p class="text-base-content/70 mt-1 mb-2 text-sm" aria-live="polite">
           <%= cond do %>
             <% not @push_supported -> %>
               {gettext("This browser doesn't support push notifications.")}
@@ -223,7 +223,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       <div class="divider" />
 
       <div id="vet-profile-link" class="text-center">
-        <p class="text-base-content/60 mb-2 text-sm">
+        <p class="text-base-content/70 mb-2 text-sm">
           {gettext("Are you a veterinarian? Submit your credentials to be verified.")}
         </p>
         <.link navigate={~p"/users/vet-profile"} class="btn btn-soft">
@@ -237,7 +237,7 @@ defmodule Goodmao2Web.UserLive.Settings do
       <div id="past-pets-link" class="mt-8 text-center">
         <.link
           navigate={~p"/pets/past"}
-          class="text-base-content/50 hover:text-base-content/70 inline-flex items-center gap-1 text-sm"
+          class="text-base-content/70 hover:text-base-content/70 inline-flex items-center gap-1 text-sm"
         >
           <.icon name="hero-heart" class="size-4" /> {gettext("Past pets")}
         </.link>

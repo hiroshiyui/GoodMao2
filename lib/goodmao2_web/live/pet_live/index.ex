@@ -44,7 +44,7 @@ defmodule Goodmao2Web.PetLive.Index do
         <header class="flex items-center justify-between gap-4">
           <h1 id="pets-heading" class="flex items-center gap-2 text-2xl font-semibold">
             <%= if @ended? do %>
-              <.icon name="hero-heart" class="text-base-content/50 size-6" />
+              <.icon name="hero-heart" class="text-base-content/70 size-6" />
               {gettext("Past pets")}
             <% else %>
               {gettext("My pets")}
@@ -60,14 +60,14 @@ defmodule Goodmao2Web.PetLive.Index do
           </.link>
         </header>
 
-        <p :if={@ended?} id="past-pets-intro" class="text-base-content/60 mt-2 text-sm">
+        <p :if={@ended?} id="past-pets-intro" class="text-base-content/70 mt-2 text-sm">
           {gettext(
             "Companions whose care has ended. Their records and timelines are kept here, always."
           )}
         </p>
 
         <div id="pets" phx-update="stream" class="mt-4 grid gap-3 sm:grid-cols-2">
-          <div class="hidden only:block text-base-content/60 py-10 text-center" id="pets-empty">
+          <div class="hidden only:block text-base-content/70 py-10 text-center" id="pets-empty">
             <%= if @ended? do %>
               {gettext("No past pets. Records of pets whose care has ended appear here.")}
             <% else %>
@@ -97,14 +97,14 @@ defmodule Goodmao2Web.PetLive.Index do
                   {translate_species(pet.species)}
                 </span>
               </div>
-              <p class="pet-card-meta text-base-content/60 text-sm">
+              <p class="pet-card-meta text-base-content/70 text-sm">
                 {[translate_sex(pet.sex), pet.breed, pet.color]
                 |> Enum.filter(&(&1 && &1 != ""))
                 |> Enum.join(" · ")}
               </p>
               <p
                 :if={pet.lifecycle_status != "active"}
-                class="pet-card-status text-base-content/60 mt-1 flex items-center gap-1 text-sm"
+                class="pet-card-status text-base-content/70 mt-1 flex items-center gap-1 text-sm"
               >
                 <.icon name={lifecycle_icon(pet.lifecycle_status)} class="size-4" />
                 {translate_lifecycle(pet.lifecycle_status)}

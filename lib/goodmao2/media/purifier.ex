@@ -36,6 +36,11 @@ defmodule Goodmao2.Media.Purifier do
   # precision would round to `0.000000` and ffmpeg would reject the filter — so we drop to full frame.
   @min_crop 1.0e-4
 
+  # Hard wall-clock caps on the child processes. Generous enough for a long phone video on
+  # modest hardware, finite so no single upload can hold an Oban slot indefinitely.
+  @probe_timeout_ms 30_000
+  @encode_timeout_ms 120_000
+
   @video_types %{
     mp4: %{content_type: "video/mp4", ext: "mp4", video: ~w(h264), audio: ~w(aac)},
     webm: %{
@@ -156,7 +161,15 @@ defmodule Goodmao2.Media.Purifier do
          {:ok, size} <- output_size(out) do
       {:ok, %{kind: "video", content_type: spec.content_type, path: out, byte_size: size}}
     else
-      {:error, _} = error -> cleanup_and(out, error)
+      {:error, _} = error ->
+        cleanup_and(out, error)
+
+      # ffprobe can exit 0 with JSON that has no "streams"/"format" for a container it opens
+      # but can't describe, and which keys appear varies by ffmpeg version (prod trails dev
+      # here). Without this clause that success falls through as a WithClauseError, which
+      # retries three times and dies with no `media_failed` bell and a leaked temp file.
+      _other ->
+        cleanup_and(out, {:error, :probe_failed})
     end
   end
 
@@ -367,7 +380,10 @@ defmodule Goodmao2.Media.Purifier do
       source
     ]
 
-    with {out, 0} <- System.cmd("ffprobe", args),
+    # stderr is deliberately NOT merged into stdout: ffprobe writes diagnostics there and
+    # mixing them into the buffer corrupts the JSON (the failure this parse already guards).
+    with {:ok, out, 0} <-
+           cmd_with_deadline("ffprobe", args, @probe_timeout_ms, merge_stderr: false),
          {:ok, parsed} <- Jason.decode(out) do
       {:ok, parsed}
     else
@@ -377,17 +393,86 @@ defmodule Goodmao2.Media.Purifier do
 
   # --- ffmpeg/ffprobe invocation --------------------------------------------
 
-  # sobelow_skip ["CI.System"]
-  # Fixed executable + argument list (no shell); args are literals plus caller-owned file
-  # paths passed as argv elements — nothing is interpolated into a command string.
   defp run(cmd, args) do
-    case System.cmd(cmd, args, stderr_to_stdout: true) do
-      {_out, 0} ->
+    case cmd_with_deadline(cmd, args, @encode_timeout_ms, merge_stderr: true) do
+      {:ok, _out, 0} ->
         :ok
 
-      {out, code} ->
+      {:ok, out, code} ->
         Logger.warning("#{cmd} exited #{code}: #{String.slice(out, 0, 500)}")
         {:error, :processing_failed}
+
+      {:error, :timeout} ->
+        Logger.warning("#{cmd} exceeded #{@encode_timeout_ms}ms and was killed")
+        {:error, :processing_failed}
+
+      {:error, reason} ->
+        Logger.warning("#{cmd} could not run: #{inspect(reason)}")
+        {:error, :processing_failed}
+    end
+  end
+
+  # Runs `executable` under a hard wall-clock deadline and returns `{:ok, output, exit_status}`.
+  #
+  # `System.cmd/3` has no timeout, and every worker shares one Oban queue — so a single input
+  # that makes ffmpeg spin (a pathological frame count, a container it never finishes reading)
+  # would hold its slot forever, and enough of them would stop medication reminders and push
+  # notifications site-wide. The port is opened directly so the OS pid is reachable: on expiry
+  # the child is SIGKILLed, because closing a port does not reliably terminate the process
+  # behind it.
+  #
+  # sobelow_skip ["CI.System"]
+  # Fixed executable resolved from PATH + an argv list (no shell); arguments are literals plus
+  # our own generated file paths — nothing is interpolated into a command string.
+  defp cmd_with_deadline(executable, args, timeout_ms, opts) do
+    case System.find_executable(executable) do
+      nil ->
+        {:error, :executable_missing}
+
+      path ->
+        port_opts =
+          [:binary, :exit_status, :hide, args: args] ++
+            if Keyword.fetch!(opts, :merge_stderr), do: [:stderr_to_stdout], else: []
+
+        port = Port.open({:spawn_executable, path}, port_opts)
+        deadline = System.monotonic_time(:millisecond) + timeout_ms
+        collect_output(port, deadline, [])
+    end
+  end
+
+  # The deadline is absolute, not per-message: a child emitting a steady trickle of output
+  # would otherwise reset a receive-level timeout forever and never be killed.
+  defp collect_output(port, deadline, acc) do
+    remaining = deadline - System.monotonic_time(:millisecond)
+
+    if remaining <= 0 do
+      kill_port(port)
+      {:error, :timeout}
+    else
+      receive do
+        {^port, {:data, chunk}} -> collect_output(port, deadline, [acc, chunk])
+        {^port, {:exit_status, status}} -> {:ok, IO.iodata_to_binary(acc), status}
+      after
+        remaining ->
+          kill_port(port)
+          {:error, :timeout}
+      end
+    end
+  end
+
+  # sobelow_skip ["CI.System"]
+  # `kill` is invoked with an integer OS pid we read from the port — never user input.
+  defp kill_port(port) do
+    case Port.info(port, :os_pid) do
+      {:os_pid, os_pid} -> System.cmd("kill", ["-9", Integer.to_string(os_pid)])
+      _ -> :ok
+    end
+
+    # Already-dead ports raise rather than no-op.
+    try do
+      Port.close(port)
+    rescue
+      ArgumentError -> :ok
     end
   end
 

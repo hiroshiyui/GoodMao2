@@ -107,12 +107,12 @@ defmodule Goodmao2.Pets do
   def fetch_pet(%User{} = user, id, opts \\ []) do
     required = Keyword.get(opts, :require, :read)
 
-    case Repo.get(Pet, id) do
-      %Pet{} = pet ->
-        if can?(pet, user, required), do: {:ok, pet}, else: {:error, :not_found}
-
-      nil ->
-        {:error, :not_found}
+    with {:ok, id} <- Goodmao2.ID.normalize(id),
+         %Pet{} = pet <- Repo.get(Pet, id),
+         true <- can?(pet, user, required) do
+      {:ok, pet}
+    else
+      _ -> {:error, :not_found}
     end
   end
 

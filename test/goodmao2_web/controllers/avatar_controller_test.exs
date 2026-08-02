@@ -26,6 +26,7 @@ defmodule Goodmao2Web.AvatarControllerTest do
     {:ok, token} = Media.stage_upload(src)
     File.rm(src)
     {:ok, _} = Avatars.set_avatar(owner_type, owner_id, actor, token)
+    Oban.drain_queue(queue: :media)
     Oban.drain_queue(queue: :default)
   end
 

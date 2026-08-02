@@ -101,7 +101,7 @@ defmodule Goodmao2Web.NotificationLive.Index do
           class="mt-4 space-y-2"
         >
           <li
-            class="hidden only:block text-base-content/60 py-8 text-center"
+            class="hidden only:block text-base-content/70 py-8 text-center"
             id="notifications-empty"
           >
             {gettext(
@@ -125,17 +125,21 @@ defmodule Goodmao2Web.NotificationLive.Index do
                 <.dynamic_link notification={notification}>
                   <p class="notification-title font-medium">
                     {notification_title(notification)}
+                    <%!-- An empty <span> is role="generic", where ARIA prohibits aria-label and
+                    screen readers drop it — so unread was conveyed by colour alone. The
+                    sr-only text names it without changing the visual dot. --%>
                     <span
                       :if={is_nil(notification.read_at)}
                       class="notification-unread-dot badge badge-primary badge-xs align-middle"
-                      aria-label={gettext("Unread")}
-                    />
+                    >
+                      <span class="sr-only">{gettext("Unread")}</span>
+                    </span>
                   </p>
                   <p class="notification-summary text-base-content/70 text-sm break-words">
                     {notification_summary(notification)}
                   </p>
                 </.dynamic_link>
-                <p class="notification-time text-base-content/50 mt-1 text-xs">
+                <p class="notification-time text-base-content/70 mt-1 text-xs">
                   {format_datetime(notification.inserted_at)}
                 </p>
               </div>

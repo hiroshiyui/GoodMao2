@@ -225,7 +225,7 @@ defmodule Goodmao2Web.PetLive.Reports do
               />
               <.input field={@generate_form[:period_end]} type="date" label={gettext("To")} required />
             </div>
-            <p class="text-base-content/60 text-xs">
+            <p class="text-base-content/70 text-xs">
               {gettext(
                 "A report freezes the timeline for this range. Private entries are never included."
               )}
@@ -240,7 +240,7 @@ defmodule Goodmao2Web.PetLive.Reports do
           {gettext("Generated reports")}
         </h2>
         <ul id="reports" class="mt-3 space-y-2">
-          <li :if={@reports == []} id="reports-empty" class="text-base-content/60 py-4 text-center">
+          <li :if={@reports == []} id="reports-empty" class="text-base-content/70 py-4 text-center">
             {gettext("No reports yet.")}
           </li>
           <li
@@ -253,7 +253,7 @@ defmodule Goodmao2Web.PetLive.Reports do
                 <p class="report-row-period font-medium">
                   {format_date(report.period_start)} – {format_date(report.period_end)}
                 </p>
-                <p class="report-row-meta text-base-content/60 text-sm">
+                <p class="report-row-meta text-base-content/70 text-sm">
                   {gettext("Generated %{t}", t: format_datetime(report.inserted_at))}
                   <span :if={report.share_expires_at} class="badge badge-ghost badge-sm ml-1">
                     {gettext("Shared")}
@@ -355,7 +355,7 @@ defmodule Goodmao2Web.PetLive.Reports do
                 label={gettext("Link expires")}
                 required
               />
-              <p class="text-base-content/60 mt-1 text-xs">
+              <p class="text-base-content/70 mt-1 text-xs">
                 {gettext("Anyone with the link can read this report until it expires.")}
               </p>
               <.button type="submit" id="report-share-submit" class="btn btn-primary btn-sm mt-2">

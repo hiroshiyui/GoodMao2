@@ -14,7 +14,7 @@ defmodule Goodmao2.Media.AvatarPurifyWorker do
       return `:ok` so Oban does not retry a file that can never succeed.
     * **Attach/store error** (e.g. a transient disk write) — return `{:error, _}` so Oban retries.
   """
-  use Oban.Worker, queue: :default, max_attempts: 3
+  use Oban.Worker, queue: :media, max_attempts: 3
 
   alias Goodmao2.Media
   alias Goodmao2.Media.{Avatars, Storage}

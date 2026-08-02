@@ -2,6 +2,7 @@ defmodule Goodmao2Web.UserTwoFactorControllerTest do
   use Goodmao2Web.ConnCase, async: true
 
   import Goodmao2.AccountsFixtures
+  import Phoenix.LiveViewTest
 
   alias Goodmao2.Accounts
 
@@ -99,6 +100,37 @@ defmodule Goodmao2Web.UserTwoFactorControllerTest do
   end
 
   describe "forced-setup completion guard" do
+    test "a challenge user cannot skip their factor by posting to /complete", %{conn: conn} do
+      # An attacker who has only the password reaches the pending state legitimately, then
+      # posts straight to the forced-enrollment tail. /complete must never stand in for a
+      # factor: it belongs to the setup flow, and this user was never sent there.
+      {user, _secret} = totp_login_user()
+
+      conn = start_login(conn, user)
+      assert redirected_to(conn) == ~p"/users/two-factor"
+      refute get_session(conn, :user_token)
+
+      conn = post(conn, ~p"/users/two-factor/complete", %{})
+
+      refute get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/users/two-factor"
+    end
+
+    test "a challenge user cannot re-enroll TOTP to replace the factor they must prove", %{
+      conn: conn
+    } do
+      {user, secret} = totp_login_user()
+
+      conn = start_login(conn, user)
+      assert redirected_to(conn) == ~p"/users/two-factor"
+
+      assert {:error, {:live_redirect, %{to: "/users/two-factor"}}} =
+               live(conn, ~p"/users/two-factor/setup")
+
+      # The enrolled secret is untouched, so the real factor still authenticates.
+      assert Accounts.decrypt_totp_secret(Accounts.get_user(user.id)) == secret
+    end
+
     test "an admin login with no factor lands on setup, and /complete is refused until enrolled",
          %{conn: conn} do
       admin = set_password(admin_fixture())

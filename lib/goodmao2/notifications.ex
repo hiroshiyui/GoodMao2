@@ -162,7 +162,14 @@ defmodule Goodmao2.Notifications do
   is gone or the user has no subscriptions.
   """
   def dispatch_web_push(notification_id) do
-    case Repo.get(Notification, notification_id) do
+    # "Live" means non-deleted: the job is queued separately from the row, so a user who
+    # dismisses a notification before a backed-up queue drains (or before an Oban retry)
+    # would otherwise still get the phone push for something they already cleared.
+    query =
+      from n in Notification,
+        where: n.id == ^notification_id and is_nil(n.deleted_at)
+
+    case Repo.one(query) do
       %Notification{} = notification ->
         push_to_user(notification.user_id, WebPush.build_payload(notification))
 

@@ -502,11 +502,23 @@ defmodule Goodmao2Web.Helpers do
   drive pet/log/medication write forms.
   """
   def changeset_error_message(%Ecto.Changeset{} = changeset) do
+    # `opts` must survive the traversal: it carries the `%{count}`/`%{number}` bindings that
+    # `translate_error/1` interpolates. Dropping it left users reading a literal
+    # "should be at most %{count} character(s)" — and dropping the translation call itself
+    # left every locale reading it in English.
     changeset
-    |> Ecto.Changeset.traverse_errors(fn {msg, _opts} -> msg end)
-    |> Enum.flat_map(fn {field, msgs} -> Enum.map(msgs, &"#{field} #{&1}") end)
+    |> Ecto.Changeset.traverse_errors(&Goodmao2Web.CoreComponents.translate_error/1)
+    |> Enum.flat_map(fn {field, msgs} ->
+      Enum.map(msgs, &"#{field_label(field)} #{&1}")
+    end)
     |> Enum.join("; ")
   end
+
+  # Field names are schema identifiers, not copy: `:weight_grams` reads as "Weight grams"
+  # rather than the raw atom. They stay in source form deliberately — a per-field
+  # translation map would silently drift out of sync with the schemas, and the part that
+  # actually carries meaning to the reader (the message) is translated above.
+  defp field_label(field), do: Phoenix.Naming.humanize(field)
 
   @doc "Localized long month label for a `Date`, e.g. \"July 2026\" / \"2026年7月\"."
   def month_label(%Date{year: year, month: month}) do

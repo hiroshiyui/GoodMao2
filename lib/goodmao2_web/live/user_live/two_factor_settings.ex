@@ -56,7 +56,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
           </div>
 
           <div :if={not @totp_enabled? and is_nil(@totp_setup)} id="totp-status-off">
-            <p class="text-base-content/60 text-sm">
+            <p class="text-base-content/70 text-sm">
               {gettext("Use an app like Google Authenticator, Aegis, or 1Password to generate codes.")}
             </p>
             <.button
@@ -118,7 +118,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
         <%!-- Security keys (WebAuthn) --%>
         <section aria-labelledby="keys-heading" id="security-keys-settings" class="space-y-3">
           <h2 id="keys-heading" class="font-semibold">{gettext("Security keys")}</h2>
-          <p class="text-base-content/60 text-sm">
+          <p class="text-base-content/70 text-sm">
             {gettext("Use a hardware security key or your device's built-in authenticator.")}
           </p>
 
@@ -131,7 +131,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
               <span class="text-sm">
                 <.icon name="hero-key" class="size-4" />
                 {if cred.label == "", do: gettext("Security key"), else: cred.label}
-                <span :if={cred.last_used_at} class="text-base-content/50">
+                <span :if={cred.last_used_at} class="text-base-content/70">
                   · {gettext("last used %{when}",
                     when: Calendar.strftime(cred.last_used_at, "%Y-%m-%d")
                   )}
@@ -151,7 +151,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
             </li>
           </ul>
 
-          <p :if={@credentials == []} class="text-base-content/50 text-sm" id="security-keys-empty">
+          <p :if={@credentials == []} class="text-base-content/70 text-sm" id="security-keys-empty">
             {gettext("No security keys yet.")}
           </p>
 
@@ -189,7 +189,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
             </ul>
           </div>
 
-          <p :if={is_nil(@recovery_codes)} class="text-base-content/60 text-sm">
+          <p :if={is_nil(@recovery_codes)} class="text-base-content/70 text-sm">
             {gettext("You have %{count} unused recovery codes.", count: @recovery_remaining)}
           </p>
 

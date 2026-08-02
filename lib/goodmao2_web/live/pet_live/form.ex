@@ -164,7 +164,7 @@ defmodule Goodmao2Web.PetLive.Form do
           <.link
             navigate={~p"/pets/#{@pet.id}/end-of-care"}
             id="pet-eol-link"
-            class="text-base-content/60 text-sm hover:underline"
+            class="text-base-content/70 text-sm hover:underline"
           >
             {gettext("End of care for %{name}…", name: @pet.name)}
           </.link>

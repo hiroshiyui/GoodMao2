@@ -343,7 +343,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             class="mt-1 flex flex-wrap gap-2"
             media_class="max-h-64"
           />
-          <p class="text-base-content/50 flex flex-wrap items-center gap-2 text-xs">
+          <p class="text-base-content/70 flex flex-wrap items-center gap-2 text-xs">
             <time datetime={DateTime.to_iso8601(@entry.occurred_at)}>
               {format_datetime(@entry.occurred_at)}
             </time>
@@ -369,7 +369,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             <h2 id="log-share-heading" class="text-lg font-semibold">
               <.icon name="hero-link" class="size-5 align-middle" /> {gettext("Share link")}
             </h2>
-            <p class="text-base-content/60 text-sm">
+            <p class="text-base-content/70 text-sm">
               {gettext(
                 "Anyone with this link can view just this entry while it stays public. Set the entry to Limited or Private to revoke it."
               )}
@@ -398,7 +398,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
           <div class="border-base-200 border-t pt-3">
             <p class="text-sm font-medium">{gettext("Expiry")}</p>
-            <p id="log-share-expiry-status" class="text-base-content/60 text-sm">
+            <p id="log-share-expiry-status" class="text-base-content/70 text-sm">
               <%= if @entry.share_expires_at do %>
                 {gettext("Expires %{when}", when: format_datetime(@entry.share_expires_at))}
               <% else %>
@@ -441,7 +441,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
         class="mt-6"
       >
         <h2 id="log-media-heading" class="text-lg font-semibold">{gettext("Photos & videos")}</h2>
-        <p class="text-base-content/60 text-sm">
+        <p class="text-base-content/70 text-sm">
           {gettext("Up to %{max} files per entry. Removing one frees its slot.",
             max: Media.config(:max_entries)
           )}
@@ -490,7 +490,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             {gettext("Add photos or video")}
           </label>
           <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
-          <p class="text-base-content/50 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
+          <p class="text-base-content/70 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
           <.upload_file_list upload={@uploads.media} cancel_event="cancel_media_upload" />
           <.button
             type="submit"
@@ -511,7 +511,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
         class="mt-6"
       >
         <h2 id="log-edit-heading" class="text-lg font-semibold">{gettext("Edit entry")}</h2>
-        <p class="text-base-content/60 text-sm">
+        <p class="text-base-content/70 text-sm">
           {gettext("Each saved change keeps a snapshot. %{left} edits left.",
             left: Logs.max_edits() - @entry.edit_count
           )}
@@ -574,7 +574,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
       <section id="log-history-section" aria-labelledby="log-history-heading" class="mt-6">
         <h2 id="log-history-heading" class="text-lg font-semibold">{gettext("Edit history")}</h2>
-        <p :if={@revisions == []} id="log-history-empty" class="text-base-content/60 mt-2 text-sm">
+        <p :if={@revisions == []} id="log-history-empty" class="text-base-content/70 mt-2 text-sm">
           {gettext("No edits yet — this entry is as first recorded.")}
         </p>
         <ol :if={@revisions != []} id="log-history" class="mt-3 space-y-2">
@@ -584,14 +584,14 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             class="log-revision card card-border bg-base-100"
           >
             <div class="card-body gap-1 p-3">
-              <p class="text-base-content/50 flex flex-wrap items-center gap-2 text-xs">
+              <p class="text-base-content/70 flex flex-wrap items-center gap-2 text-xs">
                 <span class="log-revision-editor">{editor_label(@editors, rev.edited_by_user_id)}</span>
                 <span aria-hidden="true">·</span>
                 <time datetime={DateTime.to_iso8601(rev.inserted_at)}>
                   {format_datetime(rev.inserted_at)}
                 </time>
               </p>
-              <p class="text-base-content/50 text-xs">{gettext("Previous value:")}</p>
+              <p class="text-base-content/70 text-xs">{gettext("Previous value:")}</p>
               <p class="log-revision-summary text-sm break-words">
                 {log_summary(
                   %{type: rev.snapshot["type"], data: rev.snapshot["data"] || %{}},

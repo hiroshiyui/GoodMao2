@@ -178,7 +178,9 @@ defmodule Goodmao2Web.PetLiveTest do
         |> form("#quicklog-form", log: %{note: ""})
         |> render_submit()
 
-      assert html =~ "note can&#39;t be blank"
+      # The message is translated through the "errors" domain and the field humanized, so
+      # this reads "Note can't be blank" rather than the raw schema atom.
+      assert html =~ "Note can&#39;t be blank"
       refute has_element?(lv, ".timeline-entry-type")
     end
 
@@ -692,6 +694,7 @@ defmodule Goodmao2Web.PetLiveTest do
       refute has_element?(lv, ".timeline-media img")
 
       # Running the worker attaches the media and broadcasts, so it appears live.
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
       assert render(lv) =~ "timeline-media"
       assert has_element?(lv, ".timeline-media img")
@@ -728,6 +731,7 @@ defmodule Goodmao2Web.PetLiveTest do
       lv |> form("#log-media-form") |> render_submit()
 
       # The purify worker attaches the asset and re-broadcasts; the page updates live.
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
 
       asset = Goodmao2.Repo.get_by!(Goodmao2.Media.MediaAsset, log_entry_id: entry.id)
@@ -798,6 +802,7 @@ defmodule Goodmao2Web.PetLiveTest do
       |> form("#pet-avatar-form")
       |> render_submit(%{"crop" => %{"x" => "0.0", "y" => "0.0", "w" => "0.5", "h" => "1.0"}})
 
+      Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
       assert has_element?(lv, "#avatar-pet-#{pet.id} img")
       assert Goodmao2.Media.Avatars.get_avatar("pet", pet.id).status == "ready"

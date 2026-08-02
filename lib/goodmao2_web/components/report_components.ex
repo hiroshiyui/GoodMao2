@@ -99,7 +99,7 @@ defmodule Goodmao2Web.ReportComponents do
             <span id="weight-latest" class="text-2xl font-semibold">
               {@latest}
             </span>
-            <span id="weight-change" class="text-base-content/60 flex items-center gap-0.5 text-sm">
+            <span id="weight-change" class="text-base-content/70 flex items-center gap-0.5 text-sm">
               <.icon name={weight_delta_icon(@delta_grams)} class="size-4" />
               {weight_delta_label(@delta_grams, @delta_weight)}
             </span>
@@ -157,7 +157,7 @@ defmodule Goodmao2Web.ReportComponents do
               <title>{@last_dot.date} · {@last_dot.weight}</title>
             </circle>
           </svg>
-          <div class="text-base-content/50 mt-1 flex justify-between text-xs" aria-hidden="true">
+          <div class="text-base-content/70 mt-1 flex justify-between text-xs" aria-hidden="true">
             <time datetime={Date.to_iso8601(@first_date)}>{format_date(@first_date)}</time>
             <time datetime={Date.to_iso8601(@last_date)}>{format_date(@last_date)}</time>
           </div>
@@ -278,7 +278,7 @@ defmodule Goodmao2Web.ReportComponents do
 
       <section id="report-entries" aria-labelledby="report-entries-heading" class="mt-6">
         <h2 id="report-entries-heading" class="text-lg font-semibold">{gettext("Timeline")}</h2>
-        <p :if={@entries == []} id="report-entries-empty" class="text-base-content/60 py-4">
+        <p :if={@entries == []} id="report-entries-empty" class="text-base-content/70 py-4">
           {gettext("No entries in this period.")}
         </p>
         <ol class="mt-3 space-y-3">
@@ -288,7 +288,7 @@ defmodule Goodmao2Web.ReportComponents do
                 <span class="font-medium">{log_type_label(entry.type)}</span>
                 <time
                   datetime={entry.occurred_at && DateTime.to_iso8601(entry.occurred_at)}
-                  class="text-base-content/50 text-sm"
+                  class="text-base-content/70 text-sm"
                 >
                   {format_datetime(entry.occurred_at)}
                 </time>
@@ -306,7 +306,7 @@ defmodule Goodmao2Web.ReportComponents do
               </ul>
               <p
                 :if={entry.note not in [nil, ""]}
-                class="text-base-content/60 text-sm italic break-words"
+                class="text-base-content/70 text-sm italic break-words"
               >
                 {entry.note}
               </p>
@@ -330,7 +330,7 @@ defmodule Goodmao2Web.ReportComponents do
           </.link>
           <span :if={@page <= 1} aria-hidden="true"></span>
 
-          <span id="report-page-status" class="text-base-content/60 tabular-nums">
+          <span id="report-page-status" class="text-base-content/70 tabular-nums">
             {gettext("%{from}–%{to} of %{total}", from: @range_from, to: @range_to, total: @total)}
           </span>
 
