@@ -34,7 +34,7 @@ and an authorization endpoint whose rules match the owner — not a log entry.**
   one avatar per owner, the upsert target. No FK navigation (the id spans two tables; audit-only,
   per the repo convention). `pets.photo_url` is left dormant, not repurposed.
 
-- **Images only, purified off the request path.** `Media.Avatars.set_avatar/4` stages the raw
+- **Images only, purified off the request path.** `Media.Avatars.set_avatar/5` stages the raw
   upload (`Media.Storage.stage/1`), upserts the row to `processing`, and enqueues an
   **`AvatarPurifyWorker`** in the same transaction — mirroring `Media.create_life_log/4`. The
   worker runs the shared `Media.Purifier` (magic-byte typing, EXIF/GPS stripped, alpha flattened
@@ -54,6 +54,14 @@ and an authorization endpoint whose rules match the owner — not a log entry.**
   **existence-hidden** (404, like an inaccessible media object). Responses carry the same hardening
   as `MediaController` (`nosniff`, a `default-src 'none'` sandbox CSP, `inline`). **Setting** an
   avatar is self-only for a user and needs **`:manage`** for a pet (matching `Pets.update_pet`).
+  **Removing** one takes the same right as setting it.
+
+- **Removal is a hard delete** — a deliberate, recorded exception to the app-wide soft-delete
+  rule ([ADR-0008](0008-soft-delete.md)). "Remove my photo" is expected to remove it, bytes
+  and all; a preserved-but-hidden face is the opposite of what the control promises. Nothing
+  is lost by it either: the row is an upsert target keyed by `(owner_type, owner_id)`, so
+  there is no version history a soft delete would protect — setting a new avatar overwrites
+  the old one regardless.
 
 - **Round mask is pure presentation.** A single `<.avatar>` component renders the served image
   under `rounded-full object-cover`, or a neutral initials disc when there is no ready avatar.

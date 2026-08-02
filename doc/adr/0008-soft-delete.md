@@ -39,9 +39,11 @@ user-facing delete.**
   filter deliberately.
 - **Dependent data follows the parent.** Once media exists, a log entry's media assets are
   hidden with the entry, and the **stored bytes are preserved**, not unlinked.
-- **The delete stamps, never removes.** Deleting an entry sets `deleted_at` and saves;
-  authorization is unchanged (owner, or the entry's recorder). A second delete is a clean
-  no-op (`not_found`) — the read filter already hides it.
+- **The delete stamps, never removes.** Deleting an entry sets `deleted_at` and saves. A
+  second delete is a clean no-op (`not_found`) — the read filter already hides it.
+  Authorization mirrors editing: `:write` capability for the entry's type **and** being its
+  recorder, with an owner short-circuit. Being the recorder is not sufficient on its own —
+  a caretaker demoted to `viewer` keeps `recorded_by_user_id` on everything they logged.
 - **This is the rule for all future deletes.** Any new deletable domain entity gets a
   `deleted_at` + read filter, not a physical delete. The status-based transitions for pets
   (ADR-0003) and access grants are the same principle expressed with a domain-specific
@@ -50,6 +52,21 @@ user-facing delete.**
 **Out of scope:** internal, non-domain housekeeping — e.g. a future Oban job that purges
 already-terminal infrastructure rows — is retention GC of processed records, not a
 user-facing deletion, and may still hard-delete.
+
+### Deliberate exceptions (hard delete)
+
+Two entities hard-delete, both because *preserving the row would defeat the point of
+deleting it*. Any further exception belongs in this list with its reason, or it is a bug.
+
+- **Security-key credentials** (`webauthn_credentials`,
+  [ADR-0013](0013-second-factor-authentication.md)). A revoked credential must never
+  authenticate again. A soft-deleted row is one forgotten `deleted_at` filter away from
+  doing exactly that, and unlike a log entry there is no history worth keeping — the user
+  revoked it precisely so it would stop existing.
+- **Profile images** (`avatars`, [ADR-0020](0020-profile-images.md)). Removing your photo
+  is expected to remove it, bytes included; a preserved-but-hidden face is the opposite of
+  what the action promises. The row is an upsert target keyed by `(owner_type, owner_id)`,
+  so there is no history to preserve — setting a new avatar would overwrite it regardless.
 
 ## Consequences
 

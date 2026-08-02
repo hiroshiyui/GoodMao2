@@ -49,6 +49,16 @@ admin, gating every primary-auth path through a new pending-2FA stage. Use `wax_
   token exists"* — there is no separate boolean, and the same invariant holds for both the
   magic-link and password paths (no bypass).
 
+  **The two pending states are not interchangeable.** `:setup_required` additionally sets
+  `:pending_2fa_setup_allowed`, and both the enrollment page and the enrollment-completion
+  action (`POST /users/two-factor/complete`) require it. That action verifies no factor — it
+  is the *tail* of enrollment — so gating it on "the user has some factor enrolled" is not a
+  gate at all: a `:challenge` user satisfies that the instant primary auth succeeds, and a
+  stolen password alone would mint a session token. The marker is what distinguishes "just
+  enrolled a factor in this session" from "holds a factor and still owes us proof of it".
+  For the same reason a `:challenge` user must never reach the setup page: it would issue a
+  fresh secret and `enable_totp/2` would overwrite the very factor being challenged.
+
 - **Admin-required, everyone-else-opt-in.** `login_next_step/1` returns `:setup_required`
   only for `is_admin` users with no factor; regular users with no factor get
   `:authenticated`. The forced setup enrolls TOTP (QR + confirm), shows recovery codes once,
@@ -64,7 +74,11 @@ admin, gating every primary-auth path through a new pending-2FA stage. Use `wax_
   like `WebPush.VapidVault`). Recovery codes are stored only as **HMAC-SHA256** hashes and
   are single-use (an atomic `Repo.update_all` stamps `used_at`, TOCTOU-safe). WebAuthn stores
   the credential id, COSE public key (CBOR), and a **sign count** checked for regression
-  (clone detection) on every assertion.
+  (clone detection) on every assertion. That check is **ours to make**: `Wax.authenticate/6`
+  returns the counter and explicitly leaves the comparison to the caller (WebAuthn §7.2 step
+  17), so `WebAuthn.finish_authentication/6` rejects a presented count that fails to advance
+  — exempting only an authenticator that reports `0` and always has, which is how a device
+  with no counter behaves.
 
 - **Credentials are hard-deleted.** Removing a security key `Repo.delete`s the row — a
   deliberate exception to the app-wide soft-delete convention (ADR-0008): a revoked

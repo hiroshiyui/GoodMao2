@@ -48,10 +48,20 @@ S3-compatible object store is a later option behind the same seam).
   (image/video), the server-validated content type, byte size, uploader, and an optional
   caption. **The physical path/key is derived from the id and never stored** — so it is
   path-traversal-proof by construction.
-- **Atomic create.** The upload purifies every file, writes the clean bytes, then inserts
-  the life-log entry **and** all media rows in a single Ecto transaction. A DB failure
-  removes the just-written objects. There is never an orphan log with no media, nor a log
-  row referencing bytes that were never stored.
+- **Transactional enqueue.** _(Superseded the original "atomic create" — see the status
+  note above.)_ Purification is far too slow to hold a request open, so the upload is
+  **staged** and the life-log entry commits in a single Ecto transaction with **one
+  `Media.PurifyWorker` job per file**. The invariant that survives is the one that matters:
+  an entry and its purify jobs commit together, so a rolled-back entry never leaves an
+  orphan job and a committed entry never loses its work. The `media_assets` row is inserted
+  by the worker once clean bytes exist.
+
+  What this deliberately gives up is the old promise that a log never exists without its
+  media: **a `life` entry with no media yet is now a normal intermediate state**, resolved
+  live over PubSub when the worker finishes, or reported to the uploader as a `media_failed`
+  bell if the file is rejected. Purify jobs run on a dedicated `:media` Oban queue so a slow
+  encode cannot starve the `:default` queue that carries reminders and push, and both ffmpeg
+  and ffprobe run under a hard wall-clock deadline so no single file can hold a slot forever.
 - **Purification (the core requirement).**
   - **Content type by magic bytes**, never the client's header or filename. Allow-list:
     JPEG/PNG/GIF/WEBP images, MP4/WEBM video. **SVG is rejected** (active-content XML).
