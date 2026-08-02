@@ -3,8 +3,17 @@ defmodule Goodmao2.Media do
   The Media context: purified photos/videos attached to `life` log entries (ADR-0005).
 
   Uploads are actively purified (`Purifier`), stored as opaque objects keyed by id
-  (`Storage`), created **atomically** with their life-log entry, and served only through an
-  authorized, IDOR-hidden endpoint that re-applies the parent log's read authorization.
+  (`Storage`), and served only through an authorized, IDOR-hidden endpoint that re-applies
+  the parent log's read authorization. Byte and pixel limits are admin-configurable through
+  `Media.Limits`; `Media.Avatars` reuses these same primitives for profile images.
+
+  Purification runs **off the request path**: `create_life_log/4` stages the raw upload and
+  commits the entry together with one `PurifyWorker` job per file, in one transaction — so
+  an entry always gets its jobs and a rolled-back entry leaves none. The `media_assets` row
+  is inserted by the worker once clean bytes exist, then re-broadcast so the media appears
+  live. **A `life` entry with no media yet is therefore a normal intermediate state**, not a
+  broken write; a classified failure sends the uploader a `media_failed` bell instead.
+  `OrphanJanitor` reclaims stray objects and stale staged uploads on a daily cron.
   """
   import Ecto.Query, warn: false
   alias Ecto.Multi
@@ -273,7 +282,10 @@ defmodule Goodmao2.Media do
     end
   end
 
-  @doc "The non-deleted media of a log entry, id-ordered — the preload query used by the timeline."
+  @doc """
+  The non-deleted media of a log entry, id-ordered — the preload used when this context
+  re-broadcasts an entry. `Logs` keeps its own equivalent for the timeline's own reads.
+  """
   def media_query do
     from m in MediaAsset, where: is_nil(m.deleted_at), order_by: m.id
   end

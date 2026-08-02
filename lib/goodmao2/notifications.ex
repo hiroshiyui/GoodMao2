@@ -14,9 +14,18 @@ defmodule Goodmao2.Notifications do
   `Goodmao2.Notifications.LogFanoutWorker`, and admin `announcement`s via
   `Goodmao2.Notifications.AnnouncementFanoutWorker`.
 
+  `Medications.ReminderWorker` creates `medication_due` the same way, and the media pipeline
+  creates `media_failed` / `avatar_failed` when a purify job rejects an upload — seven types
+  in all (see `Notification.types/0`, the canonical list).
+
   Unread counts are kept live over PubSub: every change broadcasts the **recomputed**
   absolute unread count on the recipient's topic, so at-least-once fan-out retries can't
   drift the badge. Notifications are soft-deleted (`deleted_at`); `read_at` marks read.
+
+  **Web Push** (ADR-0011 Stage 2) rides these same rows rather than forming a parallel
+  system: every bell row funnels through `create/3`, which enqueues a `PushDispatchWorker`
+  when `WebPush.vapid_configured?/0`. The worker re-reads the row and skips a **deleted**
+  one, so dismissing a notification before a backed-up queue drains also cancels its push.
   """
   import Ecto.Query, warn: false
 

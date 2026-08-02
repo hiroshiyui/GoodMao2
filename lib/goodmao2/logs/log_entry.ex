@@ -16,8 +16,8 @@ defmodule Goodmao2.Logs.LogEntry do
   @types ~w(food water bathroom vomit weight energy medication symptom vet_note life)
   @visibilities ~w(private limited public)
 
-  # Types any caretaker can author from the pet page's QuickLog. `life` is a plain
-  # daily-life note here — its caption is the base `note`; media enrichment is deferred.
+  # Types any caretaker can author from the pet page's QuickLog. A `life` entry's caption is
+  # the base `note`; photos/videos attach as `media_assets` (ADR-0005).
   # `vet_note` is excluded here: it is vet-only, offered only through the role-gated path
   # in `quicklog_types/1`.
   @quicklog_types ~w(food water bathroom vomit weight energy medication symptom life)
@@ -83,8 +83,11 @@ defmodule Goodmao2.Logs.LogEntry do
   end
 
   # A daily-life log carries no clinical fields — its content is the caption (the base
-  # `note`). Until media enrichment lands, a life entry with no note would be empty, so
-  # require one. (Other types may leave `note` blank alongside their structured data.)
+  # `note`), so a life entry without one would be empty. The note stays required even though
+  # media can now attach, because purification is async: a media-only entry would render as
+  # a blank row until the worker finished, and as a permanently blank row if it failed.
+  # Media-only life logs are tracked in roadmap §3. (Other types may leave `note` blank
+  # alongside their structured data.)
   defp validate_life_note(changeset) do
     if get_field(changeset, :type) == "life" do
       validate_required(changeset, [:note])

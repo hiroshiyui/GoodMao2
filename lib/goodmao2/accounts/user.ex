@@ -1,4 +1,21 @@
 defmodule Goodmao2.Accounts.User do
+  @moduledoc """
+  The user schema: credentials, public identity, and second-factor state.
+
+  Beyond `phx.gen.auth`'s email/password columns this carries the public `@handle` (unique,
+  reserved-word-checked, and the identifier others use to grant access), `display_name`, the
+  `timezone` preference that drives ADR-0018 display resolution, `timeline_page_size`, and
+  `is_admin`.
+
+  Second-factor columns live here rather than in a side table because they are per-user
+  singletons: `totp_secret` (AES-256-GCM ciphertext — never plaintext), `totp_confirmed_at`,
+  and `totp_last_used_at`, which is passed as `since:` so a consumed code cannot be replayed
+  inside its own 30-second window. `password` and `hashed_password` are `redact: true`, so an
+  inspected struct cannot leak them into a log or an error report.
+
+  `is_admin` is a **global** role — it gates the admin LiveViews and nothing else. It confers
+  no access to pet data; that is `Pets`' resource-based grant model, with no admin backdoor.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

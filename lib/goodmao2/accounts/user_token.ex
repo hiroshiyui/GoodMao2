@@ -1,4 +1,17 @@
 defmodule Goodmao2.Accounts.UserToken do
+  @moduledoc """
+  Issued tokens: the session token, and the emailed magic-link / email-change tokens.
+
+  Emailed tokens are **hashed at rest** (SHA-256): the raw value is returned once, to be put
+  in the email body, and only its digest is stored — so a database leak yields nothing
+  usable. They are single-use (the row is deleted on redemption) and short-lived, deliberately
+  so for the magic link, since whoever reads the mailbox can otherwise take the account.
+
+  Each token carries a `context` that scopes what it may do; a query for one context never
+  matches a token minted for another, so a magic link cannot stand in for an email change.
+  `Accounts.TokenJanitor` prunes expired rows using these same validity constants, so the
+  sweep and the verification can never disagree about what "expired" means.
+  """
   use Ecto.Schema
   import Ecto.Query
   alias Goodmao2.Accounts.UserToken

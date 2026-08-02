@@ -1,4 +1,9 @@
 defmodule Goodmao2.Accounts.UserNotifier do
+  @moduledoc """
+  Transactional account emails: confirmation, magic-link login, email-change, and password
+  reset. Every one carries a single-use, expiring token minted by `UserToken` — the body is
+  the only place the raw token ever appears, since only its hash is stored.
+  """
   import Swoosh.Email
 
   alias Goodmao2.Mailer

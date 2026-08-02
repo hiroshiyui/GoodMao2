@@ -1,8 +1,10 @@
 defmodule Goodmao2.Settings do
   @moduledoc """
   Site-wide system settings: a small global key/value store an administrator manages from
-  the Web UI (`Goodmao2Web.AdminLive.Settings`). First occupant: the Web Push VAPID keypair
-  (ADR-0011 Stage 2).
+  the Web UI (`Goodmao2Web.AdminLive.Settings`). Occupants: the Web Push VAPID keypair
+  (ADR-0011 Stage 2), the system `default_timezone` (ADR-0018), and the ten `media_*` upload
+  limits resolved through `Media.Limits` (ADR-0005). An absent key falls back to its built-in
+  default, so the table holds only what an admin has actually overridden.
 
   Values are opaque strings. A secret value is encrypted by the writer before it is stored
   (the VAPID private key goes through `Goodmao2.Notifications.WebPush.VapidVault`) — this

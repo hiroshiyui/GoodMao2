@@ -1,6 +1,41 @@
 defmodule Goodmao2.Accounts do
   @moduledoc """
-  The Accounts context.
+  Users, authentication, and the second factor.
+
+  Built on `phx.gen.auth`'s scope-based auth — the caller is always
+  `socket.assigns.current_scope.user`, never a globally-fetched "current user" — and extended
+  with a public `@handle`, a `display_name`, a `timezone` preference, and `is_admin`.
+
+  The invariants worth knowing before changing anything here:
+
+    * **The first registered user becomes the sole administrator**
+      ([ADR-0016](../../doc/adr/0016-scope-based-auth-and-first-user-admin.md)), enforced by a
+      partial unique index rather than a read-then-write, so a concurrent double registration
+      cannot mint two admins. Admin is a **global role only** — it grants no access to pet
+      data, and no query here or in `Pets` branches on it for that purpose.
+
+    * **Two-factor gates every primary-auth path**
+      ([ADR-0013](../../doc/adr/0013-second-factor-authentication.md)). Magic-link and
+      password login both funnel through `login_next_step/1`; a user owing a factor gets a
+      pending marker and **no `"session"` token** until `UserAuth.complete_2fa_login/2`. So
+      *"2FA passed" ≡ "a session token exists"* — there is no separate boolean to desync.
+      2FA is **required for the admin** (`can_remove_second_factor?/2` refuses their last
+      one) and opt-in for everyone else.
+
+    * **Second-factor material never rests in plaintext.** TOTP secrets are AES-256-GCM
+      encrypted (`TwoFactor`/`TotpVault`), recovery codes are HMAC-SHA256 hashes consumed by
+      an atomic conditional update, and a consumed TOTP code cannot be replayed inside its
+      own window (`totp_last_used_at` → `since:`). Security-key credentials are **hard
+      deleted** — the deliberate exception to the soft-delete rule, since a revoked key must
+      never authenticate again.
+
+    * **The `vet` role is only grantable to a verified `VetProfile`** (`verified_vet?/1`),
+      checked by `Pets.grant_access/3` on grant *and* re-grant
+      ([ADR-0012](../../doc/adr/0012-vet-access-model.md)).
+
+  Abuse throttles (`LoginRateLimiter`, `RegistrationRateLimiter`) are per-address ETS sliding
+  windows that deliberately add **no enumeration oracle**: a throttled login returns the same
+  generic error as a wrong password.
   """
 
   import Ecto.Query, warn: false
