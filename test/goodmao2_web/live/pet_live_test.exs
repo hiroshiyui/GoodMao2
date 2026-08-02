@@ -856,19 +856,22 @@ defmodule Goodmao2Web.PetLiveTest do
 
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/access")
 
+      # A future date keeps the grant effective regardless of when the suite runs.
+      future_date = Date.add(Date.utc_today(), 30)
+
       lv
       |> form("#grant-form",
         grant: %{
           "identifier" => grantee.email,
           "role" => "co_caretaker",
-          "expires_at" => "2026-08-01T18:00"
+          "expires_at" => "#{Date.to_iso8601(future_date)}T18:00"
         }
       )
       |> render_submit()
 
       access = Goodmao2.Pets.effective_access(pet, grantee)
-      # 18:00 in Taipei is stored as 10:00 UTC.
-      assert access.expires_at == ~U[2026-08-01 10:00:00Z]
+      # 18:00 in Taipei (UTC+8) is stored as 10:00 UTC on the same date.
+      assert access.expires_at == DateTime.new!(future_date, ~T[10:00:00], "Etc/UTC")
     end
   end
 
