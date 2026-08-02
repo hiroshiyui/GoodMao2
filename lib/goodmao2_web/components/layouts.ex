@@ -83,7 +83,7 @@ defmodule Goodmao2Web.Layouts do
               <.icon name="hero-bars-3" class="size-5" />
             </summary>
             <div class="dropdown-content z-40 mt-2 w-56 rounded-box border border-base-200 bg-base-100 p-2 shadow">
-              <ul class="menu w-full gap-1">
+              <ul class="menu w-full gap-1 [&>li]:items-end">
                 <.nav_links
                   current_scope={@current_scope}
                   unread_notifications={@unread_notifications}
