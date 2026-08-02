@@ -1,6 +1,6 @@
 # GoodMao — Roadmap
 
-_Last updated: 2026-07-23_
+_Last updated: 2026-08-03_
 
 ## Overview
 
@@ -60,7 +60,7 @@ per-type `data` fields in [`architecture.md`](architecture.md):
 - Food intake (full / partial / **refused**)
 - Water intake (normal / low / high)
 - Bathroom (frequency + abnormalities — **urinary blockages in cats are emergencies**, so
-  a `bathroom` entry carries an `is_straining` signal)
+  a `bathroom` entry carries a `straining` signal)
 - Vomiting / diarrhea episodes (count)
 - Weight (periodic, in the pet's `weight_unit`)
 - Energy / mood (1–5 scale)
@@ -423,8 +423,32 @@ mostly about several people (and several pets) coordinating around it without th
 noisy. None of it is urgent, and the order below is by the value it unlocks, not by size.
 
 **Progress:** §4 (localization completeness) shipped on 2026-07-23; §1–3 and §5 are open.
+§1b was added on 2026-08-03 by the review below.
 
 **Status key:** `[x]` shipped · `[~]` partially shipped · `[ ]` deferred.
+
+> **Project-wide review, 2026-08-03.** A full-scope review (correctness, security, tests,
+> i18n, docs, a11y) landed a batch of fixes rather than features, so they are recorded here
+> instead of as milestone scope. The findings worth remembering as *classes* of bug:
+>
+> - **A capability check omitted on one verb.** `Logs.delete_entry/3` gated on "did you
+>   record this?" without also asking "may you still write?", so a caretaker demoted to
+>   `viewer` could delete what they had logged. Recorder-identity is not a capability.
+> - **A gate that every attacker already satisfies.** `POST /users/two-factor/complete`
+>   admitted anyone holding a pending marker *and* an enrolled factor — the exact state of
+>   every user who has just typed a correct password. It verified no factor itself, so a
+>   stolen password alone minted a session.
+> - **An invariant documented but never implemented.** ADR-0013 and the docstring both
+>   claimed WebAuthn sign-count regression was enforced; the library returns the counter and
+>   leaves the comparison to the caller, and nobody made it. Cloned keys authenticated.
+> - **One shared queue, one unbounded wait.** All nine Oban workers shared `default`, and
+>   `System.cmd` cannot take a timeout — so hung ffmpeg processes could stall medication
+>   reminders site-wide. Media now has its own queue and a hard wall-clock deadline.
+> - **A gate that passed on a vulnerable build.** `mix precommit` cleared bandit 1.12.0
+>   despite a HIGH advisory, because mix_audit's database lacked it. It now consults
+>   hex.pm's too.
+> - **AA contrast lost to alpha.** The palette's token *pairs* pass, but
+>   `text-base-content/50` and `/60` do not (3.11:1 and 4.15:1). `/70` is now the floor.
 
 ### 1. Coordination & notification polish
 
@@ -443,6 +467,18 @@ as everything else and is learned to be ignored.
       — `medication_doses` grows one row per slot per schedule forever. A long-lived daily
       schedule is ~365 rows a year per pet; the timeline entries are the record worth keeping,
       not the slots.
+
+### 1b. Log payload range validation
+
+- [ ] **Validate payload values for *meaning*, not only type**
+      ([ADR-0015](adr/0015-structured-one-table-logging.md)). `LogEntry.changeset/2` checks each
+      `data` field's type and presence — enum membership, number, boolean, string — but applies
+      no minimum or maximum. So an `energy.level` of `99`, a `symptom.severity` of `0`, or a
+      negative `weight_grams` all persist, and the weight chart will happily plot the last one.
+      The `(1–5)` scales are a product convention the schema does not currently enforce.
+      Surfaced by the 2026-08-03 review, which found `architecture.md` claiming this validation
+      already existed; the doc now says otherwise, and this is the item that would make the
+      original claim true.
 
 ### 2. Per-pet timezones
 
@@ -503,5 +539,8 @@ as everything else and is learned to be ignored.
   offline write queue. See §10 of the v1.0.0 chapter: this is antithetical to a LiveView
   monolith, and the installable app deliberately does not imply it.
 - **No-JS progressive-enhancement form fallbacks.**
-- Everything in [Deferred / future entities](architecture.md#deferred--future-entities) that no
-  item above claims.
+
+(The old cross-reference to *Deferred / future entities* in
+[`architecture.md`](architecture.md) is gone: nothing is deferred at the schema level any
+more. Everything still unbuilt is behaviour on the existing tables, and is listed in §1–5
+above rather than implied by a section elsewhere.)
