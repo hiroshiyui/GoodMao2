@@ -8,6 +8,98 @@ skill).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-08-03
+
+A project-wide review (correctness, security, tests, i18n, documentation, accessibility).
+No new features — this release is fixes, and two of them are serious enough that **upgrading
+promptly is worthwhile for any deployment with second-factor authentication enabled**.
+
+### Security
+
+- **A stolen password alone could complete a second-factor login.** `POST
+  /users/two-factor/complete` is the *tail* of the forced-enrollment flow and verifies no
+  factor itself, but it issued a session token to anyone holding a pending-2FA marker whose
+  account had any factor enrolled — which is precisely the state of every user the instant
+  their password verifies. An attacker with a phished or reused password reached the pending
+  stage legitimately, posted to that endpoint with no code, key, or recovery code, and was
+  logged in. The same gap let them open the enrollment page, which issued a *fresh* TOTP
+  secret and, on confirm, silently replaced the victim's real factor and wiped their recovery
+  codes. Both paths now require a marker set only on the enrollment branch, so a user who owes
+  proof of a factor can neither skip it nor re-enroll around it. **This breaks the ADR-0013
+  invariant that "2FA passed ≡ a session token exists", and a successful bypass is
+  indistinguishable from a normal login in the logs — operators should consider invalidating
+  existing sessions and checking whether any user's TOTP secret changed unexpectedly.**
+- **A caretaker demoted to `viewer` could still delete the entries they had recorded.**
+  Deleting checked only that the caller recorded the entry, never that they still held write
+  capability — so demoting someone (the deliberate way to withdraw write access while keeping
+  read) left them able to erase the history they had logged. Editing and deleting now both
+  require `:write` *and* recorder, with an owner short-circuit.
+- **Cloned security keys were accepted.** ADR-0013 and the function's own docstring both
+  stated that WebAuthn sign-count regression was enforced; the library returns the counter and
+  explicitly leaves the comparison to the caller, and nothing performed it. Now enforced per
+  WebAuthn §7.2, exempting only authenticators that report no counter at all.
+- **`Logs` reads did not require a grant.** Every read resolved a role and filtered by entry
+  visibility, which for a caller with *no* effective grant stripped only `private` entries —
+  so a stranger handed a pet struct would have received its `limited` and `public` health
+  history. Not reachable through the web layer, whose callers all resolve pets through
+  `Pets.fetch_pet/3` first, but the context documents itself as safe on its own. All four read
+  paths now check `:read` first.
+- **`bandit` 1.12.0 → 1.12.4** for [CVE-2026-65623](https://osv.dev/vulnerability/EEF-CVE-2026-65623)
+  (HIGH): quadratic CPU blow-up reassembling fragmented WebSocket messages. Unauthenticated,
+  and every GoodMao session is a WebSocket. The gate had passed on the vulnerable build
+  because `mix_audit`'s advisory database lacks this entry, so `mix precommit` now consults
+  hex.pm's database as well — the two do not agree, and one alone is not enough.
+
+### Fixed
+
+- **A single hostile or pathological upload could stop background work site-wide.**
+  `System.cmd/3` cannot take a timeout, so a wedged ffmpeg held its job slot indefinitely; all
+  nine workers shared one queue, so enough of them would stall medication reminders, Web Push,
+  and the bell feed until a restart. ffmpeg and ffprobe now run under a hard wall-clock
+  deadline that kills the child process, and media purification has its own `:media` queue so
+  it cannot starve the rest.
+- **The unauthenticated rate limiters grew without bound.** Both keyed ETS rows by an
+  attacker-supplied email address and never removed them; because the limit is per-address, a
+  flood of distinct addresses was never throttled and grew the table until the node ran out of
+  memory. Both now sweep expired windows.
+- **A medication dose could be announced twice.** Reminders were sent and *then* stamped, so a
+  sweep that overran its 15-minute interval — or an Oban retry after a partial failure — could
+  re-read the same unstamped slot and push every caretaker a second alert for one pill. The
+  slot is now claimed with a conditional update before anything is sent.
+- **A malformed URL crashed instead of showing "not found".** A non-numeric `:id` reached Ecto
+  as a cast error across eight LiveView mounts, producing a 400 page or a dead LiveView rather
+  than the existence-hiding not-found every id lookup here promises. Normalized at the context
+  boundary, bounded so an oversized value cannot overflow Postgres `bigint` either.
+- **A dismissed notification no longer arrives as a phone push**, and a failed revision insert
+  returns an error rather than raising.
+- **Secondary text failed WCAG AA on the light theme.** The palette's colour *pairs* clear AA,
+  but the opacity modifiers used for timestamps and explanatory copy did not —
+  `text-base-content/50` measured 3.11:1 and `/60` 4.15:1 against a 4.5:1 floor. Informational
+  text now uses `/70` (5.67:1 light, 7.11:1 dark).
+- **Keyboard focus was invisible on the avatar upload buttons**, whose `outline-none` utility
+  silently beat the app's zero-specificity focus ring instead of adjusting it.
+- **The QuickLog chips no longer claim to be tabs.** `role="tab"` promises arrow-key navigation
+  and an associated panel, neither of which exists; they are toggle buttons and now say so.
+  A failed one-tap log is also announced (it changed nothing else on screen), and unread
+  markers are no longer conveyed by colour alone.
+- **Validation errors were shown in English in every locale**, with `%{count}` placeholders
+  rendered literally, because they bypassed the translation layer entirely. Fifteen custom
+  changeset messages were also missing from the catalogue; all are now translated into
+  `zh_TW` and `ja_JP`.
+- **The hamburger menu's items are right-aligned**, as intended.
+
+### Changed
+
+- Documentation was audited against the code. Several claims were wrong rather than merely
+  stale — a payload field named `is_straining` that is `straining`, a `medication` field that
+  does not exist, ADR-0005's binding "atomic create" decision that the async pipeline
+  superseded, and an "unvalidated ranges" gap that `architecture.md` described as already
+  enforced (now filed as roadmap §1b). `Accounts`, the app's security-critical context, gained
+  a real `@moduledoc`; the avatar hard-delete is now recorded as a deliberate exception to
+  ADR-0008 rather than an undocumented one.
+- 18 tests added, chiefly the expired- and revoked-grant denial paths at every context
+  boundary — previously asserted once at `Pets.can?` and trusted transitively everywhere else.
+
 ## [1.2.0] - 2026-07-31
 
 ### Added
