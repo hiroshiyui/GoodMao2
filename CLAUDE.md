@@ -28,7 +28,8 @@ mix phx.gen.cert               # ONE-TIME: self-signed dev TLS cert in priv/cert
 mix phx.server                 # dev server: http://localhost:4000 + https://localhost:4001 (mailbox: /dev/mailbox)
 iex -S mix phx.server          # same, with a REPL
 
-mix precommit                  # THE gate: compile --warnings-as-errors + deps.unlock --unused + format + test
+mix precommit                  # THE gate: compile --warnings-as-errors + deps.unlock --unused
+                               # + format + deps.audit + hex.audit + sobelow + test
 mix test                       # full suite (auto-creates/migrates the test DB)
 mix test test/goodmao2/pets_test.exs           # one file
 mix test test/goodmao2/pets_test.exs:42        # one test by line
@@ -42,6 +43,19 @@ mix run priv/repo/seeds.exs    # re-seed (idempotent)
 # i18n — after adding/changing any gettext() string:
 mix gettext.extract && mix gettext.merge priv/gettext
 ```
+
+**Two advisory databases, deliberately.** `deps.audit` (mix_audit) reads the
+elixir-security-advisories repo; `hex.audit` reads hex.pm's own retirement + advisory data.
+They do not agree — a HIGH bandit advisory was in hex.pm's and absent from mix_audit's, and
+the gate passed on the vulnerable build. Keep both.
+
+**`priv/gettext/errors.pot` is maintained by hand.** `mix gettext.extract` only sees
+`gettext()` calls, so it cannot find a changeset's `message:` option or an `add_error/3`
+string — but `translate_error/1` routes every changeset error through the `errors` domain at
+render time. Adding a custom validation message to a schema therefore means **adding its
+msgid to `errors.pot` yourself**, then merging and translating; skip it and that message
+silently renders in English in every locale. `test/goodmao2/locale_parity_test.exs` catches
+the missing translation, not the missing msgid.
 
 **Rust NIFs** ([ADR-0017](doc/adr/0017-rust-nif-native-boundary.md))**:** `Goodmao2.Native`
 loads the `native/goodmao2_native` crate (Rustler), built automatically by `mix compile` — the
@@ -57,8 +71,9 @@ Postgres: dev and test both use a **`goodmao2`** role (password `goodmao2`) need
 ## Architecture in one screen
 
 GoodMao is a **single Phoenix/LiveView monolith** (no separate API/frontend). Domain
-logic lives in four contexts under `lib/goodmao2/`; the web layer is thin LiveViews that
-call them.
+logic lives in ten contexts under `lib/goodmao2/` — `Accounts`, `Pets`, `Logs`,
+`Medications`, `Media`, `Reports`, `Notifications`, `Settings`, `Timezone`, `Messaging`,
+each described below; the web layer is thin LiveViews that call them.
 
 - **`Accounts`** (`accounts.ex`) — `phx.gen.auth` scope-based auth (the caller is
   `socket.assigns.current_scope.user`), extended with a public `@handle`, `display_name`,
@@ -93,7 +108,10 @@ call them.
   payload; per-type field validation is in `LogEntry.changeset/2`. Entries are
   **soft-deleted** (`deleted_at`); every read filters `deleted_at IS NULL`. Writes re-check
   `Pets` capability at the context boundary (`vet_note` is vet-only; changing `visibility`
-  is owner-only). Setting an entry **`public`** (owner-only, on create *and* edit, timeline
+  is owner-only). **Editing and deleting both need `:write` *plus* being the recorder**
+  (owner short-circuits, so an owner may delete a `vet_note` they cannot author) — recorder
+  alone is not enough, because a caretaker demoted to `viewer` keeps `recorded_by_user_id`
+  on everything they logged. Setting an entry **`public`** (owner-only, on create *and* edit, timeline
   *and* media paths) mints an unguessable `share_token` via `Logs.put_share_token/1`; narrowing
   clears it. `fetch_entry_by_share_token/1` is the **sole anonymous read path** (still-public +
   unexpired `share_expires_at` + non-deleted + history not hidden, else existence-hidden) —
@@ -119,7 +137,10 @@ call them.
   EXIF/GPS stripped, images re-encoded with **alpha flattened onto opaque white**, codec
   allow-list + duration cap), then `attach_purified_asset/2` inserts the ready row + writes bytes
   and **re-broadcasts** so the media appears live; a classified failure sends the uploader a
-  **`media_failed`** bell. Byte-size caps and min/max pixel dimensions (images *and* videos) are
+  **`media_failed`** bell. So **a `life` entry with no media yet is a normal state**, not a bug.
+  Purify jobs run on their own **`:media` Oban queue** and ffmpeg/ffprobe run under a hard
+  wall-clock deadline (`System.cmd` has none) — one slow or hostile file must never occupy a
+  `:default` slot, which is what carries medication reminders and Web Push. Byte-size caps and min/max pixel dimensions (images *and* videos) are
   **admin-configurable** via `Media.Limits` (Settings-backed, `0` = unbounded; image floor ships
   640×480) and enforced in the purifier; the same size cap gates the LiveView upload. `Media.Storage`
   writes id-keyed opaque objects under a configured `storage_dir` (physical path never stored —
@@ -127,7 +148,7 @@ call them.
   `delete_orphans/0`) reclaims stray objects + stale staged uploads. `Media.RateLimiter` throttles uploads.
   - **`Media.Avatars`** — optional **profile images** for users and pets ([ADR-0020](doc/adr/0020-profile-images.md)),
     reusing the same `Purifier`/`Storage`/`Limits` primitives. One polymorphic `avatars` row per
-    owner (`owner_type` ∈ {`user`,`pet`}, unique on `(owner_type, owner_id)`); `set_avatar/4` stages
+    owner (`owner_type` ∈ {`user`,`pet`}, unique on `(owner_type, owner_id)`); `set_avatar/5` stages
     the upload and enqueues an **`AvatarPurifyWorker`** transactionally (images only — video
     rejected), which stores the clean bytes under a **separate owner-keyed keyspace**
     (`storage_dir/avatars/<owner-key>`, disjoint from media ids) and broadcasts. Setting a user
@@ -172,8 +193,11 @@ call them.
   `Plugs.Timezone` (`:browser`, after scope fetch) and the `UserTimezone` `on_mount` (after the
   scope hook, in each authed live_session). `format_datetime/1`/`format_date/1` shift UTC → local;
   every `datetime-local` input (log `occurred_at`, end-of-care `ended_at`, grant `expires_at`)
-  parses its wall-clock → UTC via `Helpers.put_local_datetime/4` (over `local_naive_to_utc/2`)
-  **before** the changeset and prefills back to local via `Helpers.to_datetime_local/2`; the
+  parses its wall-clock → UTC through **`Timezone.local_naive_to_utc/2`** — the single
+  conversion every such input must go through — **before** the changeset, and prefills back to
+  local via `Helpers.to_datetime_local/2`. Grants and end-of-care reach it via the shared
+  `Helpers.put_local_datetime/4`; the QuickLog, single-entry, and report-expiry forms each
+  still wrap it in their own local copy (a known duplication, not a behavioural difference). The
   calendar buckets by **local** day (`grid_range/1` over-fetches ±1 day). Backed by
   the pure-Elixir **`tz`** dep (no runtime HTTP; `config :elixir, :time_zone_database`). A user
   picks their zone on `/users/settings` (browser-prefilled via the `TimezoneDetect` hook).
@@ -245,7 +269,16 @@ doesn't flash a connection error.
 
 - **End-of-care is a lifecycle status transition, not a deletion** — the pet record and
   its timeline are always preserved. `Index` separates active vs. past pets.
-- **Do not hard-delete log entries**; stamp `deleted_at`.
+- **Do not hard-delete log entries**; stamp `deleted_at`. The only two hard-delete
+  exceptions are security-key credentials and avatars, both recorded in
+  [ADR-0008](doc/adr/0008-soft-delete.md); a third would need the same treatment.
+- **Normalize an externally-supplied id through `Goodmao2.ID.normalize/1`** before it
+  reaches a query. Route and socket params are strings, and handing Ecto a non-numeric one
+  raises `Ecto.Query.CastError` — a 400 on the dead render, a crashed LiveView over the
+  socket — instead of the existence-hiding "not found" every id lookup here promises. An
+  oversized value parses fine and then overflows Postgres `bigint`, so the range is bounded
+  too. `Pets.fetch_pet/3`, `Logs.get_entry/3`, and `Messaging.fetch_conversation/2` all do
+  this at the context boundary, which covers their LiveView and controller callers.
 - Audit-only user references (`recorded_by_user_id`, `granted_by_user_id`,
   `created_by_user_id`) are plain id columns **without FK navigations** (deliberate — avoids
   multiple cascade paths).

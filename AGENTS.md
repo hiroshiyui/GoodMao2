@@ -8,10 +8,13 @@ co-caretakers, and vets. It is a single **Phoenix/LiveView** monolith
 (LiveView + Ecto + PostgreSQL + Gettext). Full design in
 [`doc/architecture.md`](doc/architecture.md); scope in [`doc/roadmap.md`](doc/roadmap.md).
 
-**Contexts** (`lib/goodmao2/`): `Accounts` (auth + `@handle` + first-user-admin),
-`Pets` (pets, access grants, resource authorization), `Logs` (structured entries +
-timeline + revisions + PubSub), `Media` (ffmpeg-purified LifeLog photos/videos, id-keyed
-storage). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
+**Contexts** (`lib/goodmao2/`): `Accounts` (auth + second factor + `@handle` +
+first-user-admin), `Pets` (pets, access grants, resource authorization), `Logs` (structured
+entries + timeline + revisions + PubSub), `Medications` (schedules, materialized dose slots,
+reminders), `Media` (ffmpeg-purified LifeLog photos/videos + avatars, id-keyed storage),
+`Reports` (frozen health summaries + share links), `Notifications` (bell feed + Web Push),
+`Messaging` (shared-pet-gated 1:1 mailbox), `Settings` (admin key/value store), `Timezone`
+(per-viewer display zone). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
 
 **Rules to preserve when changing this app:**
 
@@ -23,6 +26,10 @@ storage). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
 - **Log entries are one table** (`log_entries`) keyed by `type` with a `jsonb` `data`
   payload; per-type validation is in `LogEntry.changeset/2`. Entries are
   **soft-deleted** via `deleted_at` — never hard-delete; reads filter `deleted_at IS NULL`.
+  **Editing and deleting both require `:write` capability *and* being the recorder** (owners
+  short-circuit). Never gate a mutation on `recorded_by_user_id` alone: a caretaker demoted
+  to `viewer` keeps that column on everything they logged, so recorder-only is how a
+  read-only grant silently keeps write power.
 - **Two-factor auth gates every primary-auth path** (ADR-0013). A user with a second
   factor (or an admin without one) gets **no `"session"` token** until the factor passes:
   primary auth funnels through `UserAuth.log_in_or_challenge/3`, which sets a pending marker
@@ -30,7 +37,11 @@ storage). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
   bypasses `login_next_step/1`. Second-factor secrets are **encrypted at rest** (TOTP via
   `Accounts.TotpVault`) or **HMAC-hashed** (recovery codes); never log or store them in
   plaintext. A **consumed TOTP code must not be replayable** within its window — verify with
-  `since: user.totp_last_used_at` and stamp it on success. The **admin must keep ≥1 factor**
+  `since: user.totp_last_used_at` and stamp it on success. The **two pending states are not
+  interchangeable**: only a `:setup_required` login carries `:pending_2fa_setup_allowed`, and
+  both the enrollment page and `POST /users/two-factor/complete` require it. That action
+  verifies no factor, so "the user has a factor enrolled" is not a gate for it — every
+  `:challenge` user satisfies that the moment their password checks out. The **admin must keep ≥1 factor**
   (`can_remove_second_factor?/2`). Security-key
   credentials are **hard-deleted** — the one deliberate exception to the soft-delete rule
   (a revoked credential must never authenticate again).
@@ -38,7 +49,13 @@ storage). Web LiveViews live in `lib/goodmao2_web/live/pet_live/`.
   timeline are preserved.
 - **Accessibility-first:** every meaningful element carries a stable, semantic
   `id`/`class` (loop items derive an id from the record). Semantic class first, Tailwind
-  utilities after.
+  utilities after. Two traps worth naming, because both look harmless in review:
+  - **`text-base-content/70` is the contrast floor** for anything informational. The token
+    *pairs* clear WCAG AA, but the alpha modifiers don't: on the cream canvas `/50` is
+    3.11:1 and `/60` is 4.15:1, under the 4.5:1 minimum. `/70` passes in both themes.
+  - **The shared focus ring is zero-specificity `:where(...)`**, so any `outline-none`
+    utility silently wins and leaves a control with no keyboard focus indicator at all.
+    Give it a replacement ring rather than removing it.
 - **All user-visible copy goes through `gettext()`** (flash, templates, `aria-*`). Enum
   label translations and log summaries belong in `Goodmao2Web.Helpers`. Keep `en` /
   `zh_TW` / `ja_JP` in sync; run `mix gettext.extract && mix gettext.merge priv/gettext`.

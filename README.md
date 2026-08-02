@@ -41,7 +41,8 @@ GoodMao is a single, real-time **Phoenix/LiveView** monolith. See
 - **LifeLog media** — a `life` log can carry photos/videos, uploaded through the app and
   **actively purified with ffmpeg** (magic-byte typing, EXIF/GPS stripped by re-encode,
   codec allow-list + duration cap), stored as id-keyed opaque objects and served only via
-  an authorized, IDOR-hidden `GET /media/:id`.
+  an authorized, IDOR-hidden `GET /media/:id`. Purification runs in the background on its
+  own job queue, so the entry posts immediately and its media appears live moments later.
 - **Profile images** — optional avatars for users *and* pets, purified through the same
   ffmpeg pipeline (images only) with an in-browser square crop that the server re-applies
   authoritatively. A pet's avatar is `:read`-gated like the rest of its data.
@@ -119,7 +120,8 @@ Demo accounts (from `priv/repo/seeds.exs`):
 ## Development
 
 ```bash
-mix precommit             # compile (warnings-as-errors) + unused-deps + format + test
+mix precommit             # compile (warnings-as-errors) + unused-deps + format
+                          # + deps.audit + hex.audit + sobelow + test
 mix test                  # run the suite
 mix test test/goodmao2/pets_test.exs
 ```
