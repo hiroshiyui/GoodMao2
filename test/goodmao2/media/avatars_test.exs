@@ -201,6 +201,20 @@ defmodule Goodmao2.Media.AvatarsTest do
       assert Avatars.fetch_avatar_object_for_user("pet", pet.id, stranger) == {:error, :not_found}
     end
 
+    test "an expired or revoked grant cannot see a pet avatar", %{owner: owner, pet: pet} do
+      {:ok, _} = Avatars.set_avatar("pet", pet.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
+      Oban.drain_queue(queue: :default)
+
+      expired = user_fixture()
+      expired_grant_fixture(pet, owner, expired)
+      revoked = user_fixture()
+      revoked_grant_fixture(pet, owner, revoked)
+
+      assert Avatars.fetch_avatar_object_for_user("pet", pet.id, expired) == {:error, :not_found}
+      assert Avatars.fetch_avatar_object_for_user("pet", pet.id, revoked) == {:error, :not_found}
+    end
+
     test "a processing avatar has no servable object yet", %{owner: owner} do
       {:ok, _} = Avatars.set_avatar("user", owner.id, owner, staged_png())
       # Not drained — still processing, no bytes on disk.
@@ -218,6 +232,32 @@ defmodule Goodmao2.Media.AvatarsTest do
       assert :ok = Avatars.delete_avatar("user", owner.id, owner)
       assert Avatars.get_avatar("user", owner.id) == nil
       refute Storage.avatar_exists?("user-#{owner.id}")
+    end
+
+    test "another user cannot delete your avatar", %{owner: owner} do
+      {:ok, _} = Avatars.set_avatar("user", owner.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
+      Oban.drain_queue(queue: :default)
+
+      assert Avatars.delete_avatar("user", owner.id, user_fixture()) == {:error, :unauthorized}
+      assert Avatars.get_avatar("user", owner.id) != nil
+      assert Storage.avatar_exists?("user-#{owner.id}")
+    end
+
+    test "a pet avatar needs :manage — a co-caretaker cannot delete it", %{
+      owner: owner,
+      pet: pet
+    } do
+      {:ok, _} = Avatars.set_avatar("pet", pet.id, owner, staged_png())
+      Oban.drain_queue(queue: :media)
+      Oban.drain_queue(queue: :default)
+
+      co = user_fixture()
+      grant_fixture(pet, owner, co, "co_caretaker")
+
+      assert Avatars.delete_avatar("pet", pet.id, co) == {:error, :unauthorized}
+      assert Avatars.get_avatar("pet", pet.id) != nil
+      assert Storage.avatar_exists?("pet-#{pet.id}")
     end
   end
 

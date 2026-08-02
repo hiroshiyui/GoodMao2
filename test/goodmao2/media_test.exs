@@ -347,6 +347,20 @@ defmodule Goodmao2.MediaTest do
 
       assert Media.fetch_asset_for_user(viewer, asset.id) == {:error, :not_found}
     end
+
+    test "an expired grant gets not_found", %{owner: owner, pet: pet, asset: asset} do
+      user = user_fixture()
+      expired_grant_fixture(pet, owner, user)
+
+      assert Media.fetch_asset_for_user(user, asset.id) == {:error, :not_found}
+    end
+
+    test "a revoked grant gets not_found", %{owner: owner, pet: pet, asset: asset} do
+      user = user_fixture()
+      revoked_grant_fixture(pet, owner, user)
+
+      assert Media.fetch_asset_for_user(user, asset.id) == {:error, :not_found}
+    end
   end
 
   describe "delete_orphans/1" do

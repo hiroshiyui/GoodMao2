@@ -5,6 +5,10 @@ defmodule Goodmao2.Logs do
   Reads and writes re-check pet-level authorization at this boundary, so the
   context is safe on its own:
 
+    * **Grant required.** Every read first asks `Pets.can?(pet, user, :read)`. Passing a
+      `%Pet{}` obtained outside `Pets.fetch_pet/3` is therefore safe — a caller with no
+      effective grant (a stranger, or someone whose grant expired or was revoked) reads
+      nothing, rather than everything that isn't `private`.
     * **Hidden history.** When `pet.history_hidden` is set, the whole timeline is
       existence-hidden — reads return empty/`nil` and writes are refused, for every
       role (the owner un-hides via the pet edit form, not a log action). See
@@ -12,9 +16,10 @@ defmodule Goodmao2.Logs do
     * **Per-entry visibility.** A `private` entry is visible only to effective
       **owners** and the entry's **recorder**; `limited`/`public` are visible to any
       effective grant. See ADR-0004.
-    * **Edit/delete scope.** An **owner** may delete any entry; anyone else may
-      edit/delete only what they recorded. Editing additionally requires write
-      capability for the type (`vet_note` stays vet-only). See ADR-0009.
+    * **Edit/delete scope.** An **owner** may edit or delete any entry; anyone else needs
+      write capability for the type (`vet_note` stays vet-only) **and** must be the entry's
+      recorder. Recorder alone is not enough — a caretaker demoted to `viewer` keeps
+      `recorded_by_user_id` on everything they logged. See ADR-0009.
 
   Soft-deleted entries (`deleted_at` set) are hidden from all reads.
   """
@@ -56,7 +61,7 @@ defmodule Goodmao2.Logs do
       used by the calendar view to fetch just the visible month's entries
   """
   def list_entries(%User{} = user, %Pet{} = pet, opts \\ []) do
-    if pet.history_hidden do
+    if unreadable?(pet, user) do
       []
     else
       role = Pets.effective_role(pet, user)
@@ -93,7 +98,7 @@ defmodule Goodmao2.Logs do
   `weight_grams` are skipped. `:limit` caps the number of points (default 200).
   """
   def weight_series(%User{} = user, %Pet{} = pet, opts \\ []) do
-    if pet.history_hidden do
+    if unreadable?(pet, user) do
       []
     else
       role = Pets.effective_role(pet, user)
@@ -125,8 +130,8 @@ defmodule Goodmao2.Logs do
   anonymous share link, so it must never freeze in an entry that ADR-0004 keeps private.
   Honors hidden-history (returns `[]`). Same `:type` / `:from` / `:to` / `:limit` options.
   """
-  def shareable_entries(%User{} = _user, %Pet{} = pet, opts \\ []) do
-    if pet.history_hidden do
+  def shareable_entries(%User{} = user, %Pet{} = pet, opts \\ []) do
+    if unreadable?(pet, user) do
       []
     else
       limit = Keyword.get(opts, :limit, 1000)
@@ -164,7 +169,21 @@ defmodule Goodmao2.Logs do
 
   defp filter_by_type(query, _type), do: query
 
+  # The gate every read shares: hidden history existence-hides the whole timeline, and a
+  # caller with no effective grant reads nothing at all.
+  #
+  # The `:read` half is not redundant with `filter_by_visibility/3`. That only strips
+  # `private` entries, so a `nil` role — a stranger, or someone whose grant expired or was
+  # revoked — would still receive every `limited` and `public` entry. Callers happen to
+  # resolve their pet through `Pets.fetch_pet/3` first, which would refuse them, but a
+  # context that promises to be "safe on its own" cannot rely on that: the next caller to
+  # pass a `Repo.get(Pet, id)` result would leak a pet's health history.
+  defp unreadable?(%Pet{} = pet, %User{} = user) do
+    pet.history_hidden or not Pets.can?(pet, user, :read)
+  end
+
   # Owners see every entry; everyone else is denied `private` entries they didn't record.
+  # This narrows what a *reader* sees — `unreadable?/2` above decides whether they read at all.
   defp filter_by_visibility(query, "owner", _user_id), do: query
 
   defp filter_by_visibility(query, _role, user_id),
@@ -179,7 +198,7 @@ defmodule Goodmao2.Logs do
   def get_entry(%User{} = user, %Pet{} = pet, id) do
     # A malformed id identifies no entry, so it resolves to the same `nil` as a missing one
     # rather than crashing the caller with an Ecto cast error (see `Goodmao2.ID`).
-    with false <- pet.history_hidden,
+    with false <- unreadable?(pet, user),
          {:ok, id} <- Goodmao2.ID.normalize(id) do
       role = Pets.effective_role(pet, user)
 

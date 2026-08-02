@@ -43,6 +43,20 @@ defmodule Goodmao2.MessagingTest do
       refute Messaging.can_message?(owner, co)
     end
 
+    test "is false once the shared grant has been revoked" do
+      # The revoked row stays in the table, so a gate that checked only expiry — or only
+      # the pet in common — would still let a removed caretaker open a thread.
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      co = user_fixture()
+      revoked_grant_fixture(pet, owner, co)
+
+      refute Messaging.can_message?(owner, co)
+      refute Messaging.can_message?(co, owner)
+
+      assert Messaging.start_conversation(co, owner.email) == {:error, :cannot_message}
+    end
+
     test "is false for a user with themselves" do
       %{owner: owner} = sharing_pair()
       refute Messaging.can_message?(owner, owner)

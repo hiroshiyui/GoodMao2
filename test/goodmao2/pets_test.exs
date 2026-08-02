@@ -212,6 +212,46 @@ defmodule Goodmao2.PetsTest do
                {:error, :unauthorized}
     end
 
+    test "a non-manager cannot revoke access" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      co = user_fixture()
+      co_access = grant_fixture(pet, owner, co, "co_caretaker")
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+
+      # Revoking is the mirror of granting: both are `:manage`. A co-caretaker holds
+      # `:write`, which must not extend to removing other people's access.
+      assert Pets.revoke_access(co, pet, co_access) == {:error, :unauthorized}
+      assert Pets.revoke_access(viewer, pet, co_access) == {:error, :unauthorized}
+      assert Pets.effective_role(pet, co) == "co_caretaker"
+    end
+
+    test "an expired or revoked grant confers nothing and cannot be used to escalate" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      expired = user_fixture()
+      expired_grant_fixture(pet, owner, expired, "co_caretaker")
+      revoked = user_fixture()
+      revoked_grant_fixture(pet, owner, revoked, "co_caretaker")
+      outsider = user_fixture()
+
+      for user <- [expired, revoked] do
+        assert Pets.effective_role(pet, user) == nil
+        assert Pets.effective_access(pet, user) == nil
+        refute Pets.can?(pet, user, :read)
+        assert Pets.fetch_pet(user, pet.id) == {:error, :not_found}
+        # The pet is gone from their list, not merely hidden on its page.
+        assert Pets.list_pets(user) == []
+
+        # And a lapsed grant is not a foothold for handing access to someone else.
+        assert Pets.grant_access(user, pet, %{
+                 "identifier" => outsider.email,
+                 "role" => "viewer"
+               }) == {:error, :unauthorized}
+      end
+    end
+
     test "revoking the last owner is refused" do
       owner = user_fixture()
       pet = pet_fixture(owner)

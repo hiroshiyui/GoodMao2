@@ -405,6 +405,62 @@ defmodule Goodmao2.LogsTest do
     end
   end
 
+  # An expired or revoked grant is refused by `Pets.effective_access/2`, which `Logs` trusts
+  # transitively. These pin the denial at *this* boundary so a future read path that resolves
+  # its own role — or forgets the expiry half of the check — fails here rather than silently
+  # serving a pet's health history to someone whose access was deliberately withdrawn.
+  describe "ineffective grants (expired / revoked)" do
+    setup %{owner: owner, pet: pet} do
+      log_entry_fixture(owner, pet, %{"type" => "weight", "data" => %{"weight_grams" => "4200"}})
+
+      %{expired: user_fixture(), revoked: user_fixture()}
+    end
+
+    test "an expired grant reads nothing and cannot write", ctx do
+      %{owner: owner, pet: pet, expired: user} = ctx
+      expired_grant_fixture(pet, owner, user)
+
+      assert Logs.list_entries(user, pet) == []
+      assert Logs.weight_series(user, pet) == []
+
+      assert Logs.create_entry(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}}) ==
+               {:error, :unauthorized}
+    end
+
+    test "a revoked grant reads nothing and cannot write", ctx do
+      %{owner: owner, pet: pet, revoked: user} = ctx
+      revoked_grant_fixture(pet, owner, user)
+
+      assert Logs.list_entries(user, pet) == []
+      assert Logs.weight_series(user, pet) == []
+
+      assert Logs.create_entry(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}}) ==
+               {:error, :unauthorized}
+    end
+
+    test "a stranger handed the pet struct directly still reads nothing", ctx do
+      %{pet: pet} = ctx
+      stranger = user_fixture()
+
+      # Not reachable through the web layer, which resolves pets via `Pets.fetch_pet/3`.
+      # Asserted anyway because the moduledoc promises this context is safe on its own, and
+      # visibility filtering alone would hand a stranger every `limited` and `public` entry.
+      assert Logs.list_entries(stranger, pet) == []
+      assert Logs.weight_series(stranger, pet) == []
+      assert Logs.shareable_entries(stranger, pet) == []
+    end
+
+    test "an entry stays readable to a still-effective grant", ctx do
+      %{owner: owner, pet: pet} = ctx
+      current = user_fixture()
+      grant_fixture(pet, owner, current, "viewer")
+
+      # The control: the assertions above must fail because the grant lapsed, not because
+      # the fixtures never granted anything readable in the first place.
+      assert [_entry] = Logs.list_entries(current, pet)
+    end
+  end
+
   describe "pubsub" do
     test "broadcasts on create", %{owner: owner, pet: pet} do
       Logs.subscribe(pet)

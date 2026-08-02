@@ -105,6 +105,46 @@ defmodule Goodmao2.MedicationsTest do
     end
   end
 
+  describe "ineffective grants (expired / revoked)" do
+    setup %{owner: owner, pet: pet} do
+      schedule = medication_schedule_fixture(owner, pet)
+      :ok = Medications.materialize_doses(schedule)
+      %{schedule: schedule}
+    end
+
+    test "an expired grant reads no schedules or doses", ctx do
+      %{owner: owner, pet: pet} = ctx
+      user = regular_user_fixture()
+      expired_grant_fixture(pet, owner, user)
+
+      assert Medications.list_schedules(user, pet) == []
+      assert Medications.upcoming_doses(user, pet) == []
+      assert Medications.get_schedule(user, pet, ctx.schedule.id) == nil
+    end
+
+    test "a revoked grant reads no schedules or doses", ctx do
+      %{owner: owner, pet: pet} = ctx
+      user = regular_user_fixture()
+      revoked_grant_fixture(pet, owner, user)
+
+      assert Medications.list_schedules(user, pet) == []
+      assert Medications.upcoming_doses(user, pet) == []
+      assert Medications.get_schedule(user, pet, ctx.schedule.id) == nil
+    end
+
+    test "a viewer reads doses but cannot give, skip, or deactivate them", ctx do
+      %{owner: owner, pet: pet, schedule: schedule} = ctx
+      viewer = regular_user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+
+      assert [dose | _] = Medications.upcoming_doses(viewer, pet)
+
+      assert Medications.mark_dose_given(viewer, pet, dose) == {:error, :unauthorized}
+      assert Medications.mark_dose_skipped(viewer, pet, dose) == {:error, :unauthorized}
+      assert Medications.set_active(viewer, pet, schedule, false) == {:error, :unauthorized}
+    end
+  end
+
   describe "update / set_active / delete authorization" do
     test "a writer can update; a viewer cannot", %{owner: owner, pet: pet} do
       schedule = medication_schedule_fixture(owner, pet)

@@ -122,6 +122,44 @@ defmodule Goodmao2.ReportsTest do
     end
   end
 
+  describe "ineffective grants (expired / revoked)" do
+    setup %{owner: owner, pet: pet} do
+      log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      {:ok, report} = Reports.generate_report(owner, pet, today_range())
+      %{report: report}
+    end
+
+    test "an expired grant cannot read or list reports", ctx do
+      %{owner: owner, pet: pet, report: report} = ctx
+      user = user_fixture()
+      expired_grant_fixture(pet, owner, user)
+
+      assert Reports.fetch_report(user, pet, report.id) == nil
+      assert Reports.list_reports(user, pet) == []
+    end
+
+    test "a revoked grant cannot read or list reports", ctx do
+      %{owner: owner, pet: pet, report: report} = ctx
+      user = user_fixture()
+      revoked_grant_fixture(pet, owner, user)
+
+      assert Reports.fetch_report(user, pet, report.id) == nil
+      assert Reports.list_reports(user, pet) == []
+    end
+
+    test "a viewer can read but cannot generate, delete, or revoke a share", ctx do
+      %{owner: owner, pet: pet, report: report} = ctx
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+
+      # `:read` is enough to see a report; everything that changes one needs `:manage`.
+      assert %{} = Reports.fetch_report(viewer, pet, report.id)
+      assert Reports.generate_report(viewer, pet, today_range()) == {:error, :unauthorized}
+      assert Reports.delete_report(viewer, pet, report) == {:error, :unauthorized}
+      assert Reports.revoke_share_token(viewer, pet, report) == {:error, :unauthorized}
+    end
+  end
+
   defp owners(pet) do
     pet
     |> Goodmao2.Pets.list_accesses()
