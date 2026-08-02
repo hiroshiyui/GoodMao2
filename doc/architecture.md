@@ -1,6 +1,6 @@
 # GoodMao — Architecture
 
-_Last updated: 2026-07-20_
+_Last updated: 2026-08-03_
 
 GoodMao is a single **Phoenix/LiveView** application: effortless structured daily
 logging that becomes a shareable clinical timeline, built as an idiomatic
@@ -113,7 +113,9 @@ vets). Unique index on `(pet_id, user_id)`.
 ### `log_entries` (Logs.LogEntry) — one table, typed
 ([ADR-0015](adr/0015-structured-one-table-logging.md).)
 Common columns (`pet_id`, `recorded_by_user_id` audit ref, `type`, `occurred_at`,
-`note`, `visibility`, `deleted_at`, and — for a `public` entry — a `share_token` +
+`note`, `visibility` ∈ `private` / `limited` / `public`, defaulting to **`limited`**
+— `private` is the recorder and owners only, `limited` is every effective grant, `public`
+additionally mints a share link; `deleted_at`; and — for a `public` entry — a `share_token` +
 optional `share_expires_at`, [ADR-0004](adr/0004-log-visibility.md)) plus a `jsonb`
 **`data`** payload holding the subtype's structured fields. `type` is the discriminator; per-type payload validation
 lives in `LogEntry.changeset/2`. Soft-deleted via `deleted_at` (reads filter
@@ -126,17 +128,19 @@ The `data` payload per `type` (validated in `LogEntry.changeset/2`):
 |---|---|
 | `food` | `amount` (`full` / `partial` / `refused`), `food_type?`, `portion_grams?` |
 | `water` | `amount` (`normal` / `low` / `high`), `volume_ml?` |
-| `bathroom` | `kind` (`urine` / `stool`), `consistency?`, `has_blood`, `is_straining` (⚠ cat urinary-emergency signal) |
+| `bathroom` | `kind` (`urine` / `stool`), `consistency?`, `has_blood`, `straining` (⚠ cat urinary-emergency signal) |
 | `vomit` | `count`, `contents?` |
 | `weight` | `weight_grams` (rendered in the pet's `weight_unit`) |
 | `energy` | `level` (1–5), `mood?` |
-| `medication` | `medication_name`, `dose`, `administered_at` (later: FK to a `medications` schedule) |
+| `medication` | `medication_name`, `dose`. Written by hand or by `Medications.mark_dose_given/4`, which links the slot back through `medication_doses.log_entry_id` ([ADR-0019](adr/0019-medication-schedules-and-reminders.md)) — the entry itself holds no schedule reference |
 | `symptom` | `symptom`, `severity` (1–5) |
 | `vet_note` | `assessment`, `recommendation` — vet-authored, authoritative timeline note |
-| `life` | daily-life note — the required caption is the base `note` (photo/video enrichment deferred). Backdatable like any log |
+| `life` | daily-life note — the required caption is the base `note`, optionally carrying attached `media_assets` ([ADR-0005](adr/0005-media-storage.md)). Backdatable like any log |
 
-Range-checked scales (1–5) and non-negative quantities are validated for *meaning*, not
-just type. See [`glossary.md`](glossary.md) for the domain terms.
+The `(1–5)` scales above are the **product** range, not an enforced one: `LogEntry.changeset/2`
+validates each payload field's *type* (enum membership, number, boolean, string) and presence,
+but no minimum or maximum. A `level` of `99` or a negative `weight_grams` is currently accepted
+— tracked as hardening, not claimed as done. See [`glossary.md`](glossary.md) for the domain terms.
 
 An entry also carries a denormalized `edit_count` (0–9). Each **real** edit refuses to
 exceed nine (`{:error, :edit_limit}`), snapshots the entry's prior state, and increments the
@@ -158,8 +162,17 @@ Metadata for a purified photo/video attached to a `life` log ([ADR-0005](adr/000
 is no `pet_id` in the serving URL to forge), `kind` (image/video), the magic-byte-validated
 `content_type`, `byte_size`, uploader, optional caption. **The physical path is derived from
 the id and never stored** (path-traversal-proof). Bytes are re-encoded/remuxed by ffmpeg to
-strip EXIF/GPS/metadata, written under a configured `storage_dir` outside any served path, and
-inserted with the log in one transaction. Soft-deleted via `deleted_at`.
+strip EXIF/GPS/metadata and written under a configured `storage_dir` outside any served path.
+Soft-deleted via `deleted_at`.
+
+Purification runs **off the request path**, so the media row does *not* appear with the log:
+`create_life_log/4` stages the raw upload and commits the entry together with one
+`Media.PurifyWorker` job per file in a single transaction (an entry always gets its jobs; a
+rolled-back entry leaves none). The worker inserts the `media_assets` row once the clean bytes
+exist and re-broadcasts so the media appears live. **A `life` entry with no media yet is a
+normal intermediate state** — a classified failure sends the uploader a `media_failed` bell
+instead. Purify jobs run on their own `:media` Oban queue, so a slow encode cannot occupy the
+shared `:default` slots that carry reminders and push.
 
 ### `avatars` (Media.Avatar) — profile images for users and pets
 
@@ -209,7 +222,8 @@ unexpired, matching token. See [ADR-0012](adr/0012-vet-access-model.md).
 ### `notifications` (Notifications.Notification) — the bell feed
 
 Per recipient: `user_id`, a `type` discriminator (`access_granted` / `access_revoked` /
-`log_added` / `announcement` / `medication_due`), a `jsonb` **`payload`** (denormalized snapshot — pet id/name,
+`log_added` / `announcement` / `medication_due` / `media_failed` / `avatar_failed`), a `jsonb`
+**`payload`** (denormalized snapshot — pet id/name,
 actor label, role, log type + entry id, announcement title/body; the copy is *rendered* from
 this at read time, never stored), `read_at?` (null = unread), and `deleted_at`. A partial index
 on unread rows backs the badge count. See [ADR-0011](adr/0011-notifications-and-messaging.md).
@@ -237,8 +251,12 @@ endpoint is soft-deleted on the next send). See [ADR-0011](adr/0011-notification
 A tiny global key/value store (`key` unique, `value` text) an administrator manages from
 `/admin/settings`; ETS-cached for reads. Occupants: the Web Push VAPID keypair —
 `vapid_public_key` (plain), `vapid_private_key_encrypted` (AES-256-GCM via `WebPush.VapidVault`,
-keyed off `SECRET_KEY_BASE`), `vapid_subject` — and `default_timezone`, the system default zone
-([ADR-0018](adr/0018-timezone-display-policy.md)).
+keyed off `SECRET_KEY_BASE`), `vapid_subject`; `default_timezone`, the system default zone
+([ADR-0018](adr/0018-timezone-display-policy.md)); and the ten **media upload limits**
+resolved through `Media.Limits` — `media_max_image_bytes`, `media_max_video_bytes`, and the
+min/max width/height pairs for images and videos ([ADR-0005](adr/0005-media-storage.md)).
+A limit of `0` means *unbounded*; absent keys fall back to the built-in defaults, so the table
+holds only what an admin has actually overridden.
 
 ## Authorization logic
 
@@ -254,6 +272,10 @@ keyed off `SECRET_KEY_BASE`), `vapid_subject` — and `default_timezone`, the sy
 - **Pet CRUD, lifecycle, and grant management require `:manage`** (owner).
 - **Log authoring requires `:write`**; `vet_note` additionally requires the `vet` role
   (enforced in `Logs`, the context boundary).
+- **Editing or deleting an entry requires `:write` *and* being its recorder** — an owner
+  short-circuits both (and so may delete a `vet_note` they cannot author). Recorder alone is
+  not enough: a caretaker demoted to `viewer` keeps `recorded_by_user_id` on everything they
+  logged, and capability is what withdraws their ability to change it.
 - **The `vet` role is granted only to a verified `VetProfile`** (`Accounts.verified_vet?/1`),
   on grant *and* re-grant ([ADR-0012](adr/0012-vet-access-model.md)).
 - **Changing a log's `visibility` requires `owner`** (and creating a `public` entry does too);
@@ -266,18 +288,20 @@ keyed off `SECRET_KEY_BASE`), `vapid_subject` — and `default_timezone`, the sy
 
 ## Deferred / future entities
 
-Planned for later phases; **not yet in GoodMao's
-schema**. Recorded here so the payload/relationship shapes are known when the work lands
-(see [`roadmap.md`](roadmap.md) and the linked ADRs).
+**Nothing is deferred at the schema level.** Every entity this section once held —
+medication schedules & doses, log-edit revisions, `VetProfile`, `HealthSummaryReport`,
+notifications, the mailbox, Web Push (ADR-0011 Stage 2), and profile images / media — has
+shipped and is documented in the data model above
+([ADR-0009](adr/0009-log-edit-revisions.md) /
+[ADR-0011](adr/0011-notifications-and-messaging.md) /
+[ADR-0012](adr/0012-vet-access-model.md) /
+[ADR-0019](adr/0019-medication-schedules-and-reminders.md) /
+[ADR-0005](adr/0005-media-storage.md) / [ADR-0020](adr/0020-profile-images.md)).
 
-- (**Medication schedules & doses**, **Log-edit revisions**, **VetProfile**,
-  **HealthSummaryReport**, **notifications**, the **mailbox**, **Web Push** (ADR-0011 Stage 2),
-  and **profile images / media** have all shipped — see the data model above and
-  [ADR-0009](adr/0009-log-edit-revisions.md) /
-  [ADR-0011](adr/0011-notifications-and-messaging.md) /
-  [ADR-0012](adr/0012-vet-access-model.md) /
-  [ADR-0019](adr/0019-medication-schedules-and-reminders.md) /
-  [ADR-0005](adr/0005-media-storage.md) / [ADR-0020](adr/0020-profile-images.md).)
+What remains open is **behaviour on the existing schema**, not new tables — per-pet display
+timezones, medication snooze/escalation, notification digests, dose-history retention, and
+media in shared reports. Those live in [`roadmap.md`](roadmap.md) §1–3, which is the single
+list to read for what is not yet built.
 
 ## Web layer (`lib/goodmao2_web/`)
 
@@ -325,8 +349,9 @@ same re-encode: advisory on the client, authoritative on the server.
 Purified life-log media is served by `MediaController` at `GET /media/:id` (a dedicated
 `:serve_media` pipeline — session + scope, no HTML negotiation), which re-applies the parent
 log's read authorization, hides existence with `not_found`, sets hardened headers, and
-supports `Range`. Uploads flow through `PetLive.Show` (LiveView `allow_upload`) and never hand
-the browser a direct storage URL.
+supports `Range`. Uploads flow through LiveView `allow_upload` — `PetLive.Show` (QuickLog media
+and the pet avatar), `PetLive.LogEntry` (media added to an existing entry), and
+`UserLive.Settings` (the user avatar) — and never hand the browser a direct storage URL.
 
 ### Installable app (PWA)
 
@@ -340,7 +365,7 @@ tags that Safari needs because it ignores the manifest entirely.
 The service worker (`assets/js/service_worker.js`) is bundled by a **separate `service_worker`
 esbuild profile** to `priv/static/service_worker.js` — the site root, so its scope can be `/` —
 and is registered app-wide from `app.js`, not from the push hook, so a first-time visitor meets
-the installability criteria on any page. It does three things: displays and routes Web Push
+the installability criteria on any page. It does two things: displays and routes Web Push
 notifications (ADR-0011 Stage 2), and precaches `priv/static/offline.html` to answer a
 navigation that fails with no connection. **No application page is ever cached** — every
 GoodMao page is authenticated, per-viewer and live, and the worker's cache is shared across the
