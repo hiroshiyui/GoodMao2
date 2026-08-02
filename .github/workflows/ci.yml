@@ -77,8 +77,42 @@ jobs:
           path: _build/esbuild-*
           key: ${{ runner.os }}-esbuild-${{ hashFiles('config/config.exs') }}
 
+      # The compiled Rust NIF (ADR-0017) needs its own cache for the same reason esbuild does,
+      # plus a worse one: `_build/<env>/lib/goodmao2/priv` is a *symlink* to the project's
+      # `priv/`, so `priv/native/goodmao2_native.so` is never inside the cached `_build`
+      # archive at all -- only the symlink is. A fresh checkout has no `priv/native/` (it is
+      # git-ignored), so every exact hit on the cache above restored a tree with no shared
+      # object.
+      #
+      # Keyed on the crate's own inputs, not mix.lock: those are what determine the binary,
+      # and mix.lock changing is neither necessary nor sufficient for it to be stale.
+      # `mix.lock` is in the key too because the `rustler` crate and the `:rustler` dep must
+      # stay in lockstep (see CLAUDE.md) -- a bump to one must not reuse a binary built
+      # against the other. Caching `target/` as well keeps a miss to seconds rather than a
+      # cold Rust build.
+      - name: Cache the compiled Rust NIF
+        uses: actions/cache@v6
+        with:
+          path: |
+            priv/native
+            native/goodmao2_native/target
+          key: ${{ runner.os }}-nif-${{ hashFiles('native/goodmao2_native/src/**', 'native/goodmao2_native/Cargo.toml', 'native/goodmao2_native/Cargo.lock', 'rust-toolchain.toml', 'mix.lock') }}
+
       - name: Install dependencies
         run: mix deps.get
+
+      # If the NIF is still missing after the cache step, the compile below must actually
+      # rebuild it -- and it will not on its own. A restored `_build` carries manifests
+      # saying the app is fully compiled, so `mix compile` no-ops, Rustler never runs, and
+      # the failure surfaces only at test time as "Failed to load NIF library" plus an
+      # undefined `Goodmao2.Native.add/2` (run 30765582282). Dropping the app's build
+      # artifacts forces a rebuild; deps stay cached, so this costs seconds.
+      - name: Force a NIF rebuild when it is absent
+        run: |
+          if [ ! -f priv/native/goodmao2_native.so ]; then
+            echo "NIF missing -- clearing the app build so the compile step rebuilds it"
+            rm -rf "_build/${MIX_ENV}/lib/goodmao2"
+          fi
 
       - name: Check for unused deps in the lockfile
         run: mix deps.unlock --check-unused

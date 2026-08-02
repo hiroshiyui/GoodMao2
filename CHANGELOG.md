@@ -99,6 +99,12 @@ promptly is worthwhile for any deployment with second-factor authentication enab
   ADR-0008 rather than an undocumented one.
 - 18 tests added, chiefly the expired- and revoked-grant denial paths at every context
   boundary — previously asserted once at `Pets.can?` and trusted transitively everywhere else.
+- **CI now builds the Rust NIF reliably.** `_build/<env>/lib/goodmao2/priv` is a symlink to
+  the project's `priv/`, so the git-ignored `priv/native/*.so` was never inside the cached
+  `_build` archive — and on a cache hit the restored manifests told Mix the app was already
+  compiled, so `mix compile` no-oped and never rebuilt it. The shared object now has its own
+  cache, keyed on the crate's sources and toolchain rather than on `mix.lock`, plus a guard
+  that forces a rebuild whenever it is absent.
 
 ## [1.2.0] - 2026-07-31
 
