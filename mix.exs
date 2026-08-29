@@ -55,7 +55,7 @@ defmodule Goodmao2.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.2.7"},
       {:lazy_html, ">= 0.1.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:phoenix_live_dashboard, "~> 0.9.0"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:heroicons,
@@ -87,7 +87,7 @@ defmodule Goodmao2.MixProject do
       # Rust NIFs (native/goodmao2_native), toolchain pinned by rust-toolchain.toml.
       # Keep this in lockstep with the `rustler` crate version in the Cargo.toml.
       {:rustler, "~> 0.38"},
-      {:dns_cluster, "~> 0.2.0"},
+      {:dns_cluster, "~> 0.3.0"},
       {:bandit, "~> 1.5"},
       # Security tooling — advisory audit of deps and a Phoenix-aware static scan.
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
