@@ -8,6 +8,14 @@ tooling, and the Rust/Cargo NIF crate (`native/goodmao2_native`) — so a comple
 check must cover all three; `mix hex.outdated` alone misses the JS/CSS toolchain and the
 Rust crates.
 
+Dependabot (`.github/dependabot.yml`) watches all of these weekly — including the Rust
+toolchain and, through the install-less version manifest `assets/package.json`, the
+frontend toolchain — **except `rustler`**, which it ignores because the Hex dep and the crate
+must bump as a pair. This skill is the manual complement: the `rustler` pair, the Erlang/Elixir
+versions in `.tool-versions`, and anything Dependabot's PRs left half-done. Whenever you move
+esbuild/Tailwind/daisyUI, update `assets/package.json` too (`Goodmao2.AssetVersionsTest`
+enforces it).
+
 This skill **reports**. Do not edit `mix.exs`, `config/config.exs`, or vendored files
 under `assets/vendor/`, and do not run any upgrade, without explicit user confirmation
 of the specific bumps to apply (a framework major/minor bump can break the build).

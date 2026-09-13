@@ -30,6 +30,24 @@ updates:
     ignore:
       - dependency-name: rustler
 
+  # The Rust compiler channel pinned by rust-toolchain.toml.
+  - package-ecosystem: rust-toolchain
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(native)"
+
+  # Frontend toolchain. assets/package.json is a version manifest only (never installed);
+  # a PR bumping it fails Goodmao2.AssetVersionsTest until the real pin moves with it:
+  # esbuild/tailwind in config/config.exs, daisyUI by re-vendoring assets/vendor/.
+  - package-ecosystem: npm
+    directory: "/assets"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(assets)"
+
   # GitHub Actions used by the CI workflow.
   - package-ecosystem: github-actions
     directory: "/"

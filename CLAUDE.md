@@ -49,6 +49,12 @@ elixir-security-advisories repo; `hex.audit` reads hex.pm's own retirement + adv
 They do not agree — a HIGH bandit advisory was in hex.pm's and absent from mix_audit's, and
 the gate passed on the vulnerable build. Keep both.
 
+**Dependabot** covers Hex, Cargo, `rust-toolchain.toml`, GitHub Actions, and the frontend
+toolchain via **`assets/package.json` — a version manifest that is never installed**.
+Moving esbuild/Tailwind (`config/config.exs`) or re-vendoring daisyUI means updating that
+manifest too; `Goodmao2.AssetVersionsTest` fails on drift, which is also what keeps a
+Dependabot PR red until the real pin moves. `rustler` is ignored (bumped by hand as a pair).
+
 **`priv/gettext/errors.pot` is maintained by hand.** `mix gettext.extract` only sees
 `gettext()` calls, so it cannot find a changeset's `message:` option or an `add_error/3`
 string — but `translate_error/1` routes every changeset error through the `errors` domain at
