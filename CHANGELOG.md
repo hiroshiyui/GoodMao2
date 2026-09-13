@@ -8,6 +8,39 @@ skill).
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-09-13
+
+A dependency-maintenance release. No application behaviour changes, but it patches six
+published advisories in the web server, HTTP client, database driver, and LiveView —
+**upgrading promptly is recommended for any deployment serving HTTP/2**.
+
+### Security
+
+- **Bandit 1.12.4 → 1.12.5** — CVE-2026-74836 (HIGH): HTTP/2 connection-window starvation
+  could pin Plug processes indefinitely; CVE-2026-75484 (MEDIUM): HTTP/2 header values
+  containing CR, LF, or NUL reached the application unvalidated.
+- **Mint 1.9.3 → 1.10.0** (transitive) — CVE-2026-82728 (HIGH): unbounded HTTP/1 status-line
+  and chunk-extension buffering allowed memory exhaustion; CVE-2026-82729 (MEDIUM): quadratic
+  chunk-size parsing allowed CPU exhaustion. Affects outbound requests (Web Push).
+- **Postgrex 0.22.3 → 0.22.4** — CVE-2026-66838 (MEDIUM): SQL injection via the `:comment`
+  option of `Postgrex.stream/4`.
+- **Phoenix LiveView 1.2.7 → 1.2.11** — CVE-2026-64941 (LOW): open redirect in
+  `validate_local_url!/2` via ASCII tab, LF, and CR.
+
+None of these were reported by `mix deps.audit`; all came from `mix hex.audit`.
+
+### Changed
+
+- Phoenix 1.8.9 → 1.8.13; Oban 2.23.0 → 2.24.1 (no new Oban migration — the schema is
+  already at v14); Req 0.6.3 → 0.7.4; Swoosh 1.26.3 → 1.28.0; telemetry_metrics 1.2.0.
+- `phoenix_live_dashboard` `~> 0.8.3` → `~> 0.9.1` and `dns_cluster` `~> 0.2.0` → `~> 0.3.0`
+  (constraint edits in `mix.exs`).
+- Frontend toolchain: esbuild 0.25.4 → 0.28.2, Tailwind CSS 4.1.12 → 4.3.3, and the vendored
+  daisyUI 5.0.35 → 5.7.37. Component styling may shift subtly across the daisyUI update.
+- Rust toolchain 1.95.0 → 1.98.1 (`rust-toolchain.toml`); build hosts install it on the next
+  build.
+- Dev/test tooling: Sobelow 0.15.0, phoenix_live_reload 1.7.0, lazy_html 0.1.12.
+
 ## [1.2.1] - 2026-08-03
 
 A project-wide review (correctness, security, tests, i18n, documentation, accessibility).
