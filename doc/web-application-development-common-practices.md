@@ -71,6 +71,11 @@ failure mode that motivates it — the reasoning matters more than the rule.
   `mix hex.audit` / `mix deps.audit` as a routine gate, not a crisis response, and
   distinguish shipped exposure from test-only exposure when triaging (the `check-updates`
   and `security-audit` skills).
+- **Advisory databases don't agree, so consult more than one.** They are curated
+  separately and lag each other. On one routine check, hex.pm's data (`mix hex.audit`)
+  listed six advisories — two HIGH, in the web server and the HTTP client — while
+  mix_audit's (`mix deps.audit`) reported "No vulnerabilities found" for the same lockfile.
+  If a gate uses only one feed, it can pass a vulnerable build and look healthy doing it.
 - **Honor proxy headers only from trusted proxies.** A forwarded client-IP header is
   attacker-controlled unless the immediate peer is on an allow-list — and any rate limiting
   keyed on client IP is only as strong as this check.
@@ -188,6 +193,16 @@ failure mode that motivates it — the reasoning matters more than the rule.
   ordering, explicit timestamps in fixtures. When a failure appears after a change, bisect
   before blaming the change — "new" failures are often pre-existing ones a skipped suite had
   been masking.
+- **Assert on behavior, not on a build tool's spelling of it.** A test that greps a
+  minified bundle for one exact expression pins the minifier, not the code. A bundler bump
+  once rewrote an early return (`mode !== "navigate"`) into an equivalent guard
+  (`mode === "navigate" && …`). Nothing changed at runtime, but the build went red. When
+  inspecting generated output is the only option, match every equivalent form.
+- **Know what a test stub skips.** A stub that swaps the HTTP transport also skips that
+  transport's connection options, so security-relevant settings configured there (DNS
+  pinning, TLS server name, timeouts) go untested. After an HTTP-client upgrade, a green
+  suite proves nothing about those settings. Either test them directly, or note that they
+  need a real request once deployed.
 - **Verify behavioral claims before committing, and say how.** Responsive layout at concrete
   widths; i18n by rendering each locale; a live flow by driving the LiveView. A commit that
   states its verification is a commit the next reader can trust.
