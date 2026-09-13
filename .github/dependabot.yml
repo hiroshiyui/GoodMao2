@@ -11,6 +11,24 @@ updates:
     groups:
       hex:
         patterns: ["*"]
+    # `:rustler` must move in lockstep with the `rustler` crate (ADR-0017); a one-sided
+    # bump can break the NIF glue, so it is bumped by hand as a pair (check-updates skill).
+    ignore:
+      - dependency-name: rustler
+
+  # Rust crates of the NIF (native/goodmao2_native). The toolchain channel in
+  # rust-toolchain.toml is not a Dependabot ecosystem; check-updates covers it.
+  - package-ecosystem: cargo
+    directory: "/native/goodmao2_native"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(native)"
+    groups:
+      cargo:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: rustler
 
   # GitHub Actions used by the CI workflow.
   - package-ecosystem: github-actions
