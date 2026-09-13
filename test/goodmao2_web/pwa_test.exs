@@ -80,7 +80,9 @@ defmodule Goodmao2Web.PWATest do
       # while offline; a bare fetch() passthrough silently fails that check.
       assert body =~ "/offline.html"
       assert body =~ "addEventListener(\"install\""
-      assert body =~ ~s(mode!=="navigate") or body =~ ~s(mode !== "navigate")
+      # Match either polarity: esbuild is free to rewrite the source's early return
+      # (`mode !== "navigate"`) as a guard (`mode==="navigate"&&...`).
+      assert body =~ ~r/mode\s*[!=]==\s*"navigate"/
     end
 
     test "serves the precached offline page as a self-contained static file", %{conn: conn} do
