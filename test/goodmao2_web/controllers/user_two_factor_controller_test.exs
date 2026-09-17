@@ -28,6 +28,9 @@ defmodule Goodmao2Web.UserTwoFactorControllerTest do
   end
 
   describe "TOTP challenge" do
+    # Lockouts log a security warning by design.
+    @describetag :capture_log
+
     test "a valid code issues the session token", %{conn: conn} do
       {user, secret} = totp_login_user()
 
@@ -70,6 +73,94 @@ defmodule Goodmao2Web.UserTwoFactorControllerTest do
       # The whole session is dropped: the cookie is cleared (max-age 0) on the response.
       assert conn.resp_cookies["_goodmao2_key"].max_age == 0
     end
+  end
+
+  describe "session cookie" do
+    # The pending-2FA state (and, for a forced enrollment, the raw TOTP seed) lives in the
+    # session cookie, so it must be unreadable to whoever holds the cookie — not merely
+    # tamper-proof.
+    test "is encrypted, so the pending state can't be read out of it", %{conn: conn} do
+      {user, _secret} = totp_login_user()
+      conn = start_login(conn, user)
+      assert get_session(conn, :pending_2fa_user_id) == user.id
+
+      cookie = conn.resp_cookies["_goodmao2_key"].value
+
+      decoded =
+        cookie
+        |> String.split(".")
+        |> Enum.flat_map(fn part ->
+          case Base.url_decode64(part, padding: false) do
+            {:ok, bin} -> [bin]
+            :error -> []
+          end
+        end)
+
+      refute Enum.any?(decoded, &String.contains?(&1, "pending_2fa_user_id"))
+    end
+  end
+
+  describe "server-side attempt budget" do
+    # Lockouts log a security warning by design.
+    @describetag :capture_log
+
+    # Matches config :goodmao2, Goodmao2.Accounts, :login_attempts_per_hour.
+    @attempts_per_hour 10
+
+    # The per-session counter rides the signed session *cookie*: posting every guess with the
+    # cookie from before the first failure means the count never rises and the session is never
+    # dropped. Without a server-side budget that is an unbounded online TOTP brute force for
+    # anyone holding the password.
+    test "replaying the pre-failure session cookie cannot reset the attempt budget", %{
+      conn: conn
+    } do
+      {user, secret} = totp_login_user()
+      pending = start_login(conn, user)
+
+      for _ <- 1..@attempts_per_hour do
+        # Every request recycles `pending` — the same pre-failure cookie each time.
+        replayed =
+          post(pending, ~p"/users/two-factor/totp", %{
+            "user" => %{"totp_code" => wrong_code(secret)}
+          })
+
+        assert redirected_to(replayed) == ~p"/users/two-factor"
+        refute get_session(replayed, :user_token)
+      end
+
+      # The budget is spent: even the correct code is not evaluated.
+      conn =
+        post(pending, ~p"/users/two-factor/totp", %{
+          "user" => %{"totp_code" => NimbleTOTP.verification_code(secret)}
+        })
+
+      refute get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/users/log-in"
+    end
+
+    test "the budget is per user, so a fresh login does not refill it", %{conn: conn} do
+      {user, secret} = totp_login_user()
+
+      for _ <- 1..@attempts_per_hour do
+        conn
+        |> start_login(user)
+        |> post(~p"/users/two-factor/totp", %{"user" => %{"totp_code" => wrong_code(secret)}})
+      end
+
+      conn =
+        conn
+        |> start_login(user)
+        |> post(~p"/users/two-factor/totp", %{
+          "user" => %{"totp_code" => NimbleTOTP.verification_code(secret)}
+        })
+
+      refute get_session(conn, :user_token)
+    end
+  end
+
+  # Any six digits other than the current code (which a fixed "000000" would be one time in 10^6).
+  defp wrong_code(secret) do
+    if NimbleTOTP.verification_code(secret) == "000000", do: "000001", else: "000000"
   end
 
   describe "recovery code" do
@@ -144,11 +235,43 @@ defmodule Goodmao2Web.UserTwoFactorControllerTest do
       assert redirected_to(conn) == ~p"/users/two-factor/setup"
       refute get_session(conn, :user_token)
 
-      # Once a factor exists, completion issues the session.
-      {:ok, _} = Accounts.enable_totp(admin, Accounts.generate_totp_secret())
+      # Once this session's own secret is enrolled, completion issues the session.
+      {:ok, _} = Accounts.enable_totp(admin, get_session(conn, :pending_2fa_setup_secret))
       conn = post(conn, ~p"/users/two-factor/complete", %{})
       assert get_session(conn, :user_token)
       assert redirected_to(conn) == ~p"/"
+    end
+
+    # Two setup sessions for one factor-less admin: the real admin's, and one opened with a
+    # stolen password. When the real admin enrolls, the other session must not be able to ride
+    # that enrollment into a session token — nor overwrite it from its own setup page.
+    test "a parallel setup session cannot complete on, or replace, another session's factor", %{
+      conn: conn
+    } do
+      admin = set_password(admin_fixture())
+
+      thief = start_login(conn, admin)
+      {:ok, thief_lv, _html} = live(thief, ~p"/users/two-factor/setup")
+
+      real = start_login(build_conn(), admin)
+      real_secret = get_session(real, :pending_2fa_setup_secret)
+      refute real_secret == get_session(thief, :pending_2fa_setup_secret)
+      {:ok, _} = Accounts.enable_totp(admin, real_secret)
+
+      thief_done = post(thief, ~p"/users/two-factor/complete", %{})
+      refute get_session(thief_done, :user_token)
+
+      # The thief's page confirms a code for its own secret — refused, factor untouched.
+      thief_secret = get_session(thief, :pending_2fa_setup_secret)
+
+      assert {:error, {:live_redirect, %{to: "/users/two-factor"}}} =
+               thief_lv
+               |> form("#totp_setup_form",
+                 user: %{totp_code: NimbleTOTP.verification_code(thief_secret)}
+               )
+               |> render_submit()
+
+      assert Accounts.decrypt_totp_secret(Accounts.get_user!(admin.id)) == real_secret
     end
   end
 end

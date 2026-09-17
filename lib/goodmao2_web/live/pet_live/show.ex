@@ -417,39 +417,47 @@ defmodule Goodmao2Web.PetLive.Show do
   # ignored (it'll be seen by paging or on the next reset). Edits/deletes act only on entries in
   # `visible_ids` — the ids actually on this page — so an edit to an off-page entry can't inject
   # a stray row. The calendar and weight chart refresh regardless of the active page.
+  #
+  # The broadcast struct is never rendered. A subscription outlives the grant it was opened under
+  # — revoking a grant, letting it expire, demoting an owner, or hiding the history disconnects
+  # nothing — so each pushed entry is re-read through `Logs.get_entry/3`, which applies this
+  # viewer's access *as it stands now*. An entry that read refuses is dropped from the page.
   @impl true
-  def handle_info({:entry_created, entry}, socket) do
+  def handle_info({:entry_created, %LogEntry{id: id} = pushed}, socket) do
     socket =
-      if socket.assigns.view == "list" and socket.assigns.page == 1 and
-           visible_here?(socket, entry) and matches_filter?(entry, socket.assigns.filter) do
+      with true <- socket.assigns.view == "list" and socket.assigns.page == 1,
+           true <- matches_filter?(pushed, socket.assigns.filter),
+           %LogEntry{} = entry <- authorized_entry(socket, id) do
         socket
         |> stream_insert(:entries, entry, at: 0)
         |> update(:visible_ids, &MapSet.put(&1, entry.id))
         |> assign(:entries_empty?, false)
       else
+        _ -> socket
+      end
+
+    {:noreply, socket |> maybe_refresh_month() |> maybe_refresh_weight(pushed)}
+  end
+
+  def handle_info({:entry_updated, %LogEntry{id: id} = pushed}, socket) do
+    # An edit can flip visibility (and access can lapse), so drop an entry this viewer may no
+    # longer read.
+    socket =
+      if MapSet.member?(socket.assigns.visible_ids, id) do
+        case authorized_entry(socket, id) do
+          %LogEntry{} = entry ->
+            stream_insert(socket, :entries, entry)
+
+          nil ->
+            socket
+            |> stream_delete(:entries, pushed)
+            |> update(:visible_ids, &MapSet.delete(&1, id))
+        end
+      else
         socket
       end
 
-    {:noreply, socket |> maybe_refresh_month() |> maybe_refresh_weight(entry)}
-  end
-
-  def handle_info({:entry_updated, entry}, socket) do
-    # An edit can flip visibility, so drop an entry this viewer may no longer see.
-    socket =
-      cond do
-        not MapSet.member?(socket.assigns.visible_ids, entry.id) ->
-          socket
-
-        visible_here?(socket, entry) ->
-          stream_insert(socket, :entries, entry)
-
-        true ->
-          socket
-          |> stream_delete(:entries, entry)
-          |> update(:visible_ids, &MapSet.delete(&1, entry.id))
-      end
-
-    {:noreply, socket |> maybe_refresh_month() |> maybe_refresh_weight(entry)}
+    {:noreply, socket |> maybe_refresh_month() |> maybe_refresh_weight(pushed)}
   end
 
   def handle_info({:entry_deleted, entry}, socket) do
@@ -483,10 +491,8 @@ defmodule Goodmao2Web.PetLive.Show do
   defp maybe_refresh_weight(socket, %{type: "weight"}), do: load_weight(socket)
   defp maybe_refresh_weight(socket, _entry), do: socket
 
-  # Applies the same per-entry visibility rule as the DB read to PubSub-pushed entries.
-  defp visible_here?(socket, entry) do
-    user = socket.assigns.current_scope.user
-    Logs.can_view_entry?(entry, user.id, socket.assigns.role)
+  defp authorized_entry(socket, id) do
+    Logs.get_entry(socket.assigns.current_scope.user, socket.assigns.pet, id)
   end
 
   defp matches_filter?(_entry, "all"), do: true

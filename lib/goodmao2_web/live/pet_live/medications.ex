@@ -27,6 +27,7 @@ defmodule Goodmao2Web.PetLive.Medications do
          |> assign(:page_title, gettext("Medications for %{name}", name: pet.name))
          |> assign(:can_write?, Goodmao2.Pets.can?(pet, user, :write))
          |> assign(:can_manage?, Goodmao2.Pets.can?(pet, user, :manage))
+         |> assign(:history_hidden?, Goodmao2.Pets.history_hidden?(pet))
          |> assign(:schedule_form, blank_form())
          |> assign(:error, nil)
          |> load()}
@@ -205,8 +206,27 @@ defmodule Goodmao2Web.PetLive.Medications do
           {@error}
         </p>
 
+        <div
+          :if={@history_hidden?}
+          id="medications-history-hidden-notice"
+          role="status"
+          class="alert alert-warning mt-6"
+        >
+          <.icon name="hero-eye-slash" class="size-5" />
+          <span>
+            {gettext(
+              "This pet's history is hidden, so its medications are too, and no dose reminders are sent."
+            )}
+          </span>
+        </div>
+
         <%!-- Doses due — the coordination checklist. --%>
-        <section id="doses-due" aria-labelledby="doses-heading" class="mt-6">
+        <section
+          :if={not @history_hidden?}
+          id="doses-due"
+          aria-labelledby="doses-heading"
+          class="mt-6"
+        >
           <h2 id="doses-heading" class="text-lg font-semibold">{gettext("Doses due")}</h2>
 
           <p :if={@doses == []} class="text-base-content/70 mt-1 text-sm">
@@ -254,7 +274,12 @@ defmodule Goodmao2Web.PetLive.Medications do
         </section>
 
         <%!-- Schedules. --%>
-        <section id="schedules" aria-labelledby="schedules-heading" class="mt-8">
+        <section
+          :if={not @history_hidden?}
+          id="schedules"
+          aria-labelledby="schedules-heading"
+          class="mt-8"
+        >
           <h2 id="schedules-heading" class="text-lg font-semibold">{gettext("Schedules")}</h2>
 
           <ul class="mt-2 space-y-2">

@@ -638,6 +638,29 @@ defmodule Goodmao2.AccountsTest do
       assert rejected.verification_status == "rejected"
     end
 
+    # The admin's review page holds the profile it loaded; the applicant may re-submit different
+    # credentials before the verdict lands. Verifying must not bless details nobody reviewed.
+    test "a verdict on a profile changed since it was reviewed is refused" do
+      admin = admin_fixture()
+      user = user_fixture()
+      reviewed = vet_profile_fixture(user)
+
+      {:ok, _} =
+        Accounts.submit_vet_profile(
+          user,
+          valid_vet_profile_attributes(%{"license_number" => "SWAPPED-0001"})
+        )
+
+      assert Accounts.verify_vet_profile(admin, reviewed) == {:error, :stale}
+      refute Accounts.verified_vet?(user)
+      assert Accounts.reject_vet_profile(admin, reviewed) == {:error, :stale}
+
+      # Reviewing the current submission works.
+      [current] = Enum.filter(Accounts.list_pending_vet_profiles(), &(&1.user_id == user.id))
+      assert {:ok, _} = Accounts.verify_vet_profile(admin, current)
+      assert Accounts.verified_vet?(user)
+    end
+
     test "list_pending_vet_profiles returns only pending profiles" do
       pending_user = user_fixture()
       pending = vet_profile_fixture(pending_user)

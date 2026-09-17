@@ -5,6 +5,8 @@ defmodule Goodmao2Web.UserAuth do
   import Plug.Conn
   import Phoenix.Controller
 
+  require Logger
+
   alias Goodmao2.Accounts
   alias Goodmao2.Accounts.Scope
 
@@ -35,6 +37,7 @@ defmodule Goodmao2Web.UserAuth do
   """
   def log_in_user(conn, user, params \\ %{}) do
     user_return_to = get_session(conn, :user_return_to)
+    Logger.info("auth.session_issued user_id=#{user.id} client=#{client_ip(conn)}")
 
     conn
     |> create_or_extend_session(user, params)
@@ -147,6 +150,30 @@ defmodule Goodmao2Web.UserAuth do
     conn
     |> clear_pending_2fa()
     |> log_in_user(user, params)
+  end
+
+  @doc """
+  The client address, for security event logs only.
+
+  Behind the production nginx `remote_ip` is always the proxy, and nginx *sets* (never appends)
+  `x-forwarded-for` to the peer address, so that header names the client there. Without the
+  proxy the header is caller-supplied, which is why this must never feed an authorization or
+  rate-limit decision. Anything that doesn't parse as an IP address is logged as `unparseable`,
+  so a crafted header can't write its own fields into the log line.
+  """
+  def client_ip(conn) do
+    case get_req_header(conn, "x-forwarded-for") do
+      [forwarded | _] ->
+        address = forwarded |> String.split(",") |> hd() |> String.trim()
+
+        case :inet.parse_address(String.to_charlist(address)) do
+          {:ok, ip} -> ip |> :inet.ntoa() |> to_string()
+          {:error, _} -> "unparseable"
+        end
+
+      [] ->
+        conn.remote_ip |> :inet.ntoa() |> to_string()
+    end
   end
 
   @doc """

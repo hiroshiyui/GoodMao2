@@ -47,7 +47,7 @@ defmodule Goodmao2.Media do
   """
   def create_life_log(%User{} = user, %Pet{} = pet, attrs, staged) when is_list(staged) do
     cond do
-      pet.history_hidden ->
+      Pets.history_hidden?(pet) ->
         {:error, :unauthorized}
 
       not Pets.can?(pet, user, :write) ->

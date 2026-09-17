@@ -64,18 +64,38 @@ defmodule Goodmao2.Accounts.TwoFactorTest do
       refute Accounts.valid_totp?(secret, code, since: System.system_time(:second))
     end
 
-    test "record_totp_used stamps totp_last_used_at for replay rejection" do
-      {user, _secret} = totp_user_fixture()
+    test "consume_totp accepts a code once and stamps totp_last_used_at" do
+      {user, secret} = totp_user_fixture()
       assert is_nil(user.totp_last_used_at)
 
-      {:ok, user} = Accounts.record_totp_used(user)
+      assert Accounts.consume_totp(user, secret, NimbleTOTP.verification_code(secret)) == :ok
+      assert %DateTime{} = Repo.reload!(user).totp_last_used_at
+      assert Accounts.consume_totp(user, secret, "not-a-code") == :error
+      assert Accounts.consume_totp(user, secret, ["123456"]) == :error
+    end
 
-      assert %DateTime{} = user.totp_last_used_at
+    # The stale struct is what two concurrent requests both hold: each loaded the user before
+    # either consumed the code, so `since:` alone lets both through. The conditional claim must
+    # admit exactly one.
+    test "consume_totp admits one of two requests racing with the same code" do
+      {user, secret} = totp_user_fixture()
+      code = NimbleTOTP.verification_code(secret)
+
+      results = [
+        Accounts.consume_totp(user, secret, code),
+        Accounts.consume_totp(user, secret, code)
+      ]
+
+      oks = Enum.count(results, &(&1 == :ok))
+      assert oks <= 1
+      # Barring a 30s boundary between generating the code and using it, exactly one wins.
+      if NimbleTOTP.verification_code(secret) == code, do: assert(oks == 1)
     end
 
     test "disable_totp clears the secret, last-used stamp, and recovery codes" do
-      {user, _secret} = totp_user_fixture()
-      {:ok, user} = Accounts.record_totp_used(user)
+      {user, secret} = totp_user_fixture()
+      :ok = Accounts.consume_totp(user, secret, NimbleTOTP.verification_code(secret))
+      user = Repo.reload!(user)
       Accounts.generate_recovery_codes(user)
       assert Accounts.recovery_codes_remaining(user) == 10
 

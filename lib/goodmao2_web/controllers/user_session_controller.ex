@@ -1,9 +1,15 @@
 defmodule Goodmao2Web.UserSessionController do
   use Goodmao2Web, :controller
 
+  require Logger
+
   alias Goodmao2.Accounts
   alias Goodmao2.Accounts.LoginRateLimiter
   alias Goodmao2Web.UserAuth
+
+  # `User.email_changeset/3` caps an address at 160 characters. The byte bound leaves room for
+  # multi-byte addresses while refusing a megabyte-sized value before the limiter or DB see it.
+  @max_email_bytes 1024
 
   def create(conn, %{"_action" => "confirmed"} = params) do
     create(conn, params, gettext("User confirmed successfully."))
@@ -24,6 +30,8 @@ defmodule Goodmao2Web.UserSessionController do
         |> UserAuth.log_in_or_challenge(user, user_params)
 
       _ ->
+        Logger.info("auth.magic_link_rejected client=#{UserAuth.client_ip(conn)}")
+
         conn
         |> put_flash(:error, gettext("The link is invalid or it has expired."))
         |> redirect(to: ~p"/users/log-in")
@@ -31,9 +39,8 @@ defmodule Goodmao2Web.UserSessionController do
   end
 
   # email + password login
-  defp create(conn, %{"user" => user_params}, info) do
-    %{"email" => email, "password" => password} = user_params
-
+  defp create(conn, %{"user" => %{"email" => email, "password" => password} = user_params}, info)
+       when is_binary(email) and is_binary(password) and byte_size(email) <= @max_email_bytes do
     # Throttle online password guessing. A rate-limited attempt returns the same generic error
     # as a wrong password, so it leaks nothing about whether the address exists or is locked.
     with :ok <- LoginRateLimiter.check(email),
@@ -47,14 +54,36 @@ defmodule Goodmao2Web.UserSessionController do
       _ ->
         # Only spend a failure slot on a genuine bad-password attempt (not on an already
         # rate-limited request), so a locked-out attacker can't keep extending the window.
-        if LoginRateLimiter.check(email) == :ok, do: LoginRateLimiter.record_failure(email)
+        # The log names no address: it is attacker-chosen, and for a real account it is PII.
+        if LoginRateLimiter.check(email) == :ok do
+          LoginRateLimiter.record_failure(email)
+          Logger.info("auth.login_failed client=#{UserAuth.client_ip(conn)}")
+        else
+          Logger.warning("auth.login_rate_limited client=#{UserAuth.client_ip(conn)}")
+        end
 
         # Don't disclose whether the email is registered (user-enumeration defense).
-        conn
-        |> put_flash(:error, gettext("Invalid email or password"))
-        |> put_flash(:email, String.slice(email, 0, 160))
-        |> redirect(to: ~p"/users/log-in")
+        invalid_credentials(conn, email)
     end
+  end
+
+  # A missing, non-string, or oversized email identifies no one, so it gets the same generic
+  # answer without reaching the limiter or the database.
+  defp create(conn, params, _info) do
+    email =
+      case params do
+        %{"user" => %{"email" => email}} when is_binary(email) -> email
+        _ -> ""
+      end
+
+    invalid_credentials(conn, email)
+  end
+
+  defp invalid_credentials(conn, email) do
+    conn
+    |> put_flash(:error, gettext("Invalid email or password"))
+    |> put_flash(:email, String.slice(email, 0, 160))
+    |> redirect(to: ~p"/users/log-in")
   end
 
   def update_password(conn, %{"user" => user_params}) do

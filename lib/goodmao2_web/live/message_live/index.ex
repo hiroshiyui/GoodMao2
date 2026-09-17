@@ -123,7 +123,7 @@ defmodule Goodmao2Web.MessageLive.Index do
                   />
                   <div class="min-w-0">
                     <p class="conversation-other font-medium break-words">
-                      {Layouts.account_label(entry.other_user)}
+                      {Layouts.public_label(entry.other_user)}
                     </p>
                     <p
                       :if={entry.conversation.last_message_at}

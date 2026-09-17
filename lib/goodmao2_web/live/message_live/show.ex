@@ -28,10 +28,11 @@ defmodule Goodmao2Web.MessageLive.Show do
 
         {:ok,
          socket
-         |> assign(:page_title, gettext("Chat with %{name}", name: Layouts.account_label(other)))
+         |> assign(:page_title, gettext("Chat with %{name}", name: Layouts.public_label(other)))
          |> assign(:conversation, conversation)
          |> assign(:other_user, other)
          |> assign(:other_avatar, Goodmao2.Media.Avatars.meta("user", other.id))
+         |> assign(:can_send?, Messaging.can_message?(user, other))
          |> assign(:compose_form, to_form(%{"body" => ""}, as: :message))
          |> stream(:messages, Messaging.list_messages(user, conversation))}
     end
@@ -50,6 +51,21 @@ defmodule Goodmao2Web.MessageLive.Show do
 
       {:error, %Ecto.Changeset{}} ->
         {:noreply, put_flash(socket, :error, gettext("Your message couldn't be sent."))}
+
+      # The shared pet ended while the thread was open.
+      {:error, :cannot_message} ->
+        {:noreply,
+         socket
+         |> assign(:can_send?, false)
+         |> put_flash(:error, gettext("You can no longer send messages in this conversation."))}
+
+      {:error, :rate_limited} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("You've sent a lot of messages recently — please try again later.")
+         )}
 
       {:error, :not_participant} ->
         {:noreply,
@@ -105,7 +121,7 @@ defmodule Goodmao2Web.MessageLive.Show do
             size={:md}
           />
           <h1 id="message-thread-heading" class="text-2xl font-semibold break-words">
-            {Layouts.account_label(@other_user)}
+            {Layouts.public_label(@other_user)}
           </h1>
         </div>
 
@@ -144,7 +160,19 @@ defmodule Goodmao2Web.MessageLive.Show do
           </li>
         </ol>
 
+        <p
+          :if={not @can_send?}
+          id="message-compose-closed"
+          role="status"
+          class="text-base-content/70 mt-4 text-sm"
+        >
+          {gettext(
+            "You no longer share a pet with this person, so you can read this conversation but not reply."
+          )}
+        </p>
+
         <.form
+          :if={@can_send?}
           for={@compose_form}
           id="message-compose-form"
           phx-submit="send"

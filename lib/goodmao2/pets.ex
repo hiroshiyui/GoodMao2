@@ -164,6 +164,17 @@ defmodule Goodmao2.Pets do
     if can?(pet, user, level), do: :ok, else: {:error, :unauthorized}
   end
 
+  @doc """
+  Returns `true` if the pet's history is hidden (ADR-0003) **as it stands in the database now**.
+
+  Callers usually hold a `%Pet{}` loaded when a LiveView mounted, and the owner may have hidden
+  the history since — so the struct's own `history_hidden` is not an authorization input. A pet
+  that no longer exists counts as hidden.
+  """
+  def history_hidden?(%Pet{id: pet_id}) do
+    Repo.one(from p in Pet, where: p.id == ^pet_id, select: p.history_hidden) != false
+  end
+
   ## Access grants
 
   @doc "Lists a pet's non-revoked access grants with the granted user preloaded."
@@ -239,11 +250,15 @@ defmodule Goodmao2.Pets do
   end
 
   @doc """
-  Revokes an access grant. Requires `:manage`, and refuses to remove the pet's
-  last effective owner (`{:error, :last_owner}`).
+  Revokes an access grant. Requires `:manage` and a grant on this same pet (`{:error,
+  :not_found}` otherwise), and refuses to remove the pet's last effective owner (`{:error,
+  :last_owner}`).
   """
   def revoke_access(%User{} = revoker, %Pet{} = pet, %PetAccess{} = access) do
-    with :ok <- require(pet, revoker, :manage) do
+    # The grant must belong to this pet: `guard_last_owner/2` counts the owners of `pet`, so a
+    # foreign grant would be checked against the wrong pet and could strip another pet's owner.
+    with :ok <- require(pet, revoker, :manage),
+         :ok <- ensure_grant_on_pet(access, pet) do
       result =
         with_owner_lock(pet, fn ->
           with :ok <- guard_last_owner(pet, access) do
@@ -258,6 +273,9 @@ defmodule Goodmao2.Pets do
       result
     end
   end
+
+  defp ensure_grant_on_pet(%PetAccess{pet_id: pet_id}, %Pet{id: pet_id}), do: :ok
+  defp ensure_grant_on_pet(_access, _pet), do: {:error, :not_found}
 
   # Serializes owner-invariant checks for a pet: two concurrent revokes/demotes can
   # otherwise each see the other as still-effective and both commit into an ownerless

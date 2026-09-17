@@ -8,6 +8,12 @@ defmodule Goodmao2.Messaging do
   `{:error, :cannot_message}` — whether the recipient doesn't exist, is yourself, or merely
   shares no pet — so messaging never reveals which (ADR-0007).
 
+  The gate is re-checked on **every send**, not only at start: a thread outlives the grant
+  that opened it, and revoking an abusive ex-caretaker must also stop their messages (and
+  the Web Push each one sends). The history stays readable to both participants. Sending is
+  also capped per user per hour (`SendRateLimiter`), so a current co-caretaker cannot flood
+  either.
+
   One conversation exists per unordered pair (canonical `(user_lo_id, user_hi_id)`, DB
   unique + CHECK ordered). Reading or sending within a thread requires being a
   participant; a non-participant sees `nil`/`{:error, :not_participant}` (existence
@@ -22,7 +28,15 @@ defmodule Goodmao2.Messaging do
 
   alias Goodmao2.{Accounts, Repo}
   alias Goodmao2.Accounts.User
-  alias Goodmao2.Messaging.{Conversation, Message, MessagePushWorker, Participant}
+
+  alias Goodmao2.Messaging.{
+    Conversation,
+    Message,
+    MessagePushWorker,
+    Participant,
+    SendRateLimiter
+  }
+
   alias Goodmao2.Notifications
   alias Goodmao2.Notifications.WebPush
 
@@ -54,7 +68,11 @@ defmodule Goodmao2.Messaging do
   A self-join on `pet_accesses`, both grants effective (`status == "active"` and not
   expired) — the same predicate as `Pets.effective_access/2`. No lifecycle filter.
   """
-  def can_message?(%User{id: a}, %User{id: b}) when a != b do
+  def can_message?(%User{id: a}, %User{id: b}) when a != b, do: share_a_pet?(a, b)
+
+  def can_message?(%User{}, %User{}), do: false
+
+  defp share_a_pet?(a, b) do
     now = now()
 
     Repo.exists?(
@@ -66,8 +84,6 @@ defmodule Goodmao2.Messaging do
         where: a2.status == "active" and (is_nil(a2.expires_at) or a2.expires_at > ^now)
     )
   end
-
-  def can_message?(%User{}, %User{}), do: false
 
   ## Conversations
 
@@ -216,68 +232,87 @@ defmodule Goodmao2.Messaging do
   Advances the sender's own read cursor (so it isn't unread for them), bumps
   `last_message_at`, broadcasts the message on the conversation topic, and broadcasts the
   recomputed mailbox count to the *other* participant. `{:error, :not_participant}` if the
-  caller isn't in the thread.
+  caller isn't in the thread, `{:error, :cannot_message}` if the two no longer share a pet,
+  and `{:error, :rate_limited}` past the sender's hourly cap.
   """
   def send_message(%User{} = user, %Conversation{} = conversation, body) do
-    if participant?(conversation.id, user.id) do
-      now = now()
-
-      result =
-        Repo.transaction(fn ->
-          message =
-            %Message{}
-            |> Message.create_changeset(%{
-              conversation_id: conversation.id,
-              sender_id: user.id,
-              body: body
-            })
-            |> Repo.insert()
-
-          case message do
-            {:ok, message} ->
-              Repo.update_all(
-                from(c in Conversation, where: c.id == ^conversation.id),
-                set: [last_message_at: now, updated_at: now]
-              )
-
-              # The sender has, by definition, read their own message.
-              Repo.update_all(
-                from(p in Participant,
-                  where: p.conversation_id == ^conversation.id and p.user_id == ^user.id
-                ),
-                set: [last_read_at: now, updated_at: now]
-              )
-
-              message
-
-            {:error, changeset} ->
-              Repo.rollback(changeset)
-          end
-        end)
-
-      case result do
-        {:ok, message} ->
-          Phoenix.PubSub.broadcast(
-            Goodmao2.PubSub,
-            conversation_topic(conversation.id),
-            {:message_created, message}
-          )
-
-          for participant_id <- participant_ids(conversation.id),
-              participant_id != user.id,
-              do: broadcast_count(participant_id)
-
-          maybe_enqueue_message_push(message)
-
-          {:ok, message}
-
-        {:error, changeset} ->
-          {:error, changeset}
-      end
-    else
-      {:error, :not_participant}
+    with :ok <- ensure_participant_of(conversation, user),
+         :ok <- ensure_still_shared(conversation, user),
+         :ok <- SendRateLimiter.check(user.id) do
+      insert_message(user, conversation, body)
     end
   end
+
+  defp ensure_participant_of(conversation, user) do
+    if participant?(conversation.id, user.id), do: :ok, else: {:error, :not_participant}
+  end
+
+  defp ensure_still_shared(conversation, user) do
+    if share_a_pet?(user.id, other_id(conversation, user.id)),
+      do: :ok,
+      else: {:error, :cannot_message}
+  end
+
+  defp insert_message(user, conversation, body) do
+    now = now()
+
+    result =
+      Repo.transaction(fn ->
+        message =
+          %Message{}
+          |> Message.create_changeset(%{
+            conversation_id: conversation.id,
+            sender_id: user.id,
+            body: body
+          })
+          |> Repo.insert()
+
+        case message do
+          {:ok, message} ->
+            Repo.update_all(
+              from(c in Conversation, where: c.id == ^conversation.id),
+              set: [last_message_at: now, updated_at: now]
+            )
+
+            # The sender has, by definition, read their own message.
+            Repo.update_all(
+              from(p in Participant,
+                where: p.conversation_id == ^conversation.id and p.user_id == ^user.id
+              ),
+              set: [last_read_at: now, updated_at: now]
+            )
+
+            message
+
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
+
+    case result do
+      {:ok, message} ->
+        Phoenix.PubSub.broadcast(
+          Goodmao2.PubSub,
+          conversation_topic(conversation.id),
+          {:message_created, message}
+        )
+
+        for participant_id <- participant_ids(conversation.id),
+            participant_id != user.id,
+            do: broadcast_count(participant_id)
+
+        maybe_enqueue_message_push(message)
+
+        {:ok, message}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  # The canonical pair names both participants, so the other one is whichever id isn't ours.
+  defp other_id(%Conversation{user_lo_id: user_id, user_hi_id: other}, user_id), do: other
+  defp other_id(%Conversation{user_lo_id: other}, _user_id), do: other
 
   @doc "Advances the caller's read cursor in a conversation and refreshes their badge."
   def mark_conversation_read(%User{} = user, %Conversation{} = conversation) do

@@ -18,7 +18,7 @@ msgid_plural "%{count} episodes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/goodmao2_web/helpers.ex:560
+#: lib/goodmao2_web/helpers.ex:572
 #, elixir-autogen, elixir-format
 msgid "%{g} g"
 msgstr ""
@@ -33,7 +33,7 @@ msgstr ""
 msgid "%{name} added."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:563
+#: lib/goodmao2_web/helpers.ex:575
 #, elixir-autogen, elixir-format
 msgid "%{v} ml"
 msgstr ""
@@ -90,12 +90,12 @@ msgstr ""
 msgid "Add a pet"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1252
+#: lib/goodmao2_web/live/pet_live/show.ex:1279
 #, elixir-autogen, elixir-format
 msgid "Add note, time, or visibility"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:239
+#: lib/goodmao2_web/components/layouts.ex:255
 #, elixir-autogen, elixir-format
 msgid "Admin"
 msgstr ""
@@ -105,7 +105,7 @@ msgstr ""
 msgid "Administrator"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:719
+#: lib/goodmao2_web/live/pet_live/show.ex:746
 #, elixir-autogen, elixir-format
 msgid "All types"
 msgstr ""
@@ -116,38 +116,38 @@ msgid "Amount"
 msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:28
-#: lib/goodmao2_web/helpers.ex:554
-#: lib/goodmao2_web/live/pet_live/show.ex:1306
+#: lib/goodmao2_web/helpers.ex:566
+#: lib/goodmao2_web/live/pet_live/show.ex:1333
 #, elixir-autogen, elixir-format
 msgid "Ate fully"
 msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:29
-#: lib/goodmao2_web/helpers.ex:555
-#: lib/goodmao2_web/live/pet_live/show.ex:1307
+#: lib/goodmao2_web/helpers.ex:567
+#: lib/goodmao2_web/live/pet_live/show.ex:1334
 #, elixir-autogen, elixir-format
 msgid "Ate partially"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:316
-#: lib/goodmao2_web/components/layouts.ex:326
+#: lib/goodmao2_web/components/layouts.ex:332
+#: lib/goodmao2_web/components/layouts.ex:342
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
 
 #: lib/goodmao2_web/live/admin_live/announcements.ex:64
 #: lib/goodmao2_web/live/admin_live/settings.ex:143
-#: lib/goodmao2_web/live/message_live/show.ex:96
+#: lib/goodmao2_web/live/message_live/show.ex:112
 #: lib/goodmao2_web/live/pet_live/access.ex:113
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:87
-#: lib/goodmao2_web/live/pet_live/medications.ex:195
+#: lib/goodmao2_web/live/pet_live/medications.ex:196
 #: lib/goodmao2_web/live/pet_live/reports.ex:201
 #: lib/goodmao2_web/live/pet_live/reports.ex:294
 #, elixir-autogen, elixir-format
 msgid "Back"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1145
+#: lib/goodmao2_web/live/pet_live/show.ex:1172
 #, elixir-autogen, elixir-format
 msgid "Back to pets"
 msgstr ""
@@ -176,7 +176,7 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:131
 #: lib/goodmao2_web/live/pet_live/form.ex:158
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:557
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:109
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:115
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr ""
@@ -211,7 +211,7 @@ msgstr ""
 msgid "Could not grant access. Check the details and try again."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:248
+#: lib/goodmao2_web/live/pet_live/show.ex:258
 #, elixir-autogen, elixir-format
 msgid "Could not remove that entry."
 msgstr ""
@@ -238,12 +238,12 @@ msgid "Dog"
 msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:121
-#: lib/goodmao2_web/live/pet_live/medications.ex:319
+#: lib/goodmao2_web/live/pet_live/medications.ex:344
 #, elixir-autogen, elixir-format
 msgid "Dose"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1207
+#: lib/goodmao2_web/live/pet_live/show.ex:1234
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr ""
@@ -288,7 +288,7 @@ msgstr ""
 msgid "Energy level"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:246
+#: lib/goodmao2_web/live/pet_live/show.ex:256
 #, elixir-autogen, elixir-format
 msgid "Entry removed."
 msgstr ""
@@ -313,14 +313,14 @@ msgstr ""
 msgid "Female"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:713
+#: lib/goodmao2_web/live/pet_live/show.ex:740
 #, elixir-autogen, elixir-format
 msgid "Filter by type"
 msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:33
 #: lib/goodmao2_web/helpers.ex:102
-#: lib/goodmao2_web/helpers.ex:557
+#: lib/goodmao2_web/helpers.ex:569
 #, elixir-autogen, elixir-format
 msgid "Food"
 msgstr ""
@@ -330,7 +330,7 @@ msgstr ""
 msgid "Food, water, bathroom, weight, medication — structured entries in a tap, not a paragraph."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:282
+#: lib/goodmao2_web/components/layouts.ex:298
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr ""
@@ -356,7 +356,7 @@ msgid "High"
 msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:281
-#: lib/goodmao2_web/live/pet_live/show.ex:1316
+#: lib/goodmao2_web/live/pet_live/show.ex:1343
 #, elixir-autogen, elixir-format
 msgid "High intake"
 msgstr ""
@@ -381,12 +381,12 @@ msgstr ""
 msgid "Limited"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1268
+#: lib/goodmao2_web/live/pet_live/show.ex:1295
 #, elixir-autogen, elixir-format
 msgid "Log %{type}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:273
+#: lib/goodmao2_web/components/layouts.ex:289
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
 #: lib/goodmao2_web/live/user_live/confirmation.ex:53
 #: lib/goodmao2_web/live/user_live/login.ex:14
@@ -396,18 +396,18 @@ msgstr ""
 msgid "Log in"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:267
+#: lib/goodmao2_web/components/layouts.ex:283
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:587
+#: lib/goodmao2_web/live/pet_live/show.ex:606
 #, elixir-autogen, elixir-format
 msgid "Log type"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:329
-#: lib/goodmao2_web/live/pet_live/show.ex:379
+#: lib/goodmao2_web/live/pet_live/show.ex:339
+#: lib/goodmao2_web/live/pet_live/show.ex:389
 #, elixir-autogen, elixir-format
 msgid "Logged."
 msgstr ""
@@ -423,7 +423,7 @@ msgid "Low"
 msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:280
-#: lib/goodmao2_web/live/pet_live/show.ex:1315
+#: lib/goodmao2_web/live/pet_live/show.ex:1342
 #, elixir-autogen, elixir-format
 msgid "Low intake"
 msgstr ""
@@ -435,7 +435,7 @@ msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:120
 #: lib/goodmao2_web/helpers.ex:108
-#: lib/goodmao2_web/live/pet_live/medications.ex:316
+#: lib/goodmao2_web/live/pet_live/medications.ex:341
 #, elixir-autogen, elixir-format
 msgid "Medication"
 msgstr ""
@@ -445,7 +445,7 @@ msgstr ""
 msgid "Mood"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:176
+#: lib/goodmao2_web/components/layouts.ex:190
 #: lib/goodmao2_web/live/pet_live/index.ex:27
 #: lib/goodmao2_web/live/pet_live/index.ex:50
 #, elixir-autogen, elixir-format
@@ -467,7 +467,7 @@ msgstr ""
 msgid "No account matches that handle or email."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:756
+#: lib/goodmao2_web/live/pet_live/show.ex:783
 #, elixir-autogen, elixir-format
 msgid "No entries yet. Use Quick log above to start recording."
 msgstr ""
@@ -493,25 +493,25 @@ msgid "Normal"
 msgstr ""
 
 #: lib/goodmao2_web/helpers.ex:279
-#: lib/goodmao2_web/live/pet_live/show.ex:1314
+#: lib/goodmao2_web/live/pet_live/show.ex:1341
 #, elixir-autogen, elixir-format
 msgid "Normal intake"
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:55
-#: lib/goodmao2_web/live/pet_live/medications.ex:137
-#: lib/goodmao2_web/live/pet_live/medications.ex:149
+#: lib/goodmao2_web/live/pet_live/medications.ex:138
+#: lib/goodmao2_web/live/pet_live/medications.ex:150
 #, elixir-autogen, elixir-format
 msgid "Not allowed."
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:535
-#: lib/goodmao2_web/live/pet_live/show.ex:1287
+#: lib/goodmao2_web/live/pet_live/show.ex:1314
 #, elixir-autogen, elixir-format
 msgid "Note"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:580
+#: lib/goodmao2_web/live/pet_live/show.ex:596
 #, elixir-autogen, elixir-format
 msgid "One tap to record what just happened."
 msgstr ""
@@ -549,7 +549,7 @@ msgstr ""
 msgid "People with access"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1177
+#: lib/goodmao2_web/live/pet_live/show.ex:1204
 #, elixir-autogen, elixir-format
 msgid "Pet actions"
 msgstr ""
@@ -557,7 +557,7 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/access.ex:27
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:27
 #: lib/goodmao2_web/live/pet_live/form.ex:37
-#: lib/goodmao2_web/live/pet_live/medications.ex:36
+#: lib/goodmao2_web/live/pet_live/medications.ex:37
 #: lib/goodmao2_web/live/pet_live/reports.ex:30
 #: lib/goodmao2_web/live/pet_live/show.ex:73
 #, elixir-autogen, elixir-format
@@ -594,18 +594,18 @@ msgstr ""
 msgid "Public @handle"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:578
+#: lib/goodmao2_web/live/pet_live/show.ex:594
 #, elixir-autogen, elixir-format
 msgid "Quick log"
 msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:30
-#: lib/goodmao2_web/live/pet_live/show.ex:1308
+#: lib/goodmao2_web/live/pet_live/show.ex:1335
 #, elixir-autogen, elixir-format
 msgid "Refused"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:556
+#: lib/goodmao2_web/helpers.ex:568
 #, elixir-autogen, elixir-format
 msgid "Refused food"
 msgstr ""
@@ -615,12 +615,12 @@ msgstr ""
 msgid "Rehomed"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:884
+#: lib/goodmao2_web/live/pet_live/show.ex:911
 #, elixir-autogen, elixir-format
 msgid "Remove entry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:882
+#: lib/goodmao2_web/live/pet_live/show.ex:909
 #, elixir-autogen, elixir-format
 msgid "Remove this entry?"
 msgstr ""
@@ -661,7 +661,7 @@ msgstr ""
 msgid "Saved. %{name}'s record is preserved."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:352
+#: lib/goodmao2_web/live/pet_live/medications.ex:377
 #: lib/goodmao2_web/live/user_live/password_settings.ex:89
 #: lib/goodmao2_web/live/user_live/settings.ex:126
 #: lib/goodmao2_web/live/user_live/vet_profile.ex:105
@@ -672,9 +672,9 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:126
 #: lib/goodmao2_web/live/pet_live/form.ex:149
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:552
-#: lib/goodmao2_web/live/pet_live/show.ex:623
-#: lib/goodmao2_web/live/pet_live/show.ex:1119
-#: lib/goodmao2_web/live/pet_live/show.ex:1266
+#: lib/goodmao2_web/live/pet_live/show.ex:650
+#: lib/goodmao2_web/live/pet_live/show.ex:1146
+#: lib/goodmao2_web/live/pet_live/show.ex:1293
 #, elixir-autogen, elixir-format
 msgid "Saving…"
 msgstr ""
@@ -694,7 +694,7 @@ msgstr ""
 msgid "Shared care"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1199
+#: lib/goodmao2_web/live/pet_live/show.ex:1226
 #, elixir-autogen, elixir-format
 msgid "Sharing"
 msgstr ""
@@ -705,7 +705,7 @@ msgstr ""
 msgid "Sharing %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:323
+#: lib/goodmao2_web/components/layouts.ex:339
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
@@ -727,7 +727,7 @@ msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:60
 #: lib/goodmao2_web/helpers.ex:292
-#: lib/goodmao2_web/live/pet_live/show.ex:1323
+#: lib/goodmao2_web/live/pet_live/show.ex:1350
 #, elixir-autogen, elixir-format
 msgid "Stool"
 msgstr ""
@@ -744,7 +744,7 @@ msgid "Symptom"
 msgstr ""
 
 #: lib/goodmao2_web/components/report_components.ex:280
-#: lib/goodmao2_web/live/pet_live/show.ex:674
+#: lib/goodmao2_web/live/pet_live/show.ex:701
 #, elixir-autogen, elixir-format
 msgid "Timeline"
 msgstr ""
@@ -761,7 +761,7 @@ msgstr ""
 
 #: lib/goodmao2_web/components/log_fields.ex:60
 #: lib/goodmao2_web/helpers.ex:291
-#: lib/goodmao2_web/live/pet_live/show.ex:1322
+#: lib/goodmao2_web/live/pet_live/show.ex:1349
 #, elixir-autogen, elixir-format
 msgid "Urine"
 msgstr ""
@@ -803,7 +803,7 @@ msgstr ""
 msgid "Water"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:313
+#: lib/goodmao2_web/components/layouts.ex:329
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
@@ -826,7 +826,7 @@ msgid "What GoodMao does"
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:539
-#: lib/goodmao2_web/live/pet_live/show.ex:1291
+#: lib/goodmao2_web/live/pet_live/show.ex:1318
 #, elixir-autogen, elixir-format
 msgid "When"
 msgstr ""
@@ -841,8 +841,8 @@ msgstr ""
 msgid "You are not allowed to edit this pet."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:337
-#: lib/goodmao2_web/live/pet_live/show.ex:394
+#: lib/goodmao2_web/live/pet_live/show.ex:347
+#: lib/goodmao2_web/live/pet_live/show.ex:404
 #, elixir-autogen, elixir-format
 msgid "You are not allowed to log for this pet."
 msgstr ""
@@ -882,7 +882,7 @@ msgstr ""
 msgid "pounds"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:566
+#: lib/goodmao2_web/helpers.ex:578
 #, elixir-autogen, elixir-format
 msgid "severity %{s}/5"
 msgstr ""
@@ -897,8 +897,8 @@ msgstr ""
 msgid "until %{t}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:449
-#: lib/goodmao2_web/components/layouts.ex:450
+#: lib/goodmao2_web/components/layouts.ex:465
+#: lib/goodmao2_web/components/layouts.ex:466
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr ""
@@ -908,14 +908,14 @@ msgstr ""
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:439
-#: lib/goodmao2_web/components/layouts.ex:440
+#: lib/goodmao2_web/components/layouts.ex:455
+#: lib/goodmao2_web/components/layouts.ex:456
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:429
-#: lib/goodmao2_web/components/layouts.ex:430
+#: lib/goodmao2_web/components/layouts.ex:445
+#: lib/goodmao2_web/components/layouts.ex:446
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr ""
@@ -925,7 +925,7 @@ msgstr ""
 msgid "Skip to content"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:565
+#: lib/goodmao2_web/live/pet_live/show.ex:581
 #, elixir-autogen, elixir-format
 msgid "This pet's history is hidden. The timeline is unavailable until an owner turns it back on from Edit."
 msgstr ""
@@ -996,7 +996,7 @@ msgid "Your password is managed on its own page."
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:96
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:215
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:221
 #, elixir-autogen, elixir-format
 msgid "← Back to account settings"
 msgstr ""
@@ -1021,7 +1021,7 @@ msgstr ""
 msgid "Companions whose care has ended. Their records and timelines are kept here, always."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:353
+#: lib/goodmao2_web/components/layouts.ex:369
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr ""
@@ -1031,7 +1031,7 @@ msgstr ""
 msgid "Already registered?"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/registration.ex:103
+#: lib/goodmao2_web/live/user_live/registration.ex:104
 #, elixir-autogen, elixir-format
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr ""
@@ -1062,7 +1062,7 @@ msgstr ""
 msgid "Creating account..."
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:84
+#: lib/goodmao2_web/controllers/user_session_controller.ex:113
 #, elixir-autogen, elixir-format
 msgid "Current password is not valid, or the new password is invalid."
 msgstr ""
@@ -1082,12 +1082,12 @@ msgstr ""
 msgid "Email changed successfully."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/login.ex:127
+#: lib/goodmao2_web/live/user_live/login.ex:125
 #, elixir-autogen, elixir-format
 msgid "If your email is in our system, you will receive instructions for logging in shortly."
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:54
+#: lib/goodmao2_web/controllers/user_session_controller.ex:84
 #, elixir-autogen, elixir-format
 msgid "Invalid email or password"
 msgstr ""
@@ -1117,7 +1117,7 @@ msgstr ""
 msgid "Log me in only this time"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:92
+#: lib/goodmao2_web/controllers/user_session_controller.ex:121
 #, elixir-autogen, elixir-format
 msgid "Logged out successfully."
 msgstr ""
@@ -1139,7 +1139,7 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:77
+#: lib/goodmao2_web/controllers/user_session_controller.ex:106
 #, elixir-autogen, elixir-format
 msgid "Password updated successfully!"
 msgstr ""
@@ -1160,7 +1160,7 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:28
+#: lib/goodmao2_web/controllers/user_session_controller.ex:36
 #, elixir-autogen, elixir-format
 msgid "The link is invalid or it has expired."
 msgstr ""
@@ -1175,7 +1175,7 @@ msgstr ""
 msgid "To see sent emails, visit"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:9
+#: lib/goodmao2_web/controllers/user_session_controller.ex:15
 #, elixir-autogen, elixir-format
 msgid "User confirmed successfully."
 msgstr ""
@@ -1185,8 +1185,8 @@ msgstr ""
 msgid "Welcome %{email}"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_session_controller.ex:13
-#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:117
+#: lib/goodmao2_web/controllers/user_session_controller.ex:19
+#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:173
 #, elixir-autogen, elixir-format
 msgid "Welcome back!"
 msgstr ""
@@ -1222,221 +1222,221 @@ msgstr ""
 msgid "to your account now."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:396
-#: lib/goodmao2_web/components/layouts.ex:397
+#: lib/goodmao2_web/components/layouts.ex:412
+#: lib/goodmao2_web/components/layouts.ex:413
 #, elixir-autogen, elixir-format
 msgid "Decrease text size"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:406
-#: lib/goodmao2_web/components/layouts.ex:407
+#: lib/goodmao2_web/components/layouts.ex:422
+#: lib/goodmao2_web/components/layouts.ex:423
 #, elixir-autogen, elixir-format
 msgid "Increase text size"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:389
+#: lib/goodmao2_web/components/layouts.ex:405
 #, elixir-autogen, elixir-format
 msgid "Text size"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1351
+#: lib/goodmao2_web/live/pet_live/show.ex:1378
 #, elixir-autogen, elixir-format
 msgid "%{count} entry"
 msgid_plural "%{count} entries"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/goodmao2_web/helpers.ex:518
+#: lib/goodmao2_web/helpers.ex:530
 #, elixir-autogen, elixir-format
 msgid "%{month} %{day}, %{year}"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:513
+#: lib/goodmao2_web/helpers.ex:525
 #, elixir-autogen, elixir-format
 msgid "%{month} %{year}"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:524
+#: lib/goodmao2_web/helpers.ex:536
 #, elixir-autogen, elixir-format
 msgid "April"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:528
+#: lib/goodmao2_web/helpers.ex:540
 #, elixir-autogen, elixir-format
 msgid "August"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:973
+#: lib/goodmao2_web/live/pet_live/show.ex:1000
 #, elixir-autogen, elixir-format
 msgid "Back to month"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:706
+#: lib/goodmao2_web/live/pet_live/show.ex:733
 #, elixir-autogen, elixir-format
 msgid "Calendar"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:532
+#: lib/goodmao2_web/helpers.ex:544
 #, elixir-autogen, elixir-format
 msgid "December"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:936
+#: lib/goodmao2_web/live/pet_live/show.ex:963
 #, elixir-autogen, elixir-format
 msgid "Entries for %{month}"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:522
+#: lib/goodmao2_web/helpers.ex:534
 #, elixir-autogen, elixir-format
 msgid "February"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:540
+#: lib/goodmao2_web/helpers.ex:552
 #, elixir-autogen, elixir-format
 msgid "Fri"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:521
+#: lib/goodmao2_web/helpers.ex:533
 #, elixir-autogen, elixir-format
 msgid "January"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:527
+#: lib/goodmao2_web/helpers.ex:539
 #, elixir-autogen, elixir-format
 msgid "July"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:526
+#: lib/goodmao2_web/helpers.ex:538
 #, elixir-autogen, elixir-format
 msgid "June"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:693
+#: lib/goodmao2_web/live/pet_live/show.ex:720
 #, elixir-autogen, elixir-format
 msgid "List"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:523
+#: lib/goodmao2_web/helpers.ex:535
 #, elixir-autogen, elixir-format
 msgid "March"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:525
+#: lib/goodmao2_web/helpers.ex:537
 #, elixir-autogen, elixir-format
 msgid "May"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:536
+#: lib/goodmao2_web/helpers.ex:548
 #, elixir-autogen, elixir-format
 msgid "Mon"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:909
+#: lib/goodmao2_web/live/pet_live/show.ex:936
 #, elixir-autogen, elixir-format
 msgid "Month navigation"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:928
+#: lib/goodmao2_web/live/pet_live/show.ex:955
 #, elixir-autogen, elixir-format
 msgid "Next month"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:977
+#: lib/goodmao2_web/live/pet_live/show.ex:1004
 #, elixir-autogen, elixir-format
 msgid "No entries on this day."
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:531
+#: lib/goodmao2_web/helpers.ex:543
 #, elixir-autogen, elixir-format
 msgid "November"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:530
+#: lib/goodmao2_web/helpers.ex:542
 #, elixir-autogen, elixir-format
 msgid "October"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:917
+#: lib/goodmao2_web/live/pet_live/show.ex:944
 #, elixir-autogen, elixir-format
 msgid "Previous month"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:541
+#: lib/goodmao2_web/helpers.ex:553
 #, elixir-autogen, elixir-format
 msgid "Sat"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:529
+#: lib/goodmao2_web/helpers.ex:541
 #, elixir-autogen, elixir-format
 msgid "September"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:535
+#: lib/goodmao2_web/helpers.ex:547
 #, elixir-autogen, elixir-format
 msgid "Sun"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:539
+#: lib/goodmao2_web/helpers.ex:551
 #, elixir-autogen, elixir-format
 msgid "Thu"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:679
+#: lib/goodmao2_web/live/pet_live/show.ex:706
 #, elixir-autogen, elixir-format
 msgid "Timeline view"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:537
+#: lib/goodmao2_web/helpers.ex:549
 #, elixir-autogen, elixir-format
 msgid "Tue"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:538
+#: lib/goodmao2_web/helpers.ex:550
 #, elixir-autogen, elixir-format
 msgid "Wed"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1354
+#: lib/goodmao2_web/live/pet_live/show.ex:1381
 #, elixir-autogen, elixir-format
 msgid "urgent"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1355
+#: lib/goodmao2_web/live/pet_live/show.ex:1382
 #, elixir-autogen, elixir-format
 msgid "worth watching"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:549
+#: lib/goodmao2_web/helpers.ex:561
 #, elixir-autogen, elixir-format
 msgid "Friday"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:545
+#: lib/goodmao2_web/helpers.ex:557
 #, elixir-autogen, elixir-format
 msgid "Monday"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:550
+#: lib/goodmao2_web/helpers.ex:562
 #, elixir-autogen, elixir-format
 msgid "Saturday"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:544
+#: lib/goodmao2_web/helpers.ex:556
 #, elixir-autogen, elixir-format
 msgid "Sunday"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:548
+#: lib/goodmao2_web/helpers.ex:560
 #, elixir-autogen, elixir-format
 msgid "Thursday"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:546
+#: lib/goodmao2_web/helpers.ex:558
 #, elixir-autogen, elixir-format
 msgid "Tuesday"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:547
+#: lib/goodmao2_web/helpers.ex:559
 #, elixir-autogen, elixir-format
 msgid "Wednesday"
 msgstr ""
@@ -1446,7 +1446,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:237
+#: lib/goodmao2_web/components/layouts.ex:253
 #: lib/goodmao2_web/live/admin_live.ex:27
 #: lib/goodmao2_web/live/admin_live.ex:147
 #, elixir-autogen, elixir-format
@@ -1508,7 +1508,7 @@ msgstr ""
 msgid "Blood"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:830
+#: lib/goodmao2_web/live/pet_live/show.ex:857
 #, elixir-autogen, elixir-format
 msgid "Clinical flags"
 msgstr ""
@@ -1533,17 +1533,17 @@ msgstr ""
 msgid "Straining"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:639
+#: lib/goodmao2_web/live/pet_live/show.ex:666
 #, elixir-autogen, elixir-format
 msgid "More options"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:614
+#: lib/goodmao2_web/live/pet_live/show.ex:641
 #, elixir-autogen, elixir-format
 msgid "Quick log shortcuts"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1328
+#: lib/goodmao2_web/live/pet_live/show.ex:1355
 #, elixir-autogen, elixir-format
 msgid "Vomited"
 msgstr ""
@@ -1598,7 +1598,7 @@ msgstr ""
 msgid "Edit entry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:872
+#: lib/goodmao2_web/live/pet_live/show.ex:899
 #, elixir-autogen, elixir-format
 msgid "Edit entry or view its history"
 msgstr ""
@@ -1658,7 +1658,7 @@ msgstr ""
 msgid "a former caretaker"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:864
+#: lib/goodmao2_web/live/pet_live/show.ex:891
 #, elixir-autogen, elixir-format
 msgid "edited"
 msgstr ""
@@ -1669,7 +1669,7 @@ msgid "File is too large."
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:493
-#: lib/goodmao2_web/live/pet_live/show.ex:1241
+#: lib/goodmao2_web/live/pet_live/show.ex:1268
 #, elixir-autogen, elixir-format
 msgid "JPEG, PNG, GIF, WEBP, MP4, or WEBM."
 msgstr ""
@@ -1679,7 +1679,7 @@ msgstr ""
 msgid "Life log photo"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1238
+#: lib/goodmao2_web/live/pet_live/show.ex:1265
 #, elixir-autogen, elixir-format
 msgid "Photos or video"
 msgstr ""
@@ -1705,7 +1705,7 @@ msgid "Too many files."
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:229
-#: lib/goodmao2_web/live/pet_live/show.ex:389
+#: lib/goodmao2_web/live/pet_live/show.ex:399
 #, elixir-autogen, elixir-format
 msgid "You've uploaded a lot recently — please try again later."
 msgstr ""
@@ -1770,7 +1770,7 @@ msgstr ""
 msgid "Could not revoke the link."
 msgstr ""
 
-#: lib/goodmao2_web/live/admin_live.ex:178
+#: lib/goodmao2_web/live/admin_live.ex:189
 #, elixir-autogen, elixir-format
 msgid "Could not update that submission."
 msgstr ""
@@ -1950,7 +1950,7 @@ msgstr ""
 msgid "Report not found."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1191
+#: lib/goodmao2_web/live/pet_live/show.ex:1218
 #, elixir-autogen, elixir-format
 msgid "Reports"
 msgstr ""
@@ -2100,15 +2100,15 @@ msgstr ""
 msgid "%{actor} removed your access to %{pet}."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:219
-#: lib/goodmao2_web/live/message_live/index.ex:140
+#: lib/goodmao2_web/components/layouts.ex:235
+#: lib/goodmao2_web/live/message_live/index.ex:141
 #, elixir-autogen, elixir-format
 msgid "%{count} unread message"
 msgid_plural "%{count} unread messages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/goodmao2_web/components/layouts.ex:193
+#: lib/goodmao2_web/components/layouts.ex:208
 #, elixir-autogen, elixir-format
 msgid "%{count} unread notification"
 msgid_plural "%{count} unread notifications"
@@ -2156,12 +2156,12 @@ msgid "Chat with %{name}"
 msgstr ""
 
 #: lib/goodmao2_web/live/message_live/show.ex:21
-#: lib/goodmao2_web/live/message_live/show.ex:57
+#: lib/goodmao2_web/live/message_live/show.ex:73
 #, elixir-autogen, elixir-format
 msgid "Conversation not found."
 msgstr ""
 
-#: lib/goodmao2_web/live/notification_live/index.ex:158
+#: lib/goodmao2_web/live/notification_live/index.ex:162
 #, elixir-autogen, elixir-format
 msgid "Dismiss"
 msgstr ""
@@ -2176,13 +2176,13 @@ msgstr ""
 msgid "Mark all read"
 msgstr ""
 
-#: lib/goodmao2_web/live/notification_live/index.ex:151
+#: lib/goodmao2_web/live/notification_live/index.ex:155
 #, elixir-autogen, elixir-format
 msgid "Mark read"
 msgstr ""
 
 #: lib/goodmao2_web/live/admin_live/announcements.ex:85
-#: lib/goodmao2_web/live/message_live/show.ex:157
+#: lib/goodmao2_web/live/message_live/show.ex:185
 #, elixir-autogen, elixir-format
 msgid "Message"
 msgstr ""
@@ -2192,8 +2192,8 @@ msgstr ""
 msgid "Message someone (@handle or email)"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:210
-#: lib/goodmao2_web/components/layouts.ex:213
+#: lib/goodmao2_web/components/layouts.ex:225
+#: lib/goodmao2_web/components/layouts.ex:228
 #: lib/goodmao2_web/live/message_live/index.ex:19
 #: lib/goodmao2_web/live/message_live/index.ex:73
 #, elixir-autogen, elixir-format
@@ -2210,7 +2210,7 @@ msgstr ""
 msgid "No conversations yet. Start one with someone you share a pet with."
 msgstr ""
 
-#: lib/goodmao2_web/live/message_live/show.ex:124
+#: lib/goodmao2_web/live/message_live/show.ex:140
 #, elixir-autogen, elixir-format
 msgid "No messages yet. Say hello."
 msgstr ""
@@ -2225,8 +2225,8 @@ msgstr ""
 msgid "Notification"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:184
-#: lib/goodmao2_web/components/layouts.ex:187
+#: lib/goodmao2_web/components/layouts.ex:198
+#: lib/goodmao2_web/components/layouts.ex:201
 #: lib/goodmao2_web/live/notification_live/index.ex:21
 #: lib/goodmao2_web/live/notification_live/index.ex:84
 #: lib/goodmao2_web/live/notification_live/index.ex:100
@@ -2240,7 +2240,7 @@ msgstr ""
 msgid "Post an announcement"
 msgstr ""
 
-#: lib/goodmao2_web/live/message_live/show.ex:168
+#: lib/goodmao2_web/live/message_live/show.ex:196
 #, elixir-autogen, elixir-format
 msgid "Send"
 msgstr ""
@@ -2251,7 +2251,7 @@ msgid "Send to everyone"
 msgstr ""
 
 #: lib/goodmao2_web/live/admin_live/announcements.ex:90
-#: lib/goodmao2_web/live/message_live/show.ex:166
+#: lib/goodmao2_web/live/message_live/show.ex:194
 #, elixir-autogen, elixir-format
 msgid "Sending…"
 msgstr ""
@@ -2271,7 +2271,7 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: lib/goodmao2_web/live/notification_live/index.ex:131
+#: lib/goodmao2_web/live/notification_live/index.ex:135
 #, elixir-autogen, elixir-format
 msgid "Unread"
 msgstr ""
@@ -2281,7 +2281,7 @@ msgstr ""
 msgid "We couldn't start that conversation. You can only message people you share a pet with."
 msgstr ""
 
-#: lib/goodmao2_web/live/message_live/show.ex:52
+#: lib/goodmao2_web/live/message_live/show.ex:53
 #, elixir-autogen, elixir-format
 msgid "Your message couldn't be sent."
 msgstr ""
@@ -2438,34 +2438,34 @@ msgstr ""
 msgid "Add a second step at sign-in with an authenticator app or a security key."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:165
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:171
 #, elixir-autogen, elixir-format
 msgid "Add security key"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:39
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:45
 #, elixir-autogen, elixir-format
 msgid "Authenticator app"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:43
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:49
 #, elixir-autogen, elixir-format
 msgid "Authenticator app is on."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:292
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:301
 #, elixir-autogen, elixir-format
 msgid "Authenticator app turned off."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:276
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:285
 #, elixir-autogen, elixir-format
 msgid "Authenticator app turned on."
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/two_factor.ex:29
 #: lib/goodmao2_web/live/user_live/two_factor.ex:40
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:92
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:98
 #: lib/goodmao2_web/live/user_live/two_factor_setup.ex:57
 #, elixir-autogen, elixir-format
 msgid "Authenticator code"
@@ -2476,7 +2476,7 @@ msgstr ""
 msgid "Confirm it's you to finish signing in."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:345
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:354
 #, elixir-autogen, elixir-format
 msgid "Could not add that security key. Please try again."
 msgstr ""
@@ -2486,7 +2486,7 @@ msgstr ""
 msgid "Enter one of the recovery codes you saved when you set up two-step verification."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:202
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:208
 #, elixir-autogen, elixir-format
 msgid "Generate a new set? Your current recovery codes will stop working."
 msgstr ""
@@ -2496,17 +2496,17 @@ msgstr ""
 msgid "I saved my codes — continue"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:307
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:316
 #, elixir-autogen, elixir-format
 msgid "New recovery codes generated."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:155
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:161
 #, elixir-autogen, elixir-format
 msgid "No security keys yet."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:85
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:91
 #: lib/goodmao2_web/live/user_live/two_factor_setup.ex:48
 #, elixir-autogen, elixir-format
 msgid "Or enter this key manually:"
@@ -2517,40 +2517,40 @@ msgstr ""
 msgid "Recovery code"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:179
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:185
 #, elixir-autogen, elixir-format
 msgid "Recovery codes"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:205
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:211
 #, elixir-autogen, elixir-format
 msgid "Regenerate recovery codes"
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:478
-#: lib/goodmao2_web/live/pet_live/show.ex:1130
+#: lib/goodmao2_web/live/pet_live/show.ex:1157
 #: lib/goodmao2_web/live/user_live/settings.ex:77
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:149
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:155
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:147
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:153
 #, elixir-autogen, elixir-format
 msgid "Remove security key"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:146
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:152
 #, elixir-autogen, elixir-format
 msgid "Remove this security key?"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:33
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:39
 #, elixir-autogen, elixir-format
 msgid "Require a second step when signing in."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:183
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:189
 #, elixir-autogen, elixir-format
 msgid "Save these somewhere safe. Each works once. They won't be shown again."
 msgstr ""
@@ -2565,49 +2565,49 @@ msgstr ""
 msgid "Scan it with an authenticator app (e.g. Google Authenticator, Aegis, 1Password)."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:74
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:80
 #, elixir-autogen, elixir-format
 msgid "Scan this QR code, then enter the 6-digit code to confirm."
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/two_factor.ex:58
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:133
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:139
 #, elixir-autogen, elixir-format
 msgid "Security key"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:338
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:347
 #, elixir-autogen, elixir-format
 msgid "Security key added."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:366
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:375
 #, elixir-autogen, elixir-format
 msgid "Security key removed."
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:77
+#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:95
 #, elixir-autogen, elixir-format
 msgid "Security key verification failed. Please try again."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:120
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:126
 #, elixir-autogen, elixir-format
 msgid "Security keys"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:68
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:74
 #, elixir-autogen, elixir-format
 msgid "Set up authenticator app"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/two_factor_setup.ex:23
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:118
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:126
 #, elixir-autogen, elixir-format
 msgid "Set up two-step verification"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:354
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:363
 #, elixir-autogen, elixir-format
 msgid "Something went wrong talking to your security key."
 msgstr ""
@@ -2623,55 +2623,55 @@ msgstr ""
 msgid "Store these somewhere safe. Each code works once if you lose your authenticator. They won't be shown again."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:78
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:84
 #: lib/goodmao2_web/live/user_live/two_factor_setup.ex:41
 #, elixir-autogen, elixir-format
 msgid "TOTP setup QR code"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:30
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:279
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:144
+#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:43
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:288
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:170
 #, elixir-autogen, elixir-format
 msgid "That code is not valid. Please try again."
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:48
+#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:64
 #, elixir-autogen, elixir-format
 msgid "That recovery code is not valid or has already been used."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:369
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:378
 #, elixir-autogen, elixir-format
 msgid "That security key was not found."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:353
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:362
 #, elixir-autogen, elixir-format
 msgid "The request was cancelled or timed out."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:352
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:361
 #, elixir-autogen, elixir-format
 msgid "This browser does not support security keys."
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:127
+#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:202
 #, elixir-autogen, elixir-format
 msgid "Too many attempts. Please log in again."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:54
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:60
 #, elixir-autogen, elixir-format
 msgid "Turn off"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:51
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:57
 #, elixir-autogen, elixir-format
 msgid "Turn off the authenticator app? You'll no longer be asked for a code."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:101
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:107
 #, elixir-autogen, elixir-format
 msgid "Turn on"
 msgstr ""
@@ -2682,13 +2682,13 @@ msgid "Turn on two-step verification"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/settings.ex:174
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:32
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:225
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:38
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:231
 #, elixir-autogen, elixir-format
 msgid "Two-factor authentication"
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:93
+#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:126
 #, elixir-autogen, elixir-format
 msgid "Two-factor authentication is now on."
 msgstr ""
@@ -2699,7 +2699,7 @@ msgstr ""
 msgid "Two-step verification"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:122
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:128
 #, elixir-autogen, elixir-format
 msgid "Use a hardware security key or your device's built-in authenticator."
 msgstr ""
@@ -2716,23 +2716,23 @@ msgstr ""
 msgid "Use a security key"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:60
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:66
 #, elixir-autogen, elixir-format
 msgid "Use an app like Google Authenticator, Aegis, or 1Password to generate codes."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:100
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:106
 #: lib/goodmao2_web/live/user_live/two_factor_setup.ex:67
 #, elixir-autogen, elixir-format
 msgid "Verifying..."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:193
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:199
 #, elixir-autogen, elixir-format
 msgid "You have %{count} unused recovery codes."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:377
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:392
 #, elixir-autogen, elixir-format
 msgid "You must keep at least one second factor. Add another before removing this one."
 msgstr ""
@@ -2742,13 +2742,13 @@ msgstr ""
 msgid "Your account requires a second factor. Add an authenticator app to continue."
 msgstr ""
 
-#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:110
-#: lib/goodmao2_web/user_auth.ex:384
+#: lib/goodmao2_web/controllers/user_two_factor_controller.ex:153
+#: lib/goodmao2_web/user_auth.ex:419
 #, elixir-autogen, elixir-format
 msgid "Your login attempt expired. Please try again."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:135
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:141
 #, elixir-autogen, elixir-format
 msgid "last used %{when}"
 msgstr ""
@@ -2798,7 +2798,7 @@ msgstr ""
 msgid "Times you log and view are shown in this zone. Left blank, the site default is used."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:347
+#: lib/goodmao2_web/live/pet_live/medications.ex:372
 #: lib/goodmao2_web/live/user_live/settings.ex:116
 #, elixir-autogen, elixir-format
 msgid "Timezone"
@@ -2814,62 +2814,62 @@ msgstr ""
 msgid "%{medication} (%{dose}) is due for %{pet}."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:312
+#: lib/goodmao2_web/live/pet_live/medications.ex:337
 #, elixir-autogen, elixir-format
 msgid "Add a schedule"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:353
+#: lib/goodmao2_web/live/pet_live/medications.ex:378
 #, elixir-autogen, elixir-format
 msgid "Add schedule"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:134
+#: lib/goodmao2_web/live/pet_live/medications.ex:135
 #, elixir-autogen, elixir-format
 msgid "Already recorded."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:298
+#: lib/goodmao2_web/live/pet_live/medications.ex:323
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:295
+#: lib/goodmao2_web/live/pet_live/medications.ex:320
 #, elixir-autogen, elixir-format
 msgid "Delete this schedule and its upcoming doses?"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:323
+#: lib/goodmao2_web/live/pet_live/medications.ex:348
 #, elixir-autogen, elixir-format
 msgid "Dose times"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:210
+#: lib/goodmao2_web/live/pet_live/medications.ex:230
 #, elixir-autogen, elixir-format
 msgid "Doses due"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:342
+#: lib/goodmao2_web/live/pet_live/medications.ex:367
 #, elixir-autogen, elixir-format
 msgid "End date (optional)"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:83
+#: lib/goodmao2_web/live/pet_live/medications.ex:84
 #, elixir-autogen, elixir-format
 msgid "Enter dose times as HH:MM, separated by commas."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:330
+#: lib/goodmao2_web/live/pet_live/medications.ex:355
 #, elixir-autogen, elixir-format
 msgid "Every N days"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:240
+#: lib/goodmao2_web/live/pet_live/medications.ex:260
 #, elixir-autogen, elixir-format
 msgid "Give"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:363
+#: lib/goodmao2_web/live/pet_live/medications.ex:388
 #, elixir-autogen, elixir-format
 msgid "Given"
 msgstr ""
@@ -2879,78 +2879,78 @@ msgstr ""
 msgid "Medication due"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1184
+#: lib/goodmao2_web/live/pet_live/show.ex:1211
 #, elixir-autogen, elixir-format
 msgid "Medications"
 msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/medications.ex:27
-#: lib/goodmao2_web/live/pet_live/medications.ex:200
+#: lib/goodmao2_web/live/pet_live/medications.ex:201
 #, elixir-autogen, elixir-format
 msgid "Medications for %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:365
+#: lib/goodmao2_web/live/pet_live/medications.ex:390
 #, elixir-autogen, elixir-format
 msgid "Missed"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:213
+#: lib/goodmao2_web/live/pet_live/medications.ex:233
 #, elixir-autogen, elixir-format
 msgid "No upcoming doses."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:351
+#: lib/goodmao2_web/live/pet_live/medications.ex:376
 #, elixir-autogen, elixir-format
 msgid "Notes"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:287
+#: lib/goodmao2_web/live/pet_live/medications.ex:312
 #, elixir-autogen, elixir-format
 msgid "Pause"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:270
+#: lib/goodmao2_web/live/pet_live/medications.ex:295
 #, elixir-autogen, elixir-format
 msgid "Paused"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:362
+#: lib/goodmao2_web/live/pet_live/medications.ex:387
 #, elixir-autogen, elixir-format
 msgid "Pending"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:287
+#: lib/goodmao2_web/live/pet_live/medications.ex:312
 #, elixir-autogen, elixir-format
 msgid "Resume"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:68
+#: lib/goodmao2_web/live/pet_live/medications.ex:69
 #, elixir-autogen, elixir-format
 msgid "Schedule added."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:258
+#: lib/goodmao2_web/live/pet_live/medications.ex:283
 #, elixir-autogen, elixir-format
 msgid "Schedules"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:249
+#: lib/goodmao2_web/live/pet_live/medications.ex:269
 #, elixir-autogen, elixir-format
 msgid "Skip"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:364
+#: lib/goodmao2_web/live/pet_live/medications.ex:389
 #, elixir-autogen, elixir-format
 msgid "Skipped"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:336
+#: lib/goodmao2_web/live/pet_live/medications.ex:361
 #, elixir-autogen, elixir-format
 msgid "Start date"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex:78
+#: lib/goodmao2_web/live/pet_live/medications.ex:79
 #, elixir-autogen, elixir-format
 msgid "You are not allowed to manage medications here."
 msgstr ""
@@ -2960,17 +2960,17 @@ msgstr ""
 msgid "%{from}–%{to} of %{total}"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:604
+#: lib/goodmao2_web/helpers.ex:616
 #, elixir-autogen, elixir-format
 msgid "%{v} g"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:610
+#: lib/goodmao2_web/helpers.ex:622
 #, elixir-autogen, elixir-format
 msgid "%{v} kg"
 msgstr ""
 
-#: lib/goodmao2_web/helpers.ex:607
+#: lib/goodmao2_web/helpers.ex:619
 #, elixir-autogen, elixir-format
 msgid "%{v} lb"
 msgstr ""
@@ -2996,13 +2996,13 @@ msgid "Hamster"
 msgstr ""
 
 #: lib/goodmao2_web/components/report_components.ex:343
-#: lib/goodmao2_web/live/pet_live/show.ex:800
+#: lib/goodmao2_web/live/pet_live/show.ex:827
 #, elixir-autogen, elixir-format
 msgid "Next"
 msgstr ""
 
 #: lib/goodmao2_web/components/report_components.ex:329
-#: lib/goodmao2_web/live/pet_live/show.ex:785
+#: lib/goodmao2_web/live/pet_live/show.ex:812
 #, elixir-autogen, elixir-format
 msgid "Previous"
 msgstr ""
@@ -3018,7 +3018,7 @@ msgid "Reptile"
 msgstr ""
 
 #: lib/goodmao2_web/components/report_components.ex:321
-#: lib/goodmao2_web/live/pet_live/show.ex:775
+#: lib/goodmao2_web/live/pet_live/show.ex:802
 #, elixir-autogen, elixir-format
 msgid "Timeline pages"
 msgstr ""
@@ -3033,17 +3033,17 @@ msgstr ""
 msgid "−%{w}"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:736
+#: lib/goodmao2_web/live/pet_live/show.ex:763
 #, elixir-autogen, elixir-format
 msgid "%{count} per page"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:728
+#: lib/goodmao2_web/live/pet_live/show.ex:755
 #, elixir-autogen, elixir-format
 msgid "Entries per page"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:789
+#: lib/goodmao2_web/live/pet_live/show.ex:816
 #, elixir-autogen, elixir-format
 msgid "Page %{page}"
 msgstr ""
@@ -3139,7 +3139,7 @@ msgstr ""
 msgid "A photo or video you uploaded couldn't be processed — check the format and try again."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:402
+#: lib/goodmao2_web/live/pet_live/show.ex:412
 #, elixir-autogen, elixir-format
 msgid "Couldn't save that entry. Please try again."
 msgstr ""
@@ -3223,12 +3223,12 @@ msgstr ""
 msgid "Video dimensions (pixels)"
 msgstr ""
 
-#: lib/goodmao2_web/components/avatar_components.ex:104
+#: lib/goodmao2_web/components/avatar_components.ex:108
 #, elixir-autogen, elixir-format
 msgid "%{name}'s profile photo"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:283
+#: lib/goodmao2_web/live/pet_live/show.ex:293
 #, elixir-autogen, elixir-format
 msgid "Couldn't update this pet's photo."
 msgstr ""
@@ -3238,25 +3238,25 @@ msgstr ""
 msgid "Couldn't upload your photo."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:279
+#: lib/goodmao2_web/live/pet_live/show.ex:289
 #: lib/goodmao2_web/live/user_live/settings.ex:387
 #, elixir-autogen, elixir-format
 msgid "Photo uploaded — it will appear once processed."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:287
+#: lib/goodmao2_web/live/pet_live/show.ex:297
 #: lib/goodmao2_web/live/user_live/settings.ex:395
 #, elixir-autogen, elixir-format
 msgid "Please choose an image to upload."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1136
+#: lib/goodmao2_web/live/pet_live/show.ex:1163
 #, elixir-autogen, elixir-format
 msgid "Processing…"
 msgstr ""
 
-#: lib/goodmao2_web/components/avatar_components.ex:102
-#: lib/goodmao2_web/components/avatar_components.ex:103
+#: lib/goodmao2_web/components/avatar_components.ex:106
+#: lib/goodmao2_web/components/avatar_components.ex:107
 #: lib/goodmao2_web/live/user_live/settings.ex:29
 #, elixir-autogen, elixir-format
 msgid "Profile photo"
@@ -3267,13 +3267,13 @@ msgstr ""
 msgid "Profile photo couldn't be processed"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:301
+#: lib/goodmao2_web/live/pet_live/show.ex:311
 #: lib/goodmao2_web/live/user_live/settings.ex:407
 #, elixir-autogen, elixir-format
 msgid "Profile photo removed."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1128
+#: lib/goodmao2_web/live/pet_live/show.ex:1155
 #, elixir-autogen, elixir-format
 msgid "Remove this pet's photo?"
 msgstr ""
@@ -3283,7 +3283,7 @@ msgstr ""
 msgid "Remove your profile photo?"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1121
+#: lib/goodmao2_web/live/pet_live/show.ex:1148
 #, elixir-autogen, elixir-format
 msgid "Set photo"
 msgstr ""
@@ -3303,7 +3303,7 @@ msgstr ""
 msgid "Uploading..."
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:304
+#: lib/goodmao2_web/live/pet_live/show.ex:314
 #, elixir-autogen, elixir-format
 msgid "You can't change this pet's photo."
 msgstr ""
@@ -3313,31 +3313,31 @@ msgstr ""
 msgid "Your photo is being processed…"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1080
-#: lib/goodmao2_web/live/pet_live/show.ex:1081
+#: lib/goodmao2_web/live/pet_live/show.ex:1107
+#: lib/goodmao2_web/live/pet_live/show.ex:1108
 #: lib/goodmao2_web/live/user_live/settings.ex:41
 #: lib/goodmao2_web/live/user_live/settings.ex:42
 #, elixir-autogen, elixir-format
 msgid "Change profile photo"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex:1111
+#: lib/goodmao2_web/live/pet_live/show.ex:1138
 #: lib/goodmao2_web/live/user_live/settings.ex:63
 #, elixir-autogen, elixir-format
 msgid "Choose a profile photo"
 msgstr ""
 
-#: lib/goodmao2_web/components/avatar_components.ex:89
+#: lib/goodmao2_web/components/avatar_components.ex:93
 #, elixir-autogen, elixir-format
 msgid "Crop region"
 msgstr ""
 
-#: lib/goodmao2_web/components/avatar_components.ex:96
+#: lib/goodmao2_web/components/avatar_components.ex:100
 #, elixir-autogen, elixir-format
 msgid "Drag the circle, or focus it and use the arrow keys to move and + / − to resize."
 msgstr ""
 
-#: lib/goodmao2_web/live/message_live/show.ex:117
+#: lib/goodmao2_web/live/message_live/show.ex:133
 #, elixir-autogen, elixir-format
 msgid "Conversation messages"
 msgstr ""
@@ -3347,13 +3347,13 @@ msgstr ""
 msgid "Conversations"
 msgstr ""
 
-#: lib/goodmao2_web/user_auth.ex:331
-#: lib/goodmao2_web/user_auth.ex:419
+#: lib/goodmao2_web/user_auth.ex:366
+#: lib/goodmao2_web/user_auth.ex:454
 #, elixir-autogen, elixir-format
 msgid "You must log in to access this page."
 msgstr ""
 
-#: lib/goodmao2_web/user_auth.ex:348
+#: lib/goodmao2_web/user_auth.ex:383
 #, elixir-autogen, elixir-format
 msgid "You must re-authenticate to access this page."
 msgstr ""
@@ -3466,4 +3466,39 @@ msgstr ""
 #: lib/goodmao2_web/components/media_components.ex:83
 #, elixir-autogen, elixir-format
 msgid "Upload progress for %{name}"
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:166
+#, elixir-autogen, elixir-format
+msgid "A GoodMao user"
+msgstr ""
+
+#: lib/goodmao2_web/live/admin_live.ex:182
+#, elixir-autogen, elixir-format
+msgid "That submission changed while you were reviewing it. Review the updated details."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/medications.ex:217
+#, elixir-autogen, elixir-format
+msgid "This pet's history is hidden, so its medications are too, and no dose reminders are sent."
+msgstr ""
+
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:154
+#, elixir-autogen, elixir-format
+msgid "Two-step verification is already set up for this account. Use it to sign in."
+msgstr ""
+
+#: lib/goodmao2_web/live/message_live/show.ex:60
+#, elixir-autogen, elixir-format
+msgid "You can no longer send messages in this conversation."
+msgstr ""
+
+#: lib/goodmao2_web/live/message_live/show.ex:169
+#, elixir-autogen, elixir-format
+msgid "You no longer share a pet with this person, so you can read this conversation but not reply."
+msgstr ""
+
+#: lib/goodmao2_web/live/message_live/show.ex:67
+#, elixir-autogen, elixir-format
+msgid "You've sent a lot of messages recently — please try again later."
 msgstr ""

@@ -8,6 +8,11 @@ defmodule Goodmao2.Medications do
   co-caretaker, vet); deleting a schedule needs `:manage` (owner). Inaccessible pets are
   existence-hidden.
 
+  **Hidden history (ADR-0003) hides medications too.** Schedules and the given/skipped record are
+  part of a pet's history, so while it is hidden every read comes back empty, every write is
+  refused (for every role, as in `Goodmao2.Logs`), and no `medication_due` reminder is sent. The
+  flag is read fresh (`Pets.history_hidden?/1`), never from the passed `%Pet{}`.
+
   Dose slots are **materialized** from each schedule in the schedule's own timezone (see
   `Goodmao2.Timezone`), so any caretaker can see whether a specific slot is handled and reminders
   fire at the right local instant. Marking a dose given reuses the `medication` `log_entry`
@@ -33,7 +38,7 @@ defmodule Goodmao2.Medications do
 
   @doc "Lists a pet's live schedules (newest first). Requires `:read`; `[]` if not permitted."
   def list_schedules(%User{} = user, %Pet{} = pet) do
-    if Pets.can?(pet, user, :read) do
+    if readable?(pet, user) do
       Repo.all(
         from s in Schedule,
           where: s.pet_id == ^pet.id and is_nil(s.deleted_at),
@@ -49,7 +54,7 @@ defmodule Goodmao2.Medications do
   the caller lacks `:read` on the pet.
   """
   def get_schedule(%User{} = user, %Pet{} = pet, id) do
-    if Pets.can?(pet, user, :read) do
+    if readable?(pet, user) do
       Repo.one(
         from s in Schedule,
           where: s.id == ^id and s.pet_id == ^pet.id and is_nil(s.deleted_at)
@@ -71,7 +76,7 @@ defmodule Goodmao2.Medications do
   `:read`; `[]` otherwise. Doses of soft-deleted schedules are excluded.
   """
   def upcoming_doses(%User{} = user, %Pet{} = pet, opts \\ []) do
-    if Pets.can?(pet, user, :read) do
+    if readable?(pet, user) do
       from_dt = Keyword.get(opts, :from, DateTime.add(now(), -24, :hour))
       to_dt = Keyword.get(opts, :to, DateTime.add(now(), @horizon_hours, :hour))
 
@@ -112,8 +117,12 @@ defmodule Goodmao2.Medications do
   changes, future `pending` doses are regenerated from the new plan.
   """
   def update_schedule(%User{} = user, %Pet{} = pet, %Schedule{} = schedule, attrs) do
-    with :ok <- authorize(pet, user, :write),
-         {:ok, updated} <- schedule |> Schedule.changeset(string_keys(attrs)) |> Repo.update() do
+    # `Schedule.changeset/2` casts `pet_id` for creation; an update must never re-parent.
+    attrs = attrs |> string_keys() |> Map.delete("pet_id")
+
+    with :ok <- ensure_schedule_belongs(schedule, pet),
+         :ok <- authorize(pet, user, :write),
+         {:ok, updated} <- schedule |> Schedule.changeset(attrs) |> Repo.update() do
       if timing_changed?(schedule, updated) do
         drop_future_pending_doses(updated)
         materialize_doses(updated)
@@ -129,7 +138,8 @@ defmodule Goodmao2.Medications do
   """
   def set_active(%User{} = user, %Pet{} = pet, %Schedule{} = schedule, active?)
       when is_boolean(active?) do
-    with :ok <- authorize(pet, user, :write),
+    with :ok <- ensure_schedule_belongs(schedule, pet),
+         :ok <- authorize(pet, user, :write),
          {:ok, updated} <-
            schedule |> Schedule.changeset(%{"active" => active?}) |> Repo.update() do
       if active?, do: materialize_doses(updated), else: drop_future_pending_doses(updated)
@@ -141,7 +151,8 @@ defmodule Goodmao2.Medications do
   Soft-deletes a schedule and cancels its future pending doses. Requires `:manage` (owner).
   """
   def delete_schedule(%User{} = user, %Pet{} = pet, %Schedule{} = schedule) do
-    with :ok <- authorize(pet, user, :manage) do
+    with :ok <- ensure_schedule_belongs(schedule, pet),
+         :ok <- authorize(pet, user, :manage) do
       drop_future_pending_doses(schedule)
 
       schedule
@@ -173,7 +184,11 @@ defmodule Goodmao2.Medications do
         from d in Dose,
           join: s in Schedule,
           on: s.id == d.schedule_id,
+          join: p in Pet,
+          on: p.id == d.pet_id,
           where: s.active == true and is_nil(s.deleted_at),
+          # Left unclaimed, so un-hiding within the grace window still reminds.
+          where: not p.history_hidden,
           where: d.status == "pending" and is_nil(d.reminded_at) and d.due_at <= ^now(),
           preload: [schedule: s]
       )
@@ -402,14 +417,22 @@ defmodule Goodmao2.Medications do
   ## Helpers
 
   defp authorize(pet, user, level) do
-    if Pets.can?(pet, user, level), do: :ok, else: {:error, :unauthorized}
+    if Pets.can?(pet, user, level) and not Pets.history_hidden?(pet),
+      do: :ok,
+      else: {:error, :unauthorized}
   end
+
+  defp readable?(pet, user), do: Pets.can?(pet, user, :read) and not Pets.history_hidden?(pet)
 
   # Defense-in-depth: the dose must actually belong to the authorized pet. Today every caller
   # loads doses already scoped to the pet, but a future caller trusting a client-supplied dose
   # id must not be able to stamp a foreign pet's dose (existence-hidden, never "forbidden").
   defp ensure_dose_belongs(%Dose{pet_id: pet_id}, %Pet{id: pet_id}), do: :ok
   defp ensure_dose_belongs(_dose, _pet), do: {:error, :not_found}
+
+  # The same binding for schedules: `:write` on one pet must not reach another pet's schedule.
+  defp ensure_schedule_belongs(%Schedule{pet_id: pet_id}, %Pet{id: pet_id}), do: :ok
+  defp ensure_schedule_belongs(_schedule, _pet), do: {:error, :not_found}
 
   # Accept both string- and atom-keyed attrs from callers/tests.
   defp string_keys(attrs) do

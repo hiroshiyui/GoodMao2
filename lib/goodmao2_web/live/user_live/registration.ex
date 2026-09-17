@@ -91,10 +91,11 @@ defmodule Goodmao2Web.UserLive.Registration do
   # Send the magic link (rate-limited per address) and show the same neutral confirmation
   # regardless of whether an account was created, already existed, or the send was throttled —
   # so the response never reveals which. `user` is nil only if a taken email vanished between
-  # the insert attempt and the lookup, in which case there is simply nothing to send.
+  # the insert attempt and the lookup, in which case there is simply nothing to send. The email
+  # goes out from a background job, keeping outbound-mail latency off the response.
   defp deliver_and_ack(socket, email, user) do
     if user && RegistrationRateLimiter.check(email) == :ok do
-      {:ok, _} = Accounts.deliver_login_instructions(user, &url(~p"/users/log-in/#{&1}"))
+      {:ok, _job} = Accounts.request_login_link(user)
     end
 
     socket

@@ -10,6 +10,12 @@ defmodule Goodmao2.Messaging.MessagePushWorker do
   """
   use Oban.Worker, queue: :default, max_attempts: 3
 
+  # Each POST is bounded per read, not end to end: an endpoint that dribbles its response slowly
+  # enough could hold a `:default` slot — the queue that carries medication reminders —
+  # indefinitely. A hard job deadline caps the whole fan-out.
+  @impl Oban.Worker
+  def timeout(_job), do: :timer.seconds(60)
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"message_id" => message_id}}) do
     Goodmao2.Messaging.dispatch_message_push(message_id)

@@ -11,7 +11,9 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
       an IPv6 address)
     * **DNS pinning**: the resolved public IP is pinned to the connection while SNI + the
       `Host` header keep the original hostname, defeating DNS-rebinding TOCTOU
-    * no redirect following, no response-body decoding
+    * no redirect following, and the response body is **never read**: only the status and
+      headers matter, and a hostile endpoint that passes validation could otherwise stream an
+      unbounded body into memory for as long as it kept sending
 
   Endpoints are validated at storage time (`PushSubscription.changeset/2`) *and* here at
   send time, so a value that turned private after storage is still refused.
@@ -105,7 +107,10 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
       max_redirects: 0,
       redirect: false,
       max_retries: 0,
-      decode_body: false
+      decode_body: false,
+      # Stop at the first body chunk: the status and headers are already in hand, and nothing
+      # downstream reads the body. Bounds memory to one chunk however much the endpoint sends.
+      into: fn {:data, _chunk}, acc -> {:halt, acc} end
     ]
 
     Keyword.merge(base_opts, @req_test_options)

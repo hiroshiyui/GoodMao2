@@ -174,12 +174,75 @@ defmodule Goodmao2.MedicationsTest do
       assert deleted.deleted_at != nil
     end
 
+    test "a schedule from another pet is refused, even to that pet's owner", %{
+      owner: owner,
+      pet: pet
+    } do
+      schedule = medication_schedule_fixture(owner, pet)
+      stranger = regular_user_fixture()
+      their_pet = pet_fixture(stranger)
+
+      assert Medications.update_schedule(stranger, their_pet, schedule, %{"dose" => "9mg"}) ==
+               {:error, :not_found}
+
+      assert Medications.set_active(stranger, their_pet, schedule, false) == {:error, :not_found}
+      assert Medications.delete_schedule(stranger, their_pet, schedule) == {:error, :not_found}
+
+      reloaded = Repo.get!(Schedule, schedule.id)
+      assert reloaded.dose == schedule.dose and reloaded.active and is_nil(reloaded.deleted_at)
+    end
+
+    test "an update cannot move a schedule onto another pet", %{owner: owner, pet: pet} do
+      schedule = medication_schedule_fixture(owner, pet)
+      victim_pet = pet_fixture(regular_user_fixture())
+
+      assert {:ok, updated} =
+               Medications.update_schedule(owner, pet, schedule, %{
+                 "dose" => "5mg",
+                 "pet_id" => victim_pet.id
+               })
+
+      assert updated.pet_id == pet.id
+    end
+
     test "set_active pauses and resumes", %{owner: owner, pet: pet} do
       schedule = medication_schedule_fixture(owner, pet)
       assert {:ok, paused} = Medications.set_active(owner, pet, schedule, false)
       refute paused.active
       assert {:ok, resumed} = Medications.set_active(owner, pet, paused, true)
       assert resumed.active
+    end
+  end
+
+  # ADR-0003: hiding a pet's history hides every part of it, medications included — for every
+  # role, and regardless of the (possibly stale) pet struct the caller holds.
+  describe "hidden history" do
+    setup %{owner: owner, pet: pet} do
+      schedule = medication_schedule_fixture(owner, pet)
+      [dose | _] = Medications.upcoming_doses(owner, pet)
+      {:ok, _} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      %{schedule: schedule, dose: dose}
+    end
+
+    test "reads come back empty, even to the owner", %{owner: owner, pet: stale, schedule: s} do
+      assert Medications.list_schedules(owner, stale) == []
+      assert Medications.upcoming_doses(owner, stale) == []
+      assert Medications.get_schedule(owner, stale, s.id) == nil
+    end
+
+    test "every write is refused", %{owner: owner, pet: stale, schedule: s, dose: dose} do
+      assert Medications.create_schedule(owner, stale, valid_schedule_attributes()) ==
+               {:error, :unauthorized}
+
+      assert Medications.update_schedule(owner, stale, s, %{"dose" => "1mg"}) ==
+               {:error, :unauthorized}
+
+      assert Medications.set_active(owner, stale, s, false) == {:error, :unauthorized}
+      assert Medications.delete_schedule(owner, stale, s) == {:error, :unauthorized}
+      assert Medications.mark_dose_given(owner, stale, dose) == {:error, :unauthorized}
+      assert Medications.mark_dose_skipped(owner, stale, dose) == {:error, :unauthorized}
+
+      assert Repo.get!(Dose, dose.id).status == "pending"
     end
   end
 

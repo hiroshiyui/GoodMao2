@@ -299,7 +299,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
   defp editor_label(editors, user_id) do
     case Map.get(editors, user_id) do
       nil -> gettext("a former caretaker")
-      user -> Layouts.account_label(user)
+      user -> Layouts.public_label(user)
     end
   end
 

@@ -73,6 +73,19 @@ defmodule Goodmao2.Notifications.WebPushTest do
       assert WebPush.send_web_push(subscription, ~s({"title":"hi"})) == :ok
     end
 
+    # The client stops at the first body chunk (a hostile endpoint could stream forever); the
+    # status must still drive the outcome.
+    test "a response body is ignored without losing the status" do
+      big = String.duplicate("x", 2_000_000)
+
+      subscription = insert_subscription(subscriber())
+      Req.Test.stub(SafeClient, fn conn -> Plug.Conn.send_resp(conn, 201, big) end)
+      assert WebPush.send_web_push(subscription, ~s({"title":"hi"})) == :ok
+
+      Req.Test.stub(SafeClient, fn conn -> Plug.Conn.send_resp(conn, 410, big) end)
+      assert WebPush.send_web_push(subscription, ~s({"title":"hi"})) == {:error, :gone}
+    end
+
     test "soft-deletes the subscription and returns {:error, :gone} on 410" do
       subscription = insert_subscription(subscriber())
       Req.Test.stub(SafeClient, fn conn -> Plug.Conn.send_resp(conn, 410, "") end)

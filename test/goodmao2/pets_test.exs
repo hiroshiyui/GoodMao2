@@ -227,6 +227,22 @@ defmodule Goodmao2.PetsTest do
       assert Pets.effective_role(pet, co) == "co_caretaker"
     end
 
+    # The LiveView looks the grant up among the pet's own, but the context must not rely on
+    # that: guard_last_owner/2 counts owners of the pet passed in, so a foreign grant would be
+    # checked against the wrong pet — and an owner of one pet could strip another pet's owner.
+    test "a grant belonging to another pet cannot be revoked through this one" do
+      attacker = user_fixture()
+      attacker_pet = pet_fixture(attacker)
+      victim = user_fixture()
+      victim_pet = pet_fixture(victim)
+      [victim_owner_grant] = Pets.list_accesses(victim_pet)
+
+      assert Pets.revoke_access(attacker, attacker_pet, victim_owner_grant) ==
+               {:error, :not_found}
+
+      assert Pets.effective_role(victim_pet, victim) == "owner"
+    end
+
     test "an expired or revoked grant confers nothing and cannot be used to escalate" do
       owner = user_fixture()
       pet = pet_fixture(owner)

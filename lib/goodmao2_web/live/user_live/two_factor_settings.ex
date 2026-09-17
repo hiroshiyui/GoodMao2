@@ -8,6 +8,12 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   finishes via a `pushEvent` callback from the `WebAuthn` JS hook (no controller round-trip,
   live list update). Removing the admin's last remaining factor is refused
   (`Accounts.can_remove_second_factor?/2`).
+
+  Sudo mode is checked at mount *and* again in every event that changes a factor. A LiveView
+  outlives the sudo window it was opened in, so a mount-only gate would leave a tab opened hours
+  ago able to switch the authenticator off or enroll someone else's. As in `UserLive.Settings`,
+  a lapsed window crashes the event, and the remount's `:require_sudo_mode` sends the user to
+  re-authenticate.
   """
   use Goodmao2Web, :live_view
 
@@ -227,8 +233,11 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
 
   defp load_state(socket) do
     # Re-read the user from the DB so toggles (enable/disable TOTP) are reflected — the
-    # scope captured at mount is otherwise stale after a mutation.
-    user = Accounts.get_user!(socket.assigns.current_scope.user.id)
+    # scope captured at mount is otherwise stale after a mutation. `authenticated_at` is virtual
+    # (it comes from the session token, not the users row), so carry it over: dropping it would
+    # make every later sudo check fail.
+    %{id: id, authenticated_at: authenticated_at} = socket.assigns.current_scope.user
+    user = %{Accounts.get_user!(id) | authenticated_at: authenticated_at}
 
     socket
     |> assign(:current_scope, Scope.for_user(user))
@@ -263,7 +272,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   end
 
   def handle_event("enable_totp", %{"user" => %{"totp_code" => code}}, socket) do
-    user = socket.assigns.current_scope.user
+    user = sudo_user!(socket)
     secret = socket.assigns.totp_setup && socket.assigns.totp_setup.secret
 
     if secret && Accounts.valid_totp?(secret, code) do
@@ -281,7 +290,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   end
 
   def handle_event("disable_totp", _params, socket) do
-    user = socket.assigns.current_scope.user
+    user = sudo_user!(socket)
 
     if Accounts.can_remove_second_factor?(user, :totp) do
       {:ok, _user} = Accounts.disable_totp(user)
@@ -299,7 +308,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   # --- Recovery codes ---
 
   def handle_event("regenerate_recovery_codes", _params, socket) do
-    codes = Accounts.generate_recovery_codes(socket.assigns.current_scope.user)
+    codes = Accounts.generate_recovery_codes(sudo_user!(socket))
 
     {:noreply,
      socket
@@ -320,7 +329,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   end
 
   def handle_event("webauthn_registered", params, socket) do
-    user = socket.assigns.current_scope.user
+    user = sudo_user!(socket)
     token = socket.assigns.webauthn_challenge_token
 
     with {:ok, challenge} <- Goodmao2.Accounts.WebAuthnChallenges.pop(token, user.id),
@@ -358,7 +367,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   end
 
   def handle_event("delete_key", %{"id" => id}, socket) do
-    user = socket.assigns.current_scope.user
+    user = sudo_user!(socket)
 
     if Accounts.can_remove_second_factor?(user, :webauthn) do
       case Accounts.delete_webauthn_credential(user, id) do
@@ -371,6 +380,12 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
     else
       {:noreply, put_flash(socket, :error, last_factor_message())}
     end
+  end
+
+  defp sudo_user!(socket) do
+    user = socket.assigns.current_scope.user
+    true = Accounts.sudo_mode?(user)
+    user
   end
 
   defp last_factor_message do

@@ -60,6 +60,15 @@ defmodule Goodmao2.NotificationsTest do
       assert Notifications.get_notification(stranger, notification.id) == nil
     end
 
+    test "a malformed id is not-found rather than an Ecto cast crash" do
+      user = user_fixture()
+
+      for bad <- ["x", "99999999999999999999", "-1"] do
+        assert Notifications.get_notification(user, bad) == nil
+        assert Notifications.mark_read(user, bad) == {:ok, 0}
+      end
+    end
+
     test "delete_notification refuses a row the caller doesn't own" do
       owner = user_fixture()
       stranger = user_fixture()

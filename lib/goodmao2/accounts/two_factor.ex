@@ -26,6 +26,8 @@ defmodule Goodmao2.Accounts.TwoFactor do
 
   import Ecto.Query, warn: false
 
+  require Logger
+
   alias Goodmao2.Repo
   alias Goodmao2.Accounts.{RecoveryCode, TotpVault, User, WebAuthn}
 
@@ -98,6 +100,12 @@ defmodule Goodmao2.Accounts.TwoFactor do
         %DateTime{} = dt -> [since: dt]
       end
 
+    nimble_opts =
+      case Keyword.fetch(opts, :time) do
+        {:ok, time} -> [{:time, time} | nimble_opts]
+        :error -> nimble_opts
+      end
+
     NimbleTOTP.valid?(secret, code, nimble_opts)
   end
 
@@ -112,22 +120,44 @@ defmodule Goodmao2.Accounts.TwoFactor do
     user
     |> User.totp_changeset(%{totp_secret: TotpVault.encrypt(secret), totp_confirmed_at: now})
     |> Repo.update()
+    |> tap(&log_success(&1, "accounts.totp_enabled user_id=#{user.id}"))
   end
+
+  # NimbleTOTP's default step; the replay claim below must agree with it.
+  @totp_period 30
 
   @doc """
-  Records that `user` just consumed a TOTP code at login by stamping `totp_last_used_at` to now.
+  Verifies a login TOTP `code` against the user's `secret` **and consumes its window**, returning
+  `:ok` or `:error`.
 
-  The stored timestamp is later passed as `since:` to `valid_totp?/3`, so the same code cannot be
-  replayed within its 30-second window (ADR-0013).
+  A code is accepted at most once per 30-second window (ADR-0013). Checking `since:` against the
+  loaded user and then stamping `totp_last_used_at` would leave a gap: two concurrent requests
+  carrying the same code both pass the check before either writes. The claim is instead a single
+  conditional `UPDATE` that only succeeds while the stored stamp predates this window, so exactly
+  one of them wins. Both steps use one `now`, so a request straddling a window boundary can't
+  validate in one window and claim the next.
   """
-  @spec record_totp_used(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
-  def record_totp_used(%User{} = user) do
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
+  @spec consume_totp(User.t(), binary(), term()) :: :ok | :error
+  def consume_totp(%User{} = user, secret, code) when is_binary(secret) and is_binary(code) do
+    now = System.os_time(:second)
+    window_start = DateTime.from_unix!(now - rem(now, @totp_period))
 
-    user
-    |> User.totp_changeset(%{totp_last_used_at: now})
-    |> Repo.update()
+    with true <- valid_totp?(secret, code, time: now, since: user.totp_last_used_at),
+         {1, _} <-
+           Repo.update_all(
+             from(u in User,
+               where: u.id == ^user.id,
+               where: is_nil(u.totp_last_used_at) or u.totp_last_used_at < ^window_start
+             ),
+             set: [totp_last_used_at: DateTime.from_unix!(now)]
+           ) do
+      :ok
+    else
+      _ -> :error
+    end
   end
+
+  def consume_totp(%User{}, _secret, _code), do: :error
 
   @doc "Decrypts and returns the user's raw TOTP secret, or nil if unset/undecryptable."
   @spec decrypt_totp_secret(User.t()) :: binary() | nil
@@ -155,6 +185,7 @@ defmodule Goodmao2.Accounts.TwoFactor do
            })
            |> Repo.update() do
       delete_recovery_codes(user)
+      Logger.info("accounts.totp_disabled user_id=#{user.id}")
       {:ok, user}
     end
   end
@@ -186,6 +217,7 @@ defmodule Goodmao2.Accounts.TwoFactor do
       end)
 
     Repo.insert_all(RecoveryCode, entries)
+    Logger.info("accounts.recovery_codes_generated user_id=#{user.id}")
 
     Enum.map(raw_codes, &format_recovery_code/1)
   end
@@ -217,12 +249,19 @@ defmodule Goodmao2.Accounts.TwoFactor do
       )
 
     case Repo.update_all(query, set: [used_at: now]) do
-      {1, _} -> :ok
-      {0, _} -> :error
+      {1, _} ->
+        Logger.info("accounts.recovery_code_used user_id=#{user.id}")
+        :ok
+
+      {0, _} ->
+        :error
     end
   end
 
   def verify_recovery_code(_, _), do: :error
+
+  defp log_success({:ok, _}, line), do: Logger.info(line)
+  defp log_success(_result, _line), do: :ok
 
   defp delete_recovery_codes(%User{} = user) do
     Repo.delete_all(from rc in RecoveryCode, where: rc.user_id == ^user.id)

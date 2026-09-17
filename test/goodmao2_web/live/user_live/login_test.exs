@@ -1,8 +1,12 @@
 defmodule Goodmao2Web.UserLive.LoginTest do
   use Goodmao2Web.ConnCase, async: true
+  use Oban.Testing, repo: Goodmao2.Repo
 
   import Phoenix.LiveViewTest
+  import Swoosh.TestAssertions
   import Goodmao2.AccountsFixtures
+
+  alias Goodmao2.Accounts.LoginLinkWorker
 
   describe "login page" do
     test "renders login page", %{conn: conn} do
@@ -27,8 +31,16 @@ defmodule Goodmao2Web.UserLive.LoginTest do
 
       assert html =~ "If your email is in our system"
 
+      # Mail is sent off the request path, so a registered address answers as fast as an
+      # unknown one; the job then mints the token and sends it.
+      refute Goodmao2.Repo.get_by(Goodmao2.Accounts.UserToken, user_id: user.id)
+      assert_enqueued(worker: LoginLinkWorker, args: %{"user_id" => user.id})
+      assert :ok = perform_job(LoginLinkWorker, %{"user_id" => user.id})
+
       assert Goodmao2.Repo.get_by!(Goodmao2.Accounts.UserToken, user_id: user.id).context ==
                "login"
+
+      assert_email_sent(to: [{"", user.email}])
     end
 
     test "does not disclose if user is registered", %{conn: conn} do
@@ -40,6 +52,7 @@ defmodule Goodmao2Web.UserLive.LoginTest do
         |> follow_redirect(conn, ~p"/users/log-in")
 
       assert html =~ "If your email is in our system"
+      refute_enqueued(worker: LoginLinkWorker)
     end
   end
 

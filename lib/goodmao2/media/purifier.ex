@@ -132,6 +132,8 @@ defmodule Goodmao2.Media.Purifier do
           "-nostdin",
           "-v",
           "error",
+          "-protocol_whitelist",
+          "file",
           "-i",
           source,
           "-filter_complex",
@@ -317,6 +319,8 @@ defmodule Goodmao2.Media.Purifier do
       "-nostdin",
       "-v",
       "error",
+      "-protocol_whitelist",
+      "file",
       "-i",
       source,
       "-map",
@@ -343,6 +347,8 @@ defmodule Goodmao2.Media.Purifier do
       "-nostdin",
       "-v",
       "error",
+      "-protocol_whitelist",
+      "file",
       "-i",
       source,
       "-map",
@@ -373,6 +379,8 @@ defmodule Goodmao2.Media.Purifier do
     args = [
       "-v",
       "error",
+      "-protocol_whitelist",
+      "file",
       "-print_format",
       "json",
       "-show_format",
@@ -392,6 +400,12 @@ defmodule Goodmao2.Media.Purifier do
   end
 
   # --- ffmpeg/ffprobe invocation --------------------------------------------
+  #
+  # Every ffmpeg and ffprobe call passes `-protocol_whitelist file`. An upload is a local file,
+  # but a container can name *other* inputs — playlists, segment lists, external data references
+  # — and ffmpeg follows those over any protocol it was built with (http, tcp, …). The magic-byte
+  # gate keeps those demuxers from being selected today; the whitelist means a demuxer that slips
+  # past it still cannot make the server fetch a URL.
 
   defp run(cmd, args) do
     case cmd_with_deadline(cmd, args, @encode_timeout_ms, merge_stderr: true) do

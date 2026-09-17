@@ -9,10 +9,14 @@ defmodule Goodmao2.Logs do
       `%Pet{}` obtained outside `Pets.fetch_pet/3` is therefore safe — a caller with no
       effective grant (a stranger, or someone whose grant expired or was revoked) reads
       nothing, rather than everything that isn't `private`.
-    * **Hidden history.** When `pet.history_hidden` is set, the whole timeline is
+    * **Hidden history.** When the pet's history is hidden, the whole timeline is
       existence-hidden — reads return empty/`nil` and writes are refused, for every
-      role (the owner un-hides via the pet edit form, not a log action). See
-      `Goodmao2.Pets.Pet` and ADR-0003.
+      role (the owner un-hides via the pet edit form, not a log action). The flag is read
+      from the database (`Pets.history_hidden?/1`), never from the passed `%Pet{}`, which
+      may be a LiveView assign that predates the hide. See `Goodmao2.Pets.Pet` and ADR-0003.
+    * **Entry belongs to the pet.** Functions taking both a `%Pet{}` and a `%LogEntry{}`
+      refuse an entry from any other pet, so a capability on one pet never reaches another's
+      entries; an edit cannot re-parent an entry either.
     * **Per-entry visibility.** A `private` entry is visible only to effective
       **owners** and the entry's **recorder**; `limited`/`public` are visible to any
       effective grant. See ADR-0004.
@@ -179,7 +183,7 @@ defmodule Goodmao2.Logs do
   # context that promises to be "safe on its own" cannot rely on that: the next caller to
   # pass a `Repo.get(Pet, id)` result would leak a pet's health history.
   defp unreadable?(%Pet{} = pet, %User{} = user) do
-    pet.history_hidden or not Pets.can?(pet, user, :read)
+    not Pets.can?(pet, user, :read) or Pets.history_hidden?(pet)
   end
 
   # Owners see every entry; everyone else is denied `private` entries they didn't record.
@@ -320,10 +324,12 @@ defmodule Goodmao2.Logs do
   """
   def update_entry(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, attrs) do
     role = Pets.effective_role(pet, user)
-    # The type is immutable on edit — a food entry stays a food entry (ADR-0009).
-    attrs = attrs |> stringify() |> Map.delete("type")
+    # The type is immutable on edit — a food entry stays a food entry (ADR-0009) — and so is
+    # the pet: `LogEntry.changeset/2` casts `pet_id` for creation, so an edit must not carry one.
+    attrs = attrs |> stringify() |> Map.drop(["type", "pet_id"])
 
-    with :ok <- ensure_visible(pet),
+    with :ok <- ensure_entry_of(pet, entry),
+         :ok <- ensure_visible(pet),
          :ok <- authorize_write(role, entry.type),
          :ok <- authorize_modify(role, user, entry),
          :ok <- authorize_visibility_change(role, entry, attrs) do
@@ -405,7 +411,8 @@ defmodule Goodmao2.Logs do
   def set_share_expiry(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, expires_at) do
     role = Pets.effective_role(pet, user)
 
-    with :ok <- ensure_visible(pet),
+    with :ok <- ensure_entry_of(pet, entry),
+         :ok <- ensure_visible(pet),
          :ok <- authorize_owner(role),
          :ok <- ensure_shared(entry),
          :ok <- validate_future_or_nil(expires_at) do
@@ -436,7 +443,8 @@ defmodule Goodmao2.Logs do
   def list_revisions(%User{} = user, %Pet{} = pet, %LogEntry{} = entry) do
     role = Pets.effective_role(pet, user)
 
-    if pet.history_hidden or not can_view_entry?(entry, user.id, role) do
+    if entry.pet_id != pet.id or unreadable?(pet, user) or
+         not can_view_entry?(entry, user.id, role) do
       []
     else
       Repo.all(
@@ -455,7 +463,8 @@ defmodule Goodmao2.Logs do
   def can_edit?(%User{} = user, %Pet{} = pet, %LogEntry{} = entry) do
     role = Pets.effective_role(pet, user)
 
-    with :ok <- ensure_visible(pet),
+    with :ok <- ensure_entry_of(pet, entry),
+         :ok <- ensure_visible(pet),
          :ok <- authorize_write(role, entry.type),
          :ok <- authorize_modify(role, user, entry) do
       true
@@ -473,7 +482,8 @@ defmodule Goodmao2.Logs do
   def delete_entry(%User{} = user, %Pet{} = pet, %LogEntry{} = entry) do
     role = Pets.effective_role(pet, user)
 
-    with :ok <- ensure_visible(pet),
+    with :ok <- ensure_entry_of(pet, entry),
+         :ok <- ensure_visible(pet),
          :ok <- authorize_delete(role, user, entry) do
       case entry
            |> Ecto.Changeset.change(deleted_at: DateTime.utc_now() |> DateTime.truncate(:second))
@@ -489,8 +499,15 @@ defmodule Goodmao2.Logs do
   end
 
   # Hidden history existence-hides the whole timeline (reads *and* writes), for every role.
-  defp ensure_visible(%Pet{history_hidden: true}), do: {:error, :unauthorized}
-  defp ensure_visible(%Pet{}), do: :ok
+  # Read fresh: the passed struct may predate the owner hiding it.
+  defp ensure_visible(%Pet{} = pet) do
+    if Pets.history_hidden?(pet), do: {:error, :unauthorized}, else: :ok
+  end
+
+  # The pet authorizes the caller; this ties the entry to that same pet. Without it the owner
+  # short-circuit in `authorize_modify/3` would extend to any entry a caller holds a struct for.
+  defp ensure_entry_of(%Pet{id: pet_id}, %LogEntry{pet_id: pet_id}), do: :ok
+  defp ensure_entry_of(_pet, _entry), do: {:error, :unauthorized}
 
   defp authorize_write(role, type) do
     cond do

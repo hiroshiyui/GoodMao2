@@ -76,10 +76,16 @@ defmodule Goodmao2.Notifications do
 
   @doc "Fetches one of the caller's live notifications, or `nil` (IDOR-hidden)."
   def get_notification(%User{id: user_id}, id) do
-    Repo.one(
-      from n in Notification,
-        where: n.id == ^id and n.user_id == ^user_id and is_nil(n.deleted_at)
-    )
+    case Goodmao2.ID.normalize(id) do
+      {:ok, id} ->
+        Repo.one(
+          from n in Notification,
+            where: n.id == ^id and n.user_id == ^user_id and is_nil(n.deleted_at)
+        )
+
+      :error ->
+        nil
+    end
   end
 
   ## Mutations (recipient-only)
@@ -90,16 +96,22 @@ defmodule Goodmao2.Notifications do
   end
 
   def mark_read(%User{id: user_id} = user, id) do
-    {count, _} =
-      Repo.update_all(
-        from(n in Notification,
-          where: n.id == ^id and n.user_id == ^user_id and is_nil(n.read_at)
-        ),
-        set: [read_at: now(), updated_at: now()]
-      )
+    case Goodmao2.ID.normalize(id) do
+      {:ok, id} ->
+        {count, _} =
+          Repo.update_all(
+            from(n in Notification,
+              where: n.id == ^id and n.user_id == ^user_id and is_nil(n.read_at)
+            ),
+            set: [read_at: now(), updated_at: now()]
+          )
 
-    if count > 0, do: broadcast_count(user)
-    {:ok, count}
+        if count > 0, do: broadcast_count(user)
+        {:ok, count}
+
+      :error ->
+        {:ok, 0}
+    end
   end
 
   @doc "Marks all of the caller's unread notifications read."

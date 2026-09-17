@@ -85,6 +85,21 @@ defmodule Goodmao2Web.PetLive.MedicationsTest do
     refute has_element?(lv, "#schedule-form")
   end
 
+  test "a pet with hidden history shows a notice instead of its medications", %{
+    conn: conn,
+    user: user
+  } do
+    pet = pet_fixture(user)
+    medication_schedule_fixture(user, pet)
+    {:ok, _} = Goodmao2.Pets.update_pet(user, pet, %{"history_hidden" => true})
+
+    {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/medications")
+
+    assert has_element?(lv, "#medications-history-hidden-notice")
+    refute has_element?(lv, "#doses-due")
+    refute has_element?(lv, "#schedules")
+  end
+
   test "an inaccessible pet is not found (IDOR-hidden)", %{conn: conn} do
     owner = user_fixture()
     pet = pet_fixture(owner)

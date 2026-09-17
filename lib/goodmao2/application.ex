@@ -19,6 +19,8 @@ defmodule Goodmao2.Application do
       Goodmao2.Settings.Cache,
       # Owns the push-subscription write rate-limit ETS table.
       Goodmao2.Notifications.PushRateLimiter,
+      # Owns the message-send rate-limit ETS table (ADR-0011).
+      Goodmao2.Messaging.SendRateLimiter,
       # Owns the registration / magic-link email rate-limit ETS table (ADR-0016).
       Goodmao2.Accounts.RegistrationRateLimiter,
       # Owns the failed email+password login rate-limit ETS table.

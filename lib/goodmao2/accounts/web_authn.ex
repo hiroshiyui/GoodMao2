@@ -64,6 +64,13 @@ defmodule Goodmao2.Accounts.WebAuthn do
     %WebAuthnCredential{user_id: user.id}
     |> WebAuthnCredential.changeset(attrs)
     |> Repo.insert()
+    |> tap(fn
+      {:ok, credential} ->
+        Logger.info("accounts.security_key_added user_id=#{user.id} key_id=#{credential.id}")
+
+      _ ->
+        :ok
+    end)
   end
 
   @doc """
@@ -75,9 +82,14 @@ defmodule Goodmao2.Accounts.WebAuthn do
   @spec delete_credential(User.t(), integer() | String.t()) ::
           {:ok, WebAuthnCredential.t()} | {:error, :not_found}
   def delete_credential(%User{} = user, id) do
-    case Repo.get_by(WebAuthnCredential, id: id, user_id: user.id) do
-      nil -> {:error, :not_found}
-      credential -> Repo.delete(credential)
+    with {:ok, id} <- Goodmao2.ID.normalize(id),
+         %WebAuthnCredential{} = credential <-
+           Repo.get_by(WebAuthnCredential, id: id, user_id: user.id),
+         {:ok, deleted} <- Repo.delete(credential) do
+      Logger.info("accounts.security_key_removed user_id=#{user.id} key_id=#{deleted.id}")
+      {:ok, deleted}
+    else
+      _ -> {:error, :not_found}
     end
   end
 

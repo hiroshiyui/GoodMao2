@@ -62,6 +62,11 @@ defmodule Goodmao2.ReportsTest do
       assert Reports.fetch_report(stranger, pet, report.id) == nil
     end
 
+    test "a malformed id is not-found rather than an Ecto cast crash", %{owner: owner, pet: pet} do
+      assert Reports.fetch_report(owner, pet, "not-an-id") == nil
+      assert Reports.fetch_report(owner, pet, "99999999999999999999") == nil
+    end
+
     test "a reader (vet) can fetch it", %{owner: owner, pet: pet} do
       {:ok, report} = Reports.generate_report(owner, pet, today_range())
       vet = user_fixture()
@@ -110,6 +115,29 @@ defmodule Goodmao2.ReportsTest do
       grant_fixture(pet, owner, vet, "vet")
       future = DateTime.add(DateTime.utc_now(), 3600, :second)
       assert Reports.create_share_token(vet, pet, report, future) == {:error, :unauthorized}
+    end
+  end
+
+  # The report and the pet it is authorized against arrive separately, so an owner's `:manage`
+  # on their own pet must not reach a report struct from someone else's.
+  describe "a report from another pet" do
+    test "cannot be deleted, shared, or unshared through this pet", %{owner: owner, pet: pet} do
+      {:ok, report} = Reports.generate_report(owner, pet, today_range())
+      future = DateTime.add(DateTime.utc_now(), 3600, :second)
+      {:ok, {report, token}} = Reports.create_share_token(owner, pet, report, future)
+
+      stranger = user_fixture()
+      their_pet = pet_fixture(stranger)
+
+      assert Reports.delete_report(stranger, their_pet, report) == {:error, :unauthorized}
+      assert Reports.revoke_share_token(stranger, their_pet, report) == {:error, :unauthorized}
+
+      assert Reports.create_share_token(stranger, their_pet, report, future) ==
+               {:error, :unauthorized}
+
+      # Untouched: still live, and the owner's link still resolves.
+      assert %{id: id} = Reports.fetch_report_by_token(token)
+      assert id == report.id
     end
   end
 

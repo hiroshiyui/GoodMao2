@@ -184,6 +184,10 @@ defmodule Goodmao2.MediaTest do
 
       assert Media.create_life_log(owner, hidden, %{"note" => "no"}, []) ==
                {:error, :unauthorized}
+
+      # The pet struct from before the hide (a LiveView's mount-time assign) is refused too.
+      refute pet.history_hidden
+      assert Media.create_life_log(owner, pet, %{"note" => "no"}, []) == {:error, :unauthorized}
     end
 
     test "a note is still required", %{owner: owner, pet: pet} do

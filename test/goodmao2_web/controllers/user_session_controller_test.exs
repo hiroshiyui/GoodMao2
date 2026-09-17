@@ -77,6 +77,9 @@ defmodule Goodmao2Web.UserSessionControllerTest do
   end
 
   describe "POST /users/log-in - password rate limiting" do
+    # Throttled logins log a security warning by design.
+    @describetag :capture_log
+
     # Matches config :goodmao2, Goodmao2.Accounts, :login_attempts_per_hour.
     @attempts_per_hour 10
 
@@ -100,6 +103,34 @@ defmodule Goodmao2Web.UserSessionControllerTest do
 
       assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
       refute get_session(conn, :user_token)
+    end
+
+    # Failed addresses are attacker-chosen and stay in the limiter for up to an hour; stored raw,
+    # a flood of megabyte-sized addresses exhausts memory without ever authenticating.
+    test "never retains an attacker-sized address", %{conn: conn} do
+      # Under the byte cap: reaches the limiter, which must keep only a fixed-size digest.
+      long = String.duplicate("a", 900) <> "@example.com"
+      # Over it: refused before the limiter or the database are touched.
+      huge = String.duplicate("b", 100_000) <> "@example.com"
+
+      for email <- [long, huge] do
+        conn = post(conn, ~p"/users/log-in", %{"user" => %{"email" => email, "password" => "x"}})
+        assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
+      end
+
+      refute Enum.any?(:ets.tab2list(:login_attempt_rate), fn {key, _times} ->
+               :erlang.external_size(key) > 256
+             end)
+    end
+
+    test "a non-string email gets the generic error, not a crash", %{conn: conn} do
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => %{"nested" => "x"}, "password" => "x"}
+        })
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
+      assert redirected_to(conn) == ~p"/users/log-in"
     end
 
     test "a successful login clears the failure counter", %{conn: conn, user: user} do

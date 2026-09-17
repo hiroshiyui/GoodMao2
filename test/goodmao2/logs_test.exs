@@ -228,6 +228,33 @@ defmodule Goodmao2.LogsTest do
       {:ok, shown} = Goodmao2.Pets.update_pet(owner, hidden, %{"history_hidden" => false})
       assert length(Logs.list_entries(owner, shown)) == 1
     end
+
+    # A LiveView holds the `%Pet{}` it loaded at mount, so the struct a caller hands in can
+    # predate the owner hiding the history. Trusting its flag would let every page that was
+    # already open keep reading and writing a timeline the owner has since hidden.
+    test "a pet struct loaded before the hide still reads and writes nothing", %{
+      owner: owner,
+      pet: stale
+    } do
+      refute stale.history_hidden
+      entry = Goodmao2.Repo.one!(Goodmao2.Logs.LogEntry)
+
+      assert Logs.list_entries(owner, stale) == []
+      assert Logs.weight_series(owner, stale) == []
+      assert Logs.shareable_entries(owner, stale) == []
+      assert Logs.get_entry(owner, stale, entry.id) == nil
+      assert Logs.list_revisions(owner, stale, entry) == []
+      refute Logs.can_edit?(owner, stale, entry)
+
+      assert Logs.create_entry(owner, stale, %{
+               "type" => "water",
+               "data" => %{"amount" => "normal"}
+             }) ==
+               {:error, :unauthorized}
+
+      assert Logs.update_entry(owner, stale, entry, %{"note" => "x"}) == {:error, :unauthorized}
+      assert Logs.delete_entry(owner, stale, entry) == {:error, :unauthorized}
+    end
   end
 
   describe "per-entry visibility (ADR-0004)" do
@@ -310,6 +337,49 @@ defmodule Goodmao2.LogsTest do
 
       assert Logs.update_entry(co, pet, entry, %{"note" => "changed"}) == {:error, :unauthorized}
       assert Logs.delete_entry(co, pet, entry) == {:error, :unauthorized}
+    end
+
+    # Every entry-taking function receives the pet and the entry separately, so nothing but an
+    # explicit check ties the two together: the owner short-circuit would otherwise extend an
+    # owner's rights on their own pet to any entry they can get a struct for.
+    test "an entry from another pet is refused, even to that pet's owner", %{
+      owner: owner,
+      pet: pet
+    } do
+      stranger = user_fixture()
+      their_pet = pet_fixture(stranger)
+
+      {:ok, entry} =
+        Logs.create_entry(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => "full"},
+          "visibility" => "public"
+        })
+
+      assert Logs.update_entry(stranger, their_pet, entry, %{"note" => "x"}) ==
+               {:error, :unauthorized}
+
+      assert Logs.delete_entry(stranger, their_pet, entry) == {:error, :unauthorized}
+
+      assert Logs.set_share_expiry(stranger, their_pet, entry, nil) == {:error, :unauthorized}
+      assert Logs.list_revisions(stranger, their_pet, entry) == []
+      refute Logs.can_edit?(stranger, their_pet, entry)
+
+      reloaded = Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, entry.id)
+      assert is_nil(reloaded.deleted_at) and is_nil(reloaded.note)
+    end
+
+    test "an edit cannot move an entry onto another pet's timeline", %{owner: owner, pet: pet} do
+      co = user_fixture()
+      grant_fixture(pet, owner, co, "co_caretaker")
+      entry = log_entry_fixture(co, pet)
+      victim_pet = pet_fixture(user_fixture())
+
+      assert {:ok, updated} =
+               Logs.update_entry(co, pet, entry, %{"note" => "moved?", "pet_id" => victim_pet.id})
+
+      assert updated.pet_id == pet.id
+      assert Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, entry.id).pet_id == pet.id
     end
 
     test "an owner may delete any entry, including a vet's vet_note", %{owner: owner, pet: pet} do

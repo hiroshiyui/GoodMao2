@@ -129,6 +129,41 @@ defmodule Goodmao2.MessagingTest do
     end
   end
 
+  describe "sending after the shared pet ends" do
+    # A thread outlives the grant that opened it. Revoking an abusive ex-caretaker must stop
+    # their messages — and the phone push each one sends — not just new conversations.
+    test "a participant who no longer shares a pet cannot send, but both can still read" do
+      %{owner: owner, co: co, pet: pet} = sharing_pair()
+      {:ok, conversation} = Messaging.start_conversation(owner, co.email)
+      {:ok, _} = Messaging.send_message(co, conversation, "before")
+
+      [access] = Enum.filter(Pets.list_accesses(pet), &(&1.user_id == co.id))
+      {:ok, _} = Pets.revoke_access(owner, pet, access)
+
+      assert Messaging.send_message(co, conversation, "after") == {:error, :cannot_message}
+      assert Messaging.send_message(owner, conversation, "after") == {:error, :cannot_message}
+
+      assert [%{body: "before"}] = Messaging.list_messages(co, conversation)
+      assert [%{body: "before"}] = Messaging.list_messages(owner, conversation)
+    end
+  end
+
+  describe "send rate limit" do
+    test "a sender past the hourly cap is refused" do
+      %{owner: owner, co: co} = sharing_pair()
+      {:ok, conversation} = Messaging.start_conversation(owner, co.email)
+      limit = Application.fetch_env!(:goodmao2, Goodmao2.Messaging)[:messages_per_hour]
+
+      for _ <- 1..limit, do: :ok = Messaging.SendRateLimiter.check(owner.id)
+
+      assert Messaging.send_message(owner, conversation, "one too many") ==
+               {:error, :rate_limited}
+
+      # Per sender: the other participant is unaffected.
+      assert {:ok, _} = Messaging.send_message(co, conversation, "still fine")
+    end
+  end
+
   describe "unread counts + read cursor" do
     test "a message is unread for the recipient, not the sender" do
       %{owner: owner, co: co} = sharing_pair()

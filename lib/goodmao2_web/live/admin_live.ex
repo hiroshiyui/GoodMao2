@@ -174,6 +174,17 @@ defmodule Goodmao2Web.AdminLive do
           {:ok, _} ->
             {:noreply, socket |> put_flash(:info, ok_message) |> load_pending_vets()}
 
+          {:error, :stale} ->
+            {:noreply,
+             socket
+             |> put_flash(
+               :error,
+               gettext(
+                 "That submission changed while you were reviewing it. Review the updated details."
+               )
+             )
+             |> load_pending_vets()}
+
           {:error, _} ->
             {:noreply, put_flash(socket, :error, gettext("Could not update that submission."))}
         end

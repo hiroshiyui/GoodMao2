@@ -1,9 +1,10 @@
 defmodule Goodmao2Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :goodmao2
 
-  # The session will be stored in the cookie and signed,
-  # this means its contents can be read but not tampered with.
-  # Set :encryption_salt if you would also like to encrypt it.
+  # The session is stored in the cookie, signed *and encrypted*. Signing alone left it readable
+  # by anyone holding the cookie, and during forced 2FA enrollment it carries the raw TOTP seed
+  # (`:pending_2fa_setup_secret`). Changing either salt invalidates every session cookie once;
+  # "remember me" users are signed back in from their separate cookie.
   # `secure: true` in prod stamps the Secure attribute so the session cookie never travels over
   # plain HTTP (defense-in-depth behind `force_ssl`). Dev serves both http://…:4000 and
   # https://…:4001, so the flag is off outside prod to keep the http dev origin usable.
@@ -11,6 +12,7 @@ defmodule Goodmao2Web.Endpoint do
     store: :cookie,
     key: "_goodmao2_key",
     signing_salt: "CfBgOD5J",
+    encryption_salt: "bz7KCf18",
     same_site: "Lax",
     secure: Mix.env() == :prod
   ]
@@ -45,7 +47,14 @@ defmodule Goodmao2Web.Endpoint do
     cookie_key: "request_logger"
 
   plug Plug.RequestId
-  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+
+  # Magic-link, email-confirmation, and share links carry a live bearer token in the URL path,
+  # and the request line Phoenix logs is the raw path — so those requests log at :debug, below
+  # production's :info, rather than writing the tokens into the log. (Params are separately
+  # scrubbed by `:filter_parameters`; nginx redacts its own access log.)
+  plug Plug.Telemetry,
+    event_prefix: [:phoenix, :endpoint],
+    log: {__MODULE__, :request_log_level, []}
 
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
@@ -56,4 +65,14 @@ defmodule Goodmao2Web.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug Goodmao2Web.Router
+
+  @doc false
+  def request_log_level(%Plug.Conn{path_info: path_info}),
+    do: if(token_in_path?(path_info), do: :debug, else: :info)
+
+  defp token_in_path?(["users", "log-in", _token]), do: true
+  defp token_in_path?(["users", "settings", "confirm-email", _token]), do: true
+  defp token_in_path?(["entries", "shared", _token | _]), do: true
+  defp token_in_path?(["reports", "shared", _token | _]), do: true
+  defp token_in_path?(_path_info), do: false
 end

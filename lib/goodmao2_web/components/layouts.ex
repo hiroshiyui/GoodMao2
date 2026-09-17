@@ -150,12 +150,26 @@ defmodule Goodmao2Web.Layouts do
     """
   end
 
-  @doc "The label shown for the signed-in account: their @handle, display name, or email."
-  def account_label(user) do
+  @doc """
+  The label shown for the signed-in account: their @handle, display name, or email.
+
+  Only for the account's own owner, an administrator, or an owner managing the grants they
+  handed out. Anywhere else one user sees another, use `public_label/1`.
+  """
+  def account_label(user), do: chosen_name(user) || user.email
+
+  @doc """
+  How one user appears to another — a conversation partner, or an editor in an entry's history:
+  their @handle or display name, falling back to a generic label and **never** their email.
+  Sharing a pet or a thread doesn't entitle anyone to someone else's contact address.
+  """
+  def public_label(user), do: chosen_name(user) || gettext("A GoodMao user")
+
+  defp chosen_name(user) do
     cond do
       is_binary(user.handle) and user.handle != "" -> "@" <> user.handle
       is_binary(user.display_name) and user.display_name != "" -> user.display_name
-      true -> user.email
+      true -> nil
     end
   end
 

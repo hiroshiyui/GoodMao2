@@ -31,6 +31,45 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettingsTest do
     end
   end
 
+  describe "sudo mode lapsing while the page is open" do
+    setup %{conn: conn} do
+      {conn, user} = log_in_regular(conn)
+      {:ok, _} = Accounts.enable_totp(user, Accounts.generate_totp_secret())
+      {:ok, lv, _html} = live(conn, ~p"/users/settings/two-factor")
+
+      # Time can't pass inside a test, so age the mounted session's authentication instead —
+      # exactly what a tab left open past its sudo window holds.
+      stale = DateTime.add(DateTime.utc_now(:second), -30, :minute)
+
+      :sys.replace_state(lv.pid, fn %{socket: socket} = state ->
+        scope = socket.assigns.current_scope
+        user = %{scope.user | authenticated_at: stale}
+        %{state | socket: Phoenix.Component.assign(socket, :current_scope, %{scope | user: user})}
+      end)
+
+      %{lv: lv, user: user}
+    end
+
+    # The event crashes the LiveView (the `UserLive.Settings` convention); its remount then
+    # meets `:require_sudo_mode` and is sent to re-authenticate.
+    @tag :capture_log
+    test "turning the authenticator off is refused", %{lv: lv, user: user} do
+      Process.flag(:trap_exit, true)
+      catch_exit(render_click(lv, "disable_totp", %{}))
+
+      assert Accounts.totp_enabled?(Accounts.get_user!(user.id))
+    end
+
+    @tag :capture_log
+    test "regenerating recovery codes is refused", %{lv: lv, user: user} do
+      before = Accounts.recovery_codes_remaining(user)
+      Process.flag(:trap_exit, true)
+      catch_exit(render_click(lv, "regenerate_recovery_codes", %{}))
+
+      assert Accounts.recovery_codes_remaining(user) == before
+    end
+  end
+
   describe "TOTP enrollment" do
     test "enables TOTP with a valid code and reveals recovery codes", %{conn: conn} do
       {conn, _user} = log_in_regular(conn)

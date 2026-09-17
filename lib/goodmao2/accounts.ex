@@ -39,6 +39,7 @@ defmodule Goodmao2.Accounts do
   """
 
   import Ecto.Query, warn: false
+  require Logger
   alias Goodmao2.Repo
 
   alias Goodmao2.Accounts.{User, UserToken, UserNotifier, VetProfile}
@@ -303,17 +304,49 @@ defmodule Goodmao2.Accounts do
     )
   end
 
-  @doc "Marks a vet profile verified. Requires the acting user to be the administrator."
-  def verify_vet_profile(%User{is_admin: true, id: admin_id}, %VetProfile{} = profile),
-    do: profile |> VetProfile.review_changeset("verified", admin_id) |> Repo.update()
+  @doc """
+  Marks a vet profile verified. Requires the acting user to be the administrator, and the
+  profile to be unchanged since it was reviewed (`{:error, :stale}` otherwise).
+  """
+  def verify_vet_profile(%User{is_admin: true} = admin, %VetProfile{} = profile),
+    do: review_vet_profile(admin, profile, "verified")
 
   def verify_vet_profile(_user, _profile), do: {:error, :unauthorized}
 
-  @doc "Marks a vet profile rejected. Requires the acting user to be the administrator."
-  def reject_vet_profile(%User{is_admin: true, id: admin_id}, %VetProfile{} = profile),
-    do: profile |> VetProfile.review_changeset("rejected", admin_id) |> Repo.update()
+  @doc """
+  Marks a vet profile rejected. Requires the acting user to be the administrator, and the
+  profile to be unchanged since it was reviewed (`{:error, :stale}` otherwise).
+  """
+  def reject_vet_profile(%User{is_admin: true} = admin, %VetProfile{} = profile),
+    do: review_vet_profile(admin, profile, "rejected")
 
   def reject_vet_profile(_user, _profile), do: {:error, :unauthorized}
+
+  # A verdict is about the credentials the administrator was shown. The applicant can re-submit
+  # at any time — new details, back to `pending` — and a verdict written onto whatever the row
+  # holds by then would verify credentials nobody reviewed. So lock the row and apply the verdict
+  # only if it still matches the reviewed copy (a concurrent re-submission waits on the lock).
+  @reviewed_vet_fields [
+    :license_number,
+    :licensing_body,
+    :region,
+    :clinic_name,
+    :specialty,
+    :verification_status
+  ]
+
+  defp review_vet_profile(%User{id: admin_id}, %VetProfile{} = reviewed, status) do
+    Repo.transact(fn ->
+      current = Repo.one(from p in VetProfile, where: p.id == ^reviewed.id, lock: "FOR UPDATE")
+
+      if current &&
+           Map.take(current, @reviewed_vet_fields) == Map.take(reviewed, @reviewed_vet_fields) do
+        current |> VetProfile.review_changeset(status, admin_id) |> Repo.update()
+      else
+        {:error, :stale}
+      end
+    end)
+  end
 
   ## Settings
 
@@ -365,6 +398,7 @@ defmodule Goodmao2.Accounts do
            {:ok, user} <- Repo.update(User.email_changeset(user, %{email: email})),
            {_count, _result} <-
              Repo.delete_all(from(UserToken, where: [user_id: ^user.id, context: ^context])) do
+        Logger.info("accounts.email_changed user_id=#{user.id}")
         {:ok, user}
       else
         _ -> {:error, :transaction_aborted}
@@ -410,6 +444,7 @@ defmodule Goodmao2.Accounts do
     user
     |> User.password_changeset(attrs)
     |> update_user_and_delete_all_tokens()
+    |> tap(&log_password_change/1)
   end
 
   @doc """
@@ -435,7 +470,13 @@ defmodule Goodmao2.Accounts do
     |> User.password_changeset(attrs)
     |> User.validate_current_password(current_password)
     |> update_user_and_delete_all_tokens()
+    |> tap(&log_password_change/1)
   end
+
+  defp log_password_change({:ok, {user, _tokens}}),
+    do: Logger.info("accounts.password_changed user_id=#{user.id}")
+
+  defp log_password_change(_result), do: :ok
 
   ## Session
 
@@ -534,6 +575,16 @@ defmodule Goodmao2.Accounts do
   end
 
   @doc """
+  Queues a magic-link login email for `user` (`Goodmao2.Accounts.LoginLinkWorker`).
+
+  Web forms use this rather than `deliver_login_instructions/2` so no request waits on outbound
+  mail — which would make a registered address measurably slower to answer than an unknown one.
+  """
+  def request_login_link(%User{id: user_id}) do
+    %{"user_id" => user_id} |> Goodmao2.Accounts.LoginLinkWorker.new() |> Oban.insert()
+  end
+
+  @doc """
   Delivers the magic link login instructions to the given user.
   """
   def deliver_login_instructions(%User{} = user, magic_link_url_fun)
@@ -580,7 +631,7 @@ defmodule Goodmao2.Accounts do
   defdelegate totp_uri(secret, account_name), to: TwoFactor
   defdelegate totp_qr_data_uri(uri), to: TwoFactor
   defdelegate valid_totp?(secret, code, opts \\ []), to: TwoFactor
-  defdelegate record_totp_used(user), to: TwoFactor
+  defdelegate consume_totp(user, secret, code), to: TwoFactor
   defdelegate enable_totp(user, secret), to: TwoFactor
   defdelegate decrypt_totp_secret(user), to: TwoFactor
   defdelegate disable_totp(user), to: TwoFactor

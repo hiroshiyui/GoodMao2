@@ -99,6 +99,10 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Params whose key *contains* any of these are logged as [FILTERED]. Beyond passwords this covers
+# magic-link/confirmation/share tokens and second-factor codes, all live credentials.
+config :phoenix, :filter_parameters, ["password", "token", "totp_code", "recovery_code", "secret"]
+
 # Timezone awareness (ADR-0018). The `tz` database backs DateTime.shift_zone/2 so stored-UTC
 # times render in the viewer's zone. `:default_timezone` is the last-resort fallback when no
 # admin system default is set (Settings key "default_timezone") and the user has no preference.
@@ -153,6 +157,10 @@ config :goodmao2, Goodmao2.Media,
 # VAPID keypair itself is *not* configured here — an administrator generates it from
 # `/admin/settings` and it is stored (private key encrypted) in the `settings` table.
 config :goodmao2, Goodmao2.Notifications, push_subscribe_per_hour: 60
+
+# Messaging (ADR-0011). Per-user hourly cap on sent messages — each one also Web Pushes the
+# recipient, so this bounds how hard one account can reach another's phone.
+config :goodmao2, Goodmao2.Messaging, messages_per_hour: 120
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

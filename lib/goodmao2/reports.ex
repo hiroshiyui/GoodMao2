@@ -100,19 +100,21 @@ defmodule Goodmao2.Reports do
   Requires `:read`.
   """
   def fetch_report(%User{} = user, %Pet{} = pet, id) do
-    if Pets.can?(pet, user, :read) do
+    with true <- Pets.can?(pet, user, :read),
+         {:ok, id} <- Goodmao2.ID.normalize(id) do
       Repo.one(
         from r in HealthSummaryReport,
           where: r.id == ^id and r.pet_id == ^pet.id and is_nil(r.deleted_at)
       )
     else
-      nil
+      _ -> nil
     end
   end
 
   @doc "Soft-deletes a report. Requires `:manage`."
   def delete_report(%User{} = user, %Pet{} = pet, %HealthSummaryReport{} = report) do
-    with :ok <- require(pet, user, :manage) do
+    with :ok <- ensure_report_of(pet, report),
+         :ok <- require(pet, user, :manage) do
       report |> change_deleted() |> Repo.update()
     end
   end
@@ -131,7 +133,8 @@ defmodule Goodmao2.Reports do
         %HealthSummaryReport{} = report,
         expires_at
       ) do
-    with :ok <- require(pet, user, :manage),
+    with :ok <- ensure_report_of(pet, report),
+         :ok <- require(pet, user, :manage),
          :ok <- validate_future(expires_at) do
       token = :crypto.strong_rand_bytes(@token_bytes)
       hash = :crypto.hash(:sha256, token)
@@ -151,7 +154,8 @@ defmodule Goodmao2.Reports do
 
   @doc "Revokes a report's share link. Requires `:manage`."
   def revoke_share_token(%User{} = user, %Pet{} = pet, %HealthSummaryReport{} = report) do
-    with :ok <- require(pet, user, :manage) do
+    with :ok <- ensure_report_of(pet, report),
+         :ok <- require(pet, user, :manage) do
       report
       |> Ecto.Changeset.change(%{share_token_hash: nil, share_expires_at: nil})
       |> Repo.update()
@@ -187,6 +191,11 @@ defmodule Goodmao2.Reports do
   defp require(pet, user, level) do
     if Pets.can?(pet, user, level), do: :ok, else: {:error, :unauthorized}
   end
+
+  # The pet authorizes the caller; the report must belong to that same pet, or `:manage` on one
+  # pet would reach any report struct a caller holds.
+  defp ensure_report_of(%Pet{id: pet_id}, %HealthSummaryReport{pet_id: pet_id}), do: :ok
+  defp ensure_report_of(_pet, _report), do: {:error, :unauthorized}
 
   defp validate_future(%DateTime{} = dt) do
     if DateTime.after?(dt, now()), do: :ok, else: {:error, :expiry_in_past}

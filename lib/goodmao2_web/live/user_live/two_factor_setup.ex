@@ -113,9 +113,12 @@ defmodule Goodmao2Web.UserLive.TwoFactorSetup do
     # user reaching here would be handed a *fresh* secret, and confirming it calls
     # `enable_totp/2`, silently replacing the factor they were supposed to be proving —
     # and wiping the recovery codes with it. Password alone must never re-enroll a factor.
-    if session["pending_2fa_setup_allowed"] == true do
+    #
+    # The secret must be the session's own: `UserTwoFactorController.complete/2` only finishes
+    # an enrollment of exactly that secret, so one invented here could never complete.
+    with true <- session["pending_2fa_setup_allowed"] == true,
+         secret when is_binary(secret) <- session["pending_2fa_setup_secret"] do
       user = socket.assigns.pending_2fa_user
-      secret = session["pending_2fa_setup_secret"] || Accounts.generate_totp_secret()
       uri = Accounts.totp_uri(secret, user.email)
 
       socket =
@@ -130,26 +133,41 @@ defmodule Goodmao2Web.UserLive.TwoFactorSetup do
 
       {:ok, socket}
     else
-      {:ok, push_navigate(socket, to: ~p"/users/two-factor")}
+      _ -> {:ok, push_navigate(socket, to: ~p"/users/two-factor")}
     end
   end
 
   @impl true
   def handle_event("confirm", %{"user" => %{"totp_code" => code}}, socket) do
-    user = socket.assigns.pending_2fa_user
+    # Re-read: another setup session for this account (another tab — or someone else holding
+    # the password) may have enrolled since this page mounted. Enrolling over it would replace a
+    # factor this session never proved, so the existing factor must be used to sign in instead.
+    user = Accounts.get_user!(socket.assigns.pending_2fa_user.id)
     secret = socket.assigns.secret
 
-    if Accounts.valid_totp?(secret, code) do
-      {:ok, user} = Accounts.enable_totp(user, secret)
-      codes = Accounts.generate_recovery_codes(user)
+    cond do
+      Accounts.totp_enabled?(user) or Accounts.webauthn_enabled?(user) ->
+        {:noreply,
+         socket
+         |> put_flash(
+           :error,
+           gettext("Two-step verification is already set up for this account. Use it to sign in.")
+         )
+         |> push_navigate(to: ~p"/users/two-factor")}
 
-      {:noreply,
-       socket
-       |> assign(:pending_2fa_user, user)
-       |> assign(:step, :show_codes)
-       |> assign(:recovery_codes, codes)}
-    else
-      {:noreply, put_flash(socket, :error, gettext("That code is not valid. Please try again."))}
+      is_binary(code) and Accounts.valid_totp?(secret, code) ->
+        {:ok, user} = Accounts.enable_totp(user, secret)
+        codes = Accounts.generate_recovery_codes(user)
+
+        {:noreply,
+         socket
+         |> assign(:pending_2fa_user, user)
+         |> assign(:step, :show_codes)
+         |> assign(:recovery_codes, codes)}
+
+      true ->
+        {:noreply,
+         put_flash(socket, :error, gettext("That code is not valid. Please try again."))}
     end
   end
 end

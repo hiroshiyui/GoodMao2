@@ -1,5 +1,6 @@
 defmodule Goodmao2Web.UserLive.RegistrationTest do
   use Goodmao2Web.ConnCase, async: true
+  use Oban.Testing, repo: Goodmao2.Repo
 
   import Phoenix.LiveViewTest
   import Goodmao2.AccountsFixtures
@@ -66,7 +67,10 @@ defmodule Goodmao2Web.UserLive.RegistrationTest do
       assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
       refute html =~ "has already been taken"
 
-      # The pre-existing account still received a magic-link login token.
+      # The pre-existing account still gets a magic-link login token, minted by the job.
+      assert_enqueued(worker: Goodmao2.Accounts.LoginLinkWorker, args: %{"user_id" => user.id})
+      assert :ok = perform_job(Goodmao2.Accounts.LoginLinkWorker, %{"user_id" => user.id})
+
       assert Goodmao2.Repo.get_by(Goodmao2.Accounts.UserToken,
                user_id: user.id,
                context: "login"

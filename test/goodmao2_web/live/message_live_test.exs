@@ -66,6 +66,42 @@ defmodule Goodmao2Web.MessageLiveTest do
       assert has_element?(lv, ".message-body", "Hello there")
     end
 
+    test "once the shared pet ends, the thread stays readable but offers no reply", %{
+      conn: conn,
+      user: user
+    } do
+      %{other: other, pet: pet} = with_sharer(%{user: user})
+      {:ok, conversation} = Messaging.start_conversation(user, other.email)
+      {:ok, _} = Messaging.send_message(other, conversation, "last words")
+      {:ok, lv, _html} = live(conn, ~p"/messages/#{conversation.id}")
+
+      [access] = Enum.filter(Goodmao2.Pets.list_accesses(pet), &(&1.user_id == other.id))
+      {:ok, _} = Goodmao2.Pets.revoke_access(user, pet, access)
+
+      # A form already on screen is refused at the context and then withdrawn.
+      lv |> form("#message-compose-form", message: %{body: "hello?"}) |> render_submit()
+      refute has_element?(lv, ".message-body", "hello?")
+      refute has_element?(lv, "#message-compose-form")
+
+      {:ok, lv, _html} = live(conn, ~p"/messages/#{conversation.id}")
+      assert has_element?(lv, ".message-body", "last words")
+      assert has_element?(lv, "#message-compose-closed")
+      refute has_element?(lv, "#message-compose-form")
+    end
+
+    test "the other participant is never labelled by their email", %{conn: conn, user: user} do
+      # user_fixture sets no handle or display name — exactly the case that fell back to email.
+      %{other: other} = with_sharer(%{user: user})
+      {:ok, conversation} = Messaging.start_conversation(user, other.email)
+
+      {:ok, _lv, html} = live(conn, ~p"/messages/#{conversation.id}")
+      refute html =~ other.email
+      assert html =~ "A GoodMao user"
+
+      {:ok, _lv, html} = live(conn, ~p"/messages")
+      refute html =~ other.email
+    end
+
     test "a non-participant is redirected (existence hidden)", %{user: user} do
       %{other: other} = with_sharer(%{user: user})
       {:ok, conversation} = Messaging.start_conversation(user, other.email)

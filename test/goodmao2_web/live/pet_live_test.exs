@@ -613,6 +613,22 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, ".log-revision-note", "before")
     end
 
+    test "the history names another editor without exposing their email", %{
+      conn: conn,
+      user: user
+    } do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      entry = log_entry_fixture(owner, pet, %{"note" => "before"})
+      {:ok, _} = Goodmao2.Logs.update_entry(owner, pet, entry, %{"note" => "after"})
+      grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+
+      assert has_element?(lv, ".log-revision-editor", "A GoodMao user")
+      refute html =~ owner.email
+    end
+
     test "an edited entry is marked on the timeline", %{conn: conn, user: user} do
       pet = pet_fixture(user)
       entry = log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
@@ -846,6 +862,79 @@ defmodule Goodmao2Web.PetLiveTest do
       grant_fixture(pet, owner, user, "viewer")
 
       assert {:error, {:live_redirect, %{to: "/pets"}}} = live(conn, ~p"/pets/#{pet.id}/access")
+    end
+
+    # Revoking a grant disconnects nothing, so a pet page opened while the grant was live keeps
+    # its PubSub subscription. Each pushed entry must be re-authorized against the grant as it
+    # stands now — otherwise an ex-caretaker's forgotten tab (or a vet's, after the time box
+    # ends) keeps streaming the pet's new health entries indefinitely.
+    test "a revoked viewer's open page stops receiving new entries", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      access = grant_fixture(pet, owner, user, "co_caretaker")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      {:ok, _} = Goodmao2.Pets.revoke_access(owner, pet, access)
+
+      entry = log_entry_fixture(owner, pet, %{"note" => "after revoke"})
+
+      render(lv)
+      refute has_element?(lv, "#entries-#{entry.id}")
+      refute render(lv) =~ "after revoke"
+    end
+
+    test "an expired grant's open page stops receiving new entries", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      access = grant_fixture(pet, owner, user, "vet")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      past = DateTime.utc_now() |> DateTime.add(-1, :hour) |> DateTime.truncate(:second)
+      access |> Ecto.Changeset.change(expires_at: past) |> Goodmao2.Repo.update!()
+
+      entry = log_entry_fixture(owner, pet, %{"note" => "after expiry"})
+
+      render(lv)
+      refute has_element?(lv, "#entries-#{entry.id}")
+      refute render(lv) =~ "after expiry"
+    end
+
+    test "a demoted owner's open page stops receiving others' private entries", %{
+      conn: conn,
+      user: user
+    } do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grant_fixture(pet, owner, user, "owner")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      grant_fixture(pet, owner, user, "viewer")
+
+      entry =
+        log_entry_fixture(owner, pet, %{"note" => "owners only", "visibility" => "private"})
+
+      render(lv)
+      refute has_element?(lv, "#entries-#{entry.id}")
+      refute render(lv) =~ "owners only"
+    end
+
+    test "an edit pushed to a revoked viewer's open page is not rendered", %{
+      conn: conn,
+      user: user
+    } do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      entry = log_entry_fixture(owner, pet)
+      access = grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      assert has_element?(lv, "#entries-#{entry.id}")
+      {:ok, _} = Goodmao2.Pets.revoke_access(owner, pet, access)
+
+      {:ok, _} = Goodmao2.Logs.update_entry(owner, pet, entry, %{"note" => "edited after revoke"})
+
+      refute render(lv) =~ "edited after revoke"
     end
   end
 
