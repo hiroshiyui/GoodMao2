@@ -55,6 +55,13 @@ notification from an Oban cron, computed in each schedule's own timezone.**
   co-caretaker, vet — the people who administer meds); **deleting** a schedule needs `:manage`
   (owner). Deleting soft-deletes and cancels future pending doses.
 
+- **Hidden history hides medications too** ([ADR-0003](0003-pet-lifecycle.md), decided
+  2026-09-18). Schedules and the given/skipped record are part of a pet's history, so while
+  `history_hidden` is set every read is empty, every write is refused (for every role, as for
+  log entries), and no `medication_due` reminder is sent. Due slots are left unclaimed, so
+  un-hiding within the grace window still reminds. The trade-off is explicit: hiding an active
+  pet's history also silences its dose reminders.
+
 - **Web surface.** `PetLive.Medications` (`/pets/:pet_id/medications`, linked from the pet page)
   lists schedules with a create form and a **live doses-due checklist** (one-tap Give / Skip,
   showing who gave each dose and when), refreshed over the pet's PubSub topic.

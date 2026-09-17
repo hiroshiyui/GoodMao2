@@ -35,7 +35,9 @@ When performing release engineering, always follow these steps:
    message `chore: release vX.Y.Z`.
 
 6. **Tag the release** — create an annotated Git tag (e.g., `git tag -a v1.2.3 -m "v1.2.3"`)
-   and push it to the remote (`git push --tags`).
+   and push it to the remote (`git push --tags`). Report the full commit SHA the tag names
+   (`git rev-parse v1.2.3^{commit}`): the deploy playbook pins the build to it as
+   `release_commit` and refuses a tag that has since been re-pointed.
 
 7. **Create a GitHub release** — if a GitHub remote is configured, use
    `gh release create vX.Y.Z` with the corresponding `CHANGELOG.md` section as the release

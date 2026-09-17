@@ -96,7 +96,9 @@ each described below; the web layer is thin LiveViews that call them.
   soft-delete exception). The `:wax_` config (RP id/origin) lives in `config/{dev,test,runtime}.exs`.
   Abuse throttles are per-address ETS sliding windows: `Accounts.RegistrationRateLimiter`
   (registration + magic-link emails) and `Accounts.LoginRateLimiter` (failed email+password
-  logins — a success resets the counter, and the generic error adds no enumeration/lockout oracle).
+  logins — a success resets the counter, and the generic error adds no enumeration/lockout oracle
+  — plus the **per-user second-factor budget**, charged before each factor is evaluated; the
+  pending session's own counter is cookie-held and resets on replay, so it bounds nothing alone).
 - **`Pets`** (`pets.ex`) — pets, `pet_accesses` grants, and the **resource-based
   authorization core** ([ADR-0014](doc/adr/0014-resource-based-authorization.md)). This is
   the security-critical module:
@@ -134,6 +136,7 @@ each described below; the web layer is thin LiveViews that call them.
   and give/skip a dose need **`:write`**; delete needs **`:manage`**. `Medications.ReminderWorker`
   (Oban cron, `*/15`) fills the horizon, ages overdue slots to `missed`, and fans out a
   **`medication_due`** bell + Web Push to effective `:write` caretakers, de-duped via `reminded_at`.
+  **Hidden history hides medications too** — reads empty, writes refused, no reminders.
   Web UI: `PetLive.Medications` (`/pets/:pet_id/medications`), linked from the pet page.
 - **`Media`** (`media.ex`) — purified LifeLog photos/videos attached to `life` logs
   ([ADR-0005](doc/adr/0005-media-storage.md)). Purification runs **off the request path**:
@@ -211,7 +214,9 @@ each described below; the web layer is thin LiveViews that call them.
   One conversation per unordered user pair (canonical `user_lo_id < user_hi_id`, DB `CHECK` +
   unique index). **Shared-pet gate:** `start_conversation/2` is allowed only between users with
   an effective grant on a common pet, returning a uniform non-leaking `{:error, :cannot_message}`
-  whether the recipient is unknown, self, or unshared. Thread reads require participation
+  whether the recipient is unknown, self, or unshared — and **re-checked on every send**, so a
+  thread goes read-only once the two stop sharing a pet; sends are also capped per user per hour
+  (`Messaging.SendRateLimiter`). Thread reads require participation
   (existence-hidden `nil`/`:not_participant`); each participant has a **read cursor**; messages
   are capped at 2 000 codepoints and soft-deleted. A new message also **Web Push**es to the other
   participant (`send_message/3` → `MessagePushWorker` → `Notifications.push_to_user/2`), gated on
@@ -285,6 +290,16 @@ doesn't flash a connection error.
   oversized value parses fine and then overflows Postgres `bigint`, so the range is bounded
   too. `Pets.fetch_pet/3`, `Logs.get_entry/3`, and `Messaging.fetch_conversation/2` all do
   this at the context boundary, which covers their LiveView and controller callers.
+- **Never render another user's email.** Where one user sees another (a conversation partner,
+  an editor in an entry's history), label them with `Layouts.public_label/1` — handle, display
+  name, or a generic "A GoodMao user". `Layouts.account_label/1` falls back to the email and is
+  only for the account's own owner, the administrator, or an owner's grant list.
+- **Security events are logged as `auth.*` / `accounts.*` lines** (failed/throttled logins,
+  second-factor failures and lockouts, factor/credential/password/email changes), carrying ids
+  and `UserAuth.client_ip/1` — never the password, code, token, or an attacker-supplied address.
+  Token-bearing request paths (magic links, share links) log below production's `:info`
+  (`Endpoint.request_log_level/1`) and nginx redacts them from its access log; send account
+  email through `Accounts.request_login_link/1` (an Oban job), never inline on a request.
 - Audit-only user references (`recorded_by_user_id`, `granted_by_user_id`,
   `created_by_user_id`) are plain id columns **without FK navigations** (deliberate — avoids
   multiple cascade paths).

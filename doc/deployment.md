@@ -43,7 +43,9 @@ A one-time, ordered checklist for the **first** deploy. Each step links to its d
 - [ ] **Provision** — `ansible-playbook playbooks/setup-server.yml` (pkgs incl. ffmpeg, PG15,
       asdf/Elixir, rust, nginx+certbot). Dry-run first with `--check --diff`.
 - [ ] **Deploy the release** — `ansible-playbook playbooks/deploy-goodmao2.yml`, choosing the git
-      tag you cut (e.g. **`v0.2.0`**). Ends by polling `/health` until it returns 200.
+      tag you cut (e.g. **`v0.2.0`**) and the full commit SHA it names in your clone
+      (`git rev-parse v0.2.0^{commit}`); the build refuses a tag that no longer names that commit.
+      Ends by polling `/health` until it returns 200.
 
 **First-boot steps the playbook does not cover (do these manually, once):**
 
@@ -107,7 +109,7 @@ Provisioned once and **shared** by both apps (Baudrate's `setup-server.yml` alre
 most of these — GoodMao2 adds only ffmpeg):
 
 - **Debian 12** (or similar), a non-login **service user** `goodmao`.
-- **asdf** toolchain pinned to GoodMao2's `.tool-versions`: **Erlang 28.3.1**, **Elixir 1.19.5**.
+- **asdf** toolchain pinned to GoodMao2's `.tool-versions`: **Erlang 28.5.0.6**, **Elixir 1.19.5**.
 - **Rust toolchain** — GoodMao2 builds a Rustler NIF (`native/goodmao2_native`), pinned by
   `rust-toolchain.toml`. The build host must have `rustup`.
 - **PostgreSQL 15**, reachable on `localhost` (TCP or unix socket).
@@ -298,10 +300,12 @@ reporting address at a mailbox you actually control, or add an apex MX first.
 
 ## Build → migrate → activate
 
-All as the `goodmao` user, `MIX_ENV=prod`, from the git tag being released:
+All as the `goodmao` user, `MIX_ENV=prod`, from the commit the release tag names (checked out by
+SHA, then confirmed against the tag — a tag can be re-pointed):
 
 ```sh
-cd /opt/goodmao2/src && git fetch --tags && git checkout <tag>
+cd /opt/goodmao2/src && git fetch --tags && git checkout <commit-sha>
+test "$(git rev-parse '<tag>^{commit}')" = "<commit-sha>"
 mix deps.get --only prod
 mix compile
 mix assets.deploy                 # tailwind/esbuild --minify + phx.digest

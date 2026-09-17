@@ -46,6 +46,13 @@ many-recipient fan-out runs through Oban. Web Push is a separate, later stage.**
   pair (a canonical pair key). Reading/sending within a thread requires **being a
   participant** (else `not_found`, existence hidden).
 
+  **The gate is re-checked on every send, not only at start** (2026-09-18). A thread outlives
+  the grant that opened it, and revoking an abusive ex-caretaker has to stop their messages —
+  each of which also Web Pushes the owner's phone — not merely new threads. Once the two no
+  longer share a pet, `send_message/3` returns the same uniform `:cannot_message` and the
+  thread becomes read-only for both; the history stays readable. Sending is also capped per
+  user per hour (`Messaging.SendRateLimiter`), so a current co-caretaker cannot flood either.
+
 - **2,000-character messages.** The message body is capped at 2,000 chars, enforced in the
   changeset and mirrored in the column length and the client counter.
 

@@ -8,7 +8,40 @@ skill).
 
 ## [Unreleased]
 
+**Upgrade notes.** Production must move to **Erlang/OTP 28.5.0.6** (`.tool-versions`,
+`erlang_version`) — the redeploy installs it. Deploys now take a `release_commit` (the full SHA
+the tag names in your clone). The session cookie is now encrypted, so every signed-in user
+without "remember me" is logged out once.
+
 ### Security
+
+- **Erlang/OTP 28.3.1 → 28.5.0.6.** 28.3.1's TLS client could be made to accept a forged
+  server certificate (CVE-2026-55953, CVE-2026-42789, CVE-2026-42790), exposing outbound SES
+  mail — magic-link tokens included — and Web Push to anyone on the network path.
+- **Open pet pages re-check access on every live update.** Revoking or expiring a grant (or
+  demoting an owner, or hiding the history) disconnected nothing, so an open page kept
+  receiving new entries — for a demoted owner, including other people's private ones.
+- **Second-factor brute force closed.** The attempt cap lived in the session cookie, and
+  replaying the pre-failure cookie reset it, allowing unlimited TOTP guesses with a stolen
+  password. Attempts are now charged to a per-user, server-side hourly budget. A TOTP code
+  can no longer be accepted twice by concurrent requests, and a parallel forced-setup session
+  can no longer complete on (or overwrite) the admin's own enrollment.
+- **2FA settings re-check sudo mode on every change**, not only when the page opened.
+- **Login throttle memory exhaustion.** Failed-login rows were keyed by the raw submitted
+  address, so megabyte-sized addresses could exhaust memory; keys are now digests and oversized
+  or non-string addresses are refused up front.
+- **Messaging stops when the shared pet does.** A revoked caretaker could keep messaging (and
+  push-notifying) an owner; sending now requires still sharing a pet, and is rate-limited.
+- **Hidden history hides medications** — schedules, doses, and reminders.
+- **Context-boundary binding.** Entries, reports, schedules, and grants passed alongside a pet
+  must belong to it, and edits can no longer re-parent an entry or schedule.
+- **Session cookie encrypted**; **tokens kept out of logs** (Phoenix and nginx); security events
+  logged; magic-link mail sent from a background job so response time no longer reveals
+  whether an address is registered; vet verdicts refuse credentials changed after review;
+  another user's email is no longer shown as their name; ffmpeg/ffprobe restricted to local
+  files; Web Push response bodies are never read; media files are private to the service user
+  (`0700` + `UMask=0077`); GitHub Actions are pinned by commit SHA and CI runs `mix hex.audit`;
+  deploys build an exact, tag-verified commit.
 
 - **Erlang distribution is closed to the other accounts on the host** (ADR-0021). The release
   joined the distribution with the cookie `mix release` writes into `releases/COOKIE`, which a

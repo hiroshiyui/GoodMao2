@@ -50,7 +50,9 @@ status transition that preserves the record — never a deletion.**
   (owner-only, reversible) fully hides the timeline, consistent with our
   existence-hiding IDOR convention (an inaccessible timeline is `not_found`, never
   "forbidden"). This is orthogonal to lifecycle status: hiding is opt-in and does not
-  happen automatically on end-of-care.
+  happen automatically on end-of-care. "Fully" includes medication schedules, doses, and
+  their reminders ([ADR-0019](0019-medication-schedules-and-reminders.md)), and the flag is
+  always read fresh from the database, so hiding takes effect on pages already open.
 
 ## Consequences
 

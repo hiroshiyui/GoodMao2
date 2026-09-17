@@ -31,7 +31,8 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   pre-created per schedule (in the schedule's own timezone → UTC); marking a dose given is an
   **atomic `pending → given` claim** that reuses the `medication` `log_entry` (`Logs.create_entry`).
   `Medications.ReminderWorker` (Oban cron) fills the horizon, ages overdue slots to `missed`, and
-  fans out a `medication_due` bell + Web Push to effective `:write` caretakers, de-duped.
+  fans out a `medication_due` bell + Web Push to effective `:write` caretakers, de-duped. A pet whose
+  history is hidden has its medications hidden too: reads empty, writes refused, no reminders.
 - **Media** (`media.ex`) — purified photos/videos attached to `life` logs (ADR-0005):
   ffmpeg-based purification (`Media.Purifier`), an id-keyed storage seam (`Media.Storage`),
   atomic create with the log, add/remove on an existing entry from its page
@@ -62,7 +63,9 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   it on input; backed by the pure-Elixir `tz` database (no runtime HTTP).
 - **Messaging** (`messaging.ex`) — private **1:1 mailbox** ([ADR-0011](adr/0011-notifications-and-messaging.md)):
   one conversation per unordered user pair, gated by the **shared-pet rule** (`can_message?/2`,
-  the effective-grant self-join) with a uniform non-leaking `:cannot_message`; thread reads
+  the effective-grant self-join) with a uniform non-leaking `:cannot_message`, re-checked on every
+  send (a thread goes read-only once the pet is no longer shared) and capped per sender per hour
+  (`SendRateLimiter`); thread reads
   require participation (existence-hidden), each participant carries a **read cursor**, and
   messages (2 000-codepoint cap) broadcast live per conversation.
 

@@ -23,6 +23,14 @@ reminders), `Media` (ffmpeg-purified LifeLog photos/videos + avatars, id-keyed s
   (returns `{:error, :not_found}` — IDOR-hidden — never "forbidden"). Re-check
   capability at the context boundary, not only in the LiveView. There is **no admin
   backdoor** to pet data. Keep the **≥1-owner invariant**.
+  Two ways a check made at mount goes stale, both of which leaked before:
+  - **A PubSub subscription outlives its grant.** Revoking, expiring, or demoting a grant (or
+    hiding the history) disconnects nothing, so never render a broadcast payload — re-read it
+    through the authorized context read (`Logs.get_entry/3`) in `handle_info`.
+  - **A `%Pet{}` assign is a snapshot.** Contexts read authorization state fresh (a role via
+    `Pets.effective_role/2`, the hidden-history flag via `Pets.history_hidden?/1`), and every
+    function taking a pet *and* a child record (entry, report, schedule, grant) refuses a child
+    of another pet.
 - **Log entries are one table** (`log_entries`) keyed by `type` with a `jsonb` `data`
   payload; per-type validation is in `LogEntry.changeset/2`. Entries are
   **soft-deleted** via `deleted_at` — never hard-delete; reads filter `deleted_at IS NULL`.

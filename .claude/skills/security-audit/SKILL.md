@@ -93,7 +93,10 @@ This skill audits security only. For correctness, tests, docs, and a11y, use `co
     or crafted POST cannot skip it. The `complete` (post-setup) action must refuse to issue a
     token unless a factor is actually enrolled.
   - **Brute force / replay.** Attempts are counted in the pending session and the session is
-    dropped after the cap; TOTP passes `since:` to reject same-window replay.
+    dropped after the cap — but the session is a client-held cookie, so that count resets when
+    a pre-failure cookie is replayed. The binding cap is the server-side per-user budget
+    (`LoginRateLimiter.reserve_second_factor/1`), charged before the factor is evaluated. TOTP
+    passes `since:` to reject same-window replay.
   - **Secrets at rest.** TOTP secrets are AES-256-GCM-encrypted (`Accounts.TotpVault`), recovery
     codes are HMAC-SHA256-hashed and single-use (atomic `Repo.update_all`). Confirm none are
     logged or returned in plaintext, and that `redact: true` is set on `users.totp_secret`.

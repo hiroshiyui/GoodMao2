@@ -49,7 +49,7 @@ co-hosting model and the collision table).
    ```
    No `--ask-vault-pass` — SOPS decrypts via your GPG key. You'll be prompted for
    the site domain (or set `GOODMAO_DOMAIN`), the Let's Encrypt email (or
-   `GOODMAO_CERTBOT_EMAIL`), and the release tag.
+   `GOODMAO_CERTBOT_EMAIL`), the release tag, and the commit SHA that tag names.
 
 ## What `setup-server.yml` Does
 
@@ -59,7 +59,7 @@ Provisions infrastructure only — does **not** deploy the application.
 |------|-----|---------|
 | `common` | `common` | System packages incl. **ffmpeg** (runtime media purification), `goodmao` user, UFW firewall, SSH hardening, fail2ban, NTP |
 | `postgresql` | `postgresql` | PostgreSQL 15, `goodmao` role + `goodmao2_prod` database, scram-sha-256 local auth |
-| `elixir` | `elixir` | asdf + Erlang 28.3.1 + Elixir 1.19.5 + Hex/Rebar |
+| `elixir` | `elixir` | asdf + Erlang 28.5.0.6 + Elixir 1.19.5 + Hex/Rebar |
 | `rust` | `rust` | rustup (minimal profile) for the `goodmao2_native` Rustler NIF |
 | `nginx` | `nginx` | nginx, Let's Encrypt SSL via certbot, reverse-proxy vhost keyed on `server_name` |
 
@@ -73,7 +73,10 @@ ansible-playbook playbooks/deploy-goodmao2.yml
 ```
 
 Prompts: **domain** (or `GOODMAO_DOMAIN`), **release tag** (a git tag like
-`v1.0.0`), **git repo** (defaults to the upstream). The SES credentials must
+`v1.0.0`), **release commit** (the full SHA that tag names in *your* clone —
+`git rev-parse v1.0.0^{commit}`), **git repo** (defaults to the upstream). The build checks out
+that exact commit and aborts if the tag on the remote now names anything else, so a re-pointed
+tag can't change what gets built. The SES credentials must
 already be in your SOPS secrets — the playbook asserts they exist, because the
 app fails to boot without them.
 
@@ -85,8 +88,8 @@ escalate to root.
 | Phase | Description |
 |-------|-------------|
 | Pre-flight | Verify `goodmao` user + asdf; warn if deploying an older version |
-| Directories | Create `releases/`, `shared/media/` (MEDIA_STORAGE_DIR), `env/` |
-| Source | Clone repo and check out the prompted release tag |
+| Directories | Create `releases/`, `shared/media/` (MEDIA_STORAGE_DIR, `0700`; existing objects stripped of group/other access), `env/` |
+| Source | Clone repo, check out the pinned commit, and abort unless the release tag still names it |
 | Build | `mix deps.get --only prod` → `compile` → `assets.deploy` → clean stale rel → `mix release` |
 | Install | Copy release to `releases/<timestamp>/` |
 | Env file | Generate this server's Erlang cookie once (`env/release_cookie`, 0600) and template `goodmao2.env` (DB, secret key base, `RELEASE_COOKIE`, media dir, SES mailer, …) |
@@ -107,7 +110,7 @@ escalate to root.
   current -> releases/20260722_150000         # Symlink to active release
   static  -> current/lib/goodmao2-*/priv/static   # Stable path for nginx /assets
   shared/
-    media/                                    # MEDIA_STORAGE_DIR — app-served, never static
+    media/                                    # MEDIA_STORAGE_DIR (0700; unit UMask=0077) — app-served, never static
   env/
     goodmao2.env                              # EnvironmentFile for systemd (mode 0600)
     release_cookie                            # Erlang cookie, generated once here (mode 0600)
@@ -118,7 +121,8 @@ escalate to root.
 Re-deploy with an older tag; the playbook warns and asks for confirmation:
 
 ```bash
-ansible-playbook playbooks/deploy-goodmao2.yml -e release_tag=v1.0.0
+ansible-playbook playbooks/deploy-goodmao2.yml \
+  -e release_tag=v1.0.0 -e release_commit="$(git rev-parse 'v1.0.0^{commit}')"
 ```
 
 **Note:** database migrations are **not** auto-rolled-back.

@@ -59,6 +59,12 @@ admin, gating every primary-auth path through a new pending-2FA stage. Use `wax_
   For the same reason a `:challenge` user must never reach the setup page: it would issue a
   fresh secret and `enable_totp/2` would overwrite the very factor being challenged.
 
+  **Nor is "some factor is enrolled" enough inside the setup flow.** Each login of a factor-less
+  admin opens its *own* setup session with its own secret, so a password thief can hold one
+  while the real admin enrolls in another. `complete` therefore finishes only when the stored
+  TOTP secret is the one *this* session was handed (constant-time compare), and the setup page
+  refuses to enroll once any factor exists — the account's existing factor must be used instead.
+
 - **Admin-required, everyone-else-opt-in.** `login_next_step/1` returns `:setup_required`
   only for `is_admin` users with no factor; regular users with no factor get
   `:authenticated`. The forced setup enrolls TOTP (QR + confirm), shows recovery codes once,
@@ -90,10 +96,16 @@ admin, gating every primary-auth path through a new pending-2FA stage. Use `wax_
 
 - **Brute force is throttled.** The completion controller re-verifies every factor
   authoritatively (a LiveView can't set the cookie, and a crafted POST can't skip the check),
-  counts attempts in the pending session, and **drops the session after 5 failures**. TOTP
-  replay within a 30 s window is rejected by persisting the last-consumed window in
-  `users.totp_last_used_at` and passing it as `NimbleTOTP`'s `since:` on the next verify (the
-  stamp is cleared when TOTP is disabled). The **primary** password step is throttled
+  counts attempts in the pending session, and **drops the session after 5 failures**. That
+  counter lives in the signed session *cookie*, so a client replaying its pre-failure cookie
+  resets it; the authoritative bound is therefore server-side — `Accounts.LoginRateLimiter`
+  charges every factor attempt to a **per-user** hourly budget *before* evaluating it and
+  refuses to evaluate any factor once it is spent (cleared only by a successful factor). TOTP
+  replay within a 30 s window is rejected by `Accounts.consume_totp/3`, which verifies the code
+  and claims its window in one conditional `UPDATE` of `users.totp_last_used_at` — a
+  read-then-stamp let two concurrent requests with the same code both pass (the stamp is
+  cleared when TOTP is disabled). The session cookie carrying the pending markers is
+  **encrypted**, not only signed, because during forced setup it also carries the raw seed. The **primary** password step is throttled
   separately by `Accounts.LoginRateLimiter` (per-address, failed attempts only, reset on success).
 
 ## Consequences
