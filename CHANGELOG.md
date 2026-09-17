@@ -8,51 +8,95 @@ skill).
 
 ## [Unreleased]
 
-**Upgrade notes.** Production must move to **Erlang/OTP 28.5.0.6** (`.tool-versions`,
-`erlang_version`) — the redeploy installs it. Deploys now take a `release_commit` (the full SHA
-the tag names in your clone). The session cookie is now encrypted, so every signed-in user
-without "remember me" is logged out once.
+## [1.3.0] - 2026-09-18
+
+A project-wide security audit and its follow-up. There are no new features, but the upgrade
+isn't drop-in, and several fixes are serious: **upgrading promptly is strongly recommended**,
+especially for the Erlang/OTP update and the second-factor fixes.
+
+**Upgrade notes.**
+
+- **Erlang/OTP 28.5.0.6.** Production must move off 28.3.1 (`.tool-versions`,
+  `erlang_version`); the deploy playbook installs it.
+- **Deploys pin a commit.** `deploy-goodmao2.yml` now requires `release_commit`, the full SHA
+  the release tag names in your own clone (`git rev-parse v1.3.0^{commit}`). It builds exactly
+  that commit and aborts if the tag on the remote now names anything else.
+- **Per-server Erlang cookie.** The release refuses to start without its own `RELEASE_COOKIE`.
+  The playbook generates one per server, but a remote console now needs the environment file
+  loaded (see `doc/deployment.md`).
+- **One-time logout.** The session cookie is now encrypted, so signed-in users without
+  "remember me" must log in again once.
 
 ### Security
 
 - **Erlang/OTP 28.3.1 → 28.5.0.6.** 28.3.1's TLS client could be made to accept a forged
-  server certificate (CVE-2026-55953, CVE-2026-42789, CVE-2026-42790), exposing outbound SES
-  mail — magic-link tokens included — and Web Push to anyone on the network path.
-- **Open pet pages re-check access on every live update.** Revoking or expiring a grant (or
-  demoting an owner, or hiding the history) disconnected nothing, so an open page kept
-  receiving new entries — for a demoted owner, including other people's private ones.
-- **Second-factor brute force closed.** The attempt cap lived in the session cookie, and
-  replaying the pre-failure cookie reset it, allowing unlimited TOTP guesses with a stolen
-  password. Attempts are now charged to a per-user, server-side hourly budget. A TOTP code
-  can no longer be accepted twice by concurrent requests, and a parallel forced-setup session
-  can no longer complete on (or overwrite) the admin's own enrollment.
-- **2FA settings re-check sudo mode on every change**, not only when the page opened.
-- **Login throttle memory exhaustion.** Failed-login rows were keyed by the raw submitted
-  address, so megabyte-sized addresses could exhaust memory; keys are now digests and oversized
-  or non-string addresses are refused up front.
-- **Messaging stops when the shared pet does.** A revoked caretaker could keep messaging (and
-  push-notifying) an owner; sending now requires still sharing a pet, and is rate-limited.
-- **Hidden history hides medications** — schedules, doses, and reminders.
-- **Context-boundary binding.** Entries, reports, schedules, and grants passed alongside a pet
-  must belong to it, and edits can no longer re-parent an entry or schedule.
-- **Session cookie encrypted**; **tokens kept out of logs** (Phoenix and nginx); security events
-  logged; magic-link mail sent from a background job so response time no longer reveals
-  whether an address is registered; vet verdicts refuse credentials changed after review;
-  another user's email is no longer shown as their name; ffmpeg/ffprobe restricted to local
-  files; Web Push response bodies are never read; media files are private to the service user
-  (`0700` + `UMask=0077`); GitHub Actions are pinned by commit SHA and CI runs `mix hex.audit`;
-  deploys build an exact, tag-verified commit.
+  server certificate (CVE-2026-55953, critical; CVE-2026-42789 and CVE-2026-42790, high).
+  Both outbound TLS clients were exposed to anyone on the network path: Amazon SES, whose
+  emails carry magic-link tokens, and Web Push.
+- **Erlang distribution was open to the other accounts on the host** (ADR-0021). The release
+  joined distribution with the cookie `mix release` writes to `releases/COOKIE`, which a deploy
+  left mode `0644`. Any account on the host, including the co-hosted Baudrate's, could read it
+  and run arbitrary code inside GoodMao2's node, and the node listened on every interface.
+  The release now refuses `start`, `remote`, `rpc`, `stop` and `pid` without its own
+  `RELEASE_COOKIE` (`env/release_cookie`, `0600`, generated once per server) and listens on
+  `127.0.0.1` only.
+- **Open pet pages kept streaming entries after access ended.** Revoking, expiring or demoting
+  a grant, or hiding the history, disconnected nothing, and the page rendered every live update
+  it was sent. An ex-caretaker's forgotten tab, or a vet's after their time box ended, kept
+  receiving the pet's new health entries; a demoted owner kept getting other people's private
+  ones. Every pushed entry is now re-read with the viewer's access as it stands now, and the
+  hidden-history flag is always read from the database, never from a page's snapshot.
+- **A stolen password allowed an unlimited online TOTP brute force.** The 5-attempt cap lived
+  in the session cookie, and posting every guess with the cookie from before the first failure
+  meant the count never rose. Attempts are now charged to a per-user, server-side hourly
+  budget before they are evaluated.
+- **Second-factor races.** Two concurrent requests with the same TOTP code could both succeed;
+  verification and replay claim are now one conditional update. A parallel forced-setup
+  session opened with a stolen password could complete on the admin's own enrollment, or
+  overwrite it; setup now finishes only on the secret its own session enrolled.
+- **2FA settings checked sudo mode only when the page opened**, so a tab left open past the
+  window could still turn off the authenticator or enroll someone else's. Every change now
+  re-checks.
+- **Unauthenticated memory exhaustion through the login throttle.** Failed attempts were keyed
+  by the raw submitted address and kept for an hour, so megabyte-sized addresses could exhaust
+  node memory. Keys are now digests, and oversized or non-string addresses are refused before
+  the throttle or the database see them (a non-string address also no longer returns a 500).
+- **Revoked caretakers could keep messaging, and push-notifying, an owner.** The shared-pet
+  gate applied only when a conversation started; see *Changed*.
+- **The session cookie was readable, not just tamper-proof.** During forced 2FA setup it
+  carried the raw TOTP seed. It is now encrypted.
+- **Registration was revealed by response time.** Only a registered address waited on the
+  outbound mail call; magic-link mail is now sent from a background job.
+- **Bearer tokens reached logs.** Magic-link, email-confirmation and share tokens in URL paths
+  were written by both Phoenix and nginx (including in Referer headers), and token and
+  second-factor params weren't filtered. All are now kept out of logs.
+- **A vet verdict could apply to credentials nobody reviewed**, if the applicant re-submitted
+  between the admin loading the queue and deciding. Stale verdicts are now refused.
+- **Another user's email was shown as their name** in conversations and entry edit history when
+  they had no handle or display name.
+- **Media files were readable by other accounts on the host**, including staged raw uploads
+  that still carry EXIF/GPS. The store is now `0700` and the service runs with `UMask=0077`.
+- **Defense in depth.**
+  - Entries, reports, medication schedules and grants passed alongside a pet must belong to
+    it, and edits can no longer move an entry or schedule to another pet.
+  - ffmpeg and ffprobe may read local files only.
+  - Web Push response bodies are never read, and push jobs have a hard deadline.
+  - Malformed notification and report ids no longer crash the page.
+- **Supply chain.** Deploys build a tag-verified commit, GitHub Actions are pinned by commit SHA,
+  and CI now runs `mix hex.audit` alongside `mix deps.audit`.
 
-- **Erlang distribution is closed to the other accounts on the host** (ADR-0021). The release
-  joined the distribution with the cookie `mix release` writes into `releases/COOKIE`, which a
-  deploy leaves mode `0644` under `/opt/goodmao2` — so any account on the host, including the
-  co-hosted Baudrate's, could read it and run arbitrary code inside GoodMao2's node. The node
-  also listened on every interface. The release now refuses `start`, `remote`, `rpc`, `stop`
-  and `pid` without a `RELEASE_COOKIE` of the server's own (and refuses the one in
-  `releases/COOKIE`); `deploy-goodmao2.yml` generates it once per server into
-  `env/release_cookie` (`0600`); and distribution listens on `127.0.0.1` only, as node
-  `goodmao2@127.0.0.1`. A remote console now needs the environment file loaded — see
-  `doc/deployment.md`.
+### Changed
+
+- **Messaging follows the shared pet.** Once two people no longer share a pet, their
+  conversation stays readable but can't be replied to, and the reply box explains why. Sending
+  is capped at 120 messages per user per hour.
+- **Hiding a pet's history also hides its medications**: schedules and doses aren't shown,
+  changes are refused, and no dose reminders are sent while hidden (ADR-0003, ADR-0019).
+- **Security events are logged**: failed and throttled logins, second-factor failures and
+  lockouts, and changes to second factors, security keys, passwords and emails. Lines carry
+  user ids and the client address, never the secret involved.
+- **Dependabot** now also covers the Rust NIF crate, the Rust toolchain, and the frontend
+  toolchain manifest.
 
 ## [1.2.2] - 2026-09-13
 
