@@ -10,9 +10,15 @@
 #
 # Secrets are decrypted automatically from all.sops.yml via your GPG key.
 #
+# The build is pinned to an exact commit, not to the tag: a git tag can be re-pointed by anyone
+# with push access, so the operator supplies the commit SHA the tag names in their own trusted
+# clone, and the deploy refuses to proceed unless the fetched tag still names that commit.
+#
+#   git rev-parse v1.0.0^{commit}      # in your local clone
+#
 # Usage:
 #   ansible-playbook playbooks/deploy-goodmao2.yml
-#   ansible-playbook playbooks/deploy-goodmao2.yml -e release_tag=v1.0.0
+#   ansible-playbook playbooks/deploy-goodmao2.yml -e release_tag=v1.0.0 -e release_commit=<40-hex SHA>
 #
 - name: Deploy GoodMao2
   hosts: production
@@ -26,6 +32,10 @@
 
     - name: release_tag
       prompt: "GitHub release tag to deploy (e.g. v1.0.0)"
+      private: false
+
+    - name: release_commit
+      prompt: "Full commit SHA that tag names in your local clone (git rev-parse <tag>^{commit})"
       private: false
 
     - name: git_repo
@@ -45,6 +55,15 @@
         that:
           - release_tag | length > 0
         fail_msg: "release_tag is required. Specify a git tag (e.g. v1.0.0)."
+
+    - name: Validate release_commit is a full commit SHA
+      ansible.builtin.assert:
+        that:
+          - release_commit is match('^[0-9a-f]{40}$')
+        fail_msg: >
+          release_commit must be the full 40-character commit SHA the release tag names in your
+          own clone (git rev-parse {{ release_tag }}^{commit}). An abbreviated SHA or a ref name
+          is refused: the point is to build exactly the commit you reviewed.
 
     - name: Validate SES credentials are available
       ansible.builtin.assert:

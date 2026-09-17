@@ -3,6 +3,25 @@
 # One of possibly several vhosts on this host (co-hosts with sibling Phoenix
 # apps by server_name); proxies to GoodMao2's own loopback port.
 
+# --- Access-log redaction ---
+# Magic-link, email-confirmation, and share links carry a live bearer token in the URL path, so
+# the default `combined` format would write every token into the access log -- and into the
+# Referer of every same-origin request a shared page makes. Log the path and referer with the
+# token segment replaced. (The application redacts its own request log the same way.)
+map $request_uri $goodmao2_log_uri {
+    "~^(?<goodmao2_uri_prefix>/(?:users/log-in|users/settings/confirm-email|entries/shared|reports/shared)/)[^/?]+(?<goodmao2_uri_rest>.*)$" "${goodmao2_uri_prefix}[FILTERED]${goodmao2_uri_rest}";
+    default $request_uri;
+}
+
+map $http_referer $goodmao2_log_referer {
+    "~^(?<goodmao2_ref_prefix>https?://[^/]+/(?:users/log-in|users/settings/confirm-email|entries/shared|reports/shared)/)[^/?]+(?<goodmao2_ref_rest>.*)$" "${goodmao2_ref_prefix}[FILTERED]${goodmao2_ref_rest}";
+    default $http_referer;
+}
+
+log_format goodmao2_redacted '$remote_addr - $remote_user [$time_local] '
+                             '"$request_method $goodmao2_log_uri $server_protocol" '
+                             '$status $body_bytes_sent "$goodmao2_log_referer" "$http_user_agent"';
+
 upstream goodmao2 {
     server 127.0.0.1:{{ app_port }};
 
@@ -29,6 +48,8 @@ server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
     server_name {{ domain }};
+
+    access_log /var/log/nginx/access.log goodmao2_redacted;
 
     # --- TLS (Let's Encrypt) ---
     # Mozilla Intermediate profile: https://ssl-config.mozilla.org/

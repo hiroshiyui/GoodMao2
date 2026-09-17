@@ -23,6 +23,8 @@ SyslogIdentifier=goodmao2
 # Security hardening. MEDIA_STORAGE_DIR is the ONLY writable path — everything
 # else the app touches (current/releases/env) is read-only.
 NoNewPrivileges=true
+# Media objects (and staged raw uploads, which still carry EXIF/GPS) are private to this user.
+UMask=0077
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths={{ media_path }}

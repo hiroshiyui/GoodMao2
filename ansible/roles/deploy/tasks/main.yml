@@ -1,8 +1,8 @@
 ---
 # GoodMao2 — Deploy role
 #
-# Builds GoodMao2 from a git release tag, creates an OTP release, manages
-# symlink-based releases, runs migrations, and restarts the service.
+# Builds GoodMao2 from an exact commit (verified against its release tag), creates an OTP
+# release, manages symlink-based releases, runs migrations, and restarts the service.
 
 # ============================================================
 # Phase 1: Pre-flight checks
@@ -88,6 +88,21 @@
     path: "{{ deploy_path }}/env"
     mode: "0700"
 
+# The media store holds every pet photo/video and, in `_staging`, raw uploads that still carry
+# EXIF/GPS until purified. It is served only through the app (never by nginx), so no other
+# account on the host -- including co-hosted apps' service users -- needs to read it.
+- name: Restrict media store permissions
+  ansible.builtin.file:
+    path: "{{ media_path }}"
+    mode: "0700"
+
+# The unit's UMask=0077 keeps new objects private; this catches objects written before it.
+- name: Remove group/other access from existing media objects
+  ansible.builtin.command:
+    argv: [find, "{{ media_path }}", -mindepth, "1", -perm, /077, -exec, chmod, go-rwx, "{}", +, -print]
+  register: media_permission_fix
+  changed_when: media_permission_fix.stdout | length > 0
+
 # ============================================================
 # Phase 3: Source checkout
 # ============================================================
@@ -96,12 +111,31 @@
   ansible.builtin.set_fact:
     release_timestamp: "{{ ansible_facts.date_time.date | replace('-', '') }}_{{ ansible_facts.date_time.time | replace(':', '') }}"
 
-- name: Clone or update source repository
+# Check out the operator-supplied commit, never the tag itself: a tag re-pointed on the remote
+# would otherwise decide what gets built and run with production secrets.
+- name: Clone or update source repository at the pinned commit
   ansible.builtin.git:
     repo: "{{ git_repo }}"
     dest: "{{ deploy_path }}/src"
-    version: "{{ release_tag }}"
+    version: "{{ release_commit }}"
     force: true
+  register: source_checkout
+
+- name: Resolve the release tag as fetched from the remote
+  ansible.builtin.command:
+    argv: [git, rev-parse, --verify, "{{ release_tag }}^{commit}"]
+    chdir: "{{ deploy_path }}/src"
+  register: fetched_tag_commit
+  changed_when: false
+
+- name: Refuse to build if the tag no longer names the pinned commit
+  ansible.builtin.assert:
+    that:
+      - source_checkout.after == release_commit
+      - fetched_tag_commit.stdout | trim == release_commit
+    fail_msg: >
+      {{ release_tag }} on {{ git_repo }} resolves to {{ fetched_tag_commit.stdout | trim }},
+      but you pinned {{ release_commit }}. The tag may have been re-pointed; nothing was built.
 
 # ============================================================
 # Phase 4: Build OTP release
@@ -175,6 +209,12 @@
   ansible.builtin.copy:
     content: "{{ release_tag }}"
     dest: "{{ deploy_path }}/releases/{{ release_timestamp }}/.release_tag"
+    mode: "0644"
+
+- name: Write release commit file
+  ansible.builtin.copy:
+    content: "{{ release_commit }}"
+    dest: "{{ deploy_path }}/releases/{{ release_timestamp }}/.release_commit"
     mode: "0644"
 
 # ============================================================
