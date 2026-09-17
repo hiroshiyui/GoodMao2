@@ -89,7 +89,7 @@ escalate to root.
 | Source | Clone repo and check out the prompted release tag |
 | Build | `mix deps.get --only prod` → `compile` → `assets.deploy` → clean stale rel → `mix release` |
 | Install | Copy release to `releases/<timestamp>/` |
-| Env file | Template `goodmao2.env` (DB, secret key base, media dir, SES mailer, …) |
+| Env file | Generate this server's Erlang cookie once (`env/release_cookie`, 0600) and template `goodmao2.env` (DB, secret key base, `RELEASE_COOKIE`, media dir, SES mailer, …) |
 | Systemd | Install and enable `goodmao2.service` |
 | Migrate | Source the env file, run `bin/migrate` from the new release |
 | Activate | Atomic symlink swap: `current` → new release |
@@ -110,6 +110,7 @@ escalate to root.
     media/                                    # MEDIA_STORAGE_DIR — app-served, never static
   env/
     goodmao2.env                              # EnvironmentFile for systemd (mode 0600)
+    release_cookie                            # Erlang cookie, generated once here (mode 0600)
 ```
 
 ### Rollback

@@ -181,6 +181,28 @@
 # Phase 6: Environment file
 # ============================================================
 
+# The cookie `mix release` writes into releases/COOKIE is readable by every account on
+# the host, so the release refuses to join the Erlang distribution with it
+# (rel/env.sh.eex, ADR-0021). Each server gets a cookie generated on it, once, readable
+# only by the service user; it is never sent to the controller's disk or into git.
+- name: Generate this server's Erlang distribution cookie (once)
+  ansible.builtin.shell:
+    cmd: umask 077 && head -c 48 /dev/urandom | base64 | tr -d '/+=\n' > release_cookie
+    chdir: "{{ deploy_path }}/env"
+    creates: "{{ deploy_path }}/env/release_cookie"
+
+- name: Read the Erlang distribution cookie
+  ansible.builtin.slurp:
+    src: "{{ deploy_path }}/env/release_cookie"
+  register: release_cookie_file
+  no_log: true
+
+- name: Check the Erlang distribution cookie
+  ansible.builtin.set_fact:
+    release_cookie: "{{ release_cookie_file.content | b64decode | trim }}"
+  failed_when: (release_cookie_file.content | b64decode | trim | length) < 32
+  no_log: true
+
 - name: Deploy environment file
   ansible.builtin.template:
     src: goodmao2.env.j2
