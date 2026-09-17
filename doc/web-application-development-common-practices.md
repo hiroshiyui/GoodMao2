@@ -246,6 +246,13 @@ failure mode that motivates it — the reasoning matters more than the rule.
 - **Dev/prod splits must be explicit and narrow.** Scope each divergence (HTTPS redirection,
   relaxed cookie policy, seed data) to the narrowest environment that needs it. Seed data
   must be idempotent and structurally unable to run outside dev.
+- **Co-hosted apps must not be able to read each other's runtime credentials — a firewall
+  cannot separate them.** Two BEAM releases on one host each accept anyone holding their
+  Erlang cookie, with full code execution, and every local account reaches `127.0.0.1`. The
+  cookie `mix release` wrote was world-readable under a `0755` deploy tree, so each app's
+  account could take over the other. Give each server a cookie only its service user can
+  read, have the release refuse the built-in one, and bind distribution to loopback
+  (ADR-0021).
 - **Coordinate graceful shutdown end-to-end**: the app's drain timeout, the supervisor's
   stop timeout, and the reverse proxy's retry policy must agree, or "zero-downtime deploy"
   drops requests at exactly one layer.

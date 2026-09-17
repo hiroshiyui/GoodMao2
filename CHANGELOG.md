@@ -8,6 +8,19 @@ skill).
 
 ## [Unreleased]
 
+### Security
+
+- **Erlang distribution is closed to the other accounts on the host** (ADR-0021). The release
+  joined the distribution with the cookie `mix release` writes into `releases/COOKIE`, which a
+  deploy leaves mode `0644` under `/opt/goodmao2` — so any account on the host, including the
+  co-hosted Baudrate's, could read it and run arbitrary code inside GoodMao2's node. The node
+  also listened on every interface. The release now refuses `start`, `remote`, `rpc`, `stop`
+  and `pid` without a `RELEASE_COOKIE` of the server's own (and refuses the one in
+  `releases/COOKIE`); `deploy-goodmao2.yml` generates it once per server into
+  `env/release_cookie` (`0600`); and distribution listens on `127.0.0.1` only, as node
+  `goodmao2@127.0.0.1`. A remote console now needs the environment file loaded — see
+  `doc/deployment.md`.
+
 ## [1.2.2] - 2026-09-13
 
 A dependency-maintenance release. No application behaviour changes, but it patches six

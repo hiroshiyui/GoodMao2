@@ -64,6 +64,7 @@ valid:
 | [0018](0018-timezone-display-policy.md) | Timezone-aware display and input | Accepted (shipped) |
 | [0019](0019-medication-schedules-and-reminders.md) | Medication schedules, materialized doses, and reminders | Accepted (shipped) |
 | [0020](0020-profile-images.md) | Profile images (avatars) for users and pets | Accepted (shipped) |
+| [0021](0021-loopback-erlang-distribution-and-per-server-cookie.md) | Erlang distribution on loopback, with a cookie per server | Accepted |
 
 _Add a row per ADR as it lands._
 

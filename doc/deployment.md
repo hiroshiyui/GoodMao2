@@ -86,10 +86,20 @@ them consistent across the env file, the systemd unit, and the nginx upstream:
 | systemd unit         | `baudrate.service`           | `goodmao2.service`                         |
 | Service user         | `baudrate`                   | `goodmao`                                  |
 | nginx `server_name`  | Baudrate's domain            | GoodMao2's domain → upstream `127.0.0.1:5000` |
+| Erlang node / cookie | `baudrate@127.0.0.1`, own cookie | `goodmao2@127.0.0.1`, own cookie (`RELEASE_COOKIE`) |
 
 The `port: 443` in `config/runtime.exs` is only the **canonical-URL** host used to generate
 `https://…` links — **not** a listener. The app listens plain HTTP on `PORT`, bound to all
 interfaces, and nginx is the only thing terminating TLS.
+
+**The Erlang cookie is the one identifier a firewall cannot keep apart.** Both apps run on
+one host, and every local account reaches `127.0.0.1`; a node admits anyone holding its
+cookie, with full code execution as the app's user. The cookie `mix release` writes into
+`releases/COOKIE` is mode `0644` under a `0755` tree, so each app's account could read the
+other's. The release therefore refuses to start, `remote`, `rpc` or `stop` without a
+`RELEASE_COOKIE` of the server's own (`rel/env.sh.eex`), Ansible generates one per server into
+`env/release_cookie` (`0600`), and distribution listens on `127.0.0.1` only
+([ADR-0021](adr/0021-loopback-erlang-distribution-and-per-server-cookie.md)).
 
 ## Host prerequisites
 
@@ -281,7 +291,9 @@ reporting address at a mailbox you actually control, or add an apex MX first.
 ├── current -> releases/<ts>   # atomic symlink the systemd unit runs from
 ├── static/              # digested priv/static, served directly by nginx
 ├── shared/media/        # MEDIA_STORAGE_DIR — survives releases, backed up
-└── env/goodmao2.env     # 0600 secrets, EnvironmentFile= for systemd
+└── env/                # 0700, owned by goodmao
+    ├── goodmao2.env     # 0600 secrets, EnvironmentFile= for systemd
+    └── release_cookie   # 0600 Erlang cookie, generated once on the server (ADR-0021)
 ```
 
 ## Build → migrate → activate
@@ -311,7 +323,16 @@ sudo systemctl restart goodmao2
 
 The release ships `bin/server` (`PHX_SERVER=true exec ./goodmao2 start`) and `bin/migrate`
 (`exec ./goodmao2 eval Goodmao2.Release.migrate`) via `rel/overlays/bin/` — the same shape
-Baudrate uses. `bin/goodmao2 remote` opens an IEx session against the running node.
+Baudrate uses. `bin/goodmao2 remote` opens an IEx session against the running node; it needs
+the server's `RELEASE_COOKIE`, so run it with the environment file loaded (as root):
+
+```sh
+sudo -u goodmao sh -c 'set -a; . /opt/goodmao2/env/goodmao2.env; exec /opt/goodmao2/current/bin/goodmao2 remote'
+```
+
+A hand-built deploy must put `RELEASE_COOKIE` (at least 32 random characters, e.g.
+`head -c 48 /dev/urandom | base64 | tr -d '/+=\n'`) into `goodmao2.env` before the first start —
+the release refuses to start without it (ADR-0021). `bin/migrate` runs `eval`, which needs none.
 
 ## systemd unit
 
