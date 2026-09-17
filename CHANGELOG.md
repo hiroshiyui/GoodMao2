@@ -17,7 +17,9 @@ especially for the Erlang/OTP update and the second-factor fixes.
 **Upgrade notes.**
 
 - **Erlang/OTP 28.5.0.6.** Production must move off 28.3.1 (`.tool-versions`,
-  `erlang_version`); the deploy playbook installs it.
+  `erlang_version`). The deploy playbook *builds with* the pinned runtime but does not install
+  it, so run `ansible-playbook playbooks/setup-server.yml --tags elixir,nginx` first. The
+  `nginx` tag applies the access-log token redaction; it too is outside the deploy playbook.
 - **Deploys pin a commit.** `deploy-goodmao2.yml` now requires `release_commit`, the full SHA
   the release tag names in your own clone (`git rev-parse v1.3.0^{commit}`). It builds exactly
   that commit and aborts if the tag on the remote now names anything else.

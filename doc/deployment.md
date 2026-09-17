@@ -41,7 +41,10 @@ A one-time, ordered checklist for the **first** deploy. Each step links to its d
 - [ ] **Pin the admin** — set `site_owner_email` in `group_vars/production.yml`. This closes the
       "first registrant wins admin" race (ADR-0016) on a public URL. **Recommended for any real deploy.**
 - [ ] **Provision** — `ansible-playbook playbooks/setup-server.yml` (pkgs incl. ffmpeg, PG15,
-      asdf/Elixir, rust, nginx+certbot). Dry-run first with `--check --diff`.
+      asdf/Elixir, rust, nginx+certbot). Dry-run first with `--check --diff`. **Re-run the
+      affected roles whenever a release changes them** — the deploy playbook installs nothing: an
+      Erlang/Elixir bump in `.tool-versions` needs `--tags elixir` (or the build fails), and an
+      nginx template change needs `--tags nginx`.
 - [ ] **Deploy the release** — `ansible-playbook playbooks/deploy-goodmao2.yml`, choosing the git
       tag you cut (e.g. **`v0.2.0`**) and the full commit SHA it names in your clone
       (`git rev-parse v0.2.0^{commit}`); the build refuses a tag that no longer names that commit.
