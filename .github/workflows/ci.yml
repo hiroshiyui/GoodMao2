@@ -37,7 +37,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # The media purification toolchain (ADR-0005): ffmpeg/ffprobe re-encode images and
       # remux video to strip EXIF/GPS. The suite generates real test clips (needs libx264).
@@ -46,13 +46,13 @@ jobs:
 
       # Pin Erlang/Elixir to the versions in .tool-versions.
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           version-file: .tool-versions
           version-type: strict
 
       - name: Cache deps and _build
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             deps
@@ -72,7 +72,7 @@ jobs:
       # silently build the app with the old esbuild. Hashing the file that declares the version
       # cannot drift from it; the cost is one extra download when any config changes.
       - name: Cache the esbuild binary
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: _build/esbuild-*
           key: ${{ runner.os }}-esbuild-${{ hashFiles('config/config.exs') }}
@@ -91,7 +91,7 @@ jobs:
       # against the other. Caching `target/` as well keeps a miss to seconds rather than a
       # cold Rust build.
       - name: Cache the compiled Rust NIF
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             priv/native
@@ -123,8 +123,13 @@ jobs:
       - name: Check formatting
         run: mix format --check-formatted
 
+      # Two advisory databases, deliberately: they disagree (a HIGH bandit advisory was in
+      # hex.pm's and absent from mix_audit's), and `mix precommit` already runs both.
       - name: Dependency advisory audit
         run: mix deps.audit
+
+      - name: Hex retirement and advisory audit
+        run: mix hex.audit
 
       - name: Static security scan (Sobelow)
         run: mix sobelow --config
