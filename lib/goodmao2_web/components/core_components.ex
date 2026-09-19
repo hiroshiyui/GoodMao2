@@ -343,20 +343,30 @@ defmodule Goodmao2Web.CoreComponents do
 
   def visibility_select(assigns) do
     assigns =
-      assign_new(assigns, :hint_id, fn -> "#{assigns.id || assigns.field.id}-hint" end)
+      assigns
+      |> assign_new(:hint_id, fn -> "#{assigns.id || assigns.field.id}-hint" end)
+      # QuickLog builds its form from an empty map, so this field arrives with a nil value.
+      # A <select> with no matching option selects its first one, and `visibilities` lists
+      # `private` first -- so the browser submitted `visibility=private` on every QuickLog
+      # entry, and co-caretakers and vets saw nothing anyone logged. The server-side
+      # `|| "limited"` fallback never fired, because the param was present, just wrong. The
+      # hint below already read `@field.value || "limited"`, so the control was telling the
+      # user "limited" while submitting "private". ADR-0004 makes `limited` the default.
+      |> assign(:value, assigns.field.value || "limited")
 
     ~H"""
     <div>
       <.input
         field={@field}
         id={@id}
+        value={@value}
         type="select"
         label={gettext("Visibility")}
         options={Enum.map(@visibilities, &{Helpers.visibility_option_label(&1), &1})}
         aria-describedby={@hint_id}
       />
       <p id={@hint_id} class="visibility-hint mt-1 text-xs text-base-content/70">
-        {Helpers.visibility_hint(to_string(@field.value || "limited"))}
+        {Helpers.visibility_hint(to_string(@value))}
       </p>
     </div>
     """

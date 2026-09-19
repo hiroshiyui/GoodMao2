@@ -138,4 +138,39 @@ defmodule Goodmao2Web.CoreComponentsTest do
       assert html =~ "Mao"
     end
   end
+
+  describe "visibility_select/1" do
+    defp visibility_html(value) do
+      field = Phoenix.Component.to_form(%{"visibility" => value}, as: :log)[:visibility]
+
+      render_component(&visibility_select/1,
+        field: field,
+        visibilities: Goodmao2.Logs.LogEntry.visibilities()
+      )
+    end
+
+    test "defaults an unset field to limited, not to the first option" do
+      # QuickLog builds its form from an empty map. A <select> with no matching option selects
+      # its first, and `visibilities` starts with `private` -- so every entry logged in a real
+      # browser was saved private and no co-caretaker or vet could see it. ADR-0004 makes
+      # `limited` the default. A LiveView test never caught this because render_submit omits
+      # the field entirely, which does hit the server's `|| "limited"` fallback.
+      html = visibility_html(nil)
+
+      assert html =~ ~s(<option selected value="limited">)
+      refute html =~ ~s(<option selected value="private">)
+    end
+
+    test "keeps an explicit choice" do
+      assert visibility_html("public") =~ ~s(<option selected value="public">)
+    end
+
+    test "describes the scope it is actually set to" do
+      # The hint and the selected option are read from one value, so they cannot disagree --
+      # which is how the bug above hid: the hint said "limited" while the select said private.
+      assert visibility_html(nil) =~ "visibility-hint"
+      assert visibility_html(nil) =~ Goodmao2Web.Helpers.visibility_hint("limited")
+      assert visibility_html("public") =~ Goodmao2Web.Helpers.visibility_hint("public")
+    end
+  end
 end
