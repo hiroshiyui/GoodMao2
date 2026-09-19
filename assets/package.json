@@ -3,7 +3,7 @@
   "private": true,
   "description": "Version manifest only, never installed. Mirrors the esbuild/Tailwind versions pinned in config/config.exs and the daisyUI vendored under assets/vendor/, so Dependabot can see them. Goodmao2.AssetVersionsTest fails if they drift.",
   "devDependencies": {
-    "daisyui": "5.7.37",
+    "daisyui": "5.7.38",
     "esbuild": "0.28.2",
     "tailwindcss": "4.3.3"
   }
