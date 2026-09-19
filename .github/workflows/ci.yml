@@ -152,3 +152,126 @@ jobs:
 
       - name: Run tests
         run: mix test
+
+  feature:
+    name: mix test.feature
+    runs-on: ubuntu-latest
+    # A browser that stops responding would otherwise sit here until the six-hour default.
+    # The suite takes ~80s locally; this is generous enough for a cold JVM and a cache miss.
+    timeout-minutes: 20
+    env:
+      MIX_ENV: test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: goodmao2
+          POSTGRES_PASSWORD: goodmao2
+          POSTGRES_DB: goodmao2_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U goodmao2"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # ffmpeg is deliberately not installed here: no feature test uploads media, so the
+      # purifier never runs. Add it (as the `test` job does) if one ever does.
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps and _build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      # `mix test.feature` runs `assets.build`, which needs the Tailwind binary as well as
+      # esbuild. Same caching rationale as the `test` job: keyed on the file that declares the
+      # version, because `--if-missing` keeps whatever binary it finds and a stale key would
+      # silently build with the old one.
+      - name: Cache the esbuild and Tailwind binaries
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            _build/esbuild-*
+            _build/tailwind-*
+          key: ${{ runner.os }}-assets-${{ hashFiles('config/config.exs') }}
+
+      - name: Cache the compiled Rust NIF
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            priv/native
+            native/goodmao2_native/target
+          key: ${{ runner.os }}-nif-${{ hashFiles('native/goodmao2_native/src/**', 'native/goodmao2_native/Cargo.toml', 'native/goodmao2_native/Cargo.lock', 'rust-toolchain.toml', 'mix.lock') }}
+
+      # The Selenium JAR is ~58 MB and GeckoDriver is compiled from its source crate, so a
+      # miss costs a download plus a Rust build. Keyed on the task itself: it holds both
+      # pinned versions and both SHA-256 checksums, so the key cannot drift from what it
+      # installs.
+      #
+      # The runner image already ships Firefox and GeckoDriver 0.37.1 -- the same version this
+      # pins -- but the image takes GeckoDriver from the upstream release binaries, which are
+      # signed by a Mozilla subkey revoked as compromised. That is the whole reason the task
+      # builds it from source, so CI installs it the same way rather than borrowing the
+      # image's copy. Firefox itself comes from the image.
+      - name: Cache Selenium Server and GeckoDriver
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tmp/selenium
+          key: ${{ runner.os }}-selenium-${{ hashFiles('lib/mix/tasks/selenium_setup.ex') }}
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Force a NIF rebuild when it is absent
+        run: |
+          if [ ! -f priv/native/goodmao2_native.so ]; then
+            echo "NIF missing -- clearing the app build so the compile step rebuilds it"
+            rm -rf "_build/${MIX_ENV}/lib/goodmao2"
+          fi
+
+      # Fail with something readable rather than "Could not start a new session" if the image
+      # ever drops the browser.
+      - name: Check Firefox is present
+        run: firefox --version || { echo "::error::Firefox is not on this runner; the feature tests cannot run"; exit 1; }
+
+      - name: Install the asset toolchain
+        # Both installers reach npm on a cache miss, and a single registry 504 has failed an
+        # otherwise green build before. Retry before giving up.
+        run: |
+          for attempt in 1 2 3; do
+            mix assets.setup && break
+            echo "asset toolchain install failed (attempt $attempt/3); retrying in $((attempt * 5))s"
+            sleep $((attempt * 5))
+          done
+          mix assets.setup
+
+      - name: Install Selenium Server and GeckoDriver
+        run: mix selenium.setup
+
+      # Starts the Selenium server itself (test_helper.exs) and drives a real Firefox.
+      - name: Run browser feature tests
+        run: mix test.feature
+
+      # A browser failure is almost unreadable from a stack trace alone; Wallaby writes a
+      # screenshot per failure, which is usually the whole diagnosis.
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: wallaby-screenshots
+          path: tmp/wallaby_screenshots/
+          if-no-files-found: ignore
+          retention-days: 7
