@@ -33,7 +33,7 @@ defmodule Goodmao2.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [precommit: :test, "test.feature": :test]
     ]
   end
 
@@ -91,7 +91,10 @@ defmodule Goodmao2.MixProject do
       {:bandit, "~> 1.5"},
       # Security tooling — advisory audit of deps and a Phoenix-aware static scan.
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      # Browser-driven feature tests (Wallaby + Selenium/Firefox). Excluded from `mix test`
+      # by default; see `mix test.feature` and `mix selenium.setup`.
+      {:wallaby, "~> 0.30", only: :test, runtime: false}
     ]
   end
 
@@ -107,6 +110,16 @@ defmodule Goodmao2.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      # Browser-driven feature tests. They need Firefox plus the Selenium server and
+      # GeckoDriver that `mix selenium.setup` installs into tmp/selenium/, so they are
+      # excluded from `mix test` (test_helper.exs) and opted into here. Not part of
+      # `precommit`: the gate must stay runnable without a browser.
+      "test.feature": [
+        "ecto.create --quiet",
+        "ecto.migrate --quiet",
+        "assets.build",
+        "test --only feature --include feature"
+      ],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": [
         "compile",

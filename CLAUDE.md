@@ -35,6 +35,9 @@ mix test test/goodmao2/pets_test.exs           # one file
 mix test test/goodmao2/pets_test.exs:42        # one test by line
 mix test --failed                              # re-run last failures
 
+mix selenium.setup             # ONE-TIME: Selenium Server + GeckoDriver into tmp/ (git-ignored)
+mix test.feature               # browser tests (Wallaby + Selenium/Firefox); excluded from `mix test`
+
 mix ecto.gen.migration <name>  # ALWAYS generate migrations this way (correct timestamp)
 mix ecto.migrate               # apply
 mix ecto.reset                 # drop + recreate + migrate + seed
@@ -310,6 +313,20 @@ doesn't flash a connection error.
   appends the ` · GoodMao` suffix *unconditionally*, so a page without a title renders
   `GoodMao · GoodMao`. Set it in `mount` (LiveView) or before `render/2` (controller), usually
   matching the page's `<.header>` text; never assign the bare brand as the title.
+- **Browser tests are the only ones that run the client.** `test/goodmao2_web/features/`
+  (`use Goodmao2Web.FeatureCase`, every test tagged `@moduletag :feature`) drives a real
+  Firefox through Wallaby + Selenium. Everything else — including every LiveView test — talks
+  to the LiveView process and never loads a page, so a `phx-hook` that throws, a hook name
+  that was never registered, or a `<select>` whose default differs from the server's fallback
+  all pass the whole suite while the page is wrong in a browser. `js_errors_test.exs` crawls
+  every signed-in page and fails on any `window` error, unhandled rejection, `console.error`
+  or `phx-error`; add new routes to its path list. They are **excluded from `mix test` and
+  from `precommit`** (the gate has to run without a browser) — run `mix test.feature`, after
+  `mix selenium.setup` once. That task pins both downloads by SHA-256 and builds GeckoDriver
+  from its source crate, because the 0.37.x release binaries are signed by a Mozilla subkey
+  revoked as compromised. Selenium listens on **4445**, not its default 4444, so a server
+  another checkout started cannot be mistakenly reused (a health check cannot tell whether it
+  has *this* project's GeckoDriver on its PATH).
 - Tests mirror `lib/` under `test/`: `use Goodmao2.DataCase` for contexts, `use
   Goodmao2Web.ConnCase` (+ `setup :register_and_log_in_user`) for LiveViews. Pet/log test
   data comes from `Goodmao2.PetsFixtures`.

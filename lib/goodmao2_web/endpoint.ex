@@ -64,6 +64,16 @@ defmodule Goodmao2Web.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+
+  # Browser feature tests run the endpoint for real, so their requests arrive on the server's
+  # own processes rather than the test's. This plug reads the sandbox owner out of the user
+  # agent Wallaby stamps, letting those requests join the test's transaction -- without it a
+  # browser test sees an empty database. Compiled only when :sql_sandbox is set, which is
+  # config/test.exs alone.
+  if Application.compile_env(:goodmao2, :sql_sandbox, false) do
+    plug Phoenix.Ecto.SQL.Sandbox
+  end
+
   plug Goodmao2Web.Router
 
   @doc false

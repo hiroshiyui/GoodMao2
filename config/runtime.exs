@@ -20,8 +20,13 @@ if System.get_env("PHX_SERVER") do
   config :goodmao2, Goodmao2Web.Endpoint, server: true
 end
 
-config :goodmao2, Goodmao2Web.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+# Not in :test -- config/test.exs derives the port from MIX_TEST_PARTITION so partitioned
+# runs do not collide, and the browser feature tests need the endpoint on that exact port.
+# This line runs after it and would otherwise put every partition back on 4000.
+if config_env() != :test do
+  config :goodmao2, Goodmao2Web.Endpoint,
+    http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+end
 
 # Optional: pin the bootstrap administrator. When set, only this email may create the
 # *first* account (which becomes the sole admin), closing the "first registrant wins

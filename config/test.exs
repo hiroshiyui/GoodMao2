@@ -16,12 +16,17 @@ config :goodmao2, Goodmao2.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
-# We don't run a server during test. If one is required,
-# you can enable the server option below.
+# The browser feature tests drive a real server, so it has to be listening. Partitioned runs
+# each need their own port, or the second partition binds over the first.
+partition = String.to_integer(System.get_env("MIX_TEST_PARTITION") || "0")
+
 config :goodmao2, Goodmao2Web.Endpoint,
-  http: [ip: {127, 0, 0, 1}, port: 4002],
+  http: [ip: {127, 0, 0, 1}, port: 4002 + partition],
   secret_key_base: "dti3ODpwDTQdA4KBZ4q6O+UK2ejVe9622a0zvYz2liA4NSQBqRQcMkSkvASoV/0Z",
-  server: false
+  server: true
+
+# Lets Phoenix.Ecto.SQL.Sandbox into the endpoint (see its comment there). Compile-time.
+config :goodmao2, :sql_sandbox, true
 
 # In test we don't send emails
 config :goodmao2, Goodmao2.Mailer, adapter: Swoosh.Adapters.Test
@@ -73,3 +78,31 @@ config :goodmao2, Goodmao2.Notifications.WebPush.SafeClient,
 config :wax_,
   origin: "https://localhost:4001",
   rp_id: "localhost"
+
+# Wallaby drives Firefox through a Selenium standalone server on 127.0.0.1:4444, started on
+# demand by `Goodmao2Web.SeleniumServer` and installed by `mix selenium.setup`.
+#
+# Feature tests are excluded from `mix test` (see test_helper.exs); run them with
+# `mix test.feature`.
+config :wallaby,
+  driver: Wallaby.Selenium,
+  base_url: "http://localhost:#{4002 + partition}",
+  selenium: [
+    remote_url: "http://localhost:#{System.get_env("GOODMAO2_SELENIUM_PORT") || 4445}/wd/hub/",
+    capabilities: %{
+      "browserName" => "firefox",
+      "moz:firefoxOptions" => %{
+        "args" => ["-headless"],
+        "prefs" => %{
+          "general.useragent.override" => "Wallaby/Firefox",
+          # Firefox answers WebAuthn from the WebDriver virtual authenticator
+          # (FeatureCase.add_virtual_authenticator/1) only with its software token on and USB
+          # tokens off; otherwise the ceremony either fails or hangs waiting for hardware.
+          "security.webauth.webauthn_enable_softtoken" => true,
+          "security.webauth.webauthn_enable_usbtoken" => false
+        }
+      }
+    }
+  ],
+  screenshot_on_failure: true,
+  screenshot_dir: "tmp/wallaby_screenshots"
