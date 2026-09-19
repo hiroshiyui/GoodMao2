@@ -29,6 +29,16 @@
     </script>
     <script nonce={assigns[:csp_nonce]}>
       (() => {
+        // The pill behind the theme buttons is a visual cue only, so each button also carries
+        // aria-pressed. The choice lives in localStorage and the server never sees it, so this
+        // is the only place that knows it; it re-runs after a LiveView patch because morphdom
+        // restores the server-rendered "false".
+        const syncThemeButtons = (theme) => {
+          document.querySelectorAll("[data-phx-theme]").forEach((btn) => {
+            btn.setAttribute("aria-pressed", String(btn.dataset.phxTheme === theme));
+          });
+        };
+        const currentTheme = () => localStorage.getItem("phx:theme") || "system";
         const setTheme = (theme) => {
           if (theme === "system") {
             localStorage.removeItem("phx:theme");
@@ -37,6 +47,7 @@
             localStorage.setItem("phx:theme", theme);
             document.documentElement.setAttribute("data-theme", theme);
           }
+          syncThemeButtons(theme);
         };
         if (!document.documentElement.hasAttribute("data-theme")) {
           setTheme(localStorage.getItem("phx:theme") || "system");
@@ -46,8 +57,12 @@
         fs = Math.max(100, Math.min(175, fs));
         document.documentElement.style.fontSize = fs + "%";
         window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
-        
+
         window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
+        // This script runs in <head>, before the buttons exist, and again after every patch.
+        const resync = () => syncThemeButtons(currentTheme());
+        document.addEventListener("DOMContentLoaded", resync);
+        window.addEventListener("phx:page-loading-stop", resync);
       })();
     </script>
   </head>

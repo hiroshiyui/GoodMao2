@@ -29,4 +29,71 @@ defmodule Goodmao2Web.CoreComponentsTest do
       refute render_component(&flash/1, kind: :error, flash: %{"info" => "not mine"}) =~ "alert"
     end
   end
+
+  describe "input/1 error wiring" do
+    # A red ring and an adjacent message are colour-and-proximity cues: neither reaches a screen
+    # reader, which announces a field from its label, its state, and its description. Without
+    # these two attributes an invalid field is indistinguishable from a valid one.
+    test "marks an invalid field and points it at its message" do
+      html =
+        render_component(&input/1,
+          id: "user_email",
+          name: "user[email]",
+          value: "nope",
+          errors: ["must have the @ sign"]
+        )
+
+      assert html =~ ~s(aria-invalid="true")
+      assert html =~ ~s(aria-describedby="user_email-error")
+      assert html =~ ~s(id="user_email-error")
+      assert html =~ "must have the @ sign"
+    end
+
+    test "leaves a valid field undescribed and not marked invalid" do
+      html =
+        render_component(&input/1,
+          id: "user_email",
+          name: "user[email]",
+          value: "a@b.c",
+          errors: []
+        )
+
+      refute html =~ "aria-invalid"
+      refute html =~ "aria-describedby"
+      refute html =~ "user_email-error"
+    end
+
+    test "appends the error to a description the caller already set" do
+      # visibility_select/1 describes its select with its own hint; the error must join that
+      # description rather than replace it, or setting a bad value would silence the hint.
+      html =
+        render_component(&input/1,
+          id: "entry_visibility",
+          name: "entry[visibility]",
+          value: "bogus",
+          errors: ["is invalid"],
+          "aria-describedby": "entry_visibility-hint"
+        )
+
+      assert html =~ ~s(aria-describedby="entry_visibility-hint entry_visibility-error")
+    end
+
+    test "wires the same way for select, textarea and checkbox" do
+      for {type, extra} <- [
+            {"select", [options: [{"A", "a"}]]},
+            {"textarea", []},
+            {"checkbox", []}
+          ] do
+        html =
+          render_component(
+            &input/1,
+            [id: "f_#{type}", name: "f[#{type}]", value: nil, type: type, errors: ["is invalid"]] ++
+              extra
+          )
+
+        assert html =~ ~s(aria-invalid="true"), "#{type} is not marked invalid"
+        assert html =~ ~s(aria-describedby="f_#{type}-error"), "#{type} is not described"
+      end
+    end
+  end
 end

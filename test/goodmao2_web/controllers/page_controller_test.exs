@@ -38,6 +38,25 @@ defmodule Goodmao2Web.PageControllerTest do
     assert response =~ "phx:font-size-increase"
   end
 
+  test "GET / gives the theme toggle a selected state and unique ids per copy", %{conn: conn} do
+    response = conn |> get(~p"/") |> html_response(200)
+
+    # Which theme is active is drawn by a CSS-positioned pill, which says nothing to a screen
+    # reader. aria-pressed is the only thing that does; the inline script in root.html.heex
+    # flips the chosen one to "true" and re-runs after a patch, so "false" is the correct
+    # server-rendered value here.
+    assert response =~ ~s(aria-pressed="false")
+    assert response =~ ~s(data-phx-theme="system")
+    assert response =~ ~s(data-phx-theme="light")
+    assert response =~ ~s(data-phx-theme="dark")
+
+    # The control renders twice (desktop bar + mobile menu), so its ids must not collide.
+    assert response =~ ~s(id="theme-toggle")
+    assert response =~ ~s(id="m-theme-toggle")
+    assert response =~ ~s(id="theme-dark")
+    assert response =~ ~s(id="m-theme-dark")
+  end
+
   test "GET / redirects a signed-in user to their pets", %{conn: conn} do
     conn = conn |> log_in_user(Goodmao2.AccountsFixtures.user_fixture()) |> get(~p"/")
     assert redirected_to(conn) == ~p"/pets"

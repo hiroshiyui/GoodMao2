@@ -73,7 +73,7 @@ msgstr "已撤銷存取權。"
 msgid "Account settings"
 msgstr "帳號設定"
 
-#: lib/goodmao2_web/components/core_components.ex:414
+#: lib/goodmao2_web/components/core_components.ex:459
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "操作"
@@ -780,7 +780,7 @@ msgstr "獸醫"
 msgid "Viewer"
 msgstr "檢視者"
 
-#: lib/goodmao2_web/components/core_components.ex:333
+#: lib/goodmao2_web/components/core_components.ex:349
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr "可見範圍"
@@ -896,8 +896,8 @@ msgstr "用力 ⚠"
 msgid "until %{t}"
 msgstr "至 %{t}"
 
-#: lib/goodmao2_web/components/layouts.ex:465
-#: lib/goodmao2_web/components/layouts.ex:466
+#: lib/goodmao2_web/components/layouts.ex:492
+#: lib/goodmao2_web/components/layouts.ex:493
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr "深色主題"
@@ -907,14 +907,14 @@ msgstr "深色主題"
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr "顧毛 — 為你所愛的毛小孩打造、可分享的健康時間軸。"
 
-#: lib/goodmao2_web/components/layouts.ex:455
-#: lib/goodmao2_web/components/layouts.ex:456
+#: lib/goodmao2_web/components/layouts.ex:479
+#: lib/goodmao2_web/components/layouts.ex:480
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr "淺色主題"
 
-#: lib/goodmao2_web/components/layouts.ex:445
-#: lib/goodmao2_web/components/layouts.ex:446
+#: lib/goodmao2_web/components/layouts.ex:466
+#: lib/goodmao2_web/components/layouts.ex:467
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr "跟隨系統主題"
@@ -1221,14 +1221,14 @@ msgstr "信箱頁面"
 msgid "to your account now."
 msgstr "登入您的帳號。"
 
-#: lib/goodmao2_web/components/layouts.ex:412
 #: lib/goodmao2_web/components/layouts.ex:413
+#: lib/goodmao2_web/components/layouts.ex:414
 #, elixir-autogen, elixir-format
 msgid "Decrease text size"
 msgstr "縮小文字"
 
-#: lib/goodmao2_web/components/layouts.ex:422
-#: lib/goodmao2_web/components/layouts.ex:423
+#: lib/goodmao2_web/components/layouts.ex:424
+#: lib/goodmao2_web/components/layouts.ex:425
 #, elixir-autogen, elixir-format
 msgid "Increase text size"
 msgstr "放大文字"
@@ -3498,3 +3498,8 @@ msgstr "你與對方已沒有共同照顧的寵物，因此仍可閱讀這個對
 #, elixir-autogen, elixir-format
 msgid "You've sent a lot of messages recently — please try again later."
 msgstr "你最近傳送太多訊息了——請稍後再試。"
+
+#: lib/goodmao2_web/components/layouts.ex:454
+#, elixir-autogen, elixir-format
+msgid "Theme"
+msgstr "主題"

@@ -207,9 +207,11 @@ defmodule Goodmao2Web.CoreComponents do
 
   def input(%{type: "checkbox"} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn ->
+      assigns
+      |> assign_new(:checked, fn ->
         Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
       end)
+      |> input_error_aria()
 
     ~H"""
     <div class="fieldset mb-2">
@@ -233,12 +235,16 @@ defmodule Goodmao2Web.CoreComponents do
           />{@label}
         </span>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <div :if={@errors != []} id={@error_id} class="input-errors">
+        <.error :for={msg <- @errors}>{msg}</.error>
+      </div>
     </div>
     """
   end
 
   def input(%{type: "select"} = assigns) do
+    assigns = input_error_aria(assigns)
+
     ~H"""
     <div class="fieldset mb-2">
       <label>
@@ -254,12 +260,16 @@ defmodule Goodmao2Web.CoreComponents do
           {Phoenix.HTML.Form.options_for_select(@options, @value)}
         </select>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <div :if={@errors != []} id={@error_id} class="input-errors">
+        <.error :for={msg <- @errors}>{msg}</.error>
+      </div>
     </div>
     """
   end
 
   def input(%{type: "textarea"} = assigns) do
+    assigns = input_error_aria(assigns)
+
     ~H"""
     <div class="fieldset mb-2">
       <label>
@@ -274,13 +284,17 @@ defmodule Goodmao2Web.CoreComponents do
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <div :if={@errors != []} id={@error_id} class="input-errors">
+        <.error :for={msg <- @errors}>{msg}</.error>
+      </div>
     </div>
     """
   end
 
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
+    assigns = input_error_aria(assigns)
+
     ~H"""
     <div class="fieldset mb-2">
       <label>
@@ -297,7 +311,9 @@ defmodule Goodmao2Web.CoreComponents do
           {@rest}
         />
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <div :if={@errors != []} id={@error_id} class="input-errors">
+        <.error :for={msg <- @errors}>{msg}</.error>
+      </div>
     </div>
     """
   end
@@ -339,6 +355,35 @@ defmodule Goodmao2Web.CoreComponents do
       </p>
     </div>
     """
+  end
+
+  # Links a field's error messages back to the control itself.
+  #
+  # A visually adjacent `<.error>` is not part of the field's accessible description, so without
+  # this a screen-reader user tabbing into an invalid field hears the label and nothing about
+  # what went wrong -- the red ring is the only signal, which is also colour-alone. `aria-invalid`
+  # is what marks *which* field to fix; `aria-describedby` is what reads the reason.
+  #
+  # A caller may already describe the field (`visibility_select/1` points at its own hint), so the
+  # error id is appended to whatever is there rather than replacing it.
+  defp input_error_aria(assigns) do
+    error_id = if assigns.id && assigns.errors != [], do: "#{assigns.id}-error"
+
+    rest =
+      if error_id do
+        described =
+          [assigns.rest[:"aria-describedby"], error_id]
+          |> Enum.reject(&(&1 in [nil, ""]))
+          |> Enum.join(" ")
+
+        assigns.rest
+        |> Map.put(:"aria-describedby", described)
+        |> Map.put(:"aria-invalid", "true")
+      else
+        assigns.rest
+      end
+
+    assigns |> assign(:error_id, error_id) |> assign(:rest, rest)
   end
 
   # Helper used by inputs to generate form errors

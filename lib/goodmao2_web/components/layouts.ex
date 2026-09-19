@@ -94,7 +94,7 @@ defmodule Goodmao2Web.Layouts do
               </ul>
               <div class="mt-2 flex items-center justify-between gap-2 border-t border-base-200 px-1 pt-3">
                 <.font_size_controls id_prefix="m-" />
-                <.theme_toggle />
+                <.theme_toggle id_prefix="m-" />
               </div>
             </div>
           </details>
@@ -407,6 +407,7 @@ defmodule Goodmao2Web.Layouts do
     >
       <button
         id={"#{@id_prefix}font-size-decrease"}
+        type="button"
         class="flex p-2 cursor-pointer"
         phx-click={JS.dispatch("phx:font-size-decrease")}
         aria-label={gettext("Decrease text size")}
@@ -417,6 +418,7 @@ defmodule Goodmao2Web.Layouts do
 
       <button
         id={"#{@id_prefix}font-size-increase"}
+        type="button"
         class="flex p-2 cursor-pointer"
         phx-click={JS.dispatch("phx:font-size-increase")}
         aria-label={gettext("Increase text size")}
@@ -432,16 +434,35 @@ defmodule Goodmao2Web.Layouts do
   Provides dark vs light theme toggle based on themes defined in app.css.
 
   See <head> in root.html.heex which applies the theme before page load.
+
+  Which of the three is selected is otherwise said only by the sliding pill behind them -- a
+  purely visual cue, and a CSS one, so it reaches neither a screen reader nor a high-contrast
+  user who loses the fill. Each button therefore carries `aria-pressed`, kept in sync by the
+  same `setTheme` in root.html.heex that moves the pill, since the chosen theme lives in
+  localStorage and the server never learns it. They render `false` here so the attribute
+  survives a LiveView patch (morphdom restores the server's value) for that script to correct.
   """
+  attr :id_prefix, :string,
+    default: "",
+    doc: "prefix for element ids so the control can render twice (desktop + mobile menu)"
+
   def theme_toggle(assigns) do
     ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
+    <div
+      id={"#{@id_prefix}theme-toggle"}
+      role="group"
+      aria-label={gettext("Theme")}
+      class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full"
+    >
       <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
 
       <button
+        id={"#{@id_prefix}theme-system"}
+        type="button"
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="system"
+        aria-pressed="false"
         aria-label={gettext("Match system theme")}
         title={gettext("Match system theme")}
       >
@@ -449,9 +470,12 @@ defmodule Goodmao2Web.Layouts do
       </button>
 
       <button
+        id={"#{@id_prefix}theme-light"}
+        type="button"
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="light"
+        aria-pressed="false"
         aria-label={gettext("Light theme")}
         title={gettext("Light theme")}
       >
@@ -459,9 +483,12 @@ defmodule Goodmao2Web.Layouts do
       </button>
 
       <button
+        id={"#{@id_prefix}theme-dark"}
+        type="button"
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="dark"
+        aria-pressed="false"
         aria-label={gettext("Dark theme")}
         title={gettext("Dark theme")}
       >

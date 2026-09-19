@@ -74,7 +74,7 @@ msgstr ""
 msgid "Account settings"
 msgstr ""
 
-#: lib/goodmao2_web/components/core_components.ex:414
+#: lib/goodmao2_web/components/core_components.ex:459
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -781,7 +781,7 @@ msgstr ""
 msgid "Viewer"
 msgstr ""
 
-#: lib/goodmao2_web/components/core_components.ex:333
+#: lib/goodmao2_web/components/core_components.ex:349
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr ""
@@ -897,8 +897,8 @@ msgstr ""
 msgid "until %{t}"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:465
-#: lib/goodmao2_web/components/layouts.ex:466
+#: lib/goodmao2_web/components/layouts.ex:492
+#: lib/goodmao2_web/components/layouts.ex:493
 #, elixir-autogen, elixir-format
 msgid "Dark theme"
 msgstr ""
@@ -908,14 +908,14 @@ msgstr ""
 msgid "GoodMao — a shareable health timeline for the pets you love."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:455
-#: lib/goodmao2_web/components/layouts.ex:456
+#: lib/goodmao2_web/components/layouts.ex:479
+#: lib/goodmao2_web/components/layouts.ex:480
 #, elixir-autogen, elixir-format
 msgid "Light theme"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:445
-#: lib/goodmao2_web/components/layouts.ex:446
+#: lib/goodmao2_web/components/layouts.ex:466
+#: lib/goodmao2_web/components/layouts.ex:467
 #, elixir-autogen, elixir-format
 msgid "Match system theme"
 msgstr ""
@@ -1222,14 +1222,14 @@ msgstr ""
 msgid "to your account now."
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:412
 #: lib/goodmao2_web/components/layouts.ex:413
+#: lib/goodmao2_web/components/layouts.ex:414
 #, elixir-autogen, elixir-format
 msgid "Decrease text size"
 msgstr ""
 
-#: lib/goodmao2_web/components/layouts.ex:422
-#: lib/goodmao2_web/components/layouts.ex:423
+#: lib/goodmao2_web/components/layouts.ex:424
+#: lib/goodmao2_web/components/layouts.ex:425
 #, elixir-autogen, elixir-format
 msgid "Increase text size"
 msgstr ""
@@ -3501,4 +3501,9 @@ msgstr ""
 #: lib/goodmao2_web/live/message_live/show.ex:67
 #, elixir-autogen, elixir-format
 msgid "You've sent a lot of messages recently — please try again later."
+msgstr ""
+
+#: lib/goodmao2_web/components/layouts.ex:454
+#, elixir-autogen, elixir-format
+msgid "Theme"
 msgstr ""
