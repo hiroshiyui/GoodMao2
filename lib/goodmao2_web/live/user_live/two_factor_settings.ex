@@ -103,7 +103,12 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
                 required
               />
               <div class="flex gap-2">
-                <.button variant="primary" id="totp-enable" phx-disable-with={gettext("Verifying...")}>
+                <.button
+                  type="submit"
+                  variant="primary"
+                  id="totp-enable"
+                  phx-disable-with={gettext("Verifying...")}
+                >
                   {gettext("Turn on")}
                 </.button>
                 <.button

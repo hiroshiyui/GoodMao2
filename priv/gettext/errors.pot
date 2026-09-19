@@ -115,7 +115,6 @@ msgstr ""
 ## Custom changeset messages. `mix gettext.extract` cannot see `message:`/`add_error/3`
 ## strings, so every message below is maintained by hand — adding a new one to a schema
 ## means adding its msgid here too, or that locale silently falls back to English.
-
 ## From Goodmao2.Accounts.User (handle + email + password rules)
 msgid "may only contain lowercase letters, numbers, dots and underscores"
 msgstr ""

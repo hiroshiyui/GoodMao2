@@ -86,7 +86,7 @@ defmodule Goodmao2Web.UserLive.PasswordSettings do
           autocomplete="new-password"
           spellcheck="false"
         />
-        <.button variant="primary" phx-disable-with={gettext("Saving...")}>
+        <.button type="submit" variant="primary" phx-disable-with={gettext("Saving...")}>
           {gettext("Save password")}
         </.button>
       </.form>

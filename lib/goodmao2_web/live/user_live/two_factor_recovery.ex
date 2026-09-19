@@ -37,7 +37,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorRecovery do
             required
             phx-mounted={JS.focus()}
           />
-          <.button class="btn btn-primary w-full" id="recovery-challenge-submit">
+          <.button type="submit" class="btn btn-primary w-full" id="recovery-challenge-submit">
             {gettext("Verify")}
           </.button>
         </.form>

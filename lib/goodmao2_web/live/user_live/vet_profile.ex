@@ -102,7 +102,12 @@ defmodule Goodmao2Web.UserLive.VetProfile do
           <.input field={@form[:clinic_name]} type="text" label={gettext("Clinic name")} required />
           <.input field={@form[:specialty]} type="text" label={gettext("Specialty (optional)")} />
 
-          <.button variant="primary" id="vet-profile-submit" phx-disable-with={gettext("Saving...")}>
+          <.button
+            type="submit"
+            variant="primary"
+            id="vet-profile-submit"
+            phx-disable-with={gettext("Saving...")}
+          >
             {if @profile.id, do: gettext("Resubmit for review"), else: gettext("Submit for review")}
           </.button>
         </.form>

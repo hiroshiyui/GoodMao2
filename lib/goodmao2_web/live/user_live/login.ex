@@ -53,7 +53,7 @@ defmodule Goodmao2Web.UserLive.Login do
             required
             phx-mounted={JS.focus()}
           />
-          <.button class="btn btn-primary w-full">
+          <.button type="submit" class="btn btn-primary w-full">
             {gettext("Log in with email")} <span aria-hidden="true">→</span>
           </.button>
         </.form>
@@ -84,10 +84,15 @@ defmodule Goodmao2Web.UserLive.Login do
             autocomplete="current-password"
             spellcheck="false"
           />
-          <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
+          <.button
+            type="submit"
+            class="btn btn-primary w-full"
+            name={@form[:remember_me].name}
+            value="true"
+          >
             {gettext("Log in and stay logged in")} <span aria-hidden="true">→</span>
           </.button>
-          <.button class="btn btn-primary btn-soft w-full mt-2">
+          <.button type="submit" class="btn btn-primary btn-soft w-full mt-2">
             {gettext("Log in only this time")}
           </.button>
         </.form>

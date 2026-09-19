@@ -45,7 +45,7 @@ defmodule Goodmao2Web.UserLive.TwoFactor do
               required
               phx-mounted={JS.focus()}
             />
-            <.button class="btn btn-primary w-full" id="totp-challenge-submit">
+            <.button type="submit" class="btn btn-primary w-full" id="totp-challenge-submit">
               {gettext("Verify")}
             </.button>
           </.form>

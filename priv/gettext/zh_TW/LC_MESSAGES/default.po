@@ -73,7 +73,7 @@ msgstr "已撤銷存取權。"
 msgid "Account settings"
 msgstr "帳號設定"
 
-#: lib/goodmao2_web/components/core_components.ex:459
+#: lib/goodmao2_web/components/core_components.ex:469
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "操作"
@@ -175,7 +175,7 @@ msgstr "品種"
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:131
 #: lib/goodmao2_web/live/pet_live/form.ex:158
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:557
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:115
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:120
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr "取消"
@@ -387,9 +387,9 @@ msgstr "記錄%{type}"
 
 #: lib/goodmao2_web/components/layouts.ex:289
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
-#: lib/goodmao2_web/live/user_live/confirmation.ex:53
+#: lib/goodmao2_web/live/user_live/confirmation.ex:59
 #: lib/goodmao2_web/live/user_live/login.ex:14
-#: lib/goodmao2_web/live/user_live/login.ex:107
+#: lib/goodmao2_web/live/user_live/login.ex:112
 #: lib/goodmao2_web/live/user_live/registration.ex:19
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -663,7 +663,7 @@ msgstr "已儲存。%{name} 的紀錄已保留。"
 #: lib/goodmao2_web/live/pet_live/medications.ex:377
 #: lib/goodmao2_web/live/user_live/password_settings.ex:89
 #: lib/goodmao2_web/live/user_live/settings.ex:126
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:105
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:109
 #, elixir-autogen, elixir-format
 msgid "Saving..."
 msgstr "儲存中..."
@@ -780,7 +780,7 @@ msgstr "獸醫"
 msgid "Viewer"
 msgstr "檢視者"
 
-#: lib/goodmao2_web/components/core_components.ex:349
+#: lib/goodmao2_web/components/core_components.ex:354
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr "可見範圍"
@@ -995,7 +995,7 @@ msgid "Your password is managed on its own page."
 msgstr "密碼在專屬頁面管理。"
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:96
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:221
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:226
 #, elixir-autogen, elixir-format
 msgid "← Back to account settings"
 msgstr "← 返回帳號設定"
@@ -1030,33 +1030,33 @@ msgstr "切換語言"
 msgid "Already registered?"
 msgstr "已經有帳號了嗎？"
 
-#: lib/goodmao2_web/live/user_live/registration.ex:104
+#: lib/goodmao2_web/live/user_live/registration.ex:108
 #, elixir-autogen, elixir-format
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr "一封電子郵件已寄至 %{email}，請前往查收以確認您的帳號。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:37
+#: lib/goodmao2_web/live/user_live/confirmation.ex:39
 #, elixir-autogen, elixir-format
 msgid "Confirm and log in only this time"
 msgstr "確認並僅此次登入"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:31
+#: lib/goodmao2_web/live/user_live/confirmation.ex:32
 #, elixir-autogen, elixir-format
 msgid "Confirm and stay logged in"
 msgstr "確認並保持登入"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:28
-#: lib/goodmao2_web/live/user_live/confirmation.ex:34
+#: lib/goodmao2_web/live/user_live/confirmation.ex:29
+#: lib/goodmao2_web/live/user_live/confirmation.ex:36
 #, elixir-autogen, elixir-format
 msgid "Confirming..."
 msgstr "確認中…"
 
-#: lib/goodmao2_web/live/user_live/registration.ex:38
+#: lib/goodmao2_web/live/user_live/registration.ex:42
 #, elixir-autogen, elixir-format
 msgid "Create an account"
 msgstr "建立帳號"
 
-#: lib/goodmao2_web/live/user_live/registration.ex:37
+#: lib/goodmao2_web/live/user_live/registration.ex:39
 #, elixir-autogen, elixir-format
 msgid "Creating account..."
 msgstr "建立帳號中…"
@@ -1081,7 +1081,7 @@ msgstr "電子郵件變更連結無效或已過期。"
 msgid "Email changed successfully."
 msgstr "電子郵件已成功變更。"
 
-#: lib/goodmao2_web/live/user_live/login.ex:125
+#: lib/goodmao2_web/live/user_live/login.ex:130
 #, elixir-autogen, elixir-format
 msgid "If your email is in our system, you will receive instructions for logging in shortly."
 msgstr "如果您的電子郵件在我們的系統中，您很快就會收到登入指示。"
@@ -1091,17 +1091,17 @@ msgstr "如果您的電子郵件在我們的系統中，您很快就會收到登
 msgid "Invalid email or password"
 msgstr "電子郵件或密碼不正確"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:62
+#: lib/goodmao2_web/live/user_live/confirmation.ex:69
 #, elixir-autogen, elixir-format
 msgid "Keep me logged in on this device"
 msgstr "在這台裝置上保持登入"
 
-#: lib/goodmao2_web/live/user_live/login.ex:88
+#: lib/goodmao2_web/live/user_live/login.ex:93
 #, elixir-autogen, elixir-format
 msgid "Log in and stay logged in"
 msgstr "登入並保持登入"
 
-#: lib/goodmao2_web/live/user_live/login.ex:91
+#: lib/goodmao2_web/live/user_live/login.ex:96
 #, elixir-autogen, elixir-format
 msgid "Log in only this time"
 msgstr "僅此次登入"
@@ -1111,7 +1111,7 @@ msgstr "僅此次登入"
 msgid "Log in with email"
 msgstr "使用電子郵件登入"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:68
+#: lib/goodmao2_web/live/user_live/confirmation.ex:76
 #, elixir-autogen, elixir-format
 msgid "Log me in only this time"
 msgstr "僅這次登入"
@@ -1121,14 +1121,14 @@ msgstr "僅這次登入"
 msgid "Logged out successfully."
 msgstr "已成功登出。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:52
-#: lib/goodmao2_web/live/user_live/confirmation.ex:59
-#: lib/goodmao2_web/live/user_live/confirmation.ex:65
+#: lib/goodmao2_web/live/user_live/confirmation.ex:56
+#: lib/goodmao2_web/live/user_live/confirmation.ex:66
+#: lib/goodmao2_web/live/user_live/confirmation.ex:73
 #, elixir-autogen, elixir-format
 msgid "Logging in..."
 msgstr "登入中…"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:96
+#: lib/goodmao2_web/live/user_live/confirmation.ex:104
 #, elixir-autogen, elixir-format
 msgid "Magic link is invalid or it has expired."
 msgstr "魔術連結無效或已過期。"
@@ -1144,12 +1144,12 @@ msgid "Password updated successfully!"
 msgstr "密碼已成功更新！"
 
 #: lib/goodmao2_web/live/user_live/registration.ex:15
-#: lib/goodmao2_web/live/user_live/registration.ex:57
+#: lib/goodmao2_web/live/user_live/registration.ex:61
 #, elixir-autogen, elixir-format
 msgid "Register for an account"
 msgstr "註冊帳號"
 
-#: lib/goodmao2_web/live/user_live/registration.ex:81
+#: lib/goodmao2_web/live/user_live/registration.ex:85
 #, elixir-autogen, elixir-format
 msgid "Registration is restricted to the site owner for the first account."
 msgstr "第一個帳號僅限站長註冊。"
@@ -1164,7 +1164,7 @@ msgstr "註冊"
 msgid "The link is invalid or it has expired."
 msgstr "此連結無效或已過期。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:74
+#: lib/goodmao2_web/live/user_live/confirmation.ex:82
 #, elixir-autogen, elixir-format
 msgid "Tip: If you prefer passwords, you can enable them in the user settings."
 msgstr "提示：如果您偏好使用密碼，可以在使用者設定中啟用。"
@@ -1491,7 +1491,7 @@ msgstr "已限制"
 msgid "The first account to register becomes the administrator."
 msgstr "第一個註冊的帳號將成為系統管理者。"
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:91
+#: lib/goodmao2_web/live/user_live/confirmation.ex:99
 #, elixir-autogen, elixir-format
 msgid "Confirm sign-in"
 msgstr "確認登入"
@@ -1733,7 +1733,7 @@ msgstr "在連結到期前，任何持有連結的人都能閱讀這份報告。
 msgid "Are you a veterinarian? Submit your credentials to be verified."
 msgstr "你是獸醫嗎？提交你的專業資格以供驗證。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:112
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:117
 #, elixir-autogen, elixir-format
 msgid "Back to account settings"
 msgstr "← 返回帳號設定"
@@ -1871,7 +1871,7 @@ msgstr "此期間內沒有紀錄。"
 msgid "No reports yet."
 msgstr "尚無報告。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:122
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:127
 #, elixir-autogen, elixir-format
 msgid "Not accepted"
 msgstr "未通過"
@@ -1881,7 +1881,7 @@ msgstr "未通過"
 msgid "Only a verified veterinarian can be given the vet role."
 msgstr "只有通過驗證的獸醫才能被授予獸醫角色。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:120
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:125
 #, elixir-autogen, elixir-format
 msgid "Pending review"
 msgstr "審核中"
@@ -1959,7 +1959,7 @@ msgstr "報告"
 msgid "Reports for %{name}"
 msgstr "%{name} 的報告"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:106
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:111
 #, elixir-autogen, elixir-format
 msgid "Resubmit for review"
 msgstr "重新提交審核"
@@ -2014,7 +2014,7 @@ msgstr "專科"
 msgid "Specialty (optional)"
 msgstr "專科（選填）"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:106
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:111
 #, elixir-autogen, elixir-format
 msgid "Submit for review"
 msgstr "提交審核"
@@ -2039,7 +2039,7 @@ msgstr "到期時間必須是未來的時間。"
 msgid "To"
 msgstr "截止日"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:121
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:126
 #, elixir-autogen, elixir-format
 msgid "Verified"
 msgstr "已驗證"
@@ -2434,7 +2434,7 @@ msgstr "2. 輸入 6 位數驗證碼"
 msgid "Add a second step at sign-in with an authenticator app or a security key."
 msgstr "使用驗證器 App 或安全金鑰，在登入時增加第二道驗證步驟。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:171
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:176
 #, elixir-autogen, elixir-format
 msgid "Add security key"
 msgstr "新增安全金鑰"
@@ -2449,12 +2449,12 @@ msgstr "驗證器 App"
 msgid "Authenticator app is on."
 msgstr "驗證器 App 已啟用。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:301
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:306
 #, elixir-autogen, elixir-format
 msgid "Authenticator app turned off."
 msgstr "已關閉驗證器 App。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:285
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:290
 #, elixir-autogen, elixir-format
 msgid "Authenticator app turned on."
 msgstr "已啟用驗證器 App。"
@@ -2472,7 +2472,7 @@ msgstr "驗證器驗證碼"
 msgid "Confirm it's you to finish signing in."
 msgstr "確認是您本人以完成登入。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:354
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:359
 #, elixir-autogen, elixir-format
 msgid "Could not add that security key. Please try again."
 msgstr "無法新增該安全金鑰，請再試一次。"
@@ -2482,22 +2482,22 @@ msgstr "無法新增該安全金鑰，請再試一次。"
 msgid "Enter one of the recovery codes you saved when you set up two-step verification."
 msgstr "請輸入您設定兩步驟驗證時儲存的其中一組備援碼。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:208
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:213
 #, elixir-autogen, elixir-format
 msgid "Generate a new set? Your current recovery codes will stop working."
 msgstr "要產生一組新的備援碼嗎？您目前的備援碼將會失效。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:95
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:96
 #, elixir-autogen, elixir-format
 msgid "I saved my codes — continue"
 msgstr "我已儲存備援碼 — 繼續"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:316
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:321
 #, elixir-autogen, elixir-format
 msgid "New recovery codes generated."
 msgstr "已產生新的備援碼。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:161
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:166
 #, elixir-autogen, elixir-format
 msgid "No security keys yet."
 msgstr "尚未新增任何安全金鑰。"
@@ -2513,12 +2513,12 @@ msgstr "或手動輸入此金鑰："
 msgid "Recovery code"
 msgstr "備援碼"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:185
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:190
 #, elixir-autogen, elixir-format
 msgid "Recovery codes"
 msgstr "備援碼"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:211
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:216
 #, elixir-autogen, elixir-format
 msgid "Regenerate recovery codes"
 msgstr "重新產生備援碼"
@@ -2526,17 +2526,17 @@ msgstr "重新產生備援碼"
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:478
 #: lib/goodmao2_web/live/pet_live/show.ex:1157
 #: lib/goodmao2_web/live/user_live/settings.ex:77
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:155
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:160
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr "移除"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:153
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:158
 #, elixir-autogen, elixir-format
 msgid "Remove security key"
 msgstr "移除安全金鑰"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:152
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:157
 #, elixir-autogen, elixir-format
 msgid "Remove this security key?"
 msgstr "要移除這把安全金鑰嗎？"
@@ -2546,12 +2546,12 @@ msgstr "要移除這把安全金鑰嗎？"
 msgid "Require a second step when signing in."
 msgstr "登入時要求第二道驗證步驟。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:189
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:194
 #, elixir-autogen, elixir-format
 msgid "Save these somewhere safe. Each works once. They won't be shown again."
 msgstr "請將這些備援碼儲存在安全的地方。每組只能使用一次，且不會再次顯示。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:80
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:81
 #, elixir-autogen, elixir-format
 msgid "Save your recovery codes"
 msgstr "儲存您的備援碼"
@@ -2567,17 +2567,17 @@ msgid "Scan this QR code, then enter the 6-digit code to confirm."
 msgstr "掃描此 QR code，然後輸入 6 位數驗證碼以確認。"
 
 #: lib/goodmao2_web/live/user_live/two_factor.ex:58
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:139
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:144
 #, elixir-autogen, elixir-format
 msgid "Security key"
 msgstr "安全金鑰"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:347
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:352
 #, elixir-autogen, elixir-format
 msgid "Security key added."
 msgstr "已新增安全金鑰。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:375
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:380
 #, elixir-autogen, elixir-format
 msgid "Security key removed."
 msgstr "已移除安全金鑰。"
@@ -2587,7 +2587,7 @@ msgstr "已移除安全金鑰。"
 msgid "Security key verification failed. Please try again."
 msgstr "安全金鑰驗證失敗，請再試一次。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:126
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:131
 #, elixir-autogen, elixir-format
 msgid "Security keys"
 msgstr "安全金鑰"
@@ -2598,23 +2598,23 @@ msgid "Set up authenticator app"
 msgstr "設定驗證器 App"
 
 #: lib/goodmao2_web/live/user_live/two_factor_setup.ex:23
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:126
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:127
 #, elixir-autogen, elixir-format
 msgid "Set up two-step verification"
 msgstr "設定兩步驟驗證"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:363
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:368
 #, elixir-autogen, elixir-format
 msgid "Something went wrong talking to your security key."
 msgstr "與您的安全金鑰通訊時發生錯誤。"
 
 #: lib/goodmao2_web/live/user_live/two_factor.ex:99
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:102
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:103
 #, elixir-autogen, elixir-format
 msgid "Start over"
 msgstr "重新開始"
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:83
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:84
 #, elixir-autogen, elixir-format
 msgid "Store these somewhere safe. Each code works once if you lose your authenticator. They won't be shown again."
 msgstr "請將這些備援碼儲存在安全的地方。若您遺失驗證器，每組備援碼可使用一次。這些備援碼不會再次顯示。"
@@ -2626,8 +2626,8 @@ msgid "TOTP setup QR code"
 msgstr "TOTP 設定 QR code"
 
 #: lib/goodmao2_web/controllers/user_two_factor_controller.ex:43
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:288
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:170
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:293
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:171
 #, elixir-autogen, elixir-format
 msgid "That code is not valid. Please try again."
 msgstr "此驗證碼無效，請再試一次。"
@@ -2637,17 +2637,17 @@ msgstr "此驗證碼無效，請再試一次。"
 msgid "That recovery code is not valid or has already been used."
 msgstr "此備援碼無效或已被使用。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:378
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:383
 #, elixir-autogen, elixir-format
 msgid "That security key was not found."
 msgstr "找不到該安全金鑰。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:362
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:367
 #, elixir-autogen, elixir-format
 msgid "The request was cancelled or timed out."
 msgstr "請求已取消或逾時。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:361
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:366
 #, elixir-autogen, elixir-format
 msgid "This browser does not support security keys."
 msgstr "此瀏覽器不支援安全金鑰。"
@@ -2667,19 +2667,19 @@ msgstr "關閉"
 msgid "Turn off the authenticator app? You'll no longer be asked for a code."
 msgstr "要關閉驗證器 App 嗎？系統將不再要求您輸入驗證碼。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:107
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:112
 #, elixir-autogen, elixir-format
 msgid "Turn on"
 msgstr "啟用"
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:69
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:70
 #, elixir-autogen, elixir-format
 msgid "Turn on two-step verification"
 msgstr "啟用兩步驟驗證"
 
 #: lib/goodmao2_web/live/user_live/settings.ex:174
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:38
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:231
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:236
 #, elixir-autogen, elixir-format
 msgid "Two-factor authentication"
 msgstr "雙因素驗證"
@@ -2695,7 +2695,7 @@ msgstr "雙因素驗證已啟用。"
 msgid "Two-step verification"
 msgstr "兩步驟驗證"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:128
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:133
 #, elixir-autogen, elixir-format
 msgid "Use a hardware security key or your device's built-in authenticator."
 msgstr "使用硬體安全金鑰或您裝置內建的驗證器。"
@@ -2717,18 +2717,18 @@ msgstr "使用安全金鑰"
 msgid "Use an app like Google Authenticator, Aegis, or 1Password to generate codes."
 msgstr "使用 Google Authenticator、Aegis 或 1Password 等 App 產生驗證碼。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:106
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:67
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:110
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:68
 #, elixir-autogen, elixir-format
 msgid "Verifying..."
 msgstr "驗證中…"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:199
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:204
 #, elixir-autogen, elixir-format
 msgid "You have %{count} unused recovery codes."
 msgstr "您還有 %{count} 組未使用的備援碼。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:392
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:397
 #, elixir-autogen, elixir-format
 msgid "You must keep at least one second factor. Add another before removing this one."
 msgstr "您必須至少保留一項第二因素。請先新增另一項，再移除這一項。"
@@ -2744,7 +2744,7 @@ msgstr "您的帳號需要第二因素驗證。請新增驗證器 App 以繼續�
 msgid "Your login attempt expired. Please try again."
 msgstr "您的登入嘗試已逾時，請再試一次。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:141
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:146
 #, elixir-autogen, elixir-format
 msgid "last used %{when}"
 msgstr "上次使用於 %{when}"
@@ -3479,7 +3479,7 @@ msgstr "你審核期間，這份申請已被修改。請檢視更新後的內容
 msgid "This pet's history is hidden, so its medications are too, and no dose reminders are sent."
 msgstr "這隻寵物的歷史紀錄已隱藏，用藥資訊也一併隱藏，且不會發送服藥提醒。"
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:154
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:155
 #, elixir-autogen, elixir-format
 msgid "Two-step verification is already set up for this account. Use it to sign in."
 msgstr "這個帳號已設定兩步驟驗證，請用它登入。"

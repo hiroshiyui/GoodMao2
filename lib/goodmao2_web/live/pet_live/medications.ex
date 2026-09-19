@@ -374,7 +374,7 @@ defmodule Goodmao2Web.PetLive.Medications do
               options={Goodmao2.Timezone.all()}
             />
             <.input field={@schedule_form[:notes]} type="textarea" label={gettext("Notes")} />
-            <.button variant="primary" phx-disable-with={gettext("Saving...")}>
+            <.button type="submit" variant="primary" phx-disable-with={gettext("Saving...")}>
               {gettext("Add schedule")}
             </.button>
           </.form>

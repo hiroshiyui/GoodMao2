@@ -96,4 +96,46 @@ defmodule Goodmao2Web.CoreComponentsTest do
       end
     end
   end
+
+  describe "table/1 row_click" do
+    defp row_click_table(row_click) do
+      render_component(&table/1,
+        id: "pets",
+        rows: [%{id: 1, name: "Mao", age: "3"}],
+        row_click: row_click,
+        col: [
+          %{label: "Name", inner_block: fn _slot, row -> row.name end},
+          %{label: "Age", inner_block: fn _slot, row -> row.age end}
+        ]
+      )
+    end
+
+    test "puts an activatable row in a real control, not on the cell" do
+      # phx-click on a <td> is mouse-only: a table cell cannot take focus, so a keyboard user
+      # can never reach the action.
+      html = row_click_table(fn row -> "select-#{row.id}" end)
+
+      assert html =~ ~s(<button)
+      assert html =~ ~s(phx-click="select-1")
+      assert html =~ ~s(type="button")
+      refute html =~ ~s(<td phx-click)
+    end
+
+    test "leaves one tab stop per row, not one per cell" do
+      html = row_click_table(fn row -> "select-#{row.id}" end)
+
+      # Both cells stay clickable, but only the first is reachable by Tab -- otherwise every
+      # column of every row becomes its own stop for the same single action.
+      assert length(String.split(html, ~s(phx-click="select-1"))) - 1 == 2
+      assert length(String.split(html, ~s(tabindex="-1"))) - 1 == 1
+    end
+
+    test "adds no control when rows are not activatable" do
+      html = row_click_table(nil)
+
+      refute html =~ "<button"
+      refute html =~ "tabindex"
+      assert html =~ "Mao"
+    end
+  end
 end

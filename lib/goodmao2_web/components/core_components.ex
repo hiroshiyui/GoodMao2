@@ -87,10 +87,15 @@ defmodule Goodmao2Web.CoreComponents do
   @doc """
   Renders a button with navigation support.
 
+  Always say which kind of button it is. A `<button>` with no `type` is a submit button, so an
+  action button inside a form submits it instead of running its `phx-click` -- and the Enter key
+  picks the first such button as the form's default, which may not be the one you meant. Passing
+  `navigate`/`patch`/`href` renders a `<.link>` instead, where `type` does not apply.
+
   ## Examples
 
-      <.button>Send!</.button>
-      <.button phx-click="go" variant="primary">Send!</.button>
+      <.button type="submit">Send!</.button>
+      <.button type="button" phx-click="go" variant="primary">Send!</.button>
       <.button navigate={~p"/"}>Home</.button>
   """
   attr :rest, :global,
@@ -422,6 +427,11 @@ defmodule Goodmao2Web.CoreComponents do
   @doc """
   Renders a table with generic styling.
 
+  `row_click` makes a row activate something. A `<td>` cannot take focus, so the action has to
+  live in a real control or it is mouse-only: the cell content is wrapped in a `<button>`, and
+  only the first one stays in the tab order, giving a keyboard user one stop per row rather than
+  one per cell while every cell stays clickable.
+
   ## Examples
 
       <.table id="users" rows={@users}>
@@ -432,7 +442,7 @@ defmodule Goodmao2Web.CoreComponents do
   attr :id, :string, required: true
   attr :rows, :list, required: true
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
-  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
+  attr :row_click, :any, default: nil, doc: "the function run when a row is activated"
 
   attr :row_item, :any,
     default: &Function.identity/1,
@@ -462,12 +472,17 @@ defmodule Goodmao2Web.CoreComponents do
       </thead>
       <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
         <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
-          <td
-            :for={col <- @col}
-            phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
-          >
-            {render_slot(col, @row_item.(row))}
+          <td :for={{col, i} <- Enum.with_index(@col)}>
+            <button
+              :if={@row_click}
+              type="button"
+              phx-click={@row_click.(row)}
+              tabindex={i > 0 && "-1"}
+              class="w-full cursor-pointer text-left"
+            >
+              {render_slot(col, @row_item.(row))}
+            </button>
+            <span :if={!@row_click}>{render_slot(col, @row_item.(row))}</span>
           </td>
           <td :if={@action != []} class="w-0 font-semibold">
             <div class="flex gap-4">

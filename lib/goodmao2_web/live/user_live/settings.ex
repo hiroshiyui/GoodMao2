@@ -65,7 +65,7 @@ defmodule Goodmao2Web.UserLive.Settings do
             <.live_file_input upload={@uploads.avatar} class="file-input file-input-sm w-full" />
             <.avatar_cropper id="user-avatar-cropper" />
             <div class="flex gap-2">
-              <.button variant="primary" phx-disable-with={gettext("Uploading...")}>
+              <.button type="submit" variant="primary" phx-disable-with={gettext("Uploading...")}>
                 {gettext("Upload photo")}
               </.button>
               <.button
@@ -123,7 +123,7 @@ defmodule Goodmao2Web.UserLive.Settings do
             "Times you log and view are shown in this zone. Left blank, the site default is used."
           )}
         </p>
-        <.button variant="primary" phx-disable-with={gettext("Saving...")}>
+        <.button type="submit" variant="primary" phx-disable-with={gettext("Saving...")}>
           {gettext("Save profile")}
         </.button>
       </.form>
@@ -148,7 +148,7 @@ defmodule Goodmao2Web.UserLive.Settings do
           spellcheck="false"
           required
         />
-        <.button variant="primary" phx-disable-with={gettext("Changing...")}>
+        <.button type="submit" variant="primary" phx-disable-with={gettext("Changing...")}>
           {gettext("Change Email")}
         </.button>
       </.form>

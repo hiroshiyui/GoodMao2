@@ -23,6 +23,7 @@ defmodule Goodmao2Web.UserLive.Confirmation do
         >
           <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
           <.button
+            type="submit"
             name={@form[:remember_me].name}
             value="true"
             phx-disable-with={gettext("Confirming...")}
@@ -31,6 +32,7 @@ defmodule Goodmao2Web.UserLive.Confirmation do
             {gettext("Confirm and stay logged in")}
           </.button>
           <.button
+            type="submit"
             phx-disable-with={gettext("Confirming...")}
             class="btn btn-primary btn-soft w-full mt-2"
           >
@@ -49,11 +51,16 @@ defmodule Goodmao2Web.UserLive.Confirmation do
         >
           <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
           <%= if @current_scope do %>
-            <.button phx-disable-with={gettext("Logging in...")} class="btn btn-primary w-full">
+            <.button
+              type="submit"
+              phx-disable-with={gettext("Logging in...")}
+              class="btn btn-primary w-full"
+            >
               {gettext("Log in")}
             </.button>
           <% else %>
             <.button
+              type="submit"
               name={@form[:remember_me].name}
               value="true"
               phx-disable-with={gettext("Logging in...")}
@@ -62,6 +69,7 @@ defmodule Goodmao2Web.UserLive.Confirmation do
               {gettext("Keep me logged in on this device")}
             </.button>
             <.button
+              type="submit"
               phx-disable-with={gettext("Logging in...")}
               class="btn btn-primary btn-soft w-full mt-2"
             >

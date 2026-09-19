@@ -62,6 +62,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSetup do
               required
             />
             <.button
+              type="submit"
               class="btn btn-primary w-full"
               id="totp-setup-submit"
               phx-disable-with={gettext("Verifying...")}
@@ -91,7 +92,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSetup do
           </ul>
           <form action={~p"/users/two-factor/complete"} method="post">
             <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
-            <.button class="btn btn-primary w-full" id="recovery-codes-continue">
+            <.button type="submit" class="btn btn-primary w-full" id="recovery-codes-continue">
               {gettext("I saved my codes — continue")}
             </.button>
           </form>

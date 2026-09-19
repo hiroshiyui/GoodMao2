@@ -74,7 +74,7 @@ msgstr ""
 msgid "Account settings"
 msgstr ""
 
-#: lib/goodmao2_web/components/core_components.ex:459
+#: lib/goodmao2_web/components/core_components.ex:469
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -176,7 +176,7 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/end_of_care.ex:131
 #: lib/goodmao2_web/live/pet_live/form.ex:158
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:557
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:115
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:120
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr ""
@@ -388,9 +388,9 @@ msgstr ""
 
 #: lib/goodmao2_web/components/layouts.ex:289
 #: lib/goodmao2_web/controllers/page_html/home.html.heex:18
-#: lib/goodmao2_web/live/user_live/confirmation.ex:53
+#: lib/goodmao2_web/live/user_live/confirmation.ex:59
 #: lib/goodmao2_web/live/user_live/login.ex:14
-#: lib/goodmao2_web/live/user_live/login.ex:107
+#: lib/goodmao2_web/live/user_live/login.ex:112
 #: lib/goodmao2_web/live/user_live/registration.ex:19
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -664,7 +664,7 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/medications.ex:377
 #: lib/goodmao2_web/live/user_live/password_settings.ex:89
 #: lib/goodmao2_web/live/user_live/settings.ex:126
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:105
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:109
 #, elixir-autogen, elixir-format
 msgid "Saving..."
 msgstr ""
@@ -781,7 +781,7 @@ msgstr ""
 msgid "Viewer"
 msgstr ""
 
-#: lib/goodmao2_web/components/core_components.ex:349
+#: lib/goodmao2_web/components/core_components.ex:354
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr ""
@@ -996,7 +996,7 @@ msgid "Your password is managed on its own page."
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/password_settings.ex:96
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:221
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:226
 #, elixir-autogen, elixir-format
 msgid "← Back to account settings"
 msgstr ""
@@ -1031,33 +1031,33 @@ msgstr ""
 msgid "Already registered?"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/registration.ex:104
+#: lib/goodmao2_web/live/user_live/registration.ex:108
 #, elixir-autogen, elixir-format
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:37
+#: lib/goodmao2_web/live/user_live/confirmation.ex:39
 #, elixir-autogen, elixir-format
 msgid "Confirm and log in only this time"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:31
+#: lib/goodmao2_web/live/user_live/confirmation.ex:32
 #, elixir-autogen, elixir-format
 msgid "Confirm and stay logged in"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:28
-#: lib/goodmao2_web/live/user_live/confirmation.ex:34
+#: lib/goodmao2_web/live/user_live/confirmation.ex:29
+#: lib/goodmao2_web/live/user_live/confirmation.ex:36
 #, elixir-autogen, elixir-format
 msgid "Confirming..."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/registration.ex:38
+#: lib/goodmao2_web/live/user_live/registration.ex:42
 #, elixir-autogen, elixir-format
 msgid "Create an account"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/registration.ex:37
+#: lib/goodmao2_web/live/user_live/registration.ex:39
 #, elixir-autogen, elixir-format
 msgid "Creating account..."
 msgstr ""
@@ -1082,7 +1082,7 @@ msgstr ""
 msgid "Email changed successfully."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/login.ex:125
+#: lib/goodmao2_web/live/user_live/login.ex:130
 #, elixir-autogen, elixir-format
 msgid "If your email is in our system, you will receive instructions for logging in shortly."
 msgstr ""
@@ -1092,17 +1092,17 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:62
+#: lib/goodmao2_web/live/user_live/confirmation.ex:69
 #, elixir-autogen, elixir-format
 msgid "Keep me logged in on this device"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/login.ex:88
+#: lib/goodmao2_web/live/user_live/login.ex:93
 #, elixir-autogen, elixir-format
 msgid "Log in and stay logged in"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/login.ex:91
+#: lib/goodmao2_web/live/user_live/login.ex:96
 #, elixir-autogen, elixir-format
 msgid "Log in only this time"
 msgstr ""
@@ -1112,7 +1112,7 @@ msgstr ""
 msgid "Log in with email"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:68
+#: lib/goodmao2_web/live/user_live/confirmation.ex:76
 #, elixir-autogen, elixir-format
 msgid "Log me in only this time"
 msgstr ""
@@ -1122,14 +1122,14 @@ msgstr ""
 msgid "Logged out successfully."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:52
-#: lib/goodmao2_web/live/user_live/confirmation.ex:59
-#: lib/goodmao2_web/live/user_live/confirmation.ex:65
+#: lib/goodmao2_web/live/user_live/confirmation.ex:56
+#: lib/goodmao2_web/live/user_live/confirmation.ex:66
+#: lib/goodmao2_web/live/user_live/confirmation.ex:73
 #, elixir-autogen, elixir-format
 msgid "Logging in..."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:96
+#: lib/goodmao2_web/live/user_live/confirmation.ex:104
 #, elixir-autogen, elixir-format
 msgid "Magic link is invalid or it has expired."
 msgstr ""
@@ -1145,12 +1145,12 @@ msgid "Password updated successfully!"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/registration.ex:15
-#: lib/goodmao2_web/live/user_live/registration.ex:57
+#: lib/goodmao2_web/live/user_live/registration.ex:61
 #, elixir-autogen, elixir-format
 msgid "Register for an account"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/registration.ex:81
+#: lib/goodmao2_web/live/user_live/registration.ex:85
 #, elixir-autogen, elixir-format
 msgid "Registration is restricted to the site owner for the first account."
 msgstr ""
@@ -1165,7 +1165,7 @@ msgstr ""
 msgid "The link is invalid or it has expired."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:74
+#: lib/goodmao2_web/live/user_live/confirmation.ex:82
 #, elixir-autogen, elixir-format
 msgid "Tip: If you prefer passwords, you can enable them in the user settings."
 msgstr ""
@@ -1493,7 +1493,7 @@ msgstr ""
 msgid "The first account to register becomes the administrator."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/confirmation.ex:91
+#: lib/goodmao2_web/live/user_live/confirmation.ex:99
 #, elixir-autogen, elixir-format
 msgid "Confirm sign-in"
 msgstr ""
@@ -1735,7 +1735,7 @@ msgstr ""
 msgid "Are you a veterinarian? Submit your credentials to be verified."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:112
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:117
 #, elixir-autogen, elixir-format
 msgid "Back to account settings"
 msgstr ""
@@ -1873,7 +1873,7 @@ msgstr ""
 msgid "No reports yet."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:122
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:127
 #, elixir-autogen, elixir-format
 msgid "Not accepted"
 msgstr ""
@@ -1883,7 +1883,7 @@ msgstr ""
 msgid "Only a verified veterinarian can be given the vet role."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:120
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:125
 #, elixir-autogen, elixir-format
 msgid "Pending review"
 msgstr ""
@@ -1961,7 +1961,7 @@ msgstr ""
 msgid "Reports for %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:106
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:111
 #, elixir-autogen, elixir-format
 msgid "Resubmit for review"
 msgstr ""
@@ -2016,7 +2016,7 @@ msgstr ""
 msgid "Specialty (optional)"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:106
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:111
 #, elixir-autogen, elixir-format
 msgid "Submit for review"
 msgstr ""
@@ -2041,7 +2041,7 @@ msgstr ""
 msgid "To"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex:121
+#: lib/goodmao2_web/live/user_live/vet_profile.ex:126
 #, elixir-autogen, elixir-format
 msgid "Verified"
 msgstr ""
@@ -2438,7 +2438,7 @@ msgstr ""
 msgid "Add a second step at sign-in with an authenticator app or a security key."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:171
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:176
 #, elixir-autogen, elixir-format
 msgid "Add security key"
 msgstr ""
@@ -2453,12 +2453,12 @@ msgstr ""
 msgid "Authenticator app is on."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:301
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:306
 #, elixir-autogen, elixir-format
 msgid "Authenticator app turned off."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:285
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:290
 #, elixir-autogen, elixir-format
 msgid "Authenticator app turned on."
 msgstr ""
@@ -2476,7 +2476,7 @@ msgstr ""
 msgid "Confirm it's you to finish signing in."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:354
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:359
 #, elixir-autogen, elixir-format
 msgid "Could not add that security key. Please try again."
 msgstr ""
@@ -2486,22 +2486,22 @@ msgstr ""
 msgid "Enter one of the recovery codes you saved when you set up two-step verification."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:208
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:213
 #, elixir-autogen, elixir-format
 msgid "Generate a new set? Your current recovery codes will stop working."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:95
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:96
 #, elixir-autogen, elixir-format
 msgid "I saved my codes — continue"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:316
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:321
 #, elixir-autogen, elixir-format
 msgid "New recovery codes generated."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:161
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:166
 #, elixir-autogen, elixir-format
 msgid "No security keys yet."
 msgstr ""
@@ -2517,12 +2517,12 @@ msgstr ""
 msgid "Recovery code"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:185
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:190
 #, elixir-autogen, elixir-format
 msgid "Recovery codes"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:211
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:216
 #, elixir-autogen, elixir-format
 msgid "Regenerate recovery codes"
 msgstr ""
@@ -2530,17 +2530,17 @@ msgstr ""
 #: lib/goodmao2_web/live/pet_live/log_entry.ex:478
 #: lib/goodmao2_web/live/pet_live/show.ex:1157
 #: lib/goodmao2_web/live/user_live/settings.ex:77
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:155
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:160
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:153
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:158
 #, elixir-autogen, elixir-format
 msgid "Remove security key"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:152
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:157
 #, elixir-autogen, elixir-format
 msgid "Remove this security key?"
 msgstr ""
@@ -2550,12 +2550,12 @@ msgstr ""
 msgid "Require a second step when signing in."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:189
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:194
 #, elixir-autogen, elixir-format
 msgid "Save these somewhere safe. Each works once. They won't be shown again."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:80
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:81
 #, elixir-autogen, elixir-format
 msgid "Save your recovery codes"
 msgstr ""
@@ -2571,17 +2571,17 @@ msgid "Scan this QR code, then enter the 6-digit code to confirm."
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/two_factor.ex:58
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:139
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:144
 #, elixir-autogen, elixir-format
 msgid "Security key"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:347
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:352
 #, elixir-autogen, elixir-format
 msgid "Security key added."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:375
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:380
 #, elixir-autogen, elixir-format
 msgid "Security key removed."
 msgstr ""
@@ -2591,7 +2591,7 @@ msgstr ""
 msgid "Security key verification failed. Please try again."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:126
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:131
 #, elixir-autogen, elixir-format
 msgid "Security keys"
 msgstr ""
@@ -2602,23 +2602,23 @@ msgid "Set up authenticator app"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/two_factor_setup.ex:23
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:126
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:127
 #, elixir-autogen, elixir-format
 msgid "Set up two-step verification"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:363
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:368
 #, elixir-autogen, elixir-format
 msgid "Something went wrong talking to your security key."
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/two_factor.ex:99
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:102
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:103
 #, elixir-autogen, elixir-format
 msgid "Start over"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:83
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:84
 #, elixir-autogen, elixir-format
 msgid "Store these somewhere safe. Each code works once if you lose your authenticator. They won't be shown again."
 msgstr ""
@@ -2630,8 +2630,8 @@ msgid "TOTP setup QR code"
 msgstr ""
 
 #: lib/goodmao2_web/controllers/user_two_factor_controller.ex:43
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:288
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:170
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:293
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:171
 #, elixir-autogen, elixir-format
 msgid "That code is not valid. Please try again."
 msgstr ""
@@ -2641,17 +2641,17 @@ msgstr ""
 msgid "That recovery code is not valid or has already been used."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:378
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:383
 #, elixir-autogen, elixir-format
 msgid "That security key was not found."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:362
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:367
 #, elixir-autogen, elixir-format
 msgid "The request was cancelled or timed out."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:361
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:366
 #, elixir-autogen, elixir-format
 msgid "This browser does not support security keys."
 msgstr ""
@@ -2671,19 +2671,19 @@ msgstr ""
 msgid "Turn off the authenticator app? You'll no longer be asked for a code."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:107
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:112
 #, elixir-autogen, elixir-format
 msgid "Turn on"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:69
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:70
 #, elixir-autogen, elixir-format
 msgid "Turn on two-step verification"
 msgstr ""
 
 #: lib/goodmao2_web/live/user_live/settings.ex:174
 #: lib/goodmao2_web/live/user_live/two_factor_settings.ex:38
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:231
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:236
 #, elixir-autogen, elixir-format
 msgid "Two-factor authentication"
 msgstr ""
@@ -2699,7 +2699,7 @@ msgstr ""
 msgid "Two-step verification"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:128
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:133
 #, elixir-autogen, elixir-format
 msgid "Use a hardware security key or your device's built-in authenticator."
 msgstr ""
@@ -2721,18 +2721,18 @@ msgstr ""
 msgid "Use an app like Google Authenticator, Aegis, or 1Password to generate codes."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:106
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:67
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:110
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:68
 #, elixir-autogen, elixir-format
 msgid "Verifying..."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:199
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:204
 #, elixir-autogen, elixir-format
 msgid "You have %{count} unused recovery codes."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:392
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:397
 #, elixir-autogen, elixir-format
 msgid "You must keep at least one second factor. Add another before removing this one."
 msgstr ""
@@ -2748,7 +2748,7 @@ msgstr ""
 msgid "Your login attempt expired. Please try again."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:141
+#: lib/goodmao2_web/live/user_live/two_factor_settings.ex:146
 #, elixir-autogen, elixir-format
 msgid "last used %{when}"
 msgstr ""
@@ -3483,7 +3483,7 @@ msgstr ""
 msgid "This pet's history is hidden, so its medications are too, and no dose reminders are sent."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:154
+#: lib/goodmao2_web/live/user_live/two_factor_setup.ex:155
 #, elixir-autogen, elixir-format
 msgid "Two-step verification is already set up for this account. Use it to sign in."
 msgstr ""

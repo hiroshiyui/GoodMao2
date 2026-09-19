@@ -34,7 +34,11 @@ defmodule Goodmao2Web.UserLive.Registration do
             phx-mounted={JS.focus()}
           />
 
-          <.button phx-disable-with={gettext("Creating account...")} class="btn btn-primary w-full">
+          <.button
+            type="submit"
+            phx-disable-with={gettext("Creating account...")}
+            class="btn btn-primary w-full"
+          >
             {gettext("Create an account")}
           </.button>
         </.form>
