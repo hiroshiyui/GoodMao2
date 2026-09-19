@@ -8,6 +8,88 @@ skill).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-20
+
+A correctness release. One fix changes what caretakers can see, so **read the upgrade note
+before deploying**. Also a security patch on the HTTP client, accessibility fixes across every
+form, and the first browser-driven tests in the project.
+
+**Upgrade notes.**
+
+- **QuickLog entries are shared again.** Entries logged through the web UI were being saved
+  `private` — visible to nobody but whoever recorded them — instead of `limited`. Existing
+  entries are left exactly as they are: this release does **not** rewrite anyone's stored
+  visibility, because a `private` entry may have been meant privately even if the UI chose it.
+  Entries logged from now on follow ADR-0004 and are visible to caretakers with an effective
+  grant. If your users have been wondering why a co-caretaker or vet saw nothing they logged,
+  this was why, and their old entries still need setting to Limited by hand.
+- **No configuration or runtime change is required.** The Erlang/OTP and Elixir pins are
+  unchanged from 1.3.0, and nothing in this release alters the deploy playbook's inputs.
+
+### Security
+
+- **`mint` 1.10.1** closes CVE-2026-82672 / GHSA-rj5m-69wp-cxq9 (MEDIUM): an unvalidated
+  chunk-size line tail in the HTTP/1 client allows a response to be smuggled past a strict
+  intermediary on a pooled connection. `mint` reaches the app through `req` → `finch`, which is
+  what `WebPush.SafeClient` uses to reach third-party browser push endpoints over pooled
+  connections, so the precondition is real. Found by `mix hex.audit`; `mix deps.audit` did not
+  report it, which is why the gate keeps both databases.
+
+### Fixed
+
+- **QuickLog saved every entry `private`.** `visibility_select/1` builds its `<select>` from
+  `LogEntry.visibilities()`, which lists `private` first, and QuickLog builds its form from an
+  empty map — so the field arrived with no value, no option matched, and the browser selected
+  the first. The server-side `|| "limited"` fallback never fired, because it only covers an
+  absent parameter and the browser always sent one. The control also contradicted itself: the
+  hint beneath it read `@field.value || "limited"`, explaining "limited" while submitting
+  "private".
+- **Form errors were not announced.** `<.input>` rendered its messages in a sibling element
+  with no `id`, and gave the control neither `aria-invalid` nor `aria-describedby`. Anyone
+  using a screen reader heard the field's label and nothing about what was wrong — the red ring
+  was the only signal, which is also colour alone. Fixed for all four input kinds (text,
+  select, textarea, checkbox), so every form in the app is covered: login, registration,
+  QuickLog, the pet form, access grants, settings and two-factor. Where a field is already
+  described — the visibility hint — the error joins that description rather than replacing it.
+- **The theme toggle never said which theme was selected.** The choice was drawn only by a
+  CSS-positioned pill, so its three buttons read as identical unpressed controls, and the cue
+  is lost in forced-contrast modes as well. Each now carries `aria-pressed`, kept truthful by
+  the same script that moves the pill, and re-synced after a LiveView patch. The control also
+  renders twice (desktop bar and mobile menu) and carried no `id` at all, which is how the
+  duplication went unnoticed.
+- **Table rows could not be activated by keyboard.** `<.table>`'s `row_click` put `phx-click`
+  on a `<td>`, which cannot take focus. The cell content now sits in a real button, with one
+  tab stop per row rather than one per column. The component has no callers yet, so this is a
+  trap removed rather than a bug users hit.
+- **Buttons now state their type.** Twenty submit buttons relied on the HTML default, which
+  also meant an action button added to any of those forms would have submitted it instead of
+  running its `phx-click`. Behaviour is unchanged.
+
+### Added
+
+- **Browser-driven end-to-end tests** (`mix test.feature`) — thirteen tests driving a real
+  Firefox through Wallaby and Selenium: the pet spine (sign in, add a pet, QuickLog a weight,
+  and a second browser seeing that entry arrive over PubSub without reloading), a
+  JavaScript-error crawl across every signed-in and guest page, the accessibility behaviour
+  that only exists once scripts run, and the second factor — including a real WebAuthn
+  registration ceremony through a WebDriver virtual authenticator. Until now nothing in the
+  suite ran the client, which is how the QuickLog defect above stayed hidden behind a green
+  build; it was found by the first browser test that logged an entry as an owner and looked
+  for it in a co-caretaker's session.
+- **`mix selenium.setup`** installs Selenium Server and GeckoDriver into the git-ignored
+  `tmp/`, each pinned by SHA-256. GeckoDriver is built from its source crate because the
+  0.37.x release binaries are signed by a Mozilla subkey revoked as compromised.
+
+### Changed
+
+- **Dependencies:** phoenix 1.8.14, phoenix_live_view 1.2.12, tz 0.28.4 (a newer IANA release),
+  swoosh 1.28.1, and the Rust NIF lockfile refreshed. daisyUI re-vendored at 5.7.42, which
+  starts treating `[aria-current]` on a menu item as active styling — the locale dropdown
+  already marked its current option both ways, so nothing renders differently.
+- Feature tests are excluded from `mix test` and from `mix precommit`: the gate stays runnable
+  without a browser. Selenium listens on 4445 rather than its default 4444, so a server another
+  checkout left running cannot be mistakenly reused.
+
 ## [1.3.0] - 2026-09-18
 
 A project-wide security audit and its follow-up. There are no new features, but the upgrade
