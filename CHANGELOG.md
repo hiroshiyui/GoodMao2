@@ -31,6 +31,9 @@ skill).
   The deploy also checks that the release's pinned runtimes are installed before it builds.
   `Goodmao2.RuntimeVersionsTest` fails if CI, Ansible, or the docs drift from the pin, or if
   the tests run on a runtime other than the pinned one.
+- **`mix.exs` requires Elixir `~> 1.20`** (was `~> 1.15`). The code now relies on 1.20's type
+  checker as a gate, and nothing tests older versions, so building on one fails up front instead
+  of producing an untested build.
 - **`mix goodmao.doctor`** accepts an asdf Elixir pin with an OTP suffix (`1.20.4-otp-29`)
   instead of warning that the running `1.20.4` doesn't match it.
 
