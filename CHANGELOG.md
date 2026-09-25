@@ -8,11 +8,16 @@ skill).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-25
+
+A runtime release: Erlang/OTP 29 and Elixir 1.20. Users see no change, but **the server has to
+be reprovisioned before deploying**; see the upgrade note. Elixir 1.20's stronger type checker
+is now a standing gate, and one version pin now drives dev, CI, and production.
+
 **Upgrade notes.**
 
 - **Erlang/OTP 29.1.1 and Elixir 1.20.4.** Production must move off OTP 28.5.0.6 / Elixir
-  1.19.5 (`.tool-versions`). Elixir is now pinned to its
-  OTP 29 build (`1.20.4-otp-29`). As before, the deploy playbook builds with the pinned runtime
+  1.19.5 (`.tool-versions`). Elixir is now pinned to its OTP 29 build (`1.20.4-otp-29`). As before, the deploy playbook builds with the pinned runtime
   but does not install it, so run `ansible-playbook playbooks/setup-server.yml --tags elixir`
   first, from a checkout of the release being deployed. The deploy now stops before building
   if the release pins a runtime the server doesn't have.
@@ -36,6 +41,10 @@ skill).
   of producing an untested build.
 - **`mix goodmao.doctor`** accepts an asdf Elixir pin with an OTP suffix (`1.20.4-otp-29`)
   instead of warning that the running `1.20.4` doesn't match it.
+- **CI runs the browser feature tests.** v1.4.0's `mix test.feature` suite had to be run by
+  hand. It now runs as a separate CI job, in parallel with `mix test`, bounded at 20 minutes and
+  uploading Wallaby's failure screenshots. GeckoDriver is built from source there, just as
+  `mix selenium.setup` does locally, rather than taken from the runner image's revoked-key binaries.
 
 ## [1.4.0] - 2026-09-20
 
