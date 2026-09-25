@@ -8,6 +8,13 @@ skill).
 
 ## [Unreleased]
 
+### Changed
+
+- **CI runs on `ubuntu-24.04` instead of `ubuntu-latest`.** GitHub moves `ubuntu-latest` to
+  Ubuntu 26 from 2026-10-19. setup-beam installs the exact `.tool-versions` runtime from
+  builds.hex.pm, which publishes builds per Ubuntu release, so the move could break CI with no
+  code change. `Goodmao2.RuntimeVersionsTest` rejects a floating runner label.
+
 ## [1.5.0] - 2026-09-25
 
 A runtime release: Erlang/OTP 29 and Elixir 1.20. Users see no change, but **the server has to

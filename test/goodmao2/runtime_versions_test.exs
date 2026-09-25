@@ -46,6 +46,10 @@ defmodule Goodmao2.RuntimeVersionsTest do
     end
 
     refute ci =~ ~r/(otp|elixir)-version:/
+
+    # A floating runner label changes the OS under a fixed .tool-versions pin, and
+    # builds.hex.pm may have no build for it yet.
+    refute ci =~ ~r/runs-on:\s*ubuntu-latest/
   end
 
   test "Ansible provisions from .tool-versions instead of its own copy" do

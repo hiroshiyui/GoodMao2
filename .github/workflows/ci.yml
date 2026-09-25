@@ -17,7 +17,11 @@ permissions:
 jobs:
   test:
     name: mix test
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: setup-beam installs the exact .tool-versions runtime from
+    # builds.hex.pm, which publishes per Ubuntu release. When the -latest label moves to a
+    # new release, a pin with no build there fails CI for no code change. Move this
+    # deliberately, after checking both .tool-versions builds exist for the new image.
+    runs-on: ubuntu-24.04
     env:
       MIX_ENV: test
     services:
@@ -155,7 +159,7 @@ jobs:
 
   feature:
     name: mix test.feature
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # pinned; see the `test` job
     # A browser that stops responding would otherwise sit here until the six-hour default.
     # The suite takes ~80s locally; this is generous enough for a cold JVM and a cache miss.
     timeout-minutes: 20
