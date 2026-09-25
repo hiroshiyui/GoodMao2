@@ -131,6 +131,13 @@ For a dedicated deep pass, use the `security-audit` skill.
   public API — all pet reads/writes go through `Pets`/`Logs`.
 - **Stale code**: unused functions, dead branches, leftover `IO.inspect`/`dbg`.
 - **One module per file** — never nest modules in a single file.
+- **Type-checker findings (Elixir 1.20+).** Run `mix compile --force` and
+  `mix test --warnings-as-errors`. Every type warning is a finding: fix the code, don't
+  launder the value into `dynamic()` to hide it. Beyond the warnings, look for code the
+  inference can't check: `x && y` chained after a call that only ever returns `:ok`, catch-all
+  clauses no caller reaches, and public functions returning "something truthy" instead of a
+  narrow `:ok | {:error, reason}` shape. See AGENTS.md, "The Elixir 1.20 type checker is a
+  reviewer".
 
 ---
 

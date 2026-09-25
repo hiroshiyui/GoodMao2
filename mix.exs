@@ -146,7 +146,9 @@ defmodule Goodmao2.MixProject do
         # which an alias's task lookup doesn't resolve.
         "cmd mix hex.audit",
         "sobelow --config",
-        "test"
+        # Tests too: Elixir 1.20's type checker reports on test files, and `compile` above
+        # never sees them (see AGENTS.md, "The Elixir 1.20 type checker is a reviewer").
+        "test --warnings-as-errors"
       ]
     ]
   end

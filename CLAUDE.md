@@ -29,7 +29,8 @@ mix phx.server                 # dev server: http://localhost:4000 + https://loc
 iex -S mix phx.server          # same, with a REPL
 
 mix precommit                  # THE gate: compile --warnings-as-errors + deps.unlock --unused
-                               # + format + deps.audit + hex.audit + sobelow + test
+                               # + format + deps.audit + hex.audit + sobelow
+                               # + test --warnings-as-errors (type-checker warnings fail in test/ too)
 mix test                       # full suite (auto-creates/migrates the test DB)
 mix test test/goodmao2/pets_test.exs           # one file
 mix test test/goodmao2/pets_test.exs:42        # one test by line
@@ -51,6 +52,14 @@ mix gettext.extract && mix gettext.merge priv/gettext
 elixir-security-advisories repo; `hex.audit` reads hex.pm's own retirement + advisory data.
 They do not agree — a HIGH bandit advisory was in hex.pm's and absent from mix_audit's, and
 the gate passed on the vulnerable build. Keep both.
+
+**`.tool-versions` is the only Erlang/Elixir pin.** Dev reads it through asdf, CI through
+setup-beam's `version-file` (strict), and production through a `group_vars/all.yml` lookup
+(provisioning) and the release commit's own copy (the `asdf exec` build, with a deploy
+preflight that refuses a runtime the server lacks). Never restate a version anywhere else.
+`Goodmao2.RuntimeVersionsTest` fails on drift, including the docs that name the versions, and
+fails when the *running* runtime isn't the pinned one, so install the pin (`asdf install`)
+before running tests.
 
 **Dependabot** covers Hex, Cargo, `rust-toolchain.toml`, GitHub Actions, and the frontend
 toolchain via **`assets/package.json` — a version manifest that is never installed**.

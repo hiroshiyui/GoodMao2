@@ -113,8 +113,12 @@ defmodule Mix.Tasks.Goodmao.Doctor do
   defp otp_release, do: List.to_string(:erlang.system_info(:otp_release))
 
   # A ".tool-versions" pin may be a bare version or "ref:...". Treat a leading-prefix
-  # match as satisfying the pin (e.g. running 1.19.5 satisfies a 1.19 pin).
+  # match as satisfying the pin (e.g. running 1.19.5 satisfies a 1.19 pin). An asdf Elixir
+  # pin may carry the OTP it was built against ("1.20.4-otp-29"); System.version/0 never does,
+  # and the OTP major is checked separately, so the suffix is dropped before comparing.
   defp version_matches?(current, wanted) do
+    wanted = String.replace(wanted, ~r/-otp-\d+\z/, "")
+
     current == wanted or String.starts_with?(current, wanted <> ".") or
       String.starts_with?(wanted, current <> ".")
   end
@@ -181,9 +185,15 @@ defmodule Mix.Tasks.Goodmao.Doctor do
     opts = Keyword.merge(config, pool_size: 1, queue_target: 500, queue_interval: 1000)
 
     case @repo.start_link(opts) do
-      {:ok, pid} -> {:ok, fn -> stop_repo(pid, trap_was) end}
-      {:error, {:already_started, _pid}} -> {:ok, fn -> restore_trap(trap_was) end}
-      {:error, reason} -> restore_trap(trap_was) && {:error, inspect(reason)}
+      {:ok, pid} ->
+        {:ok, fn -> stop_repo(pid, trap_was) end}
+
+      {:error, {:already_started, _pid}} ->
+        {:ok, fn -> restore_trap(trap_was) end}
+
+      {:error, reason} ->
+        restore_trap(trap_was)
+        {:error, inspect(reason)}
     end
   rescue
     e -> {:error, Exception.message(e)}
@@ -193,7 +203,7 @@ defmodule Mix.Tasks.Goodmao.Doctor do
 
   defp restore_trap(trap_was) do
     Process.flag(:trap_exit, trap_was)
-    true
+    :ok
   end
 
   defp stop_repo(pid, trap_was) do

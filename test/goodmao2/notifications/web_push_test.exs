@@ -45,7 +45,7 @@ defmodule Goodmao2.Notifications.WebPushTest do
       <<salt::binary-16, rs::unsigned-big-32, idlen, rest::binary>> = frame
       assert rs == 4096
       assert idlen == 65
-      <<server_public::binary-size(idlen), body::binary>> = rest
+      <<server_public::binary-size(^idlen), body::binary>> = rest
 
       assert decrypt(body, salt, server_public, sub) == plaintext
     end
@@ -112,7 +112,7 @@ defmodule Goodmao2.Notifications.WebPushTest do
     nonce = hkdf(salt, ikm, "Content-Encoding: nonce\0", 12)
 
     ct_size = byte_size(body) - 16
-    <<ciphertext::binary-size(ct_size), tag::binary-16>> = body
+    <<ciphertext::binary-size(^ct_size), tag::binary-16>> = body
     padded = :crypto.crypto_one_time_aead(:aes_128_gcm, cek, nonce, ciphertext, "", tag, false)
     binary_part(padded, 0, byte_size(padded) - 1)
   end

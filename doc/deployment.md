@@ -43,7 +43,9 @@ A one-time, ordered checklist for the **first** deploy. Each step links to its d
 - [ ] **Provision** — `ansible-playbook playbooks/setup-server.yml` (pkgs incl. ffmpeg, PG15,
       asdf/Elixir, rust, nginx+certbot). Dry-run first with `--check --diff`. **Re-run the
       affected roles whenever a release changes them** — the deploy playbook installs nothing: an
-      Erlang/Elixir bump in `.tool-versions` needs `--tags elixir` (or the build fails), and an
+      Erlang/Elixir bump in `.tool-versions` needs `--tags elixir`, run **from a checkout of the
+      release you're deploying** (the role installs whatever *your* `.tool-versions` pins; the
+      deploy stops before building if the release pins a runtime the server lacks), and an
       nginx template change needs `--tags nginx`.
 - [ ] **Deploy the release** — `ansible-playbook playbooks/deploy-goodmao2.yml`, choosing the git
       tag you cut (e.g. **`v0.2.0`**) and the full commit SHA it names in your clone
@@ -112,7 +114,7 @@ Provisioned once and **shared** by both apps (Baudrate's `setup-server.yml` alre
 most of these — GoodMao2 adds only ffmpeg):
 
 - **Debian 12** (or similar), a non-login **service user** `goodmao`.
-- **asdf** toolchain pinned to GoodMao2's `.tool-versions`: **Erlang 28.5.0.6**, **Elixir 1.19.5**.
+- **asdf** toolchain pinned to GoodMao2's `.tool-versions`: **Erlang 29.1.1**, **Elixir 1.20.4-otp-29**.
 - **Rust toolchain** — GoodMao2 builds a Rustler NIF (`native/goodmao2_native`), pinned by
   `rust-toolchain.toml`. The build host must have `rustup`.
 - **PostgreSQL 15**, reachable on `localhost` (TCP or unix socket).

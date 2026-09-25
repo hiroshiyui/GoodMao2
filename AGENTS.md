@@ -101,6 +101,20 @@ reminders), `Media` (ffmpeg-purified LifeLog photos/videos + avatars, id-keyed s
   the reconnect banners** in `layouts.ex`: suspending is normal on a phone, and immediate
   reveal flashed an error on every screen unlock — `assets/js/reconnect_flash.js` owns the
   grace period.
+- **The Elixir 1.20 type checker is a reviewer. Treat what it says as a finding.** Warnings
+  fail the gate in `lib/` *and* `test/` (`compile --warnings-as-errors`,
+  `test --warnings-as-errors`). A type warning points to code that doesn't mean what it says,
+  so fix the code, not the warning. Never silence one by making a value `dynamic()`
+  (`_ = …`, `apply/3`, or a pointless `case`). Patterns it has already caught here:
+  - **`side_effect() && next`** where the call always returns `:ok`/`true`. Write two
+    sequential expressions. Don't make a helper return `true` just so it can chain.
+  - **A catch-all clause no caller can reach** (`defp f(_)` after `defp f(x) when
+    is_binary(x)` with only binary callers). Delete it. Keep the guard at the public
+    boundary, where outside input actually arrives.
+  - **A bitstring `size(n)` reading a variable bound outside the match.** Pin it:
+    `binary-size(^n)`.
+  Give new public functions honest, narrow return shapes (`:ok | {:error, reason}`, not "a
+  truthy thing"), so the inference has something to check callers against.
 - Run **`mix precommit`** before finishing. Tests mirror `lib/` under `test/`
   (`DataCase` for contexts, `ConnCase` for LiveViews); test DB uses the `goodmao2` role.
 

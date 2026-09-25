@@ -18,8 +18,6 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
   Endpoints are validated at storage time (`PushSubscription.changeset/2`) *and* here at
   send time, so a value that turned private after storage is still refused.
   """
-  require Logger
-
   import Bitwise
 
   @connect_timeout 5_000
@@ -84,8 +82,6 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
       {:ok, %{ip: ip, host: uri.host, uri: uri}}
     end
   end
-
-  defp validate_and_resolve(_), do: {:error, :invalid_url}
 
   # Connect to the resolved IP directly; keep SNI + Host = original hostname.
   defp build_pinned_opts(resolved, headers) do

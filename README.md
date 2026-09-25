@@ -85,7 +85,7 @@ go-live runbook (Ansible provisioning, SOPS-encrypted secrets, SES mail, DNS, ba
 
 ## Prerequisites
 
-- Elixir `~> 1.15` / OTP 26+ (developed on Elixir 1.19 / OTP 28)
+- Elixir `~> 1.15` / OTP 26+ (developed on Elixir 1.20 / OTP 29)
 - PostgreSQL (a `goodmao2` role with `CREATEDB`; see `config/dev.exs` / `config/test.exs`)
 - **`ffmpeg` + `ffprobe`** on `PATH` — required to upload/purify LifeLog media (photos and
   videos) and profile images; the rest of the app runs without them

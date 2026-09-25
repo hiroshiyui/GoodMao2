@@ -151,7 +151,7 @@ jobs:
           mix esbuild service_worker
 
       - name: Run tests
-        run: mix test
+        run: mix test --warnings-as-errors
 
   feature:
     name: mix test.feature

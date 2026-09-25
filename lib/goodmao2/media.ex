@@ -322,7 +322,9 @@ defmodule Goodmao2.Media do
         older_than?(Path.join([root, shard, file]), cutoff),
         not asset_row_exists?(id),
         reduce: 0 do
-      n -> Storage.delete(id) && n + 1
+      n ->
+        Storage.delete(id)
+        n + 1
     end
   end
 
@@ -335,7 +337,9 @@ defmodule Goodmao2.Media do
     for token <- list_dir(root),
         older_than?(Path.join(root, token), cutoff),
         reduce: 0 do
-      n -> Storage.unstage(token) && n + 1
+      n ->
+        Storage.unstage(token)
+        n + 1
     end
   end
 

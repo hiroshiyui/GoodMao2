@@ -28,9 +28,14 @@ keep_releases: 5
 # asdf version manager
 asdf_version: "0.16.7"
 
-# Erlang/Elixir versions (match .tool-versions)
-erlang_version: "28.5.0.6"
-elixir_version: "1.19.5"
+# Erlang/Elixir versions — read from the repo's .tool-versions, the single pin that dev
+# (asdf) and CI (setup-beam `version-file`) also use. Never hardcode them here: a second copy
+# drifts. The deploy role additionally refuses to build a commit whose own .tool-versions
+# names a runtime this server doesn't have (see roles/deploy, "Phase 3").
+tool_versions: "{{ lookup('ansible.builtin.file', inventory_dir ~ '/../../.tool-versions') }}"
+tool_version_pins: "{{ tool_versions.splitlines() | map('split') | select | list }}"
+erlang_version: "{{ (tool_version_pins | selectattr(0, 'eq', 'erlang') | first)[1] }}"
+elixir_version: "{{ (tool_version_pins | selectattr(0, 'eq', 'elixir') | first)[1] }}"
 
 # Mailer — Amazon SES (non-secret bits; credentials live in all.sops.yml).
 # MAILER_FROM_EMAIL defaults to no-reply@<domain> unless overridden here.

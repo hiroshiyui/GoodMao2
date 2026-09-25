@@ -137,6 +137,40 @@
       {{ release_tag }} on {{ git_repo }} resolves to {{ fetched_tag_commit.stdout | trim }},
       but you pinned {{ release_commit }}. The tag may have been re-pointed; nothing was built.
 
+# The build runs `asdf exec` inside the checkout, so the runtime is whatever *this commit's*
+# .tool-versions pins — the same file dev and CI use. Provisioning installs the versions from
+# the operator's own checkout, which can differ from the commit being deployed; catch that
+# here with a clear message rather than as an asdf error halfway through the build.
+- name: Read the release commit's runtime pins
+  ansible.builtin.slurp:
+    src: "{{ deploy_path }}/src/.tool-versions"
+  register: release_tool_versions
+
+- name: Resolve the pinned Erlang/Elixir versions
+  ansible.builtin.set_fact:
+    release_runtime_pins: >-
+      {{ (release_tool_versions.content | b64decode).splitlines() | map('split') | select
+         | selectattr(0, 'in', ['erlang', 'elixir']) | list }}
+
+- name: Check the pinned runtimes are installed
+  ansible.builtin.stat:
+    path: "{{ goodmao_home }}/.asdf/installs/{{ item[0] }}/{{ item[1] }}"
+  loop: "{{ release_runtime_pins }}"
+  register: pinned_runtime_installs
+
+- name: Refuse to build on a runtime the release pins but this server lacks
+  ansible.builtin.assert:
+    that:
+      - release_runtime_pins | length == 2
+      - pinned_runtime_installs.results | rejectattr('stat.exists') | list | length == 0
+    fail_msg: >
+      {{ release_tag }}'s .tool-versions pins
+      {{ release_runtime_pins | map('join', ' ') | join(' and ') }}; this server is missing
+      {{ pinned_runtime_installs.results | rejectattr('stat.exists') | map(attribute='item')
+         | map('join', ' ') | join(' and ') | default('a pin', true) }}.
+      From a checkout of {{ release_tag }}, run
+      `ansible-playbook playbooks/setup-server.yml --tags elixir` first; nothing was built.
+
 # ============================================================
 # Phase 4: Build OTP release
 # ============================================================

@@ -59,7 +59,7 @@ Provisions infrastructure only — does **not** deploy the application.
 |------|-----|---------|
 | `common` | `common` | System packages incl. **ffmpeg** (runtime media purification), `goodmao` user, UFW firewall, SSH hardening, fail2ban, NTP |
 | `postgresql` | `postgresql` | PostgreSQL 15, `goodmao` role + `goodmao2_prod` database, scram-sha-256 local auth |
-| `elixir` | `elixir` | asdf + Erlang 28.5.0.6 + Elixir 1.19.5 + Hex/Rebar |
+| `elixir` | `elixir` | asdf + Erlang 29.1.1 + Elixir 1.20.4-otp-29 (both read from `.tool-versions`) + Hex/Rebar |
 | `rust` | `rust` | rustup (minimal profile) for the `goodmao2_native` Rustler NIF |
 | `nginx` | `nginx` | nginx, Let's Encrypt SSL via certbot, reverse-proxy vhost keyed on `server_name` |
 
@@ -89,7 +89,7 @@ escalate to root.
 |-------|-------------|
 | Pre-flight | Verify `goodmao` user + asdf; warn if deploying an older version |
 | Directories | Create `releases/`, `shared/media/` (MEDIA_STORAGE_DIR, `0700`; existing objects stripped of group/other access), `env/` |
-| Source | Clone repo, check out the pinned commit, and abort unless the release tag still names it |
+| Source | Clone repo, check out the pinned commit, and abort unless the release tag still names it; abort unless the Erlang/Elixir its `.tool-versions` pins are installed |
 | Build | `mix deps.get --only prod` → `compile` → `assets.deploy` → clean stale rel → `mix release` |
 | Install | Copy release to `releases/<timestamp>/` |
 | Env file | Generate this server's Erlang cookie once (`env/release_cookie`, 0600) and template `goodmao2.env` (DB, secret key base, `RELEASE_COOKIE`, media dir, SES mailer, …) |

@@ -8,6 +8,32 @@ skill).
 
 ## [Unreleased]
 
+**Upgrade notes.**
+
+- **Erlang/OTP 29.1.1 and Elixir 1.20.4.** Production must move off OTP 28.5.0.6 / Elixir
+  1.19.5 (`.tool-versions`). Elixir is now pinned to its
+  OTP 29 build (`1.20.4-otp-29`). As before, the deploy playbook builds with the pinned runtime
+  but does not install it, so run `ansible-playbook playbooks/setup-server.yml --tags elixir`
+  first, from a checkout of the release being deployed. The deploy now stops before building
+  if the release pins a runtime the server doesn't have.
+
+### Changed
+
+- **Erlang/OTP 28.5.0.6 → 29.1.1, Elixir 1.19.5 → 1.20.4.** Elixir 1.20's type checker flagged
+  a few dead expressions (an unreachable `SafeClient` clause, an unused `require Logger`, and
+  `&&` chains on calls that always return `:ok`); they are removed. No behaviour changes.
+- **Type-checker warnings now fail the gate in `test/` too.** `mix precommit` and CI run
+  `mix test --warnings-as-errors`. Before this, only `lib/` was checked. This was the gap that
+  let two unpinned bitstring `size(...)` variables through (AGENTS.md: "The Elixir 1.20 type
+  checker is a reviewer").
+- **One Erlang/Elixir pin everywhere.** Ansible reads `erlang_version`/`elixir_version` from
+  `.tool-versions` instead of keeping its own copy, so dev, CI, and production can't disagree.
+  The deploy also checks that the release's pinned runtimes are installed before it builds.
+  `Goodmao2.RuntimeVersionsTest` fails if CI, Ansible, or the docs drift from the pin, or if
+  the tests run on a runtime other than the pinned one.
+- **`mix goodmao.doctor`** accepts an asdf Elixir pin with an OTP suffix (`1.20.4-otp-29`)
+  instead of warning that the running `1.20.4` doesn't match it.
+
 ## [1.4.0] - 2026-09-20
 
 A correctness release. One fix changes what caretakers can see, so **read the upgrade note
