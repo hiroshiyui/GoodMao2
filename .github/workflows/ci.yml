@@ -253,7 +253,11 @@ jobs:
       - name: Install ansible-lint and the playbooks' collections
         run: |
           pipx install --include-deps ansible-lint==26.9.0
-          ansible-galaxy collection install -r ansible/requirements.yml
+          # Explicit path, forced: the runner image's own ansible-core already carries a
+          # community.postgresql, so a plain install "skips" it -- into a venv the pipx-installed
+          # ansible-lint can't see, which then fails to resolve its modules.
+          ansible-galaxy collection install --force -p "$HOME/.ansible/collections" \
+            -r ansible/requirements.yml
 
       - name: ansible-lint
         working-directory: ansible

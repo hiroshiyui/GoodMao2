@@ -99,7 +99,10 @@
 # a check that passes whatever the file holds reads as coverage it isn't. That
 # path runs only on a new server, where `flush_handlers` fails loudly with an
 # operator watching. (Baudrate e7198316.)
-- name: Validate the nginx configuration
+#
+# `no-handler` is waived on purpose: a handler runs at the end of the play, after the queued
+# reload, which is exactly the ordering this check exists to prevent.
+- name: Validate the nginx configuration  # noqa: no-handler
   when: goodmao2_site_config is changed
   ansible.builtin.command:
     cmd: nginx -t
