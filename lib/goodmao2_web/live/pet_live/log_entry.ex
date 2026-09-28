@@ -421,25 +421,12 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             </p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
-            <input
-              id="log-share-url"
-              type="text"
-              readonly
-              value={url(~p"/entries/shared/#{@entry.share_token}")}
-              class="input input-bordered input-sm min-w-0 flex-1"
-              aria-label={gettext("Share link URL")}
-            />
-            <button
-              type="button"
-              id="log-share-copy"
-              phx-hook="Clipboard"
-              data-clipboard-target="#log-share-url"
-              class="btn btn-sm btn-primary"
-            >
-              <.icon name="hero-clipboard-document" class="size-4" /> {gettext("Copy")}
-            </button>
-          </div>
+          <.share_link
+            id="log-share"
+            url={url(~p"/entries/shared/#{@entry.share_token}")}
+            label={gettext("Share link URL")}
+            share_title={@page_title}
+          />
 
           <div class="border-base-200 border-t pt-3">
             <p class="text-sm font-medium">{gettext("Expiry")}</p>

@@ -75,6 +75,9 @@ defmodule Goodmao2Web.PetLive.ReportsTest do
       |> render_submit()
 
       assert has_element?(lv, "#report-share-url")
+      # Shown only once, so it gets a copy button whose outcome is announced either way.
+      assert has_element?(lv, "#report-share-copy[phx-hook='Clipboard']")
+      assert has_element?(lv, "#report-share-status[role='status']")
       assert %{share_expires_at: %DateTime{}} = Reports.fetch_report(user, pet, report.id)
     end
 

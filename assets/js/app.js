@@ -30,6 +30,7 @@ import TimezoneDetect from "./timezone_detect.js"
 import AvatarCropper from "./avatar_cropper_hook.js"
 import WeightChart from "./weight_chart_hook.js"
 import DisclosureState from "./disclosure_state_hook.js"
+import {Clipboard, WebShare} from "./clipboard.js"
 import initReconnectFlash from "./reconnect_flash.js"
 
 // Reveal pointer-glow: track the cursor over an element marked phx-hook="PointerGlow"
@@ -55,31 +56,6 @@ const PointerGlow = {
 const Print = {
   mounted() {
     this.onClick = () => window.print()
-    this.el.addEventListener("click", this.onClick)
-  },
-  destroyed() {
-    if (this.onClick) this.el.removeEventListener("click", this.onClick)
-  },
-}
-
-// Clipboard: copy a value to the clipboard from a button (CSP-safe — no inline handler).
-// The button carries data-clipboard-target (a selector for an <input> whose value to copy)
-// or data-clipboard-text. Briefly reflects success in the button's title for feedback.
-const Clipboard = {
-  mounted() {
-    this.onClick = async () => {
-      const sel = this.el.getAttribute("data-clipboard-target")
-      const target = sel && document.querySelector(sel)
-      const text = target ? target.value : this.el.getAttribute("data-clipboard-text")
-      if (!text || !navigator.clipboard) return
-      try {
-        await navigator.clipboard.writeText(text)
-        this.el.setAttribute("data-copied", "true")
-        setTimeout(() => this.el.removeAttribute("data-copied"), 1500)
-      } catch (_e) {
-        /* clipboard denied — the field stays selectable for a manual copy */
-      }
-    }
     this.el.addEventListener("click", this.onClick)
   },
   destroyed() {
@@ -146,6 +122,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     PointerGlow,
     Print,
     Clipboard,
+    WebShare,
     PushManager,
     WebAuthn,
     TimezoneDetect,

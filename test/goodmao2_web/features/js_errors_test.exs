@@ -2,9 +2,9 @@ defmodule Goodmao2Web.Features.JsErrorsTest do
   @moduledoc """
   Walks every signed-in page in a real browser and fails on any JavaScript error.
 
-  Nothing else in the suite runs the client. The app ships seven `phx-hook`s plus a service
+  Nothing else in the suite runs the client. The app ships eight `phx-hook`s plus a service
   worker (`AvatarCropper`, `WeightChart`, `DisclosureState`, `TimezoneDetect`, `Clipboard`,
-  `PushManager`, the reconnect-flash guard), and a hook that throws — or a `phx-hook` name
+  `WebShare`, `PushManager`, the reconnect-flash guard), and a hook that throws — or a `phx-hook` name
   that was never registered — leaves the whole suite green while the page is broken. LiveView
   reports an unknown hook through `console.error`, which is why that is recorded too.
 

@@ -322,8 +322,13 @@ defmodule Goodmao2Web.PetLive.Reports do
           <div class="card-body space-y-3 p-4">
             <h2 class="text-lg font-semibold">{gettext("Share with a veterinarian")}</h2>
 
-            <div :if={@new_share_url} id="report-share-url" class="alert alert-info text-sm break-all">
-              {@new_share_url}
+            <div :if={@new_share_url} id="report-share-new" class="alert alert-info block text-sm">
+              <.share_link
+                id="report-share"
+                url={@new_share_url}
+                label={gettext("Report share link URL")}
+                share_title={@page_title}
+              />
             </div>
 
             <div :if={@report.share_expires_at} id="report-share-active" class="text-sm">
