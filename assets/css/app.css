@@ -200,6 +200,19 @@
    readable and there is no flash to 16px before the script runs. */
 html { font-size: 125%; }
 
+/* Automatic spacing between CJK and Latin/digit runs (CSS Text 4), for the zh_TW and ja_JP
+   locales: "3 次" / "體重 4.2 kg" get their gap from the stylesheet rather than from a
+   literal space a translator or a caretaker had to remember to type. See
+   https://www.w3.org/International/articles/styling/inline-space.html (Baudrate e0a644bf).
+   Full support in Blink; Gecko is partial and WebKit spaces only before the alphanumeric
+   run — an unsupporting browser simply renders what it did before. Stick to `normal`:
+   `replace` is unimplemented everywhere and interferes with other spacing. */
+html { text-autospace: normal; }
+
+/* Never inside code, where a gap would misrepresent the literal text, nor in form fields,
+   where the person would see a space they did not type. */
+pre, code, kbd, samp, input, textarea { text-autospace: no-autospace; }
+
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
