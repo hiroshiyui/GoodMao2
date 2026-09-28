@@ -127,6 +127,12 @@ jobs:
       - name: Check formatting
         run: mix format --check-formatted
 
+      # Fails when a gettext() call was added, removed or moved to another file without
+      # re-extracting. errors.pot is hand-maintained (changeset messages aren't extractable);
+      # its entries carry no `elixir-autogen` flag, so extraction never purges them.
+      - name: Check the .pot templates are up to date
+        run: mix gettext.extract --check-up-to-date
+
       # Two advisory databases, deliberately: they disagree (a HIGH bandit advisory was in
       # hex.pm's and absent from mix_audit's), and `mix precommit` already runs both.
       - name: Dependency advisory audit

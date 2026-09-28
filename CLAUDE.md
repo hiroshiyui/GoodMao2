@@ -29,7 +29,8 @@ mix phx.server                 # dev server: http://localhost:4000 + https://loc
 iex -S mix phx.server          # same, with a REPL
 
 mix precommit                  # THE gate: compile --warnings-as-errors + deps.unlock --unused
-                               # + format + deps.audit + hex.audit + sobelow
+                               # + format + gettext.extract --check-up-to-date
+                               # + deps.audit + hex.audit + sobelow
                                # + test --warnings-as-errors (type-checker warnings fail in test/ too)
 mix test                       # full suite (auto-creates/migrates the test DB)
 mix test test/goodmao2/pets_test.exs           # one file

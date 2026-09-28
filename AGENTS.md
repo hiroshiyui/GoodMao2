@@ -66,7 +66,8 @@ reminders), `Media` (ffmpeg-purified LifeLog photos/videos + avatars, id-keyed s
     Give it a replacement ring rather than removing it.
 - **All user-visible copy goes through `gettext()`** (flash, templates, `aria-*`). Enum
   label translations and log summaries belong in `Goodmao2Web.Helpers`. Keep `en` /
-  `zh_TW` / `ja_JP` in sync; run `mix gettext.extract && mix gettext.merge priv/gettext`.
+  `zh_TW` / `ja_JP` in sync; run `mix gettext.extract && mix gettext.merge priv/gettext`
+  (`precommit` and CI run `gettext.extract --check-up-to-date`, so a stale `.pot` fails).
 - **Every route sets a page title** (WCAG 2.4.2). The root layout's `<.live_title>` appends
   the ` · GoodMao` suffix, so assign the localized, bare title — typically the page's own
   `<.header>` text: `assign(socket, :page_title, gettext("Account settings"))` in a LiveView's

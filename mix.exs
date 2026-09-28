@@ -12,6 +12,10 @@ defmodule Goodmao2.MixProject do
       deps: deps(),
       package: package(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
+      # References name the file but not the line: `precommit` and CI run
+      # `mix gettext.extract --check-up-to-date`, and with line numbers any edit that
+      # merely moved a gettext call would fail it until someone re-extracted.
+      gettext: [write_reference_line_numbers: false],
       listeners: [Phoenix.CodeReloader]
     ]
   end
@@ -137,6 +141,11 @@ defmodule Goodmao2.MixProject do
         "compile --warnings-as-errors",
         "deps.unlock --unused",
         "format",
+        # The .pot templates must match the source. References carry no line numbers
+        # (see `gettext:` in project/0), so this fails only when a message is added,
+        # removed or moves file. errors.pot's hand-added msgids carry no `elixir-autogen`
+        # flag, so extraction keeps them.
+        "gettext.extract --check-up-to-date",
         # Two advisory databases, deliberately: `deps.audit` (mix_audit) reads the
         # elixir-security-advisories repo, `hex.audit` reads hex.pm's own retirement +
         # advisory data. They do not agree — CVE-2026-65623 (bandit) was in hex.pm's DB
