@@ -1623,7 +1623,7 @@ msgstr "你沒有編輯這筆記錄的權限。"
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #, elixir-autogen, elixir-format
 msgid "a former caretaker"
-msgstr "已離開的照顧者"
+msgstr "已離開的照護者"
 
 #: lib/goodmao2_web/live/pet_live/show.ex
 #, elixir-autogen, elixir-format
@@ -1839,7 +1839,7 @@ msgstr "此期間內沒有紀錄。"
 msgid "No reports yet."
 msgstr "尚無報告。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Not accepted"
 msgstr "未通過"
@@ -1849,7 +1849,7 @@ msgstr "未通過"
 msgid "Only a verified veterinarian can be given the vet role."
 msgstr "只有通過驗證的獸醫才能被授予獸醫角色。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Pending review"
 msgstr "審核中"
@@ -2005,7 +2005,7 @@ msgstr "到期時間必須是未來的時間。"
 msgid "To"
 msgstr "截止日"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Verified"
 msgstr "已驗證"
@@ -2818,7 +2818,7 @@ msgstr "每 N 天"
 msgid "Give"
 msgstr "給藥"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Given"
 msgstr "已給藥"
@@ -2838,7 +2838,7 @@ msgstr "用藥"
 msgid "Medications for %{name}"
 msgstr "%{name} 的用藥"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Missed"
 msgstr "已錯過"
@@ -2863,7 +2863,7 @@ msgstr "暫停"
 msgid "Paused"
 msgstr "已暫停"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Pending"
 msgstr "待給藥"
@@ -2888,7 +2888,7 @@ msgstr "排程"
 msgid "Skip"
 msgstr "略過"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Skipped"
 msgstr "已略過"
@@ -3435,7 +3435,7 @@ msgstr "你已無法在這個對話中傳送訊息。"
 #: lib/goodmao2_web/live/message_live/show.ex
 #, elixir-autogen, elixir-format
 msgid "You no longer share a pet with this person, so you can read this conversation but not reply."
-msgstr "你與對方已沒有共同照顧的寵物，因此仍可閱讀這個對話，但無法回覆。"
+msgstr "你與對方已沒有共同照護的寵物，因此仍可閱讀這個對話，但無法回覆。"
 
 #: lib/goodmao2_web/live/message_live/show.ex
 #, elixir-autogen, elixir-format

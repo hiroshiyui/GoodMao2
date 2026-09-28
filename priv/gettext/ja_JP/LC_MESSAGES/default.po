@@ -1623,7 +1623,7 @@ msgstr "この記録を編集する権限がありません。"
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #, elixir-autogen, elixir-format
 msgid "a former caretaker"
-msgstr "以前の世話人"
+msgstr "以前のケアラー"
 
 #: lib/goodmao2_web/live/pet_live/show.ex
 #, elixir-autogen, elixir-format
@@ -1839,7 +1839,7 @@ msgstr "この期間に記録はありません。"
 msgid "No reports yet."
 msgstr "まだレポートはありません。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Not accepted"
 msgstr "不受理"
@@ -1849,7 +1849,7 @@ msgstr "不受理"
 msgid "Only a verified veterinarian can be given the vet role."
 msgstr "獣医ロールを付与できるのは、認証済みの獣医のみです。"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Pending review"
 msgstr "審査中"
@@ -2005,7 +2005,7 @@ msgstr "有効期限は未来の日時にする必要があります。"
 msgid "To"
 msgstr "終了日"
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Verified"
 msgstr "認証済み"
@@ -2818,7 +2818,7 @@ msgstr "N 日ごと"
 msgid "Give"
 msgstr "投与"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Given"
 msgstr "投与済み"
@@ -2838,7 +2838,7 @@ msgstr "投薬"
 msgid "Medications for %{name}"
 msgstr "%{name} の投薬"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Missed"
 msgstr "投与漏れ"
@@ -2863,7 +2863,7 @@ msgstr "一時停止"
 msgid "Paused"
 msgstr "一時停止中"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Pending"
 msgstr "予定"
@@ -2888,7 +2888,7 @@ msgstr "スケジュール"
 msgid "Skip"
 msgstr "スキップ"
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Skipped"
 msgstr "スキップ済み"

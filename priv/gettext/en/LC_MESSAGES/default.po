@@ -1841,7 +1841,7 @@ msgstr ""
 msgid "No reports yet."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Not accepted"
 msgstr ""
@@ -1851,7 +1851,7 @@ msgstr ""
 msgid "Only a verified veterinarian can be given the vet role."
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Pending review"
 msgstr ""
@@ -2007,7 +2007,7 @@ msgstr ""
 msgid "To"
 msgstr ""
 
-#: lib/goodmao2_web/live/user_live/vet_profile.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Verified"
 msgstr ""
@@ -2822,7 +2822,7 @@ msgstr ""
 msgid "Give"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Given"
 msgstr ""
@@ -2842,7 +2842,7 @@ msgstr ""
 msgid "Medications for %{name}"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Missed"
 msgstr ""
@@ -2867,7 +2867,7 @@ msgstr ""
 msgid "Paused"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Pending"
 msgstr ""
@@ -2892,7 +2892,7 @@ msgstr ""
 msgid "Skip"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/medications.ex
+#: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "Skipped"
 msgstr ""

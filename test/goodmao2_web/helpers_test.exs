@@ -27,15 +27,76 @@ defmodule Goodmao2Web.HelpersTest do
     end
   end
 
-  describe "translate_species/1" do
-    test "labels every enum value (including the added species)" do
-      for s <- Goodmao2.Pets.Pet.species() do
-        label = translate_species(s)
-        assert is_binary(label) and label != ""
-      end
+  describe "enum labels" do
+    alias Goodmao2.Logs.LogEntry
 
+    # Every schema enum a page renders, with the helper that labels it. A value added
+    # to a schema without a label clause falls through to the helper's catch-all and
+    # renders the raw identifier (`co_caretaker`, `passed_away`) in every locale.
+    defp enums do
+      schema = [
+        {"PetAccess role", Goodmao2.Pets.PetAccess.roles(), &translate_role/1},
+        {"Pet species", Goodmao2.Pets.Pet.species(), &translate_species/1},
+        {"Pet sex", Goodmao2.Pets.Pet.sexes(), &translate_sex/1},
+        {"Pet weight unit", Goodmao2.Pets.Pet.weight_units(), &translate_weight_unit/1},
+        {"Pet lifecycle status", Goodmao2.Pets.Pet.lifecycle_statuses(), &translate_lifecycle/1},
+        {"LogEntry visibility", LogEntry.visibilities(), &translate_visibility/1},
+        {"LogEntry type", LogEntry.types(), &log_type_label/1},
+        {"Dose status", Goodmao2.Medications.Dose.statuses(), &translate_dose_status/1},
+        {"VetProfile status", Goodmao2.Accounts.VetProfile.statuses(), &translate_vet_status/1},
+        {"Notification type", Goodmao2.Notifications.Notification.types(),
+         &notification_title(&1, %{})}
+      ]
+
+      # The structured-payload enums (food/water amount, bathroom kind) render through
+      # `log_summary/2`; a payload holding only that field renders only its label.
+      payload =
+        for type <- LogEntry.types(),
+            {field, values} <- Map.get(LogEntry.spec(type), :enums, %{}),
+            do: {"#{type}.#{field}", values, &log_summary(type, %{field => &1})}
+
+      schema ++ payload
+    end
+
+    # Under zh_TW a label must differ from its raw value *and* from the English label:
+    # an untranslated msgid ("Cat") already differs from the raw value ("cat"), so the
+    # raw-value comparison alone would pass a label that ships in English. It must also
+    # differ from what the helper renders for a value it has never heard of — a lost
+    # clause can land in a catch-all that is itself translated (a water `amount` of
+    # "high" would read as the generic "Water").
+    test "every enum value renders its own zh_TW label" do
+      english =
+        for {name, values, label} <- enums(),
+            value <- values,
+            into: %{},
+            do: {{name, value}, label.(value)}
+
+      untranslated =
+        Gettext.with_locale(Goodmao2Web.Gettext, "zh_TW", fn ->
+          for {name, values, label} <- enums(),
+              fallback = label.("__no_such_value__"),
+              value <- values,
+              rendered = label.(value),
+              rendered in [value, "", english[{name, value}], fallback],
+              do: "#{name} #{inspect(value)} renders #{inspect(rendered)}"
+        end)
+
+      assert untranslated == [],
+             """
+             These enum values have no zh_TW label of their own:
+
+               #{Enum.join(untranslated, "\n  ")}
+
+             Add a clause to the label helper in Goodmao2Web.Helpers, then extract,
+             merge and translate the new msgid in every locale.
+             """
+    end
+
+    test "the English labels read as words, not identifiers" do
       assert translate_species("rabbit") == "Rabbit"
-      assert translate_species("bird") == "Bird"
+      assert translate_role("co_caretaker") == "Co-caretaker"
+      assert translate_dose_status("missed") == "Missed"
+      assert translate_vet_status("rejected") == "Not accepted"
     end
   end
 

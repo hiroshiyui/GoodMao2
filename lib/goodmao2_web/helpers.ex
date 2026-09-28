@@ -66,6 +66,17 @@ defmodule Goodmao2Web.Helpers do
   def translate_visibility("public"), do: gettext("Public")
   def translate_visibility(other), do: other
 
+  def translate_dose_status("pending"), do: gettext("Pending")
+  def translate_dose_status("given"), do: gettext("Given")
+  def translate_dose_status("skipped"), do: gettext("Skipped")
+  def translate_dose_status("missed"), do: gettext("Missed")
+  def translate_dose_status(other), do: other
+
+  def translate_vet_status("pending"), do: gettext("Pending review")
+  def translate_vet_status("verified"), do: gettext("Verified")
+  def translate_vet_status("rejected"), do: gettext("Not accepted")
+  def translate_vet_status(other), do: other
+
   @doc """
   Who can actually read an entry at each visibility scope ([ADR-0004](adr/0004-log-visibility.md)),
   phrased for the owner choosing it.

@@ -69,7 +69,7 @@ defmodule Goodmao2Web.UserLive.VetProfile do
 
         <div :if={@profile.id} id="vet-profile-status" class="mt-4">
           <span class={["badge", status_badge_class(@profile.verification_status)]}>
-            {verification_label(@profile.verification_status)}
+            {translate_vet_status(@profile.verification_status)}
           </span>
           <p
             :if={@profile.verification_status == "rejected"}
@@ -121,10 +121,6 @@ defmodule Goodmao2Web.UserLive.VetProfile do
     </Layouts.app>
     """
   end
-
-  defp verification_label("pending"), do: gettext("Pending review")
-  defp verification_label("verified"), do: gettext("Verified")
-  defp verification_label("rejected"), do: gettext("Not accepted")
 
   defp status_badge_class("pending"), do: "badge-warning"
   defp status_badge_class("verified"), do: "badge-success"

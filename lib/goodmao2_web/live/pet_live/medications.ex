@@ -245,7 +245,7 @@ defmodule Goodmao2Web.PetLive.Medications do
                 </p>
                 <p class="text-base-content/70 text-xs">
                   <time datetime={DateTime.to_iso8601(dose.due_at)}>{format_datetime(dose.due_at)}</time>
-                  · <span class="dose-status">{dose_status_label(dose.status)}</span>
+                  · <span class="dose-status">{translate_dose_status(dose.status)}</span>
                 </p>
               </div>
 
@@ -383,12 +383,6 @@ defmodule Goodmao2Web.PetLive.Medications do
     </Layouts.app>
     """
   end
-
-  defp dose_status_label("pending"), do: gettext("Pending")
-  defp dose_status_label("given"), do: gettext("Given")
-  defp dose_status_label("skipped"), do: gettext("Skipped")
-  defp dose_status_label("missed"), do: gettext("Missed")
-  defp dose_status_label(other), do: other
 
   defp times_label(times) do
     times |> Enum.map(&Calendar.strftime(&1, "%H:%M")) |> Enum.join(", ")
