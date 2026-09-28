@@ -236,6 +236,7 @@ defmodule Goodmao2Web.PetLive.Medications do
           <ul class="mt-2 space-y-2">
             <li
               :for={dose <- @doses}
+              :key={dose.id}
               id={"dose-#{dose.id}"}
               class="card card-border bg-base-100 flex flex-row items-center justify-between gap-3 p-3"
             >
@@ -285,6 +286,7 @@ defmodule Goodmao2Web.PetLive.Medications do
           <ul class="mt-2 space-y-2">
             <li
               :for={schedule <- @schedules}
+              :key={schedule.id}
               id={"schedule-#{schedule.id}"}
               class="card card-border bg-base-100 flex flex-row items-center justify-between gap-3 p-3"
             >

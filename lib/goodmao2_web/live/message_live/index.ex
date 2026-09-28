@@ -108,6 +108,7 @@ defmodule Goodmao2Web.MessageLive.Index do
           </li>
           <li
             :for={entry <- @conversations}
+            :key={entry.conversation.id}
             id={"conversation-#{entry.conversation.id}"}
             class="conversation-row card card-border bg-base-100"
           >

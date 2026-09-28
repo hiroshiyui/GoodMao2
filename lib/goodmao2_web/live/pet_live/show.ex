@@ -1045,6 +1045,7 @@ defmodule Goodmao2Web.PetLive.Show do
         <ol :if={@day_entries != []} class="mt-2 space-y-2">
           <li
             :for={entry <- @day_entries}
+            :key={entry.id}
             id={"day-entry-#{entry.id}"}
             class="timeline-entry card card-border bg-base-100"
           >
