@@ -233,6 +233,8 @@ each described below; the web layer is thin LiveViews that call them.
   are capped at 2 000 codepoints and soft-deleted. A new message also **Web Push**es to the other
   participant (`send_message/3` → `MessagePushWorker` → `Notifications.push_to_user/2`), gated on
   `WebPush.vapid_configured?/0` — messages write no bell row, so this is their only push path.
+  The push **names the sender and never carries the message text** (it shows on a locked
+  screen), and is tagged per conversation.
 
 Web LiveViews (`lib/goodmao2_web/live/pet_live/`): `Index`, `Form` (new/edit), `Show`
 (QuickLog + live filterable, page-sized timeline/calendar + weight trend), `LogEntry` (single entry:

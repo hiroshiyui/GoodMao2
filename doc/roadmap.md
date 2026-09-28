@@ -287,7 +287,7 @@ can be read in context. Items are ordered by value against effort.
 
 ### 1. Security & privacy
 
-- [ ] **Keep message text out of Web Push** (`63f612a0`). `Helpers.message_push_payload/3`
+- [x] **Keep message text out of Web Push** (`63f612a0`). *Shipped (unreleased).* `Helpers.message_push_payload/3`
       puts up to 140 characters on a locked screen, so name the sender only. The service
       worker also tags notifications by `type`, so one conversation's push replaces another's,
       and one pet's dose reminder replaces another's. Give each payload a per-subject `tag`.

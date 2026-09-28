@@ -51,6 +51,25 @@ defmodule Goodmao2.Notifications.WebPushTest do
     end
   end
 
+  describe "build_payload/1" do
+    test "tags each bell row separately, so one pet's reminder can't replace another's" do
+      reminder = fn id, pet ->
+        %Goodmao2.Notifications.Notification{
+          id: id,
+          type: "medication_due",
+          payload: %{"pet_id" => 1, "pet_name" => pet, "medication_name" => "Pill", "dose" => "1"}
+        }
+      end
+
+      a = WebPush.build_payload(reminder.(10, "Mittens"))
+      b = WebPush.build_payload(reminder.(11, "Tofu"))
+
+      assert a.tag == "notification:10"
+      assert b.tag == "notification:11"
+      assert a.type == b.type
+    end
+  end
+
   describe "vapid_configured?/0 and generate_keypair/0" do
     test "is false until keys are stored, then true" do
       refute WebPush.vapid_configured?()

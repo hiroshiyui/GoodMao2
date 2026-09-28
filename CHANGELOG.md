@@ -8,6 +8,15 @@ skill).
 
 ## [Unreleased]
 
+### Security
+
+- **Message push notifications no longer carry the message text.** A new mailbox message
+  pushed up to 140 characters of its body, which showed on a locked phone to whoever held it
+  and passed through the browser vendor's push service. The push now reads "New message ·
+  From @handle", and the text stays in the thread. Every push also carries a per-subject tag.
+  Before this, each notification was tagged by its type, so one conversation's push replaced
+  another's unread one, and one pet's dose reminder replaced another's.
+
 ### Changed
 
 - **CI runs on `ubuntu-24.04` instead of `ubuntu-latest`.** GitHub moves `ubuntu-latest` to

@@ -349,8 +349,8 @@ defmodule Goodmao2.Messaging do
   @doc """
   Delivers a message to the *other* participant's browsers as Web Push.
 
-  The `MessagePushWorker` entry point: renders the sender + body into a payload (deep-linking
-  to the thread) and sends to the recipient's live subscriptions. No-op if the message is
+  The `MessagePushWorker` entry point: renders a sender-only payload (deep-linking to the
+  thread; the body never leaves the server) and sends to the recipient's live subscriptions. No-op if the message is
   gone/soft-deleted or the recipient has no subscriptions.
   """
   def dispatch_message_push(message_id) do
@@ -361,12 +361,7 @@ defmodule Goodmao2.Messaging do
         if recipient_ids != [] do
           sender = Repo.get(User, message.sender_id)
 
-          payload =
-            Goodmao2Web.Helpers.message_push_payload(
-              sender,
-              message.body,
-              message.conversation_id
-            )
+          payload = Goodmao2Web.Helpers.message_push_payload(sender, message.conversation_id)
 
           Enum.each(recipient_ids, &Notifications.push_to_user(&1, payload))
         end

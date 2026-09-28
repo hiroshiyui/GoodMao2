@@ -11,18 +11,18 @@ msgstr ""
 "Language: ja_JP\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: lib/goodmao2_web/helpers.ex:310
+#: lib/goodmao2_web/helpers.ex:312
 #, elixir-autogen, elixir-format
 msgid "%{count} episode"
 msgid_plural "%{count} episodes"
 msgstr[0] "%{count} 回"
 
-#: lib/goodmao2_web/helpers.ex:572
+#: lib/goodmao2_web/helpers.ex:574
 #, elixir-autogen, elixir-format
 msgid "%{g} g"
 msgstr "%{g} g"
 
-#: lib/goodmao2_web/helpers.ex:318
+#: lib/goodmao2_web/helpers.ex:320
 #, elixir-autogen, elixir-format
 msgid "%{kg} kg"
 msgstr "%{kg} kg"
@@ -32,7 +32,7 @@ msgstr "%{kg} kg"
 msgid "%{name} added."
 msgstr "%{name}を追加しました。"
 
-#: lib/goodmao2_web/helpers.ex:575
+#: lib/goodmao2_web/helpers.ex:577
 #, elixir-autogen, elixir-format
 msgid "%{v} ml"
 msgstr "%{v} ml"
@@ -73,7 +73,7 @@ msgstr "アクセスを取り消しました。"
 msgid "Account settings"
 msgstr "アカウント設定"
 
-#: lib/goodmao2_web/components/core_components.ex:469
+#: lib/goodmao2_web/components/core_components.ex:479
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "操作"
@@ -115,14 +115,14 @@ msgid "Amount"
 msgstr "量"
 
 #: lib/goodmao2_web/components/log_fields.ex:28
-#: lib/goodmao2_web/helpers.ex:566
+#: lib/goodmao2_web/helpers.ex:568
 #: lib/goodmao2_web/live/pet_live/show.ex:1333
 #, elixir-autogen, elixir-format
 msgid "Ate fully"
 msgstr "完食"
 
 #: lib/goodmao2_web/components/log_fields.ex:29
-#: lib/goodmao2_web/helpers.ex:567
+#: lib/goodmao2_web/helpers.ex:569
 #: lib/goodmao2_web/live/pet_live/show.ex:1334
 #, elixir-autogen, elixir-format
 msgid "Ate partially"
@@ -152,7 +152,7 @@ msgid "Back to pets"
 msgstr "ペット一覧へ戻る"
 
 #: lib/goodmao2_web/helpers.ex:104
-#: lib/goodmao2_web/helpers.ex:293
+#: lib/goodmao2_web/helpers.ex:295
 #, elixir-autogen, elixir-format
 msgid "Bathroom"
 msgstr "トイレ"
@@ -221,7 +221,7 @@ msgid "Could not revoke that grant."
 msgstr "そのアクセス権を取り消せませんでした。"
 
 #: lib/goodmao2_web/helpers.ex:111
-#: lib/goodmao2_web/helpers.ex:339
+#: lib/goodmao2_web/helpers.ex:341
 #, elixir-autogen, elixir-format
 msgid "Daily life"
 msgstr "日常"
@@ -277,7 +277,7 @@ msgstr "ケアの終了 · %{name}"
 msgid "Energy"
 msgstr "元気"
 
-#: lib/goodmao2_web/helpers.ex:324
+#: lib/goodmao2_web/helpers.ex:326
 #, elixir-autogen, elixir-format
 msgid "Energy %{level}/5"
 msgstr "元気 %{level}/5"
@@ -319,7 +319,7 @@ msgstr "種類で絞り込む"
 
 #: lib/goodmao2_web/components/log_fields.ex:33
 #: lib/goodmao2_web/helpers.ex:102
-#: lib/goodmao2_web/helpers.ex:569
+#: lib/goodmao2_web/helpers.ex:571
 #, elixir-autogen, elixir-format
 msgid "Food"
 msgstr "食事"
@@ -354,7 +354,7 @@ msgstr "アクセス権が見つかりません。"
 msgid "High"
 msgstr "多め"
 
-#: lib/goodmao2_web/helpers.ex:281
+#: lib/goodmao2_web/helpers.ex:283
 #: lib/goodmao2_web/live/pet_live/show.ex:1343
 #, elixir-autogen, elixir-format
 msgid "High intake"
@@ -421,7 +421,7 @@ msgstr "行方不明"
 msgid "Low"
 msgstr "少なめ"
 
-#: lib/goodmao2_web/helpers.ex:280
+#: lib/goodmao2_web/helpers.ex:282
 #: lib/goodmao2_web/live/pet_live/show.ex:1342
 #, elixir-autogen, elixir-format
 msgid "Low intake"
@@ -491,7 +491,7 @@ msgstr "まだペットがいません。最初のパートナーを追加して
 msgid "Normal"
 msgstr "普通"
 
-#: lib/goodmao2_web/helpers.ex:279
+#: lib/goodmao2_web/helpers.ex:281
 #: lib/goodmao2_web/live/pet_live/show.ex:1341
 #, elixir-autogen, elixir-format
 msgid "Normal intake"
@@ -604,7 +604,7 @@ msgstr "クイックログ"
 msgid "Refused"
 msgstr "拒否"
 
-#: lib/goodmao2_web/helpers.ex:568
+#: lib/goodmao2_web/helpers.ex:570
 #, elixir-autogen, elixir-format
 msgid "Refused food"
 msgstr "食事を拒否"
@@ -725,7 +725,7 @@ msgid "Status"
 msgstr "ステータス"
 
 #: lib/goodmao2_web/components/log_fields.ex:60
-#: lib/goodmao2_web/helpers.ex:292
+#: lib/goodmao2_web/helpers.ex:294
 #: lib/goodmao2_web/live/pet_live/show.ex:1350
 #, elixir-autogen, elixir-format
 msgid "Stool"
@@ -759,7 +759,7 @@ msgid "Unknown"
 msgstr "不明"
 
 #: lib/goodmao2_web/components/log_fields.ex:60
-#: lib/goodmao2_web/helpers.ex:291
+#: lib/goodmao2_web/helpers.ex:293
 #: lib/goodmao2_web/live/pet_live/show.ex:1349
 #, elixir-autogen, elixir-format
 msgid "Urine"
@@ -780,7 +780,7 @@ msgstr "獣医"
 msgid "Viewer"
 msgstr "閲覧者"
 
-#: lib/goodmao2_web/components/core_components.ex:354
+#: lib/goodmao2_web/components/core_components.ex:364
 #, elixir-autogen, elixir-format
 msgid "Visibility"
 msgstr "公開範囲"
@@ -791,13 +791,13 @@ msgid "Volume (ml)"
 msgstr "量（ml）"
 
 #: lib/goodmao2_web/helpers.ex:105
-#: lib/goodmao2_web/helpers.ex:453
+#: lib/goodmao2_web/helpers.ex:455
 #, elixir-autogen, elixir-format
 msgid "Vomiting"
 msgstr "嘔吐"
 
 #: lib/goodmao2_web/helpers.ex:103
-#: lib/goodmao2_web/helpers.ex:282
+#: lib/goodmao2_web/helpers.ex:284
 #, elixir-autogen, elixir-format
 msgid "Water"
 msgstr "水"
@@ -808,8 +808,8 @@ msgid "We can't find the internet"
 msgstr "インターネットに接続できません"
 
 #: lib/goodmao2_web/helpers.ex:106
-#: lib/goodmao2_web/helpers.ex:317
-#: lib/goodmao2_web/helpers.ex:353
+#: lib/goodmao2_web/helpers.ex:319
+#: lib/goodmao2_web/helpers.ex:355
 #, elixir-autogen, elixir-format
 msgid "Weight"
 msgstr "体重"
@@ -856,7 +856,7 @@ msgstr "共有を管理する権限がありません。"
 msgid "Your handle lets others invite you to a pet by @handle."
 msgstr "ハンドルを設定すると、他の人が@ハンドルであなたをペットに招待できます。"
 
-#: lib/goodmao2_web/helpers.ex:299
+#: lib/goodmao2_web/helpers.ex:301
 #, elixir-autogen, elixir-format
 msgid "blood"
 msgstr "血"
@@ -881,12 +881,12 @@ msgstr "キログラム"
 msgid "pounds"
 msgstr "ポンド"
 
-#: lib/goodmao2_web/helpers.ex:578
+#: lib/goodmao2_web/helpers.ex:580
 #, elixir-autogen, elixir-format
 msgid "severity %{s}/5"
 msgstr "重症度 %{s}/5"
 
-#: lib/goodmao2_web/helpers.ex:300
+#: lib/goodmao2_web/helpers.ex:302
 #, elixir-autogen, elixir-format
 msgid "straining ⚠"
 msgstr "いきみ ⚠"
@@ -1244,22 +1244,22 @@ msgid "%{count} entry"
 msgid_plural "%{count} entries"
 msgstr[0] "%{count} 件の記録"
 
-#: lib/goodmao2_web/helpers.ex:530
+#: lib/goodmao2_web/helpers.ex:532
 #, elixir-autogen, elixir-format
 msgid "%{month} %{day}, %{year}"
 msgstr "%{year}年%{month}%{day}日"
 
-#: lib/goodmao2_web/helpers.ex:525
+#: lib/goodmao2_web/helpers.ex:527
 #, elixir-autogen, elixir-format
 msgid "%{month} %{year}"
 msgstr "%{year}年%{month}"
 
-#: lib/goodmao2_web/helpers.ex:536
+#: lib/goodmao2_web/helpers.ex:538
 #, elixir-autogen, elixir-format
 msgid "April"
 msgstr "4月"
 
-#: lib/goodmao2_web/helpers.ex:540
+#: lib/goodmao2_web/helpers.ex:542
 #, elixir-autogen, elixir-format
 msgid "August"
 msgstr "8月"
@@ -1274,7 +1274,7 @@ msgstr "月に戻る"
 msgid "Calendar"
 msgstr "カレンダー"
 
-#: lib/goodmao2_web/helpers.ex:544
+#: lib/goodmao2_web/helpers.ex:546
 #, elixir-autogen, elixir-format
 msgid "December"
 msgstr "12月"
@@ -1284,27 +1284,27 @@ msgstr "12月"
 msgid "Entries for %{month}"
 msgstr "%{month}の記録"
 
-#: lib/goodmao2_web/helpers.ex:534
+#: lib/goodmao2_web/helpers.ex:536
 #, elixir-autogen, elixir-format
 msgid "February"
 msgstr "2月"
 
-#: lib/goodmao2_web/helpers.ex:552
+#: lib/goodmao2_web/helpers.ex:554
 #, elixir-autogen, elixir-format
 msgid "Fri"
 msgstr "金"
 
-#: lib/goodmao2_web/helpers.ex:533
+#: lib/goodmao2_web/helpers.ex:535
 #, elixir-autogen, elixir-format
 msgid "January"
 msgstr "1月"
 
-#: lib/goodmao2_web/helpers.ex:539
+#: lib/goodmao2_web/helpers.ex:541
 #, elixir-autogen, elixir-format
 msgid "July"
 msgstr "7月"
 
-#: lib/goodmao2_web/helpers.ex:538
+#: lib/goodmao2_web/helpers.ex:540
 #, elixir-autogen, elixir-format
 msgid "June"
 msgstr "6月"
@@ -1314,17 +1314,17 @@ msgstr "6月"
 msgid "List"
 msgstr "リスト"
 
-#: lib/goodmao2_web/helpers.ex:535
+#: lib/goodmao2_web/helpers.ex:537
 #, elixir-autogen, elixir-format
 msgid "March"
 msgstr "3月"
 
-#: lib/goodmao2_web/helpers.ex:537
+#: lib/goodmao2_web/helpers.ex:539
 #, elixir-autogen, elixir-format
 msgid "May"
 msgstr "5月"
 
-#: lib/goodmao2_web/helpers.ex:548
+#: lib/goodmao2_web/helpers.ex:550
 #, elixir-autogen, elixir-format
 msgid "Mon"
 msgstr "月"
@@ -1344,12 +1344,12 @@ msgstr "翌月"
 msgid "No entries on this day."
 msgstr "この日の記録はありません。"
 
-#: lib/goodmao2_web/helpers.ex:543
+#: lib/goodmao2_web/helpers.ex:545
 #, elixir-autogen, elixir-format
 msgid "November"
 msgstr "11月"
 
-#: lib/goodmao2_web/helpers.ex:542
+#: lib/goodmao2_web/helpers.ex:544
 #, elixir-autogen, elixir-format
 msgid "October"
 msgstr "10月"
@@ -1359,22 +1359,22 @@ msgstr "10月"
 msgid "Previous month"
 msgstr "前月"
 
-#: lib/goodmao2_web/helpers.ex:553
+#: lib/goodmao2_web/helpers.ex:555
 #, elixir-autogen, elixir-format
 msgid "Sat"
 msgstr "土"
 
-#: lib/goodmao2_web/helpers.ex:541
+#: lib/goodmao2_web/helpers.ex:543
 #, elixir-autogen, elixir-format
 msgid "September"
 msgstr "9月"
 
-#: lib/goodmao2_web/helpers.ex:547
+#: lib/goodmao2_web/helpers.ex:549
 #, elixir-autogen, elixir-format
 msgid "Sun"
 msgstr "日"
 
-#: lib/goodmao2_web/helpers.ex:551
+#: lib/goodmao2_web/helpers.ex:553
 #, elixir-autogen, elixir-format
 msgid "Thu"
 msgstr "木"
@@ -1384,12 +1384,12 @@ msgstr "木"
 msgid "Timeline view"
 msgstr "タイムライン表示"
 
-#: lib/goodmao2_web/helpers.ex:549
+#: lib/goodmao2_web/helpers.ex:551
 #, elixir-autogen, elixir-format
 msgid "Tue"
 msgstr "火"
 
-#: lib/goodmao2_web/helpers.ex:550
+#: lib/goodmao2_web/helpers.ex:552
 #, elixir-autogen, elixir-format
 msgid "Wed"
 msgstr "水"
@@ -1404,37 +1404,37 @@ msgstr "緊急"
 msgid "worth watching"
 msgstr "要注意"
 
-#: lib/goodmao2_web/helpers.ex:561
+#: lib/goodmao2_web/helpers.ex:563
 #, elixir-autogen, elixir-format
 msgid "Friday"
 msgstr "金曜日"
 
-#: lib/goodmao2_web/helpers.ex:557
+#: lib/goodmao2_web/helpers.ex:559
 #, elixir-autogen, elixir-format
 msgid "Monday"
 msgstr "月曜日"
 
-#: lib/goodmao2_web/helpers.ex:562
+#: lib/goodmao2_web/helpers.ex:564
 #, elixir-autogen, elixir-format
 msgid "Saturday"
 msgstr "土曜日"
 
-#: lib/goodmao2_web/helpers.ex:556
+#: lib/goodmao2_web/helpers.ex:558
 #, elixir-autogen, elixir-format
 msgid "Sunday"
 msgstr "日曜日"
 
-#: lib/goodmao2_web/helpers.ex:560
+#: lib/goodmao2_web/helpers.ex:562
 #, elixir-autogen, elixir-format
 msgid "Thursday"
 msgstr "木曜日"
 
-#: lib/goodmao2_web/helpers.ex:558
+#: lib/goodmao2_web/helpers.ex:560
 #, elixir-autogen, elixir-format
 msgid "Tuesday"
 msgstr "火曜日"
 
-#: lib/goodmao2_web/helpers.ex:559
+#: lib/goodmao2_web/helpers.ex:561
 #, elixir-autogen, elixir-format
 msgid "Wednesday"
 msgstr "水曜日"
@@ -1501,7 +1501,7 @@ msgstr "サインインの確認"
 msgid "Health timeline for the pets you love"
 msgstr "大切なペットのための健康タイムライン"
 
-#: lib/goodmao2_web/helpers.ex:438
+#: lib/goodmao2_web/helpers.ex:440
 #, elixir-autogen, elixir-format
 msgid "Blood"
 msgstr "血あり"
@@ -1511,22 +1511,22 @@ msgstr "血あり"
 msgid "Clinical flags"
 msgstr "臨床フラグ"
 
-#: lib/goodmao2_web/helpers.ex:446
+#: lib/goodmao2_web/helpers.ex:448
 #, elixir-autogen, elixir-format
 msgid "Not eating"
 msgstr "食欲不振"
 
-#: lib/goodmao2_web/helpers.ex:451
+#: lib/goodmao2_web/helpers.ex:453
 #, elixir-autogen, elixir-format
 msgid "Repeated vomiting"
 msgstr "繰り返す嘔吐"
 
-#: lib/goodmao2_web/helpers.ex:459
+#: lib/goodmao2_web/helpers.ex:461
 #, elixir-autogen, elixir-format
 msgid "Severe symptom"
 msgstr "重い症状"
 
-#: lib/goodmao2_web/helpers.ex:440
+#: lib/goodmao2_web/helpers.ex:442
 #, elixir-autogen, elixir-format
 msgid "Straining"
 msgstr "いきみ"
@@ -2252,7 +2252,7 @@ msgstr "全員に送信"
 msgid "Sending…"
 msgstr "送信中…"
 
-#: lib/goodmao2_web/helpers.ex:261
+#: lib/goodmao2_web/helpers.ex:263
 #, elixir-autogen, elixir-format
 msgid "Someone"
 msgstr "誰か"
@@ -2414,7 +2414,7 @@ msgstr "Web Push（VAPID）"
 msgid "Web Push lets followers receive notifications with GoodMao closed. Generate a keypair to enable it."
 msgstr "Web Push を使うと、GoodMao を閉じていてもフォロワーが通知を受け取れます。キーペアを生成して有効にしましょう。"
 
-#: lib/goodmao2_web/helpers.ex:252
+#: lib/goodmao2_web/helpers.ex:244
 #, elixir-autogen, elixir-format
 msgid "New message"
 msgstr "新しいメッセージ"
@@ -2956,17 +2956,17 @@ msgstr "ここで投薬を管理する権限がありません。"
 msgid "%{from}–%{to} of %{total}"
 msgstr "%{total} 件中 %{from}–%{to} 件"
 
-#: lib/goodmao2_web/helpers.ex:616
+#: lib/goodmao2_web/helpers.ex:618
 #, elixir-autogen, elixir-format
 msgid "%{v} g"
 msgstr "%{v} g"
 
-#: lib/goodmao2_web/helpers.ex:622
+#: lib/goodmao2_web/helpers.ex:624
 #, elixir-autogen, elixir-format
 msgid "%{v} kg"
 msgstr "%{v} kg"
 
-#: lib/goodmao2_web/helpers.ex:619
+#: lib/goodmao2_web/helpers.ex:621
 #, elixir-autogen, elixir-format
 msgid "%{v} lb"
 msgstr "%{v} lb"
@@ -3503,3 +3503,9 @@ msgstr "最近メッセージを多く送信しています——しばらくし
 #, elixir-autogen, elixir-format
 msgid "Theme"
 msgstr "テーマ"
+
+#: lib/goodmao2_web/helpers.ex:254
+#: lib/goodmao2_web/helpers.ex:257
+#, elixir-autogen, elixir-format
+msgid "From %{sender}"
+msgstr "%{sender} さんから"

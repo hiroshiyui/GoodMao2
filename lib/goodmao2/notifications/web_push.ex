@@ -148,6 +148,9 @@ defmodule Goodmao2.Notifications.WebPush do
       body: Goodmao2Web.Helpers.notification_summary(notification) || "",
       url: notification_url(notification),
       type: notification.type,
+      # One OS notification per bell row, as in the feed. A tag shared by type would let one
+      # pet's dose reminder silently replace another's.
+      tag: "notification:#{notification.id}",
       icon: nil
     }
   end

@@ -88,7 +88,11 @@ many-recipient fan-out runs through Oban. Web Push is a separate, later stage.**
   the same `Goodmao2Web.Helpers` as the bell, in the default locale (there is no per-request
   locale in the dispatch worker). New mailbox *messages* also push — they write no bell row,
   so `Messaging.send_message/3` enqueues a `MessagePushWorker` that sends to the *other*
-  participant via the same `Notifications.push_to_user/2` primitive.
+  participant via the same `Notifications.push_to_user/2` primitive. A message push **names
+  the sender and never carries the message text**: it is shown on a locked screen and relayed
+  by the browser vendor's push service, so the text stays behind the session, in the thread.
+  Every push carries a per-subject `tag`: one per conversation, so a thread collapses to its
+  latest message, and one per bell row, so one pet's reminder never replaces another's.
 
 ## Consequences
 

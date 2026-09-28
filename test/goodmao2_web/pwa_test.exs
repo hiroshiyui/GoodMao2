@@ -85,6 +85,13 @@ defmodule Goodmao2Web.PWATest do
       assert body =~ ~r/mode\s*[!=]==\s*"navigate"/
     end
 
+    test "prefers the payload's per-subject tag over its type", %{conn: conn} do
+      body = conn |> get(~p"/service_worker.js") |> response(200)
+
+      # Tagging by type alone let one conversation's push replace another's.
+      assert body =~ ~r/tag:\s*\w+\.tag\s*\|\|/
+    end
+
     test "serves the precached offline page as a self-contained static file", %{conn: conn} do
       conn = get(conn, ~p"/offline.html")
 

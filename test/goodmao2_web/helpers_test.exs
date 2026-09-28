@@ -76,4 +76,26 @@ defmodule Goodmao2Web.HelpersTest do
       assert format_date(nil) == ""
     end
   end
+
+  describe "message_push_payload/2" do
+    test "names the sender and never carries the message text" do
+      payload = message_push_payload(%{handle: "mimi", display_name: "Mimi"}, 7)
+
+      assert payload.title == "New message"
+      assert payload.body == "From @mimi"
+      assert payload.url =~ "/messages/7"
+      # The signature takes no body at all; this pins that nothing else smuggles one in.
+      assert Map.keys(payload) |> Enum.sort() == [:body, :icon, :tag, :title, :type, :url]
+    end
+
+    test "falls back to the display name, then to no sender line" do
+      assert message_push_payload(%{handle: nil, display_name: "Mimi"}, 7).body == "From Mimi"
+      assert message_push_payload(nil, 7).body == ""
+    end
+
+    test "tags per conversation, so threads don't replace each other" do
+      assert message_push_payload(nil, 7).tag == "message:7"
+      assert message_push_payload(nil, 8).tag == "message:8"
+    end
+  end
 end

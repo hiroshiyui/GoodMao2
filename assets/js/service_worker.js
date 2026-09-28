@@ -22,7 +22,9 @@ self.addEventListener("push", (event) => {
   const options = {
     body: data.body || "",
     data: { url: data.url || "/" },
-    tag: data.type || "default",
+    // The server sends a per-subject tag (one per conversation or bell row). Falling back to
+    // the type only covers payloads queued before tags existed.
+    tag: data.tag || data.type || "default",
     renotify: true,
   }
   // Only set an icon/badge when the payload carries one — GoodMao's favicon is an inline

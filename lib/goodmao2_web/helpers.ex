@@ -232,29 +232,31 @@ defmodule Goodmao2Web.Helpers do
   @doc """
   Builds the Web Push payload for a new mailbox message (ADR-0011 Stage 2).
 
-  Mailbox messages create no bell row, so this renders push copy directly from the sender
-  and body: the sender's public label as the title (like a chat app) and a short preview as
-  the body, deep-linking to the thread. Rendered in the default locale (the dispatch worker
-  has no per-request locale). `sender` may be `nil` (a deleted account).
+  Mailbox messages create no bell row, so this renders push copy directly. It names the
+  sender and **never carries the message text**: a push is shown on a locked screen, to
+  whoever is holding the phone, and the push service relays it too. The text is read in the
+  thread, behind the session. The `tag` is per conversation, so a thread's notifications
+  collapse to its latest while other threads' stay. Rendered in the default locale (the
+  dispatch worker has no per-request locale). `sender` may be `nil` (a deleted account).
   """
-  def message_push_payload(sender, body, conversation_id) do
+  def message_push_payload(sender, conversation_id) do
     %{
-      title: message_push_title(sender),
-      body: message_push_preview(body),
+      title: gettext("New message"),
+      body: message_push_sender(sender),
       url: url(~p"/messages/#{conversation_id}"),
       type: "message",
+      tag: "message:#{conversation_id}",
       icon: nil
     }
   end
 
-  defp message_push_title(%{handle: h}) when is_binary(h) and h != "", do: "@" <> h
-  defp message_push_title(%{display_name: n}) when is_binary(n) and n != "", do: n
-  defp message_push_title(_), do: gettext("New message")
+  defp message_push_sender(%{handle: h}) when is_binary(h) and h != "",
+    do: gettext("From %{sender}", sender: "@" <> h)
 
-  defp message_push_preview(body) do
-    trimmed = String.trim(body || "")
-    if String.length(trimmed) > 140, do: String.slice(trimmed, 0, 140) <> "…", else: trimmed
-  end
+  defp message_push_sender(%{display_name: n}) when is_binary(n) and n != "",
+    do: gettext("From %{sender}", sender: n)
+
+  defp message_push_sender(_), do: ""
 
   # A non-leaking actor label, or a gentle generic when the actor had no public name.
   defp actor_name(name) when is_binary(name) and name != "", do: name
