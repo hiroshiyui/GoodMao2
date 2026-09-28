@@ -850,6 +850,26 @@ defmodule Goodmao2Web.PetLiveTest do
       assert String.trim(dims) == "20,20"
     end
 
+    test "an upload over the hourly cap is refused with a flash", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      exhaust_media_upload_budget(user)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#pet-avatar-trigger") |> render_click()
+
+      photo =
+        file_input(lv, "#pet-avatar-form", :avatar, [
+          %{name: "rex.png", content: "not purified", type: "image/png"}
+        ])
+
+      render_upload(photo, "rex.png")
+
+      assert lv |> form("#pet-avatar-form") |> render_submit() =~
+               "uploaded a lot recently"
+
+      assert Goodmao2.Media.Avatars.get_avatar("pet", pet.id) == nil
+    end
+
     test "a viewer sees no upload trigger", %{conn: conn, user: user} do
       owner = user_fixture()
       pet = pet_fixture(owner)

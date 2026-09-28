@@ -386,6 +386,16 @@ defmodule Goodmao2Web.UserLive.Settings do
              |> assign(:avatar_menu_open, false)
              |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
 
+          {:error, :rate_limited} ->
+            Media.unstage_upload(token)
+
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("You've uploaded a lot recently — please try again later.")
+             )}
+
           {:error, _} ->
             Media.unstage_upload(token)
             {:noreply, put_flash(socket, :error, gettext("Couldn't upload your photo."))}

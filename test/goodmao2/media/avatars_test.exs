@@ -2,6 +2,7 @@ defmodule Goodmao2.Media.AvatarsTest do
   # async: false — these tests write real objects into the shared test storage dir and shell
   # out to ffmpeg (mirroring MediaTest).
   use Goodmao2.DataCase, async: false
+  use Oban.Testing, repo: Goodmao2.Repo
 
   alias Goodmao2.Media
   alias Goodmao2.Media.{Avatar, Avatars, Storage}
@@ -88,6 +89,25 @@ defmodule Goodmao2.Media.AvatarsTest do
 
       assert Avatars.set_avatar("pet", pet.id, writer, staged_png()) == {:error, :unauthorized}
       assert Avatars.get_avatar("pet", pet.id) == nil
+    end
+
+    test "draws on the same hourly upload budget as life-log media", %{owner: owner, pet: pet} do
+      previous = Application.fetch_env!(:goodmao2, Goodmao2.Media)
+
+      Application.put_env(
+        :goodmao2,
+        Goodmao2.Media,
+        Keyword.put(previous, :rate_limit_per_hour, 1)
+      )
+
+      on_exit(fn -> Application.put_env(:goodmao2, Goodmao2.Media, previous) end)
+
+      assert {:ok, %Avatar{}} = Avatars.set_avatar("user", owner.id, owner, staged_png())
+
+      # Over the cap: refused before the row is claimed or any purify job is queued.
+      assert Avatars.set_avatar("pet", pet.id, owner, staged_png()) == {:error, :rate_limited}
+      assert Avatars.get_avatar("pet", pet.id) == nil
+      assert [_one] = all_enqueued(worker: Goodmao2.Media.AvatarPurifyWorker)
     end
 
     test "applies a client crop in the purify step", %{owner: owner} do

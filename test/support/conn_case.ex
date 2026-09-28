@@ -57,6 +57,18 @@ defmodule Goodmao2Web.ConnCase do
   end
 
   @doc """
+  Spends `user`'s whole hourly media-upload budget (`Goodmao2.Media.RateLimiter`), so their next
+  upload is refused. Writes the per-user ETS window directly rather than lowering the global
+  cap, which would throttle every async test running alongside.
+  """
+  def exhaust_media_upload_budget(user) do
+    limit = Application.fetch_env!(:goodmao2, Goodmao2.Media)[:rate_limit_per_hour]
+    now = System.system_time(:second)
+    :ets.insert(:media_upload_rate, {user.id, List.duplicate(now, limit)})
+    :ok
+  end
+
+  @doc """
   Logs the given `user` into the `conn`.
 
   It returns an updated `conn`.

@@ -40,6 +40,26 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
     end
   end
 
+  describe "profile photo (ADR-0020)" do
+    test "an upload over the hourly cap is refused with a flash", %{conn: conn} do
+      user = user_fixture()
+      exhaust_media_upload_budget(user)
+
+      {:ok, lv, _html} = conn |> log_in_user(user) |> live(~p"/users/settings")
+      lv |> element("#user-avatar-trigger") |> render_click()
+
+      photo =
+        file_input(lv, "#avatar_form", :avatar, [
+          %{name: "me.png", content: "not purified", type: "image/png"}
+        ])
+
+      render_upload(photo, "me.png")
+
+      assert lv |> form("#avatar_form") |> render_submit() =~ "uploaded a lot recently"
+      assert Goodmao2.Media.Avatars.get_avatar("user", user.id) == nil
+    end
+  end
+
   describe "preferred timezone (ADR-0018)" do
     test "renders the timezone select in the profile form", %{conn: conn} do
       {:ok, _lv, html} = conn |> log_in_user(user_fixture()) |> live(~p"/users/settings")

@@ -21,7 +21,7 @@ defmodule Goodmao2.Media.Avatars do
   alias Ecto.Multi
   alias Goodmao2.{Logs, Pets, Repo}
   alias Goodmao2.Accounts.User
-  alias Goodmao2.Media.{Avatar, AvatarPurifyWorker, Storage}
+  alias Goodmao2.Media.{Avatar, AvatarPurifyWorker, RateLimiter, Storage}
 
   @owner_types ~w(user pet)
 
@@ -38,13 +38,16 @@ defmodule Goodmao2.Media.Avatars do
   Claims `owner`'s avatar slot for a staged upload and schedules async purification (ADR-0020).
 
   `staged_token` comes from `Media.stage_upload/1` (raw bytes already on disk). Authorizes the
-  caller (self for a user, `:manage` for a pet), upserts the row to `processing`, and enqueues the
-  purify worker transactionally, so either both land or neither does. Returns `{:ok, avatar}` or
-  `{:error, :unauthorized}` / a changeset / a reason.
+  caller (self for a user, `:manage` for a pet), charges the caller's hourly upload budget (the
+  same `Media.RateLimiter` life-log uploads draw on — both queue ffmpeg on the `:media` queue),
+  upserts the row to `processing`, and enqueues the purify worker transactionally, so either both
+  land or neither does. Returns `{:ok, avatar}` or `{:error, :unauthorized}` /
+  `{:error, :rate_limited}` / a changeset / a reason.
   """
   def set_avatar(owner_type, owner_id, %User{} = actor, staged_token, crop \\ nil)
       when owner_type in @owner_types and is_binary(staged_token) do
-    with :ok <- authorize_set(owner_type, owner_id, actor) do
+    with :ok <- authorize_set(owner_type, owner_id, actor),
+         :ok <- RateLimiter.check(actor.id) do
       upsert_and_enqueue(owner_type, owner_id, actor, staged_token, sanitize_crop(crop))
     end
   end
