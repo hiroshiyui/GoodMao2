@@ -604,6 +604,11 @@ defmodule Goodmao2Web.PetLiveTest do
 
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
       assert has_element?(lv, "#entry-detail-#{entry.id}")
+
+      # Every row's icon buttons name *their* entry, so a list of them reads as distinct
+      # controls rather than one "Remove entry" repeated (WCAG 2.4.6).
+      assert has_element?(lv, ~s|#entry-detail-#{entry.id}[aria-label^="Edit Food entry from"]|)
+      assert has_element?(lv, ~s|#delete-entry-#{entry.id}[aria-label^="Remove Food entry from"]|)
     end
 
     test "editing an entry records a revision shown in the history", %{conn: conn, user: user} do
@@ -852,6 +857,11 @@ defmodule Goodmao2Web.PetLiveTest do
       lv |> element("#pet-avatar-trigger") |> render_click()
       assert has_element?(lv, "#pet-avatar-form")
       assert has_element?(lv, "#pet-avatar-cropper")
+      # The crop box and preview are built by the hook from these localized attributes; its
+      # keyboard instructions and position readout exist server-side for it to point at.
+      assert has_element?(lv, "#pet-avatar-cropper[data-preview-alt][data-crop-roledescription]")
+      assert has_element?(lv, "#pet-avatar-cropper-hint")
+      assert has_element?(lv, "#pet-avatar-cropper-status[role='status']")
 
       photo =
         file_input(lv, "#pet-avatar-form", :avatar, [

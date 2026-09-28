@@ -48,6 +48,8 @@ defmodule Goodmao2Web.NotificationLiveTest do
     {:ok, n} = Notifications.create(user.id, "announcement", %{"title" => "x", "body" => "y"})
 
     {:ok, lv, _html} = live(conn, ~p"/notifications")
+    # The icon-only button names the notification it dismisses.
+    assert has_element?(lv, ~s|#dismiss-#{n.id}[aria-label^="Dismiss: x, "]|)
     lv |> element("#dismiss-#{n.id}") |> render_click()
 
     refute has_element?(lv, "#notification-#{n.id}")

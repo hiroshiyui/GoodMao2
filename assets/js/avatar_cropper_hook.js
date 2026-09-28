@@ -9,6 +9,15 @@
 //
 // Coordinates: because the preview keeps aspect ratio, a square on-screen box maps to a square
 // pixel crop, so we only ever report x/y/w/h ∈ [0,1] and never touch pixels here.
+//
+// Accessibility: the box is a two-dimensional position *and* size control, which no single ARIA
+// widget role describes. It used to claim `role="slider"` with no value at all — a slider a
+// screen reader announced as empty, whose arrow keys did not change "its value". It is now a
+// focusable `role="application"` region (so arrow and +/− keys reach it instead of the screen
+// reader's own navigation) with a localized `aria-roledescription`, its keyboard instructions
+// wired through `aria-describedby`, and a polite status line reporting where the selection is
+// after each keyboard change. The preview <img> carries a localized alt: it is the person's own
+// photo, not decoration. All wording is server-rendered gettext in `data-*` attributes.
 
 const VIEWPORT = 224 // px — the square preview area
 const MIN_BOX = 32 // px — smallest selectable square on screen
@@ -25,6 +34,7 @@ const AvatarCropper = {
     }
 
     this.hint = this.el.querySelector(".avatar-cropper-hint")
+    this.status = this.el.querySelector(".avatar-cropper-status")
     this.buildDom()
 
     if (this.fileInput) {
@@ -41,6 +51,7 @@ const AvatarCropper = {
     // window-level pointer listeners MUST be detached here or they accumulate for the session.
     if (this._onMove) window.removeEventListener("pointermove", this._onMove)
     if (this._onUp) window.removeEventListener("pointerup", this._onUp)
+    clearTimeout(this._statusTimer)
   },
 
   buildDom() {
@@ -53,16 +64,19 @@ const AvatarCropper = {
 
     const img = document.createElement("img")
     img.className = "pointer-events-none absolute select-none"
-    img.alt = ""
+    img.alt = this.el.getAttribute("data-preview-alt") || ""
 
     const box = document.createElement("div")
     box.className =
       "avatar-crop-box absolute cursor-move rounded-full border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]"
-    // Keyboard-operable (WCAG 2.1.1): focusable, announced, driven by arrow keys / +-/ below.
+    // Keyboard-operable (WCAG 2.1.1): focusable, named, described, driven by arrow keys / +-/ below.
     box.tabIndex = 0
-    box.setAttribute("role", "slider")
+    box.setAttribute("role", "application")
+    const roleDescription = this.el.getAttribute("data-crop-roledescription")
+    if (roleDescription) box.setAttribute("aria-roledescription", roleDescription)
     const label = this.el.getAttribute("data-crop-label")
     if (label) box.setAttribute("aria-label", label)
+    if (this.hint && this.hint.id) box.setAttribute("aria-describedby", this.hint.id)
 
     const handle = document.createElement("div")
     handle.className =
@@ -224,6 +238,26 @@ const AvatarCropper = {
     top = Math.max(r.top, Math.min(top, r.top + r.h - size))
     this.boxRect = { left, top, size }
     this.applyBox()
+    this.announcePosition()
+  },
+
+  // After a keyboard change, say where the selection now is — debounced, so holding an arrow
+  // key yields one announcement when it settles rather than one per step.
+  announcePosition() {
+    const template = this.el.getAttribute("data-crop-status")
+    if (!this.status || !template) return
+    const r = this.rendered
+    const b = this.boxRect
+    const pct = (v) => String(Math.round(Math.max(0, Math.min(1, v)) * 100))
+    const text = template
+      .replace("{size}", pct(b.size / r.w))
+      .replace("{x}", pct((b.left - r.left) / r.w))
+      .replace("{y}", pct((b.top - r.top) / r.h))
+
+    clearTimeout(this._statusTimer)
+    this._statusTimer = setTimeout(() => {
+      this.status.textContent = text
+    }, 400)
   },
 
   applyBox() {

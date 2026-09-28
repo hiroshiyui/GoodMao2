@@ -46,5 +46,20 @@ defmodule Goodmao2Web.AdminLive.AnnouncementsTest do
       assert html =~ "needs both a title and a body"
       refute_enqueued(worker: AnnouncementFanoutWorker)
     end
+
+    test "a whitespace-only field is marked invalid on the field itself", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/announcements")
+
+      lv
+      |> form("#announcement-form", announcement: %{title: "   ", body: "Tonight at 2am."})
+      |> render_submit()
+
+      # The refused field says so to assistive tech, and keeps what was typed elsewhere.
+      assert has_element?(lv, "#announcement_title[aria-invalid='true']")
+      refute has_element?(lv, "#announcement_body[aria-invalid='true']")
+      assert has_element?(lv, "#announcement_body", "Tonight at 2am.")
+      assert render(lv) =~ "can&#39;t be blank"
+      refute_enqueued(worker: AnnouncementFanoutWorker)
+    end
   end
 end

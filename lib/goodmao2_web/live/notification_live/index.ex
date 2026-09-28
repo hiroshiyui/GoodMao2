@@ -151,6 +151,12 @@ defmodule Goodmao2Web.NotificationLive.Index do
                   phx-click="mark_read"
                   phx-value-id={notification.id}
                   class="btn btn-ghost btn-xs"
+                  aria-label={
+                    gettext("Mark read: %{title}, %{time}",
+                      title: notification_title(notification),
+                      time: format_datetime(notification.inserted_at)
+                    )
+                  }
                 >
                   {gettext("Mark read")}
                 </button>
@@ -159,7 +165,12 @@ defmodule Goodmao2Web.NotificationLive.Index do
                   id={"dismiss-#{notification.id}"}
                   phx-click="dismiss"
                   phx-value-id={notification.id}
-                  aria-label={gettext("Dismiss")}
+                  aria-label={
+                    gettext("Dismiss: %{title}, %{time}",
+                      title: notification_title(notification),
+                      time: format_datetime(notification.inserted_at)
+                    )
+                  }
                   class="btn btn-ghost btn-xs btn-circle"
                 >
                   <.icon name="hero-x-mark" class="size-4" />

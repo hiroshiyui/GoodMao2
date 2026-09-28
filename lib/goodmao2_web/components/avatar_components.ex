@@ -91,14 +91,25 @@ defmodule Goodmao2Web.AvatarComponents do
       phx-update="ignore"
       class="text-center"
       data-crop-label={gettext("Crop region")}
+      data-crop-roledescription={gettext("crop selector")}
+      data-preview-alt={gettext("Preview of the photo you chose")}
+      data-crop-status={
+        gettext(
+          "Selection is %{size}% of the photo's width, %{x}% from the left and %{y}% from the top.",
+          size: "{size}",
+          x: "{x}",
+          y: "{y}"
+        )
+      }
     >
       <input type="hidden" name="crop[x]" />
       <input type="hidden" name="crop[y]" />
       <input type="hidden" name="crop[w]" />
       <input type="hidden" name="crop[h]" />
-      <p class="avatar-cropper-hint text-base-content/70 mt-2 hidden text-xs">
+      <p id={"#{@id}-hint"} class="avatar-cropper-hint text-base-content/70 mt-2 hidden text-xs">
         {gettext("Drag the circle, or focus it and use the arrow keys to move and + / − to resize.")}
       </p>
+      <p id={"#{@id}-status"} class="avatar-cropper-status sr-only" role="status"></p>
     </div>
     """
   end

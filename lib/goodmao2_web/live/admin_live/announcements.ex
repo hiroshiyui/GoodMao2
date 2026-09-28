@@ -19,15 +19,15 @@ defmodule Goodmao2Web.AdminLive.Announcements do
   end
 
   @impl true
-  def handle_event("broadcast", %{"announcement" => %{"title" => title, "body" => body}}, socket) do
+  def handle_event(
+        "broadcast",
+        %{"announcement" => %{"title" => title, "body" => body} = params},
+        socket
+      ) do
     admin = socket.assigns.current_scope.user
 
-    cond do
-      String.trim(title) == "" or String.trim(body) == "" ->
-        {:noreply,
-         put_flash(socket, :error, gettext("An announcement needs both a title and a body."))}
-
-      true ->
+    case blank_errors(title: title, body: body) do
+      [] ->
         case Notifications.broadcast_announcement(admin, %{title: title, body: body}) do
           {:ok, _job} ->
             {:noreply,
@@ -38,6 +38,24 @@ defmodule Goodmao2Web.AdminLive.Announcements do
           {:error, :unauthorized} ->
             {:noreply, push_navigate(socket, to: ~p"/")}
         end
+
+      # A whitespace-only field passes the browser's `required`, so the refusal has to reach the
+      # field itself: the form carries the errors, and `<.input>` marks each one `aria-invalid`
+      # and describes it by its message (WCAG 3.3.1, 4.1.2) — a flash alone named no field.
+      errors ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("An announcement needs both a title and a body."))
+         |> assign(
+           :form,
+           to_form(params, as: :announcement, errors: errors, action: :validate)
+         )}
+    end
+  end
+
+  defp blank_errors(fields) do
+    for {field, value} <- fields, String.trim(value) == "" do
+      {field, {"can't be blank", [validation: :required]}}
     end
   end
 

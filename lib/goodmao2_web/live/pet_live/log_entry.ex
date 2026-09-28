@@ -544,6 +544,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
               phx-value-id={asset.id}
               data-confirm={gettext("Remove this file from the entry?")}
               class="btn btn-ghost btn-xs text-error"
+              aria-label={gettext("Remove file %{n}", n: n)}
             >
               <.icon name="hero-trash" class="size-4" /> {gettext("Remove")}
             </button>

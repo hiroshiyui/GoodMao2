@@ -111,7 +111,7 @@ defmodule Goodmao2Web.MediaComponents do
             phx-click={@cancel_event}
             phx-value-ref={entry.ref}
             class="btn btn-ghost btn-xs"
-            aria-label={gettext("Remove file")}
+            aria-label={gettext("Remove %{name}", name: entry.client_name)}
           >
             <.icon name="hero-x-mark" class="size-4" />
           </button>

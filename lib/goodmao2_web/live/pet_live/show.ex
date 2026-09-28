@@ -925,7 +925,12 @@ defmodule Goodmao2Web.PetLive.Show do
           navigate={~p"/pets/#{@entry.pet_id}/logs/#{@entry.id}"}
           id={"entry-detail-#{@entry.id}"}
           class="timeline-entry-detail btn btn-ghost btn-xs"
-          aria-label={gettext("Edit entry or view its history")}
+          aria-label={
+            gettext("Edit %{type} entry from %{time}, or view its history",
+              type: log_type_label(@entry.type),
+              time: format_datetime(@entry.occurred_at)
+            )
+          }
         >
           <.icon name="hero-pencil-square" class="size-4" />
         </.link>
@@ -937,7 +942,12 @@ defmodule Goodmao2Web.PetLive.Show do
           phx-value-id={@entry.id}
           data-confirm={gettext("Remove this entry?")}
           class="timeline-entry-delete btn btn-ghost btn-xs"
-          aria-label={gettext("Remove entry")}
+          aria-label={
+            gettext("Remove %{type} entry from %{time}",
+              type: log_type_label(@entry.type),
+              time: format_datetime(@entry.occurred_at)
+            )
+          }
         >
           <.icon name="hero-trash" class="size-4" />
         </button>
