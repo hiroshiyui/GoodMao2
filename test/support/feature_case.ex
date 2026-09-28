@@ -167,13 +167,27 @@ defmodule Goodmao2Web.FeatureCase do
 
   Clears the single-use marker first: `totp_last_used_at` rejects a replay inside the same
   30-second step (ADR-0013), which a test hits whenever it verifies twice in one second.
+
+  Near the end of a step it first waits for the next one: verification accepts only the
+  current step, so a code generated at :29 and submitted by the browser at :30 is rejected.
   """
   def totp_code(user, secret) do
     user
     |> Ecto.Changeset.change(totp_last_used_at: nil)
     |> Goodmao2.Repo.update!()
 
+    wait_out_totp_step_end()
     NimbleTOTP.verification_code(secret)
+  end
+
+  @totp_period 30
+  # Generous next to a fill-in-and-click round trip, and at most a 5 s pause per call.
+  @totp_margin 5
+
+  defp wait_out_totp_step_end do
+    now_ms = System.os_time(:millisecond)
+    left_ms = @totp_period * 1000 - rem(now_ms, @totp_period * 1000)
+    if left_ms <= @totp_margin * 1000, do: Process.sleep(left_ms + 100)
   end
 
   @doc """
