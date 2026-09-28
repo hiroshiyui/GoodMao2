@@ -17,6 +17,7 @@
     enabled: true
 
 - name: Create goodmao database user
+  become: true
   become_user: postgres
   community.postgresql.postgresql_user:
     name: "{{ postgres_db_user }}"
@@ -24,6 +25,7 @@
     role_attr_flags: CREATEDB
 
 - name: Create goodmao database
+  become: true
   become_user: postgres
   community.postgresql.postgresql_db:
     name: "{{ postgres_db_name }}"

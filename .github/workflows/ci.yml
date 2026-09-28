@@ -219,6 +219,23 @@ jobs:
       - name: Dialyzer
         run: mix dialyzer --format github
 
+      # Version-pinned, as are the collections it resolves modules from
+      # (ansible/requirements.yml): a new ansible-lint release adds rules, and that should
+      # arrive as a reviewed bump, not as a red build on an unrelated commit. --include-deps
+      # exposes the ansible-galaxy that ships with it.
+      - name: Install ansible-lint and the playbooks' collections
+        run: |
+          pipx install --include-deps ansible-lint==26.9.0
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: ansible-lint
+        working-directory: ansible
+        # host_group_vars only: ansible.cfg also enables the SOPS vars plugin, which would try
+        # to decrypt the production secrets CI never holds.
+        env:
+          ANSIBLE_VARS_ENABLED: host_group_vars
+        run: ansible-lint playbooks/ roles/
+
   feature:
     name: mix test.feature
     runs-on: ubuntu-24.04 # pinned; see the `test` job

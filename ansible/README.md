@@ -10,10 +10,13 @@ co-hosting model and the collision table).
 - **Ansible 2.14+** on the control machine
 - **[SOPS](https://github.com/getsops/sops)** for secrets management
 - **GPG key** for encrypting/decrypting secrets
-- **Ansible collections:**
+- **Ansible collections** (pinned in `requirements.yml`, the same versions CI lints against):
   ```bash
-  ansible-galaxy collection install community.general community.postgresql community.sops
+  ansible-galaxy collection install -r requirements.yml
   ```
+- **Linting:** `ansible-lint` runs in CI at the `production` profile (`.ansible-lint`). Locally,
+  from this directory: `ANSIBLE_VARS_ENABLED=host_group_vars ansible-lint playbooks/ roles/`
+  (the vars override keeps the linter from opening the SOPS secrets).
 - **Target server:** Debian 12 (Bookworm) with SSH access
 - **DNS:** domain pointed at the server's IP (required for Let's Encrypt)
 - **Amazon SES:** a verified sender identity + an IAM credential with

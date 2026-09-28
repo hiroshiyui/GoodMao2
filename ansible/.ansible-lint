@@ -1,0 +1,14 @@
+# ansible-lint at its strictest profile (Baudrate 4762e039). CI's static-checks job runs it from
+# this directory with the vars plugins limited to host_group_vars, so the SOPS-encrypted secrets
+# are never opened. `offline` keeps the linter from installing collections itself: CI installs
+# the pinned ones in requirements.yml first.
+profile: production
+offline: true
+
+# Reported, not failed. The rule wants every variable a role registers or sets to carry the
+# role's name as a prefix. Here those are task-local results (`rustup_installed`,
+# `health_check`) plus a few facts the deploy role deliberately hands to later tasks and to
+# the rollback path; renaming ~25 of them in the deploy role buys no safety and could only be
+# checked against a live host. New variables should take the prefix.
+warn_list:
+  - var-naming[no-role-prefix]

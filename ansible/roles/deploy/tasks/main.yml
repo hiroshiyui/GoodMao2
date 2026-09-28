@@ -261,7 +261,9 @@
 # only by the service user; it is never sent to the controller's disk or into git.
 - name: Generate this server's Erlang distribution cookie (once)
   ansible.builtin.shell:
-    cmd: umask 077 && head -c 48 /dev/urandom | base64 | tr -d '/+=\n' > release_cookie
+    # pipefail, so a failing stage cannot leave a short or empty cookie behind.
+    cmd: set -o pipefail && umask 077 && head -c 48 /dev/urandom | base64 | tr -d '/+=\n' > release_cookie
+    executable: /bin/bash
     chdir: "{{ deploy_path }}/env"
     creates: "{{ deploy_path }}/env/release_cookie"
 
@@ -290,6 +292,7 @@
 # ============================================================
 
 - name: Deploy systemd service unit
+  become: true
   become_user: root
   ansible.builtin.template:
     src: goodmao2.service.j2
@@ -300,6 +303,7 @@
     - Restart goodmao2
 
 - name: Enable goodmao2 service
+  become: true
   become_user: root
   ansible.builtin.systemd:
     name: goodmao2
@@ -339,7 +343,8 @@
 
 - name: Find priv/static path in active release
   ansible.builtin.shell:
-    cmd: "readlink -f {{ deploy_path }}/releases/{{ release_timestamp }}/lib/goodmao2-*/priv/static | tail -1"
+    cmd: "set -o pipefail && readlink -f {{ deploy_path }}/releases/{{ release_timestamp }}/lib/goodmao2-*/priv/static | tail -1"
+    executable: /bin/bash
   register: static_path_result
   changed_when: false
 
@@ -378,7 +383,7 @@
     recurse: false
   register: all_releases
 
-- name: Remove old releases (keep {{ keep_releases }} most recent)
+- name: Remove old releases beyond the most recent {{ keep_releases }}
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent

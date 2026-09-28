@@ -1,0 +1,10 @@
+---
+# Collections the playbooks use, pinned so CI's ansible-lint resolves the same modules an
+# operator runs. Install with: ansible-galaxy collection install -r requirements.yml
+collections:
+  - name: community.general
+    version: "12.5.0"
+  - name: community.postgresql
+    version: "4.2.0"
+  - name: community.sops
+    version: "2.2.7"
