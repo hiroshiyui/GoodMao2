@@ -82,7 +82,8 @@ the missing translation, not the missing msgid.
 loads the `native/goodmao2_native` crate (Rustler), built automatically by `mix compile` — the
 toolchain is pinned by `rust-toolchain.toml`, so a build host needs that Rust version (`rustup`
 auto-installs it). Currently only a placeholder `add/2` — proven scaffolding for future
-CPU-bound work. `Cargo.lock` is committed; the built `priv/native/*.so` and `native/*/target/`
+CPU-bound work. Each `#[rustler::nif]` is a thin wrapper over a plain function that the crate's
+own `cargo test` covers; CI's `static` job runs that and `cargo clippy -D warnings`. `Cargo.lock` is committed; the built `priv/native/*.so` and `native/*/target/`
 are git-ignored. Keep the `rustler` crate version in lockstep with the `:rustler` dep in `mix.exs`.
 
 Postgres: dev and test both use a **`goodmao2`** role (password `goodmao2`) needing
