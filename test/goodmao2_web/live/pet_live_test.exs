@@ -544,6 +544,19 @@ defmodule Goodmao2Web.PetLiveTest do
       assert has_element?(lv, "#timeline-page-next[disabled]")
     end
 
+    test "a page number too large for an OFFSET is capped, not a crash", %{conn: conn, user: user} do
+      pet = pet_fixture(user)
+      seed_timeline(user, pet, 30)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+
+      # A crafted event, past what (page - 1) * size can hold in a Postgres bigint.
+      render_click(lv, "timeline_page", %{"page" => "99999999999999999999"})
+
+      assert Process.alive?(lv.pid)
+      assert has_element?(lv, "#timeline-page-status", "Page 100000")
+    end
+
     test "raising the per-page size shows more and hides the pager", %{conn: conn, user: user} do
       pet = pet_fixture(user)
       seed_timeline(user, pet, 30)

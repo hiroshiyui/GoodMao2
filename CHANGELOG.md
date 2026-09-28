@@ -25,6 +25,13 @@ skill).
   `Goodmao2.NginxConfigTest` holds both files to these rules. Deployments from the Ansible
   playbook were never affected.
 
+### Fixed
+
+- **A crafted timeline page number crashed the pet page.** The page arrives from the client
+  and becomes a database `OFFSET`. A number past what a Postgres `bigint` holds made Postgrex
+  raise, which crashed the LiveView on demand. Pages are now capped at 100 000, and `Logs`
+  clamps every paging offset.
+
 ### Changed
 
 - **CI runs on `ubuntu-24.04` instead of `ubuntu-latest`.** GitHub moves `ubuntu-latest` to

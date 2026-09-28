@@ -536,10 +536,14 @@ defmodule Goodmao2Web.PetLive.Show do
     end
   end
 
-  # A page must be a positive integer; a bad value keeps the current page.
+  # A page must be a positive integer; a bad value keeps the current page. The event is
+  # client-supplied, and an unbounded page overflows the bigint OFFSET it becomes, so it is
+  # capped far past any real timeline (100 000 pages of 25 is 2.5 million entries).
+  @max_page 100_000
+
   defp parse_page(page, current) do
     case Integer.parse(to_string(page)) do
-      {n, ""} when n >= 1 -> n
+      {n, ""} when n >= 1 -> min(n, @max_page)
       _ -> current
     end
   end

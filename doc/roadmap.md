@@ -296,7 +296,7 @@ can be read in context. Items are ordered by value against effort.
       `$proxy_add_x_forwarded_for`, so a client can choose the address in the `auth.*` logs.
       The rate limiters key on email or user id, so they're unaffected. The example also lacks
       the template's token-redacting `log_format`.
-- [ ] **Bound the timeline page number** (`17525de8`). `PetLive.Show.parse_page/2` accepts any
+- [x] **Bound the timeline page number** (`17525de8`). *Shipped (unreleased).* `PetLive.Show.parse_page/2` accepts any
       positive integer, and a huge one overflows the `OFFSET` and crashes the LiveView.
 - [ ] **Run `nginx -t` before the reload** (`e7198316`). As it stands, a bad template render
       fails the reload silently and only breaks nginx at the next restart. Back up the config,

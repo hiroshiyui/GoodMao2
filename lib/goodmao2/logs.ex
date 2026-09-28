@@ -61,6 +61,8 @@ defmodule Goodmao2.Logs do
 
     * `:type` — restrict to a single log type (string), or `nil`/`"all"` for all
     * `:limit` — cap the number of rows (default 200)
+    * `:offset` — rows to skip, for paging (default 0; clamped to a non-negative range, so a
+      crafted page number returns `[]` rather than raising in Postgres)
     * `:from` / `:to` — inclusive `DateTime` bounds on `occurred_at` (either optional);
       used by the calendar view to fetch just the visible month's entries
   """
@@ -70,7 +72,7 @@ defmodule Goodmao2.Logs do
     else
       role = Pets.effective_role(pet, user)
       limit = Keyword.get(opts, :limit, 200)
-      offset = Keyword.get(opts, :offset, 0)
+      offset = opts |> Keyword.get(:offset, 0) |> clamp_offset()
 
       query =
         from e in LogEntry,
@@ -87,6 +89,11 @@ defmodule Goodmao2.Logs do
       |> Repo.all()
     end
   end
+
+  # Postgres raises on a negative OFFSET or one past bigint, and paging offsets derive from
+  # client-supplied page numbers. Clamp them far past any real timeline instead.
+  @max_offset 10_000_000
+  defp clamp_offset(offset) when is_integer(offset), do: offset |> max(0) |> min(@max_offset)
 
   # Non-deleted media of an entry, id-ordered, for rendering life-log photos/videos inline.
   defp media_preload_query do
@@ -139,7 +146,7 @@ defmodule Goodmao2.Logs do
       []
     else
       limit = Keyword.get(opts, :limit, 1000)
-      offset = Keyword.get(opts, :offset, 0)
+      offset = opts |> Keyword.get(:offset, 0) |> clamp_offset()
 
       query =
         from e in LogEntry,

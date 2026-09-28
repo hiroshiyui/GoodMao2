@@ -139,6 +139,16 @@ defmodule Goodmao2.LogsTest do
       assert types == ["water"]
     end
 
+    test "clamps an out-of-range :offset instead of letting Postgres raise", %{
+      owner: owner,
+      pet: pet
+    } do
+      log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      assert Logs.list_entries(owner, pet, offset: 100_000_000_000_000_000_000) == []
+      assert [_] = Logs.list_entries(owner, pet, offset: -5)
+    end
+
     test "honors :limit and :offset for paging (roadmap §8)", %{owner: owner, pet: pet} do
       for i <- 0..4 do
         at = DateTime.utc_now() |> DateTime.add(-i, :hour) |> DateTime.truncate(:second)
