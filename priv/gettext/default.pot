@@ -605,11 +605,6 @@ msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/show.ex
 #, elixir-autogen, elixir-format
-msgid "Remove entry"
-msgstr ""
-
-#: lib/goodmao2_web/live/pet_live/show.ex
-#, elixir-autogen, elixir-format
 msgid "Remove this entry?"
 msgstr ""
 
@@ -1567,11 +1562,6 @@ msgstr ""
 msgid "Edit entry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/show.ex
-#, elixir-autogen, elixir-format
-msgid "Edit entry or view its history"
-msgstr ""
-
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #, elixir-autogen, elixir-format
 msgid "Edit history"
@@ -1655,11 +1645,6 @@ msgstr ""
 
 #: lib/goodmao2_web/components/media_components.ex
 #, elixir-autogen, elixir-format
-msgid "Remove file"
-msgstr ""
-
-#: lib/goodmao2_web/components/media_components.ex
-#, elixir-autogen, elixir-format
 msgid "That file can't be used."
 msgstr ""
 
@@ -1675,6 +1660,7 @@ msgstr ""
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #: lib/goodmao2_web/live/pet_live/show.ex
+#: lib/goodmao2_web/live/user_live/settings.ex
 #, elixir-autogen, elixir-format
 msgid "You've uploaded a lot recently — please try again later."
 msgstr ""
@@ -2123,11 +2109,6 @@ msgstr ""
 #: lib/goodmao2_web/live/message_live/show.ex
 #, elixir-autogen, elixir-format
 msgid "Conversation not found."
-msgstr ""
-
-#: lib/goodmao2_web/live/notification_live/index.ex
-#, elixir-autogen, elixir-format
-msgid "Dismiss"
 msgstr ""
 
 #: lib/goodmao2_web/live/admin_live/announcements.ex
@@ -3020,7 +3001,7 @@ msgstr ""
 msgid "Clear expiry"
 msgstr ""
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#: lib/goodmao2_web/components/share_components.ex
 #, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr ""
@@ -3454,4 +3435,104 @@ msgstr ""
 #: lib/goodmao2_web/helpers.ex
 #, elixir-autogen, elixir-format
 msgid "From %{sender}"
+msgstr ""
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Couldn't copy automatically. The link is selected — copy it from there."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Couldn't update that description."
+msgstr ""
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Describe each photo or video for people who can't see it — a screen reader reads the description aloud."
+msgstr ""
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Description of %{name} (optional)"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Description of file %{n}"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Description saved."
+msgstr ""
+
+#: lib/goodmao2_web/live/notification_live/index.ex
+#, elixir-autogen, elixir-format
+msgid "Dismiss: %{title}, %{time}"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "Edit %{type} entry from %{time}, or view its history"
+msgstr ""
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Link copied."
+msgstr ""
+
+#: lib/goodmao2_web/live/notification_live/index.ex
+#, elixir-autogen, elixir-format
+msgid "Mark read: %{title}, %{time}"
+msgstr ""
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "Preview of the photo you chose"
+msgstr ""
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Remove %{name}"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "Remove %{type} entry from %{time}"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Remove file %{n}"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/reports.ex
+#, elixir-autogen, elixir-format
+msgid "Report share link URL"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Save description"
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Save description of file %{n}"
+msgstr ""
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "Selection is %{size}% of the photo's width, %{x}% from the left and %{y}% from the top."
+msgstr ""
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Share"
+msgstr ""
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "crop selector"
 msgstr ""

@@ -604,11 +604,6 @@ msgstr "里親へ"
 
 #: lib/goodmao2_web/live/pet_live/show.ex
 #, elixir-autogen, elixir-format
-msgid "Remove entry"
-msgstr "記録を削除"
-
-#: lib/goodmao2_web/live/pet_live/show.ex
-#, elixir-autogen, elixir-format
 msgid "Remove this entry?"
 msgstr "この記録を削除しますか？"
 
@@ -1565,11 +1560,6 @@ msgstr "変更を保存するたびにスナップショットが残ります。
 msgid "Edit entry"
 msgstr "記録を編集"
 
-#: lib/goodmao2_web/live/pet_live/show.ex
-#, elixir-autogen, elixir-format
-msgid "Edit entry or view its history"
-msgstr "記録を編集または履歴を表示"
-
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #, elixir-autogen, elixir-format
 msgid "Edit history"
@@ -1653,11 +1643,6 @@ msgstr "写真または動画"
 
 #: lib/goodmao2_web/components/media_components.ex
 #, elixir-autogen, elixir-format
-msgid "Remove file"
-msgstr "ファイルを削除"
-
-#: lib/goodmao2_web/components/media_components.ex
-#, elixir-autogen, elixir-format
 msgid "That file can't be used."
 msgstr "このファイルは使用できません。"
 
@@ -1673,6 +1658,7 @@ msgstr "ファイルが多すぎます。"
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #: lib/goodmao2_web/live/pet_live/show.ex
+#: lib/goodmao2_web/live/user_live/settings.ex
 #, elixir-autogen, elixir-format
 msgid "You've uploaded a lot recently — please try again later."
 msgstr "最近アップロードが多すぎます——しばらくしてからお試しください。"
@@ -2120,11 +2106,6 @@ msgstr "%{name} さんとのチャット"
 #, elixir-autogen, elixir-format
 msgid "Conversation not found."
 msgstr "会話が見つかりません。"
-
-#: lib/goodmao2_web/live/notification_live/index.ex
-#, elixir-autogen, elixir-format
-msgid "Dismiss"
-msgstr "消去"
 
 #: lib/goodmao2_web/live/admin_live/announcements.ex
 #, elixir-autogen, elixir-format
@@ -3016,7 +2997,7 @@ msgstr "有効期限の日時を選択してください。"
 msgid "Clear expiry"
 msgstr "有効期限を解除"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#: lib/goodmao2_web/components/share_components.ex
 #, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr "コピー"
@@ -3451,3 +3432,103 @@ msgstr "テーマ"
 #, elixir-autogen, elixir-format
 msgid "From %{sender}"
 msgstr "%{sender} さんから"
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Couldn't copy automatically. The link is selected — copy it from there."
+msgstr "自動でコピーできませんでした。リンクを選択したので、そこからコピーしてください。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Couldn't update that description."
+msgstr "説明を更新できませんでした。"
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Describe each photo or video for people who can't see it — a screen reader reads the description aloud."
+msgstr "見えない方のために、写真や動画を説明してください。スクリーンリーダーが読み上げます。"
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Description of %{name} (optional)"
+msgstr "%{name} の説明（任意）"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Description of file %{n}"
+msgstr "ファイル %{n} の説明"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Description saved."
+msgstr "説明を保存しました。"
+
+#: lib/goodmao2_web/live/notification_live/index.ex
+#, elixir-autogen, elixir-format
+msgid "Dismiss: %{title}, %{time}"
+msgstr "消去：%{title}、%{time}"
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "Edit %{type} entry from %{time}, or view its history"
+msgstr "%{time} の%{type}記録を編集、または履歴を表示"
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Link copied."
+msgstr "リンクをコピーしました。"
+
+#: lib/goodmao2_web/live/notification_live/index.ex
+#, elixir-autogen, elixir-format
+msgid "Mark read: %{title}, %{time}"
+msgstr "既読にする：%{title}、%{time}"
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "Preview of the photo you chose"
+msgstr "選んだ写真のプレビュー"
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Remove %{name}"
+msgstr "%{name} を削除"
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "Remove %{type} entry from %{time}"
+msgstr "%{time} の%{type}記録を削除"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Remove file %{n}"
+msgstr "ファイル %{n} を削除"
+
+#: lib/goodmao2_web/live/pet_live/reports.ex
+#, elixir-autogen, elixir-format
+msgid "Report share link URL"
+msgstr "レポート共有リンクの URL"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Save description"
+msgstr "説明を保存"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Save description of file %{n}"
+msgstr "説明を保存：ファイル %{n}"
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "Selection is %{size}% of the photo's width, %{x}% from the left and %{y}% from the top."
+msgstr "選択範囲は写真の幅の %{size}%、左から %{x}%、上から %{y}% です。"
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Share"
+msgstr "共有"
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "crop selector"
+msgstr "切り抜き範囲の選択"

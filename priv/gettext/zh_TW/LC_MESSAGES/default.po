@@ -604,11 +604,6 @@ msgstr "已送養"
 
 #: lib/goodmao2_web/live/pet_live/show.ex
 #, elixir-autogen, elixir-format
-msgid "Remove entry"
-msgstr "移除紀錄"
-
-#: lib/goodmao2_web/live/pet_live/show.ex
-#, elixir-autogen, elixir-format
 msgid "Remove this entry?"
 msgstr "要移除這筆紀錄嗎？"
 
@@ -1565,11 +1560,6 @@ msgstr "每次儲存變更都會保留快照。還可編輯 %{left} 次。"
 msgid "Edit entry"
 msgstr "編輯記錄"
 
-#: lib/goodmao2_web/live/pet_live/show.ex
-#, elixir-autogen, elixir-format
-msgid "Edit entry or view its history"
-msgstr "編輯記錄或檢視其歷史"
-
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #, elixir-autogen, elixir-format
 msgid "Edit history"
@@ -1653,11 +1643,6 @@ msgstr "照片或影片"
 
 #: lib/goodmao2_web/components/media_components.ex
 #, elixir-autogen, elixir-format
-msgid "Remove file"
-msgstr "移除檔案"
-
-#: lib/goodmao2_web/components/media_components.ex
-#, elixir-autogen, elixir-format
 msgid "That file can't be used."
 msgstr "無法使用該檔案。"
 
@@ -1673,6 +1658,7 @@ msgstr "檔案數量過多。"
 
 #: lib/goodmao2_web/live/pet_live/log_entry.ex
 #: lib/goodmao2_web/live/pet_live/show.ex
+#: lib/goodmao2_web/live/user_live/settings.ex
 #, elixir-autogen, elixir-format
 msgid "You've uploaded a lot recently — please try again later."
 msgstr "你最近上傳太多了——請稍後再試。"
@@ -2120,11 +2106,6 @@ msgstr "與 %{name} 的對話"
 #, elixir-autogen, elixir-format
 msgid "Conversation not found."
 msgstr "找不到對話。"
-
-#: lib/goodmao2_web/live/notification_live/index.ex
-#, elixir-autogen, elixir-format
-msgid "Dismiss"
-msgstr "忽略"
 
 #: lib/goodmao2_web/live/admin_live/announcements.ex
 #, elixir-autogen, elixir-format
@@ -3016,7 +2997,7 @@ msgstr "請選擇到期日期與時間。"
 msgid "Clear expiry"
 msgstr "清除到期時間"
 
-#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#: lib/goodmao2_web/components/share_components.ex
 #, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr "複製"
@@ -3451,3 +3432,103 @@ msgstr "主題"
 #, elixir-autogen, elixir-format
 msgid "From %{sender}"
 msgstr "來自 %{sender}"
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Couldn't copy automatically. The link is selected — copy it from there."
+msgstr "無法自動複製。連結已選取，請從那裡複製。"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Couldn't update that description."
+msgstr "無法更新該描述。"
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Describe each photo or video for people who can't see it — a screen reader reads the description aloud."
+msgstr "為看不到的人描述每張照片或影片——螢幕閱讀器會朗讀這段描述。"
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Description of %{name} (optional)"
+msgstr "%{name} 的描述（選填）"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Description of file %{n}"
+msgstr "第 %{n} 個檔案的描述"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Description saved."
+msgstr "描述已儲存。"
+
+#: lib/goodmao2_web/live/notification_live/index.ex
+#, elixir-autogen, elixir-format
+msgid "Dismiss: %{title}, %{time}"
+msgstr "忽略：%{title}，%{time}"
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "Edit %{type} entry from %{time}, or view its history"
+msgstr "編輯 %{time} 的%{type}紀錄，或檢視其歷史"
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Link copied."
+msgstr "已複製連結。"
+
+#: lib/goodmao2_web/live/notification_live/index.ex
+#, elixir-autogen, elixir-format
+msgid "Mark read: %{title}, %{time}"
+msgstr "標為已讀：%{title}，%{time}"
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "Preview of the photo you chose"
+msgstr "你選擇的照片預覽"
+
+#: lib/goodmao2_web/components/media_components.ex
+#, elixir-autogen, elixir-format
+msgid "Remove %{name}"
+msgstr "移除 %{name}"
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "Remove %{type} entry from %{time}"
+msgstr "移除 %{time} 的%{type}紀錄"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Remove file %{n}"
+msgstr "移除第 %{n} 個檔案"
+
+#: lib/goodmao2_web/live/pet_live/reports.ex
+#, elixir-autogen, elixir-format
+msgid "Report share link URL"
+msgstr "報告分享連結網址"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Save description"
+msgstr "儲存描述"
+
+#: lib/goodmao2_web/live/pet_live/log_entry.ex
+#, elixir-autogen, elixir-format
+msgid "Save description of file %{n}"
+msgstr "儲存描述：第 %{n} 個檔案"
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "Selection is %{size}% of the photo's width, %{x}% from the left and %{y}% from the top."
+msgstr "選取範圍為照片寬度的 %{size}%，距左 %{x}%、距上 %{y}%。"
+
+#: lib/goodmao2_web/components/share_components.ex
+#, elixir-autogen, elixir-format
+msgid "Share"
+msgstr "分享"
+
+#: lib/goodmao2_web/components/avatar_components.ex
+#, elixir-autogen, elixir-format
+msgid "crop selector"
+msgstr "裁切選取器"
