@@ -147,8 +147,15 @@ server {
 
     # --- Non-fingerprinted static files (short cache) ---
     # Phoenix `~p` may resolve to digest-stamped filenames (e.g.
-    # favicon-abc123.svg), so patterns use [^/]* to match both variants.
-    location ~ ^/(fonts|images|favicon[^/]*\.(ico|svg)|robots[^/]*\.txt|service_worker[^/]*\.js|manifest[^/]*\.json|offline[^/]*\.html) {
+    # favicon-abc123.ico), so patterns use [^/]* to match both variants.
+    #
+    # Every alternative must name a real file or directory that
+    # `Goodmao2Web.static_paths/0` ships in priv/static, one path each: nginx
+    # answers its own 404 for a path this matches but `root` lacks, before
+    # Phoenix ever sees the request. Anything the application generates belongs
+    # in `location /`. test/goodmao2/nginx_static_paths_test.exs holds both
+    # directions (the SVG favicon is inline in the layout, not a file).
+    location ~ ^/(fonts|images|favicon[^/]*\.ico|robots[^/]*\.txt|service_worker[^/]*\.js|manifest[^/]*\.json|offline[^/]*\.html) {
         root {{ static_path }};
         add_header Cache-Control "public, max-age=3600";
         add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
