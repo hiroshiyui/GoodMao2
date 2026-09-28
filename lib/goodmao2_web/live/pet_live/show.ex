@@ -51,6 +51,7 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:quicklog_type, "food")
          |> assign(:quick_form, to_form(%{}, as: :log))
          |> assign(:quick_error, nil)
+         |> assign(:media_captions, %{})
          |> assign(:weight_series, [])
          |> allow_upload(:media,
            accept: ~w(.jpg .jpeg .png .gif .webp .mp4 .webm),
@@ -219,26 +220,33 @@ defmodule Goodmao2Web.PetLive.Show do
        socket
        |> assign(:quicklog_type, type)
        |> assign(:quick_form, to_form(%{}, as: :log))
-       |> assign(:quick_error, nil)}
+       |> assign(:quick_error, nil)
+       |> assign(:media_captions, %{})}
     else
       {:noreply, socket}
     end
   end
 
-  def handle_event("quicklog_change", %{"log" => params}, socket) do
-    {:noreply, assign(socket, :quick_form, to_form(params, as: :log))}
+  def handle_event("quicklog_change", %{"log" => params} = event, socket) do
+    {:noreply,
+     socket
+     |> assign(:quick_form, to_form(params, as: :log))
+     |> assign(:media_captions, captions_param(event))}
   end
 
-  def handle_event("quicklog", %{"log" => params}, socket) do
+  def handle_event("quicklog", %{"log" => params} = event, socket) do
     if socket.assigns.quicklog_type == "life" do
-      save_life_log(socket, params)
+      save_life_log(socket, params, captions_param(event))
     else
       save_quicklog(socket, socket.assigns.quicklog_type, params)
     end
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
-    {:noreply, cancel_upload(socket, :media, ref)}
+    {:noreply,
+     socket
+     |> cancel_upload(:media, ref)
+     |> update(:media_captions, &Map.delete(&1, ref))}
   end
 
   # One-tap shortcut: submit immediately with a preset data payload.
@@ -362,7 +370,7 @@ defmodule Goodmao2Web.PetLive.Show do
   # entry immediately; the ffmpeg purification runs off the request path in `Media.PurifyWorker`,
   # which attaches each media row and re-broadcasts so it appears live. If the log itself fails to
   # create, the staged uploads are discarded.
-  defp save_life_log(socket, params) do
+  defp save_life_log(socket, params, captions) do
     pet = socket.assigns.pet
     user = socket.assigns.current_scope.user
 
@@ -373,13 +381,14 @@ defmodule Goodmao2Web.PetLive.Show do
       }
       |> put_local_occurred_at(Map.get(params, "occurred_at"), socket.assigns.timezone)
 
+    # Each file's description rides with its staged token onto the purified asset (its alt text).
     staged =
       socket
-      |> consume_uploaded_entries(:media, fn %{path: path}, _entry ->
-        {:ok, Media.stage_upload(path)}
+      |> consume_uploaded_entries(:media, fn %{path: path}, upload ->
+        {:ok, {Media.stage_upload(path), Map.get(captions, upload.ref)}}
       end)
       |> Enum.flat_map(fn
-        {:ok, token} -> [%{token: token}]
+        {{:ok, token}, caption} -> [%{token: token, caption: caption}]
         _ -> []
       end)
 
@@ -398,7 +407,8 @@ defmodule Goodmao2Web.PetLive.Show do
      socket
      |> put_flash(:info, gettext("Logged."))
      |> assign(:quick_form, to_form(%{}, as: :log))
-     |> assign(:quick_error, nil)}
+     |> assign(:quick_error, nil)
+     |> assign(:media_captions, %{})}
   end
 
   defp handle_life_result(socket, {:error, :rate_limited}) do
@@ -533,6 +543,10 @@ defmodule Goodmao2Web.PetLive.Show do
         end
     end
   end
+
+  # The per-file descriptions the upload list posts as `media_captions[<ref>]`.
+  defp captions_param(%{"media_captions" => captions}) when is_map(captions), do: captions
+  defp captions_param(_params), do: %{}
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
@@ -695,6 +709,7 @@ defmodule Goodmao2Web.PetLive.Show do
             role={@role}
             weight_unit={@pet.weight_unit}
             uploads={@uploads}
+            media_captions={@media_captions}
           />
         </div>
       </section>
@@ -1262,6 +1277,7 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :weight_unit, :string, default: "kilograms"
   attr :collapse_extras, :boolean, default: true
   attr :uploads, :any, default: nil
+  attr :media_captions, :map, default: %{}
 
   defp quicklog_form(assigns) do
     ~H"""
@@ -1280,7 +1296,11 @@ defmodule Goodmao2Web.PetLive.Show do
         </label>
         <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
         <p class="text-base-content/70 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
-        <.upload_file_list upload={@uploads.media} cancel_event="cancel_upload" />
+        <.upload_file_list
+          upload={@uploads.media}
+          cancel_event="cancel_upload"
+          captions={@media_captions}
+        />
       </div>
 
       <details

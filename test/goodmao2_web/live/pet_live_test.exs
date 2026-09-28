@@ -713,9 +713,18 @@ defmodule Goodmao2Web.PetLiveTest do
           %{name: "cat.png", content: content, type: "image/png"}
         ])
 
-      render_upload(photo, "cat.png")
+      html = render_upload(photo, "cat.png")
 
-      lv |> form("#quicklog-form", log: %{note: "Nap in the sun"}) |> render_submit()
+      # Each selected file gets its own labelled description field, keyed by the upload ref.
+      [_, ref] = Regex.run(~r/name="media_captions\[([^\]]+)\]"/, html)
+      assert has_element?(lv, "label[for='upload-caption-#{ref}']", "Description of cat.png")
+
+      lv
+      |> form("#quicklog-form",
+        log: %{note: "Nap in the sun"},
+        media_captions: %{ref => "  A tabby asleep on the windowsill  "}
+      )
+      |> render_submit()
 
       # The entry appears immediately; the photo is purified off the request path (ADR-0005),
       # so it isn't attached until the PurifyWorker runs.
@@ -726,7 +735,8 @@ defmodule Goodmao2Web.PetLiveTest do
       Oban.drain_queue(queue: :media)
       Oban.drain_queue(queue: :default)
       assert render(lv) =~ "timeline-media"
-      assert has_element?(lv, ".timeline-media img")
+      # The uploader's description (trimmed) is the photo's alt text.
+      assert has_element?(lv, ".timeline-media img[alt='A tabby asleep on the windowsill']")
     end
 
     test "adds media to an existing entry from its page, then removes it", %{
@@ -756,8 +766,16 @@ defmodule Goodmao2Web.PetLiveTest do
           %{name: "later.png", content: content, type: "image/png"}
         ])
 
-      render_upload(photo, "later.png")
-      lv |> form("#log-media-form") |> render_submit()
+      html = render_upload(photo, "later.png")
+      [_, ref] = Regex.run(~r/name="media_captions\[([^\]]+)\]"/, html)
+
+      lv
+      |> form("#log-media-form", media_captions: %{ref => "Muddy paws after the walk"})
+      |> render_change()
+
+      lv
+      |> form("#log-media-form", media_captions: %{ref => "Muddy paws after the walk"})
+      |> render_submit()
 
       # The purify worker attaches the asset and re-broadcasts; the page updates live.
       Oban.drain_queue(queue: :media)
@@ -765,7 +783,26 @@ defmodule Goodmao2Web.PetLiveTest do
 
       asset = Goodmao2.Repo.get_by!(Goodmao2.Media.MediaAsset, log_entry_id: entry.id)
 
-      assert has_element?(lv, "#log-media-item-#{asset.id} img")
+      assert asset.caption == "Muddy paws after the walk"
+      assert has_element?(lv, "#log-media-item-#{asset.id} img[alt='Muddy paws after the walk']")
+
+      # Its description can be changed later — without spending one of the entry's edits.
+      lv
+      |> form("#log-media-caption-form-#{asset.id}", caption: "Muddy paws, then a bath")
+      |> render_submit()
+
+      assert Goodmao2.Repo.reload(asset).caption == "Muddy paws, then a bath"
+      assert has_element?(lv, "#log-media-item-#{asset.id} img[alt='Muddy paws, then a bath']")
+      assert Goodmao2.Repo.reload(entry).edit_count == 0
+
+      # An over-long description is refused on the field, marked invalid.
+      lv
+      |> form("#log-media-caption-form-#{asset.id}", caption: String.duplicate("x", 256))
+      |> render_submit()
+
+      assert has_element?(lv, "#log-media-caption-#{asset.id}[aria-invalid='true']")
+      assert has_element?(lv, "#log-media-caption-error-#{asset.id}")
+      assert Goodmao2.Repo.reload(asset).caption == "Muddy paws, then a bath"
 
       # Removing it soft-deletes the asset and clears it from the page.
       lv |> element("#log-media-remove-#{asset.id}") |> render_click()

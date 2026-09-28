@@ -12,6 +12,12 @@ defmodule Goodmao2.Media.MediaAsset do
 
   @kinds ~w(image video)
 
+  # The uploader's description of the photo/video — the image's `alt` text (`Helpers.media_alt/1`).
+  # Bounded by the column (`:string` → varchar(255)), counted in codepoints as Postgres counts
+  # them: the old 500-grapheme bound let a 256–500-character caption past the changeset only to
+  # fail the insert, in the purify worker, three times over.
+  @caption_max_length 255
+
   schema "media_assets" do
     field :pet_id, :id
     field :uploaded_by_user_id, :id
@@ -40,6 +46,48 @@ defmodule Goodmao2.Media.MediaAsset do
     ])
     |> validate_required([:log_entry_id, :pet_id, :kind, :content_type, :byte_size])
     |> validate_inclusion(:kind, @kinds)
-    |> validate_length(:caption, max: 500)
+    |> validate_caption()
+  end
+
+  @doc """
+  Changes only an existing asset's description (`Media.update_media_caption/5`). Nothing else is
+  castable, so this path cannot move an asset between entries or rewrite its metadata.
+  """
+  def caption_changeset(asset, attrs) do
+    asset
+    |> cast(attrs, [:caption])
+    |> validate_caption()
+  end
+
+  @doc "The longest a description may be, in codepoints."
+  def caption_max_length, do: @caption_max_length
+
+  @doc """
+  Normalizes an uploader-supplied description for the upload path: trimmed, blank → `nil`, and
+  cut to `caption_max_length/0`. `nil` (not `""`) matters at render time — `alt=""` would declare
+  a chosen photo decorative, while `nil` falls back to a localized description.
+  """
+  def normalize_caption(caption) when is_binary(caption) do
+    case String.trim(caption) do
+      "" -> nil
+      trimmed -> trimmed |> String.codepoints() |> Enum.take(@caption_max_length) |> Enum.join()
+    end
+  end
+
+  def normalize_caption(_), do: nil
+
+  defp validate_caption(changeset) do
+    changeset
+    |> update_change(:caption, fn
+      caption when is_binary(caption) ->
+        case String.trim(caption) do
+          "" -> nil
+          trimmed -> trimmed
+        end
+
+      other ->
+        other
+    end)
+    |> validate_length(:caption, max: @caption_max_length, count: :codepoints)
   end
 end

@@ -38,7 +38,9 @@ defmodule Goodmao2.Media do
   @doc """
   Creates a `life` log entry and schedules its uploaded media for **async** purification (ADR-0005).
 
-  `staged` is a list of `%{token, caption}` from `stage_upload/1` (raw bytes already on disk).
+  `staged` is a list of `%{token, caption}` from `stage_upload/1` (raw bytes already on disk); the
+  optional `caption` is the uploader's description of the file, normalized by
+  `MediaAsset.normalize_caption/1` and carried through the job onto the purified asset.
   Requires `:write` on the pet, the pet's history not hidden, and the caller under their hourly
   upload cap; only owners may publish a `public` entry. In one transaction the log row is inserted
   and one `PurifyWorker` job is enqueued per staged file, so either the whole thing lands or none
@@ -92,7 +94,7 @@ defmodule Goodmao2.Media do
               "log_entry_id" => log.id,
               "pet_id" => pet.id,
               "uploaded_by_user_id" => user.id,
-              "caption" => s[:caption]
+              "caption" => MediaAsset.normalize_caption(s[:caption])
             })
           )
         end)
@@ -168,7 +170,7 @@ defmodule Goodmao2.Media do
               "log_entry_id" => entry.id,
               "pet_id" => entry.pet_id,
               "uploaded_by_user_id" => user.id,
-              "caption" => s[:caption]
+              "caption" => MediaAsset.normalize_caption(s[:caption])
             })
           )
         end)
@@ -211,6 +213,44 @@ defmodule Goodmao2.Media do
     else
       _ -> {:error, :not_found}
     end
+  end
+
+  @doc """
+  Sets (or clears, with a blank) the description of one media asset of a `life` entry — the text
+  a screen reader announces for the photo. Requires the same right as editing the entry
+  (`Logs.can_edit?/3`) and the asset must belong to `entry`; existence is hidden like
+  `delete_media_asset/4`. Like adding media, this is **not** an edit: it snapshots no revision
+  and does not count against the nine-edit limit. Re-broadcasts the entry so live viewers get
+  the new description.
+
+  Returns `{:ok, asset}`, `{:error, :not_found}`, or `{:error, changeset}` (too long).
+  """
+  def update_media_caption(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, asset_id, caption) do
+    with {:ok, id} <- Goodmao2.ID.normalize(asset_id),
+         %MediaAsset{} = asset <- live_asset(entry, id),
+         true <- entry.pet_id == pet.id and is_nil(entry.deleted_at),
+         true <- Logs.can_edit?(user, pet, entry) do
+      asset
+      |> MediaAsset.caption_changeset(%{"caption" => caption})
+      |> Repo.update()
+      |> case do
+        {:ok, updated} ->
+          broadcast_entry_updated(entry.pet_id, entry.id)
+          {:ok, updated}
+
+        {:error, %Ecto.Changeset{}} = error ->
+          error
+      end
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
+  defp live_asset(entry, id) do
+    Repo.one(
+      from m in MediaAsset,
+        where: m.id == ^id and m.log_entry_id == ^entry.id and is_nil(m.deleted_at)
+    )
   end
 
   @doc """

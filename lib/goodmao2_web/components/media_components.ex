@@ -15,6 +15,8 @@ defmodule Goodmao2Web.MediaComponents do
   import Goodmao2Web.CoreComponents, only: [icon: 1]
   import Goodmao2Web.Helpers, only: [media_alt: 1]
 
+  alias Goodmao2.Media.MediaAsset
+
   use Phoenix.VerifiedRoutes,
     endpoint: Goodmao2Web.Endpoint,
     router: Goodmao2Web.Router,
@@ -46,6 +48,7 @@ defmodule Goodmao2Web.MediaComponents do
         <video
           :if={asset.kind == "video"}
           src={asset_src(asset, @share_token)}
+          aria-label={asset.caption}
           controls
           preload="metadata"
           class={["rounded border border-base-200", @media_class]}
@@ -61,41 +64,73 @@ defmodule Goodmao2Web.MediaComponents do
   @doc """
   The selected-files list of a media upload form: one row per file with a live progress bar
   (`entry.progress` streams in while the chunks upload), a cancel button firing `cancel_event`
-  with the entry ref, and per-file + form-level upload errors. Shared by the QuickLog form
-  (`PetLive.Show`) and the entry page's media form (`PetLive.LogEntry`).
+  with the entry ref, per-file + form-level upload errors, and a **description** field per file.
+  Shared by the QuickLog form (`PetLive.Show`) and the entry page's media form
+  (`PetLive.LogEntry`).
+
+  The description becomes the purified asset's `caption` — the photo's `alt` text — so the
+  person who chose the picture is the one who says what is in it (the generic "Life log photo"
+  fallback tells a screen-reader user nothing). Each field posts as `media_captions[<ref>]`; the
+  host LiveView keeps the typed values in `captions` (from its `phx-change`) and pairs them with
+  the consumed entries by ref. The value is server-held because the list re-renders on every
+  progress tick, and an uncontrolled input could lose what was typed.
   """
   attr :upload, Phoenix.LiveView.UploadConfig, required: true
   attr :cancel_event, :string, required: true
+  attr :captions, :map, default: %{}, doc: "entry ref => the description typed so far"
 
   def upload_file_list(assigns) do
     ~H"""
-    <ul class="space-y-1">
+    <p
+      :if={@upload.entries != []}
+      id={"upload-caption-hint-#{@upload.ref}"}
+      class="upload-caption-hint text-base-content/70 text-xs"
+    >
+      {gettext(
+        "Describe each photo or video for people who can't see it — a screen reader reads the description aloud."
+      )}
+    </p>
+    <ul class="space-y-2">
       <li
         :for={entry <- @upload.entries}
         id={"upload-entry-#{entry.ref}"}
-        class="flex items-center gap-2 text-sm"
+        class="upload-entry space-y-1 text-sm"
       >
-        <span class="min-w-0 flex-1 truncate">{entry.client_name}</span>
-        <progress
-          class="progress progress-primary w-24 shrink-0"
-          value={entry.progress}
-          max="100"
-          aria-label={gettext("Upload progress for %{name}", name: entry.client_name)}
-        >
-          {entry.progress}%
-        </progress>
-        <button
-          type="button"
-          phx-click={@cancel_event}
-          phx-value-ref={entry.ref}
-          class="btn btn-ghost btn-xs"
-          aria-label={gettext("Remove file")}
-        >
-          <.icon name="hero-x-mark" class="size-4" />
-        </button>
-        <span :for={err <- upload_errors(@upload, entry)} class="text-error text-xs">
+        <div class="flex items-center gap-2">
+          <span class="min-w-0 flex-1 truncate">{entry.client_name}</span>
+          <progress
+            class="progress progress-primary w-24 shrink-0"
+            value={entry.progress}
+            max="100"
+            aria-label={gettext("Upload progress for %{name}", name: entry.client_name)}
+          >
+            {entry.progress}%
+          </progress>
+          <button
+            type="button"
+            phx-click={@cancel_event}
+            phx-value-ref={entry.ref}
+            class="btn btn-ghost btn-xs"
+            aria-label={gettext("Remove file")}
+          >
+            <.icon name="hero-x-mark" class="size-4" />
+          </button>
+        </div>
+        <span :for={err <- upload_errors(@upload, entry)} class="text-error block text-xs">
           {upload_error_label(err)}
         </span>
+        <label for={"upload-caption-#{entry.ref}"} class="upload-caption-label block text-xs">
+          {gettext("Description of %{name} (optional)", name: entry.client_name)}
+        </label>
+        <input
+          type="text"
+          id={"upload-caption-#{entry.ref}"}
+          name={"media_captions[#{entry.ref}]"}
+          value={Map.get(@captions, entry.ref, "")}
+          maxlength={MediaAsset.caption_max_length()}
+          aria-describedby={"upload-caption-hint-#{@upload.ref}"}
+          class="upload-caption input input-bordered input-sm w-full"
+        />
       </li>
     </ul>
     <p :for={err <- upload_errors(@upload)} class="text-error text-xs">

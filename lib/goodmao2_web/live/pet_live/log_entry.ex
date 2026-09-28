@@ -26,6 +26,8 @@ defmodule Goodmao2Web.PetLive.LogEntry do
        |> assign(:pet, pet)
        |> assign(:role, role)
        |> assign(:page_title, gettext("%{type} entry", type: log_type_label(entry.type)))
+       |> assign(:media_captions, %{})
+       |> assign(:caption_errors, %{})
        |> allow_upload(:media,
          accept: ~w(.jpg .jpeg .png .gif .webp .mp4 .webm),
          max_entries: Media.config(:max_entries),
@@ -132,35 +134,66 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
   # Media management on a `life` entry (ADR-0005 follow-up): stage each raw upload and enqueue
   # its purify job, exactly like QuickLog — the media appears live once purified (PubSub).
-  def handle_event("validate_media", _params, socket) do
-    {:noreply, socket}
+  def handle_event("validate_media", params, socket) do
+    {:noreply, assign(socket, :media_captions, captions_param(params))}
   end
 
   def handle_event("cancel_media_upload", %{"ref" => ref}, socket) do
-    {:noreply, cancel_upload(socket, :media, ref)}
+    {:noreply,
+     socket
+     |> cancel_upload(:media, ref)
+     |> update(:media_captions, &Map.delete(&1, ref))}
   end
 
-  def handle_event("save_media", _params, socket) do
+  def handle_event("save_media", params, socket) do
     %{current_scope: %{user: user}, pet: pet, entry: entry} = socket.assigns
+    captions = captions_param(params)
 
     staged =
       socket
-      |> consume_uploaded_entries(:media, fn %{path: path}, _entry ->
-        {:ok, Media.stage_upload(path)}
+      |> consume_uploaded_entries(:media, fn %{path: path}, upload ->
+        {:ok, {Media.stage_upload(path), Map.get(captions, upload.ref)}}
       end)
       |> Enum.flat_map(fn
-        {:ok, token} -> [%{token: token}]
+        {{:ok, token}, caption} -> [%{token: token, caption: caption}]
         _ -> []
       end)
 
     case Media.add_media_to_life_log(user, pet, entry, staged) do
       :ok ->
         {:noreply,
-         put_flash(socket, :info, gettext("Uploading — your files will appear once processed."))}
+         socket
+         |> assign(:media_captions, %{})
+         |> put_flash(:info, gettext("Uploading — your files will appear once processed."))}
 
       error ->
         Enum.each(staged, &Media.unstage_upload(&1.token))
         {:noreply, put_flash(socket, :error, media_error_message(error))}
+    end
+  end
+
+  # Describing an existing photo/video: the same right as editing the entry, but not an edit —
+  # no revision, no count against the nine-edit limit (`Media.update_media_caption/5`).
+  def handle_event("save_media_caption", %{"asset_id" => id, "caption" => caption}, socket) do
+    %{current_scope: %{user: user}, pet: pet, entry: entry} = socket.assigns
+
+    case Media.update_media_caption(user, pet, entry, id, caption) do
+      {:ok, asset} ->
+        {:noreply,
+         socket
+         |> update(:caption_errors, &Map.delete(&1, asset.id))
+         |> put_flash(:info, gettext("Description saved."))}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply,
+         update(
+           socket,
+           :caption_errors,
+           &Map.put(&1, changeset.data.id, caption_error(changeset))
+         )}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Couldn't update that description."))}
     end
   end
 
@@ -264,6 +297,18 @@ defmodule Goodmao2Web.PetLive.LogEntry do
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+  # The field's own message, without the humanized field name: it renders under that field.
+  defp caption_error(changeset) do
+    changeset
+    |> Ecto.Changeset.traverse_errors(&Goodmao2Web.CoreComponents.translate_error/1)
+    |> Map.get(:caption, [])
+    |> Enum.join(" ")
+  end
+
+  # The per-file descriptions the upload list posts as `media_captions[<ref>]`.
+  defp captions_param(%{"media_captions" => captions}) when is_map(captions), do: captions
+  defp captions_param(_params), do: %{}
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
@@ -449,7 +494,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
         <ul :if={@entry.media_assets != []} class="mt-3 flex flex-wrap gap-3">
           <li
-            :for={asset <- @entry.media_assets}
+            :for={{asset, n} <- Enum.with_index(@entry.media_assets, 1)}
             id={"log-media-item-#{asset.id}"}
             class="log-media-item flex flex-col items-start gap-1"
           >
@@ -463,10 +508,48 @@ defmodule Goodmao2Web.PetLive.LogEntry do
             <video
               :if={asset.kind == "video"}
               src={~p"/media/#{asset.id}"}
+              aria-label={asset.caption}
               controls
               preload="metadata"
               class="border-base-200 max-h-32 rounded border"
             />
+            <form
+              id={"log-media-caption-form-#{asset.id}"}
+              phx-submit="save_media_caption"
+              class="log-media-caption-form flex w-64 max-w-full flex-col gap-1"
+            >
+              <input type="hidden" name="asset_id" value={asset.id} />
+              <label for={"log-media-caption-#{asset.id}"} class="text-xs">
+                {gettext("Description of file %{n}", n: n)}
+              </label>
+              <input
+                type="text"
+                id={"log-media-caption-#{asset.id}"}
+                name="caption"
+                value={asset.caption}
+                maxlength={Media.MediaAsset.caption_max_length()}
+                aria-invalid={Map.has_key?(@caption_errors, asset.id) && "true"}
+                aria-describedby={
+                  Map.has_key?(@caption_errors, asset.id) && "log-media-caption-error-#{asset.id}"
+                }
+                class="log-media-caption input input-bordered input-sm w-full"
+              />
+              <p
+                :if={@caption_errors[asset.id]}
+                id={"log-media-caption-error-#{asset.id}"}
+                class="text-error text-xs"
+              >
+                {@caption_errors[asset.id]}
+              </p>
+              <button
+                type="submit"
+                id={"log-media-caption-save-#{asset.id}"}
+                class="btn btn-ghost btn-xs self-start"
+                aria-label={gettext("Save description of file %{n}", n: n)}
+              >
+                {gettext("Save description")}
+              </button>
+            </form>
             <button
               type="button"
               id={"log-media-remove-#{asset.id}"}
@@ -491,7 +574,11 @@ defmodule Goodmao2Web.PetLive.LogEntry do
           </label>
           <.live_file_input upload={@uploads.media} class="file-input file-input-bordered w-full" />
           <p class="text-base-content/70 text-xs">{gettext("JPEG, PNG, GIF, WEBP, MP4, or WEBM.")}</p>
-          <.upload_file_list upload={@uploads.media} cancel_event="cancel_media_upload" />
+          <.upload_file_list
+            upload={@uploads.media}
+            cancel_event="cancel_media_upload"
+            captions={@media_captions}
+          />
           <.button
             type="submit"
             id="log-media-submit"

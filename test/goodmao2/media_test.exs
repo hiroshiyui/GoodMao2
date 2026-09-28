@@ -174,6 +174,36 @@ defmodule Goodmao2.MediaTest do
       refute File.exists?(Storage.staged_path(token))
     end
 
+    test "carries each file's description onto its purified asset, normalized", %{
+      owner: owner,
+      pet: pet
+    } do
+      {:ok, described} = Media.stage_upload(make_png())
+      {:ok, blank} = Media.stage_upload(make_png())
+      {:ok, long} = Media.stage_upload(make_png())
+      max = Media.MediaAsset.caption_max_length()
+
+      {:ok, entry} =
+        Media.create_life_log(owner, pet, %{"note" => "three photos"}, [
+          %{token: described, caption: "  Asleep in the sun  "},
+          %{token: blank, caption: "   "},
+          %{token: long, caption: String.duplicate("貓", max + 40)}
+        ])
+
+      Oban.drain_queue(queue: :media)
+      Oban.drain_queue(queue: :default)
+
+      captions =
+        Goodmao2.Repo.all(
+          from a in Media.MediaAsset, where: a.log_entry_id == ^entry.id, select: a.caption
+        )
+
+      # Trimmed; blank is nil (so the render falls back to a localized alt, never alt=""); an
+      # over-long one is cut to the column's bound rather than failing the worker's insert.
+      assert Enum.sort(captions, :desc) ==
+               Enum.sort(["Asleep in the sun", nil, String.duplicate("貓", max)], :desc)
+    end
+
     test "refuses a viewer and hidden history (before staging matters)", %{owner: owner, pet: pet} do
       viewer = user_fixture()
       grant_fixture(pet, owner, viewer, "viewer")
@@ -320,6 +350,66 @@ defmodule Goodmao2.MediaTest do
     test "an asset of a different entry is not_found", %{owner: owner, pet: pet, asset: asset} do
       other = log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
       assert Media.delete_media_asset(owner, pet, other, asset.id) == {:error, :not_found}
+    end
+  end
+
+  describe "update_media_caption/5" do
+    setup %{owner: owner, pet: pet} do
+      {:ok, purified} = Media.purify(make_png())
+      on_exit(fn -> File.rm(purified.path) end)
+      {entry, asset} = attach_asset(owner, pet, purified)
+      %{entry: entry, asset: asset}
+    end
+
+    test "the recorder describes the asset, and it is not an edit", %{
+      owner: owner,
+      pet: pet,
+      entry: entry,
+      asset: asset
+    } do
+      Logs.subscribe(pet)
+
+      assert {:ok, updated} =
+               Media.update_media_caption(owner, pet, entry, to_string(asset.id), " A nap ")
+
+      assert updated.caption == "A nap"
+      assert_receive {:entry_updated, %{id: id}} when id == entry.id
+
+      # No revision, no count against the nine-edit limit.
+      assert Goodmao2.Repo.reload(entry).edit_count == 0
+      assert Logs.list_revisions(owner, pet, entry) == []
+
+      # A blank clears it back to nil (the localized fallback alt), never "".
+      assert {:ok, %{caption: nil}} = Media.update_media_caption(owner, pet, entry, asset.id, "")
+    end
+
+    test "an over-long description is refused", %{
+      owner: owner,
+      pet: pet,
+      entry: entry,
+      asset: asset
+    } do
+      too_long = String.duplicate("a", Media.MediaAsset.caption_max_length() + 1)
+
+      assert {:error, %Ecto.Changeset{errors: [caption: _]}} =
+               Media.update_media_caption(owner, pet, entry, asset.id, too_long)
+    end
+
+    test "a viewer, another entry, and a malformed id all get not_found", %{
+      owner: owner,
+      pet: pet,
+      entry: entry,
+      asset: asset
+    } do
+      viewer = user_fixture()
+      grant_fixture(pet, owner, viewer, "viewer")
+      assert Media.update_media_caption(viewer, pet, entry, asset.id, "x") == {:error, :not_found}
+
+      other = log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+      assert Media.update_media_caption(owner, pet, other, asset.id, "x") == {:error, :not_found}
+
+      assert Media.update_media_caption(owner, pet, entry, "nope", "x") == {:error, :not_found}
+      assert Goodmao2.Repo.reload(asset).caption == nil
     end
   end
 
