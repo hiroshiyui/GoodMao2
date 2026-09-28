@@ -32,6 +32,9 @@ defmodule Goodmao2Web.PetLive.Access do
     stream(socket, :accesses, Pets.list_accesses(socket.assigns.pet), reset: true)
   end
 
+  defp revoked(socket),
+    do: socket |> put_flash(:info, gettext("Access revoked.")) |> load_accesses()
+
   @impl true
   def handle_event("grant", %{"grant" => params}, socket) do
     user = socket.assigns.current_scope.user
@@ -83,7 +86,11 @@ defmodule Goodmao2Web.PetLive.Access do
       true ->
         case Pets.revoke_access(user, socket.assigns.pet, access) do
           {:ok, _} ->
-            {:noreply, socket |> put_flash(:info, gettext("Access revoked.")) |> load_accesses()}
+            {:noreply, revoked(socket)}
+
+          # A concurrent revoke got there first: the grant is gone either way.
+          {:error, :already_revoked} ->
+            {:noreply, revoked(socket)}
 
           {:error, :last_owner} ->
             {:noreply, put_flash(socket, :error, gettext("A pet must keep at least one owner."))}

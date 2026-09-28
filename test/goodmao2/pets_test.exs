@@ -285,6 +285,24 @@ defmodule Goodmao2.PetsTest do
       assert {:ok, _} = Pets.revoke_access(co_owner, pet, access)
     end
 
+    test "a grant is revoked once: a second revoke is refused and notifies nobody" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grantee = user_fixture()
+      access = grant_fixture(pet, owner, grantee, "co_caretaker")
+      notified = fn -> length(Goodmao2.Notifications.list_notifications(grantee)) end
+      before = notified.()
+
+      assert {:ok, %PetAccess{status: "revoked"}} = Pets.revoke_access(owner, pet, access)
+      assert notified.() == before + 1
+
+      # The stale struct still says "active" — as a concurrent revoke's would.
+      assert access.status == "active"
+      assert Pets.revoke_access(owner, pet, access) == {:error, :already_revoked}
+      assert notified.() == before + 1
+      assert Repo.get!(PetAccess, access.id).status == "revoked"
+    end
+
     test "the grant-update path cannot demote the last owner" do
       owner = user_fixture()
       pet = pet_fixture(owner)

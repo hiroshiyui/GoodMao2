@@ -253,6 +253,10 @@ defmodule Goodmao2.Pets do
   Revokes an access grant. Requires `:manage` and a grant on this same pet (`{:error,
   :not_found}` otherwise), and refuses to remove the pet's last effective owner (`{:error,
   :last_owner}`).
+
+  Revocation happens once: the `active → revoked` transition is a conditional update, so of two
+  concurrent revokes (or a revoke of an already-revoked grant) only one succeeds and notifies;
+  the other gets `{:error, :already_revoked}`.
   """
   def revoke_access(%User{} = revoker, %Pet{} = pet, %PetAccess{} = access) do
     # The grant must belong to this pet: `guard_last_owner/2` counts the owners of `pet`, so a
@@ -262,7 +266,7 @@ defmodule Goodmao2.Pets do
       result =
         with_owner_lock(pet, fn ->
           with :ok <- guard_last_owner(pet, access) do
-            access |> PetAccess.changeset(%{status: "revoked"}) |> Repo.update()
+            claim_revocation(access)
           end
         end)
 
@@ -271,6 +275,19 @@ defmodule Goodmao2.Pets do
       end
 
       result
+    end
+  end
+
+  # Atomic claim, like a dose's `pending → given`: the owner lock only covers owner rows, so a
+  # plain update would let two revokes of a non-owner grant both "succeed" and both notify.
+  defp claim_revocation(%PetAccess{id: id} = access) do
+    updated_at = now()
+
+    case Repo.update_all(from(a in PetAccess, where: a.id == ^id and a.status == "active"),
+           set: [status: "revoked", updated_at: updated_at]
+         ) do
+      {1, _} -> {:ok, %{access | status: "revoked", updated_at: updated_at}}
+      {0, _} -> {:error, :already_revoked}
     end
   end
 
