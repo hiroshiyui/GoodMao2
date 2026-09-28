@@ -42,12 +42,15 @@ defmodule Goodmao2.Accounts.RegistrationRateLimiter do
   def handle_info(:sweep, state) do
     cutoff = System.system_time(:second) - @window_seconds
 
-    @table
-    |> :ets.foldl(
+    # `:ets.foldl/3` takes the table *last*. Piped in first, it raised `badarg` on every sweep,
+    # and the restart dropped the table this process owns: every counter reset each ten
+    # minutes, so the hourly ceiling was really a ten-minute one (found by Dialyzer).
+    :ets.foldl(
       fn {key, times}, stale ->
         if Enum.any?(times, &(&1 > cutoff)), do: stale, else: [key | stale]
       end,
-      []
+      [],
+      @table
     )
     |> Enum.each(&:ets.delete(@table, &1))
 
