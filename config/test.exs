@@ -14,7 +14,14 @@ config :goodmao2, Goodmao2.Repo,
   hostname: "localhost",
   database: "goodmao2_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+  pool_size: System.schedulers_online() * 2,
+  # A test and everything it spawns (preload tasks, LiveView processes, Oban.Testing jobs)
+  # share its one sandbox connection, so their queries queue for it. DBConnection's default
+  # 50 ms `queue_target` then drops a request as "connection not available" under load
+  # (several partitions on one Postgres, a busy CI runner), failing a correct test (Baudrate
+  # 70c7b01c). Waiting is the right behaviour for a sandbox; production keeps the defaults.
+  queue_target: 5_000,
+  queue_interval: 10_000
 
 # The browser feature tests drive a real server, so it has to be listening. Partitioned runs
 # each need their own port, or the second partition binds over the first.
