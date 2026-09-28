@@ -201,6 +201,16 @@ jobs:
           key: ${{ runner.os }}-plt-${{ hashFiles('.tool-versions', '**/mix.lock') }}
           restore-keys: ${{ runner.os }}-plt-
 
+      # The NIF crate (ADR-0017). rust-toolchain.toml pins the channel and names clippy as a
+      # component, so rustup installs the pinned compiler's own clippy here. Each NIF is a thin
+      # wrapper over a plain function, which is what `cargo test` exercises: the NIF itself
+      # only runs inside a loaded BEAM, where the ExUnit suite covers it.
+      - name: NIF crate -- clippy and unit tests
+        working-directory: native/goodmao2_native
+        run: |
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo test --locked
+
       - name: Install dependencies
         run: mix deps.get
 
