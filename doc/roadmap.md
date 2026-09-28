@@ -285,6 +285,8 @@ problem GoodMao2 could share. Each was checked against this codebase, and only t
 confirmed to exist are listed. Each item names its Baudrate commit, so the original reasoning
 can be read in context. Items are ordered by value against effort.
 
+**Progress:** §1–3 shipped on 2026-09-28 (unreleased); §4 is open.
+
 ### 1. Security & privacy
 
 - [x] **Keep message text out of Web Push** (`63f612a0`). *Shipped (unreleased).* `Helpers.message_push_payload/3`
@@ -298,65 +300,65 @@ can be read in context. Items are ordered by value against effort.
       the template's token-redacting `log_format`.
 - [x] **Bound the timeline page number** (`17525de8`). *Shipped (unreleased).* `PetLive.Show.parse_page/2` accepts any
       positive integer, and a huge one overflows the `OFFSET` and crashes the LiveView.
-- [ ] **Run `nginx -t` before the reload** (`e7198316`). As it stands, a bad template render
+- [x] **Run `nginx -t` before the reload** (`e7198316`). As it stands, a bad template render
       fails the reload silently and only breaks nginx at the next restart. Back up the config,
       test it, and restore and `fail` on error.
-- [ ] **Rate-limit avatar uploads** (`97cdf387`). `Avatars.set_avatar/5` skips the
+- [x] **Rate-limit avatar uploads** (`97cdf387`). `Avatars.set_avatar/5` skips the
       `Media.RateLimiter` check that life-log uploads make, yet queues ffmpeg on the same
       `:media` queue.
-- [ ] **Keep share pages out of search indexes** (`775f0ff3`). Send
+- [x] **Keep share pages out of search indexes** (`775f0ff3`). Send
       `X-Robots-Tag: noindex, nofollow` from `SharedEntryController`, `ReportController` and
       `MediaController.shared`.
-- [ ] **Make revoking a grant happen once** (`ecc33d96`). Two concurrent revokes both notify.
+- [x] **Make revoking a grant happen once** (`ecc33d96`). Two concurrent revokes both notify.
       Use a conditional `update_all … where status == "active"`, as dose claims do.
 
 ### 2. Tests, i18n & CI
 
-- [ ] **Check the `.pot` files are up to date** (`901c7094`). Set
+- [x] **Check the `.pot` files are up to date** (`901c7094`). Set
       `write_reference_line_numbers: false` and add `gettext.extract --check-up-to-date` to
       `precommit` and CI. Nothing catches a `gettext()` call that was never extracted today.
       Keep the check compatible with the hand-maintained `errors.pot`.
-- [ ] **Tighten the locale parity test** (`e5447491`, `66c76e61`).
+- [x] **Tighten the locale parity test** (`e5447491`, `66c76e61`).
   - Each `.po` should hold *exactly* its template's msgids.
   - An `en` msgstr should be blank or equal to its msgid.
   - A translation shouldn't bind variables its msgid lacks.
-- [ ] **Stop async tests queuing on the single-admin index** (`15bec4d4`). Every
+- [x] **Stop async tests queuing on the single-admin index** (`15bec4d4`). Every
       `admin_fixture` inserts the same partial-unique key, which serializes the 19 async files
       that reach it. Seed a committed admin before the sandbox goes manual, or make those files
       synchronous.
-- [ ] **Let sandbox connections wait** (`70c7b01c`). Set `queue_target` and `queue_interval` in
+- [x] **Let sandbox connections wait** (`70c7b01c`). Set `queue_target` and `queue_interval` in
       `config/test.exs`.
-- [ ] **Widen the browser crawl** (`e3363b09`). Type into the `phx-change` forms, and add the
+- [x] **Widen the browser crawl** (`e3363b09`). Type into the `phx-change` forms, and add the
       two-factor settings, admin, message-thread and report pages.
-- [ ] **Assert every enum label is translated** (`837f6b90`, `041e0c68`). Check that each label
+- [x] **Assert every enum label is translated** (`837f6b90`, `041e0c68`). Check that each label
       differs from its value, not just that it's non-empty. Also align the drifted caretaker
       terms in `zh_TW` and `ja_JP`.
-- [ ] **Static analysis beyond the compiler** (`0cc11599`, `dc32b9f4`, `4762e039`, `b8d43a86`,
+- [x] **Static analysis beyond the compiler** (`0cc11599`, `dc32b9f4`, `4762e039`, `b8d43a86`,
       `9ba9311d`):
   - Dialyzer against a reviewed baseline; specs already name `User.t()`, which isn't defined.
   - `ansible-lint`.
   - A SHA-256-pinned `rustup-init` instead of `curl | sh`.
   - `cargo clippy` and `cargo test` in CI, with each NIF a thin wrapper over a tested function.
   - A coverage report.
-- [ ] **Tie nginx's static-path regex to `static_paths/0` in a test** (`f37e344d`). The regex
+- [x] **Tie nginx's static-path regex to `static_paths/0` in a test** (`f37e344d`). The regex
       already names a `favicon.svg` that doesn't exist.
 
 ### 3. UX & accessibility
 
-- [ ] **Let uploaders describe their photos** (`7c6210d0`, `981a4f65`). `media_assets.caption`
+- [x] **Let uploaders describe their photos** (`7c6210d0`, `981a4f65`). `media_assets.caption`
       already reaches `Helpers.media_alt/1`, but no form collects it, so every photo's alt text
       is "Life log photo".
-- [ ] **Share, and copy that never fails silently** (`bc74e8e5`). The `Clipboard` hook returns
+- [x] **Share, and copy that never fails silently** (`bc74e8e5`). The `Clipboard` hook returns
       without a word when the clipboard API is missing, and success is announced nowhere. Add
       visible and `role="status"` feedback, `navigator.share` where available, and a copy
       button for report links.
-- [ ] **Space mixed CJK and Latin text** (`e0a644bf`). Set `text-autospace: normal` on `html`,
+- [x] **Space mixed CJK and Latin text** (`e0a644bf`). Set `text-autospace: normal` on `html`,
       and turn it off for code and form fields.
-- [ ] **Accessibility fixes** (`c2ad76c6`, `d331cfff`):
+- [x] **Accessibility fixes** (`c2ad76c6`, `d331cfff`):
   - The avatar cropper is a `role="slider"` with no value, and its preview has `alt=""`.
   - Repeated icon buttons ("Remove entry", "Dismiss") share one name.
   - `AdminLive.Announcements` reports errors only in a flash message.
-- [ ] **Key the plain lists that re-render on PubSub** (`e37cef55`): conversations, doses and
+- [x] **Key the plain lists that re-render on PubSub** (`e37cef55`): conversations, doses and
       schedules, and the selected calendar day's entries.
 
 ### 4. Larger features

@@ -10,6 +10,19 @@ skill).
 
 ### Security
 
+- **The login, second-factor and registration-email limits reset every ten minutes.**
+  `LoginRateLimiter` and `RegistrationRateLimiter` passed their table to `:ets.foldl/3` in the
+  wrong argument position, so every ten-minute sweep crashed the limiter, and its restart wiped
+  every counter. The hourly ceilings on failed password logins, on second-factor attempts per
+  user, and on registration and magic-link emails were really ten-minute ones. Dialyzer (now in
+  CI) found it.
+- **Avatar uploads are rate-limited** like life-log media. Each one queues an ffmpeg job on the
+  shared `:media` queue, and nothing throttled them.
+- **Anonymous share pages send `X-Robots-Tag: noindex, nofollow`.** This covers shared
+  entries, shared reports and their media, including the 404s, so a leaked pet-health link
+  isn't indexed.
+- **Revoking a grant happens once.** Two concurrent revokes both succeeded and both notified;
+  the transition is now an atomic `active → revoked` claim.
 - **Message push notifications no longer carry the message text.** A new mailbox message
   pushed up to 140 characters of its body, which showed on a locked phone to whoever held it
   and passed through the browser vendor's push service. The push now reads "New message ·
@@ -25,8 +38,24 @@ skill).
   `Goodmao2.NginxConfigTest` holds both files to these rules. Deployments from the Ansible
   playbook were never affected.
 
+### Added
+
+- **Describe your photos and videos.** Each upload has a description field, and an entry's
+  existing media can be described later. The description becomes the file's alt text, where
+  every photo used to read "Life log photo".
+- **Copying a share link always says what happened**, on screen and to screen readers. If the
+  clipboard is unavailable, the link is selected for a manual copy, and the platform share
+  sheet is offered where it exists. Report share links gain the copy button they lacked.
+- **Mixed CJK and Latin text is spaced automatically** (`text-autospace`).
+
 ### Fixed
 
+- **A long media description failed purification on every retry.** Validation allowed 500
+  characters, but the column holds 255. The limit is now 255.
+- **Repeated icon buttons had one accessible name.** "Remove entry", "Dismiss" and "Mark read"
+  now name their entry or notification. The avatar cropper is described properly and announces
+  its selection, and a blank announcement field is flagged on the field itself.
+- **Terminology:** caretaker terms are consistent in zh_TW (照護) and ja_JP (ケア).
 - **A crafted timeline page number crashed the pet page.** The page arrives from the client
   and becomes a database `OFFSET`. A number past what a Postgres `bigint` holds made Postgrex
   raise, which crashed the LiveView on demand. Pages are now capped at 100 000, and `Logs`
@@ -34,6 +63,19 @@ skill).
 
 ### Changed
 
+- **More of the gate is automatic.**
+  - `mix precommit` and CI fail when a `.pot` template is out of date. References now name the
+    file only, so moving a line no longer churns the catalogs.
+  - The locale parity test also rejects orphan msgids, filled `en` entries and unknown bindings,
+    and every enum label must be translated.
+  - A new CI `static` job runs Dialyzer against a reviewed baseline, `cargo clippy` and
+    `cargo test` on the NIF crate, and `ansible-lint` at the production profile. CI also
+    publishes a coverage report.
+- **Provisioning installs Rust from a SHA-256-pinned `rustup-init`**, not `curl | sh`.
+- **nginx config is tested before reloading**, and the previous one is restored if the new one
+  is invalid. A test also ties nginx's static-path regex to the files the app ships.
+- **Tests:** the suite's one admin is committed before the sandbox starts, so async tests no
+  longer queue on the single-admin index, and sandbox connections wait instead of dropping.
 - **CI runs on `ubuntu-24.04` instead of `ubuntu-latest`.** GitHub moves `ubuntu-latest` to
   Ubuntu 26 from 2026-10-19. setup-beam installs the exact `.tool-versions` runtime from
   builds.hex.pm, which publishes builds per Ubuntu release, so the move could break CI with no
