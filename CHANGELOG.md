@@ -16,6 +16,14 @@ skill).
   From @handle", and the text stays in the thread. Every push also carries a per-subject tag.
   Before this, each notification was tagged by its type, so one conversation's push replaced
   another's unread one, and one pet's dose reminder replaced another's.
+- **The hand-deploy nginx example let clients spoof their logged address.** The example in
+  `doc/deployment.md` appended to `X-Forwarded-For`, where the Ansible template sets it.
+  `UserAuth.client_ip/1` takes the first address, so an operator who copied the example let any
+  client choose the address in the `auth.*` security logs. The rate limiters key on email or
+  user id, so throttling was unaffected. The example also lacked the token-redacting access
+  log, and its `/assets/` block dropped HSTS and `immutable`. It now matches the template, and
+  `Goodmao2.NginxConfigTest` holds both files to these rules. Deployments from the Ansible
+  playbook were never affected.
 
 ### Changed
 

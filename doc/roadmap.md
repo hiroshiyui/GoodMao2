@@ -291,8 +291,8 @@ can be read in context. Items are ordered by value against effort.
       puts up to 140 characters on a locked screen, so name the sender only. The service
       worker also tags notifications by `type`, so one conversation's push replaces another's,
       and one pet's dose reminder replaces another's. Give each payload a per-subject `tag`.
-- [ ] **The hand-deploy nginx example must set `X-Forwarded-For`, not append to it**
-      (`9bfe9e5f`). The [`deployment.md`](deployment.md) example uses
+- [x] **The hand-deploy nginx example must set `X-Forwarded-For`, not append to it**
+      (`9bfe9e5f`). *Shipped (unreleased); `NginxConfigTest` now holds both files to it.* The [`deployment.md`](deployment.md) example uses
       `$proxy_add_x_forwarded_for`, so a client can choose the address in the `auth.*` logs.
       The rate limiters key on email or user id, so they're unaffected. The example also lacks
       the template's token-redacting `log_format`.

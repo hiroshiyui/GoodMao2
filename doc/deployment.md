@@ -381,9 +381,28 @@ WantedBy=multi-user.target
 ## nginx vhost (co-hosting by hostname)
 
 One nginx serves both apps; each gets a `server` block keyed on its `server_name`, proxying to
-its own loopback port. GoodMao2's upstream is `127.0.0.1:5000`:
+its own loopback port. GoodMao2's upstream is `127.0.0.1:5000`.
+
+The Ansible template [`goodmao2.conf.j2`](../ansible/roles/nginx/templates/goodmao2.conf.j2) is
+the **source of truth**. It adds TLS tuning, OCSP stapling, gzip, scanner blocking and the 502
+page. Below are the parts that are not optional, and `Goodmao2.NginxConfigTest` holds both files
+to them:
 
 ```nginx
+# Magic-link, email-confirmation and share URLs carry a live bearer token in the path. The
+# default `combined` log would record every one, and every Referer a shared page sends.
+map $request_uri $goodmao2_log_uri {
+    "~^(?<goodmao2_uri_prefix>/(?:users/log-in|users/settings/confirm-email|entries/shared|reports/shared)/)[^/?]+(?<goodmao2_uri_rest>.*)$" "${goodmao2_uri_prefix}[FILTERED]${goodmao2_uri_rest}";
+    default $request_uri;
+}
+map $http_referer $goodmao2_log_referer {
+    "~^(?<goodmao2_ref_prefix>https?://[^/]+/(?:users/log-in|users/settings/confirm-email|entries/shared|reports/shared)/)[^/?]+(?<goodmao2_ref_rest>.*)$" "${goodmao2_ref_prefix}[FILTERED]${goodmao2_ref_rest}";
+    default $http_referer;
+}
+log_format goodmao2_redacted '$remote_addr - $remote_user [$time_local] '
+                             '"$request_method $goodmao2_log_uri $server_protocol" '
+                             '$status $body_bytes_sent "$goodmao2_log_referer" "$http_user_agent"';
+
 upstream goodmao2 { server 127.0.0.1:5000; keepalive 32; }
 
 server {
@@ -395,6 +414,7 @@ server {
 server {
     listen 443 ssl http2;
     server_name goodmao.tw;
+    access_log /var/log/nginx/access.log goodmao2_redacted;
 
     ssl_certificate     /etc/letsencrypt/live/goodmao.tw/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/goodmao.tw/privkey.pem;
@@ -402,16 +422,26 @@ server {
     # sent once -- a browser honours only the first, so a duplicate would override this.
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
 
-    # digested static assets straight from disk
-    location /assets/ { alias /opt/goodmao2/static/assets/; expires 1y; access_log off; }
+    # Digested static assets straight from disk. An `add_header` here replaces the server's,
+    # so HSTS is repeated. One Cache-Control only: `expires` would emit a second one, and a
+    # browser honours the first, which drops `immutable`.
+    location /assets/ {
+        alias /opt/goodmao2/static/assets/;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        access_log off;
+    }
 
-    # LiveView socket — long timeouts
+    # LiveView socket -- long timeouts
     location /live/websocket {
         proxy_pass http://goodmao2;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;   # SET, never append
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400;
     }
 
@@ -419,11 +449,17 @@ server {
         proxy_pass http://goodmao2;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;   # drives force_ssl's rewrite_on
+        proxy_set_header X-Forwarded-For $remote_addr;   # SET, never append
+        proxy_set_header X-Forwarded-Proto $scheme;      # drives force_ssl's rewrite_on
+        proxy_set_header Connection "";
     }
 }
 ```
+
+**Set `X-Forwarded-For`, never append to it.** `UserAuth.client_ip/1` takes the header's first
+address as the client in the `auth.*` security logs. `$proxy_add_x_forwarded_for` keeps whatever
+the client sent and appends the real peer after it, so any client could write the address it
+wanted into those logs.
 
 **Do not serve uploaded media from nginx.** Unlike Baudrate's `/uploads`, GoodMao2's media
 objects are opaque, id-keyed, and **authorized per request** (`MediaController`, IDOR-hidden) —
