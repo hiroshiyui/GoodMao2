@@ -303,8 +303,8 @@ shipped and is documented in the data model above
 
 What remains open is **behaviour on the existing schema**, not new tables — per-pet display
 timezones, medication snooze/escalation, notification digests, dose-history retention, and
-media in shared reports. Those live in [`roadmap.md`](roadmap.md) §1–3, which is the single
-list to read for what is not yet built.
+media in shared reports. Those live in [`roadmap.md`](roadmap.md#open-deferred-from-v100)
+§1–3, which (with the Baudrate backlog after it) is the list to read for what is not yet built.
 
 ## Web layer (`lib/goodmao2_web/`)
 
