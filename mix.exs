@@ -16,7 +16,17 @@ defmodule Goodmao2.MixProject do
       # `mix gettext.extract --check-up-to-date`, and with line numbers any edit that
       # merely moved a gettext call would fail it until someone re-extracted.
       gettext: [write_reference_line_numbers: false],
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      # Dialyzer against the reviewed baseline in .dialyzer_ignore.exs: CI fails on any warning
+      # not in it, and `list_unused_filters` reports an entry whose warning has gone. The PLT
+      # lives in priv/plts (git-ignored) so CI can cache it by path.
+      dialyzer: [
+        plt_local_path: "priv/plts",
+        plt_core_path: "priv/plts",
+        plt_add_apps: [:mix, :ex_unit],
+        ignore_warnings: ".dialyzer_ignore.exs",
+        list_unused_filters: true
+      ]
     ]
   end
 
@@ -96,6 +106,8 @@ defmodule Goodmao2.MixProject do
       # Security tooling — advisory audit of deps and a Phoenix-aware static scan.
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      # Dialyzer, run by CI's static-checks job against .dialyzer_ignore.exs.
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       # Browser-driven feature tests (Wallaby + Selenium/Firefox). Excluded from `mix test`
       # by default; see `mix test.feature` and `mix selenium.setup`.
       {:wallaby, "~> 0.30", only: :test, runtime: false}

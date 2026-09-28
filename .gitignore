@@ -58,3 +58,6 @@ npm-debug.log
 
 # TLS certificates (self-signed dev certs — per-machine, regenerable)
 /priv/cert/
+
+# Dialyzer PLTs (built locally and cached by CI, never committed).
+/priv/plts/

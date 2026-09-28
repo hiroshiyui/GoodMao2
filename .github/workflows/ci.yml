@@ -163,6 +163,52 @@ jobs:
       - name: Run tests
         run: mix test --warnings-as-errors
 
+  # What review would otherwise have to catch, beyond the compiler and the tests: Dialyzer
+  # against its reviewed baseline, the NIF crate's clippy and unit tests, and ansible-lint
+  # (Baudrate b8d43a86). Not in `mix precommit`, which has to stay quick and runnable without
+  # a PLT.
+  static:
+    name: static checks
+    runs-on: ubuntu-24.04 # pinned; see the `test` job
+    # Dialyzer, like the baseline in .dialyzer_ignore.exs, analyses the dev build.
+    env:
+      MIX_ENV: dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps and _build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-dev-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-dev-
+
+      # Building the PLT takes minutes; checking a cached one takes seconds. The PLT depends on
+      # the runtime and every dep, so both are in the key. A restore-key hit is still worth
+      # having: dialyxir updates a stale PLT incrementally, and the miss saves the new one.
+      - name: Cache the Dialyzer PLT
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: priv/plts
+          key: ${{ runner.os }}-plt-${{ hashFiles('.tool-versions', '**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-plt-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      # Fails on any warning not in .dialyzer_ignore.exs, and on an entry there that no longer
+      # matches anything (list_unused_filters), so the baseline can only shrink by review.
+      - name: Dialyzer
+        run: mix dialyzer --format github
+
   feature:
     name: mix test.feature
     runs-on: ubuntu-24.04 # pinned; see the `test` job

@@ -85,9 +85,8 @@ defmodule Goodmao2.Media.PurifyWorker do
     })
   end
 
-  # Purify reasons are atoms, but never let an unexpected shape (an exception struct, a tuple)
-  # crash the failure path itself: the staged file is already unstaged by now, so a crash here
-  # would retry into a silent no-op — no bell, no media, no error.
+  # Every `Purifier.purify/1` failure is an atom (Dialyzer proves it, which is why the
+  # non-atom catch-all this once had is gone). If the purifier ever returns another shape, this
+  # clause fails loudly instead of a bell quietly saying "processing_failed".
   defp reason_string(reason) when is_atom(reason), do: to_string(reason)
-  defp reason_string(_reason), do: "processing_failed"
 end

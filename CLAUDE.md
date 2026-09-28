@@ -36,6 +36,8 @@ mix test                       # full suite (auto-creates/migrates the test DB)
 mix test test/goodmao2/pets_test.exs           # one file
 mix test test/goodmao2/pets_test.exs:42        # one test by line
 mix test --failed                              # re-run last failures
+mix dialyzer                   # Dialyzer vs the reviewed .dialyzer_ignore.exs baseline (CI `static`
+                               # job; not in precommit). First run builds the PLT in priv/plts.
 
 mix selenium.setup             # ONE-TIME: Selenium Server + GeckoDriver into tmp/ (git-ignored)
 mix test.feature               # browser tests (Wallaby + Selenium/Firefox); excluded from `mix test`

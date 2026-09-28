@@ -26,6 +26,9 @@ defmodule Goodmao2.Accounts.WebAuthnCredential do
 
   alias Goodmao2.Accounts.User
 
+  # Named by the specs in WebAuthn; Ecto.Schema defines no t/0.
+  @type t :: %__MODULE__{}
+
   schema "webauthn_credentials" do
     belongs_to :user, User
 

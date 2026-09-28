@@ -19,6 +19,9 @@ defmodule Goodmao2.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  # Named by the specs in Accounts, TwoFactor and WebAuthn; Ecto.Schema defines no t/0.
+  @type t :: %__MODULE__{}
+
   # Reserved handles that may not be claimed by a user (routes, roles, support names,
   # impersonation bait).
   @reserved_handles ~w(admin administrator superuser sysadmin operator moderator mod system
