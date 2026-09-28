@@ -11,14 +11,16 @@ file tracks what's done, what's open, and what was ruled out. Implementation det
 entries here stay short.
 
 **Where things stand:** [v1.0.0](#milestone-v100) shipped on 2026-07-23 and is live at
-[goodmao.tw](https://goodmao.tw). The latest release is **v1.5.0** (2026-09-25). The
-[releases since v1.0.0](#releases-since-v100) were mostly hardening: two project-wide reviews,
-a security audit, browser-driven tests, and a runtime upgrade. The open work is in two lists:
+[goodmao.tw](https://goodmao.tw). The latest release is **v1.5.0** (2026-09-25), and main also
+carries unreleased hardening from the Baudrate comparison. The
+[releases since v1.0.0](#releases-since-v100) were mostly hardening: two project-wide reviews, a
+security audit, browser-driven tests, a runtime upgrade, and that comparison. The open work is
+in two lists:
 
 - [**Deferred from v1.0.0**](#open-deferred-from-v100): coordination polish, payload range
   validation, per-pet timezones, the media and sharing tail, and operations.
-- [**Lessons from Baudrate**](#backlog-lessons-from-baudrate-2026-09-28): gaps confirmed on
-  2026-09-28 by checking the sibling project's recent fixes against this codebase.
+- [**Lessons from Baudrate**](#backlog-lessons-from-baudrate-2026-09-28): the larger features
+  left over after the sibling project's recent fixes were checked against this codebase.
 
 **Status key** (open lists only): `[x]` shipped · `[~]` partially shipped · `[ ]` open.
 
@@ -193,9 +195,10 @@ The [changelog](../CHANGELOG.md) has the detail.
 | 1.3.0 | 09-18 | Security audit: OTP TLS CVEs, a readable Erlang distribution cookie ([ADR-0021](adr/0021-loopback-erlang-distribution-and-per-server-cookie.md)), pet pages that kept streaming after access ended, and an unbounded TOTP brute force. Messaging now follows the shared pet. |
 | 1.4.0 | 09-20 | QuickLog had saved every entry `private`, and form errors weren't announced. The first browser-driven tests (`mix test.feature`). |
 | 1.5.0 | 09-25 | Erlang/OTP 29 and Elixir 1.20, one runtime pin across dev, CI and production, the type checker as a gate, and browser tests in CI. |
+| Unreleased | 09-28 | The [Baudrate backlog](#backlog-lessons-from-baudrate-2026-09-28)'s security, test/CI and accessibility items, including a rate-limiter crash that Dialyzer found. |
 
-> **What the reviews taught, as classes of bug.** These come from the 2026-08-03 review (1.2.1)
-> and the 2026-09-18 audit (1.3.0).
+> **What the reviews taught, as classes of bug.** These come from the 2026-08-03 review (1.2.1),
+> the 2026-09-18 audit (1.3.0) and the 2026-09-28 Baudrate comparison.
 >
 > - **A capability check left off one verb.** A caretaker demoted to `viewer` could still delete
 >   what they had logged: being the recorder is not a capability.
@@ -215,6 +218,11 @@ The [changelog](../CHANGELOG.md) has the detail.
 >   so `/70` is the floor.
 > - **Nothing ran the client.** A `<select>` default made QuickLog save everything `private`
 >   behind a green suite. Browser tests now run in CI.
+> - **A crash a supervisor hides.** The login and registration limiters passed their table to
+>   `:ets.foldl/3` in the wrong position. Every sweep crashed, and each restart wiped the
+>   counters, so the hourly limits were really ten-minute ones. Only Dialyzer noticed.
+> - **A copy that drifts from its source.** The hand-deploy nginx example appended
+>   `X-Forwarded-For` long after the template stopped. Tests now hold both to the same rules.
 
 ## Open: deferred from v1.0.0
 
@@ -282,86 +290,39 @@ missed dose arrives in the same stream as everything else and learns to be ignor
 Baudrate, the sibling Phoenix app this project takes its conventions from, went from v1.33.1
 to v2.0.3 (`11eeb8e`..`de8ae293`) in about 1,450 commits. About 70 of them fixed a *class* of
 problem GoodMao2 could share. Each was checked against this codebase, and only the gaps
-confirmed to exist are listed. Each item names its Baudrate commit, so the original reasoning
-can be read in context. Items are ordered by value against effort.
+confirmed to exist were listed. The [changelog](../CHANGELOG.md)'s Unreleased section has the
+detail.
 
-**Progress:** §1–3 shipped on 2026-09-28 (unreleased); §4 is open.
+### Shipped 2026-09-28 (unreleased)
 
-### 1. Security & privacy
+- **Security:**
+  - Message pushes name the sender and never show the text, and are tagged per subject.
+  - The nginx example in [`deployment.md`](deployment.md) sets `X-Forwarded-For` and redacts
+    tokens.
+  - Ansible runs `nginx -t` before a reload and restores the old config on failure.
+  - The timeline page and every paging offset are bounded.
+  - Avatar uploads are rate-limited.
+  - Share pages send `noindex`.
+  - A grant is revoked, and its user notified, exactly once.
+- **Tests and CI:**
+  - The `.pot` templates must be up to date, with file-only references.
+  - The locale parity test is stricter, and every enum label must be translated.
+  - A CI static job runs Dialyzer (which found the rate-limiter crash), `cargo clippy` and
+    `cargo test`, and `ansible-lint`, and CI publishes a coverage report.
+  - `rustup-init` is SHA-256-pinned.
+  - A test ties nginx's static paths to `static_paths/0`.
+  - Async tests no longer queue on the single-admin index.
+- **UX and accessibility:**
+  - Uploaders describe their photos, and the description becomes the alt text.
+  - Copy and share never fail silently.
+  - Mixed CJK and Latin text gets automatic spacing (`text-autospace`).
+  - Repeated icon buttons each name their own item, and the avatar cropper is described
+    properly.
+  - Lists that re-render on PubSub are keyed.
 
-- [x] **Keep message text out of Web Push** (`63f612a0`). *Shipped (unreleased).* `Helpers.message_push_payload/3`
-      puts up to 140 characters on a locked screen, so name the sender only. The service
-      worker also tags notifications by `type`, so one conversation's push replaces another's,
-      and one pet's dose reminder replaces another's. Give each payload a per-subject `tag`.
-- [x] **The hand-deploy nginx example must set `X-Forwarded-For`, not append to it**
-      (`9bfe9e5f`). *Shipped (unreleased); `NginxConfigTest` now holds both files to it.* The [`deployment.md`](deployment.md) example uses
-      `$proxy_add_x_forwarded_for`, so a client can choose the address in the `auth.*` logs.
-      The rate limiters key on email or user id, so they're unaffected. The example also lacks
-      the template's token-redacting `log_format`.
-- [x] **Bound the timeline page number** (`17525de8`). *Shipped (unreleased).* `PetLive.Show.parse_page/2` accepts any
-      positive integer, and a huge one overflows the `OFFSET` and crashes the LiveView.
-- [x] **Run `nginx -t` before the reload** (`e7198316`). As it stands, a bad template render
-      fails the reload silently and only breaks nginx at the next restart. Back up the config,
-      test it, and restore and `fail` on error.
-- [x] **Rate-limit avatar uploads** (`97cdf387`). `Avatars.set_avatar/5` skips the
-      `Media.RateLimiter` check that life-log uploads make, yet queues ffmpeg on the same
-      `:media` queue.
-- [x] **Keep share pages out of search indexes** (`775f0ff3`). Send
-      `X-Robots-Tag: noindex, nofollow` from `SharedEntryController`, `ReportController` and
-      `MediaController.shared`.
-- [x] **Make revoking a grant happen once** (`ecc33d96`). Two concurrent revokes both notify.
-      Use a conditional `update_all … where status == "active"`, as dose claims do.
+### Open: larger features
 
-### 2. Tests, i18n & CI
-
-- [x] **Check the `.pot` files are up to date** (`901c7094`). Set
-      `write_reference_line_numbers: false` and add `gettext.extract --check-up-to-date` to
-      `precommit` and CI. Nothing catches a `gettext()` call that was never extracted today.
-      Keep the check compatible with the hand-maintained `errors.pot`.
-- [x] **Tighten the locale parity test** (`e5447491`, `66c76e61`).
-  - Each `.po` should hold *exactly* its template's msgids.
-  - An `en` msgstr should be blank or equal to its msgid.
-  - A translation shouldn't bind variables its msgid lacks.
-- [x] **Stop async tests queuing on the single-admin index** (`15bec4d4`). Every
-      `admin_fixture` inserts the same partial-unique key, which serializes the 19 async files
-      that reach it. Seed a committed admin before the sandbox goes manual, or make those files
-      synchronous.
-- [x] **Let sandbox connections wait** (`70c7b01c`). Set `queue_target` and `queue_interval` in
-      `config/test.exs`.
-- [x] **Widen the browser crawl** (`e3363b09`). Type into the `phx-change` forms, and add the
-      two-factor settings, admin, message-thread and report pages.
-- [x] **Assert every enum label is translated** (`837f6b90`, `041e0c68`). Check that each label
-      differs from its value, not just that it's non-empty. Also align the drifted caretaker
-      terms in `zh_TW` and `ja_JP`.
-- [x] **Static analysis beyond the compiler** (`0cc11599`, `dc32b9f4`, `4762e039`, `b8d43a86`,
-      `9ba9311d`):
-  - Dialyzer against a reviewed baseline; specs already name `User.t()`, which isn't defined.
-  - `ansible-lint`.
-  - A SHA-256-pinned `rustup-init` instead of `curl | sh`.
-  - `cargo clippy` and `cargo test` in CI, with each NIF a thin wrapper over a tested function.
-  - A coverage report.
-- [x] **Tie nginx's static-path regex to `static_paths/0` in a test** (`f37e344d`). The regex
-      already names a `favicon.svg` that doesn't exist.
-
-### 3. UX & accessibility
-
-- [x] **Let uploaders describe their photos** (`7c6210d0`, `981a4f65`). `media_assets.caption`
-      already reaches `Helpers.media_alt/1`, but no form collects it, so every photo's alt text
-      is "Life log photo".
-- [x] **Share, and copy that never fails silently** (`bc74e8e5`). The `Clipboard` hook returns
-      without a word when the clipboard API is missing, and success is announced nowhere. Add
-      visible and `role="status"` feedback, `navigator.share` where available, and a copy
-      button for report links.
-- [x] **Space mixed CJK and Latin text** (`e0a644bf`). Set `text-autospace: normal` on `html`,
-      and turn it off for code and form fields.
-- [x] **Accessibility fixes** (`c2ad76c6`, `d331cfff`):
-  - The avatar cropper is a `role="slider"` with no value, and its preview has `alt=""`.
-  - Repeated icon buttons ("Remove entry", "Dismiss") share one name.
-  - `AdminLive.Announcements` reports errors only in a flash message.
-- [x] **Key the plain lists that re-render on PubSub** (`e37cef55`): conversations, doses and
-      schedules, and the selected calendar day's entries.
-
-### 4. Larger features
+These need product decisions before they're built.
 
 - [ ] **A session list with "sign out other sessions"** (`d06b4f85`). Today a lost phone is cut
       off only by changing the password, and a magic-link user may not have one.
