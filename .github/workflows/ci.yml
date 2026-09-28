@@ -160,8 +160,35 @@ jobs:
           mix esbuild.install --if-missing
           mix esbuild service_worker
 
+      # With coverage, as a report only: mix.exs sets the threshold to 0, so the number never
+      # fails a build (a number to reach rewards tests written for it). The total goes in the
+      # run summary and the per-module HTML is an artifact.
       - name: Run tests
-        run: mix test --warnings-as-errors
+        run: |
+          set -o pipefail
+          mix test --warnings-as-errors --cover | tee test-output.txt
+
+      - name: Report coverage
+        if: always()
+        run: |
+          {
+            echo '## Test coverage'
+            echo
+            echo '```'
+            grep -E '^\| +[0-9.]+% \| Total' test-output.txt || echo 'no coverage total (the test step did not finish)'
+            echo '```'
+            echo
+            echo 'The per-module HTML report is the `coverage-report` artifact.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-report
+          path: cover/
+          if-no-files-found: ignore
+          retention-days: 14
 
   # What review would otherwise have to catch, beyond the compiler and the tests: Dialyzer
   # against its reviewed baseline, the NIF crate's clippy and unit tests, and ansible-lint

@@ -17,6 +17,10 @@ defmodule Goodmao2.MixProject do
       # merely moved a gettext call would fail it until someone re-extracted.
       gettext: [write_reference_line_numbers: false],
       listeners: [Phoenix.CodeReloader],
+      # `mix test --cover` in CI publishes a report, never a gate (threshold 0): a number to
+      # reach rewards tests written for the number (Baudrate 0cc11599). Derived Inspect
+      # implementations are generated code, not ours to cover.
+      test_coverage: [summary: [threshold: 0], ignore_modules: [~r/^Inspect\./]],
       # Dialyzer against the reviewed baseline in .dialyzer_ignore.exs: CI fails on any warning
       # not in it, and `list_unused_filters` reports an entry whose warning has gone. The PLT
       # lives in priv/plts (git-ignored) so CI can cache it by path.
