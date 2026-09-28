@@ -86,7 +86,11 @@ defmodule Goodmao2.AccountsTest do
       assert is_nil(user.password)
     end
 
+    # The two tests below need an empty users table, but test_helper.exs commits the suite's
+    # admin, so each removes it inside its own (rolled-back) sandbox. That is safe only
+    # because this module is not async.
     test "the first registered account becomes the sole administrator" do
+      remove_all_users()
       {:ok, first} = Accounts.register_user(valid_user_attributes())
       {:ok, second} = Accounts.register_user(valid_user_attributes())
       assert first.is_admin
@@ -94,6 +98,7 @@ defmodule Goodmao2.AccountsTest do
     end
 
     test "the database enforces a single administrator (closes the first-registration race)" do
+      remove_all_users()
       {:ok, _first} = Accounts.register_user(valid_user_attributes())
       {:ok, second} = Accounts.register_user(valid_user_attributes())
       refute second.is_admin
@@ -107,7 +112,10 @@ defmodule Goodmao2.AccountsTest do
   end
 
   describe "register_user/1 site-owner gate" do
+    # The gate applies to the first account only, so the table must start empty (see the
+    # comment on the first-registration tests above).
     setup do
+      remove_all_users()
       Application.put_env(:goodmao2, :site_owner_email, "owner@example.com")
       on_exit(fn -> Application.delete_env(:goodmao2, :site_owner_email) end)
     end
@@ -469,7 +477,12 @@ defmodule Goodmao2.AccountsTest do
 
     test "raises when unconfirmed user has password set" do
       user = unconfirmed_user_fixture()
-      {1, nil} = Repo.update_all(User, set: [hashed_password: "hashed"])
+
+      {1, nil} =
+        Repo.update_all(from(u in User, where: u.id == ^user.id),
+          set: [hashed_password: "hashed"]
+        )
+
       {encoded_token, _hashed_token} = generate_user_magic_link_token(user)
 
       assert_raise RuntimeError, ~r/magic link log in is not allowed/, fn ->

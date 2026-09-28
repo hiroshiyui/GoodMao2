@@ -13,6 +13,16 @@ Code.put_compiler_option(:ignore_module_conflict, false)
 # Feature tests need a browser and a Selenium server, so they are opt-in: `mix test.feature`,
 # or `mix test --include feature`.
 ExUnit.start(exclude: [:feature])
+
+# Commit the one administrator before the sandbox takes over. `users_single_admin_index` is a
+# partial unique index on `is_admin`, so every admin row has the same key: while each async
+# test inserted its own admin inside its sandbox transaction, PostgreSQL made the next one wait
+# for that whole test to end (Baudrate 15bec4d4). Against a committed admin, `admin_fixture/1`
+# only reads. So the users table is never empty in a test; the few that need it empty (the
+# first-registered-user-becomes-admin rule) call `remove_all_users/0` from an async: false
+# module.
+Goodmao2.AccountsFixtures.seed_committed_admin()
+
 Ecto.Adapters.SQL.Sandbox.mode(Goodmao2.Repo, :manual)
 
 if :feature in (ExUnit.configuration()[:include] || []) do

@@ -19,11 +19,10 @@ defmodule Goodmao2.AccountsFixtures do
   end
 
   def unconfirmed_user_fixture(attrs \\ %{}) do
-    # Insert directly rather than through Accounts.register_user/1 so ordinary fixtures never
-    # create the sole-admin row. The single-admin partial index (users_single_admin_index)
-    # would otherwise make the first-user insert in every async test transaction contend
-    # across the suite (each sandboxed transaction sees an empty users table, so register_user
-    # would set is_admin: true). The real first-user-admin path is covered in accounts_test.
+    # Insert directly rather than through Accounts.register_user/1 so an ordinary fixture never
+    # creates an admin row, even in a test that emptied the table (`remove_all_users/0`): every
+    # admin row shares one key in the single-admin partial index (users_single_admin_index).
+    # The real first-user-admin path is covered in accounts_test.
     {:ok, user} =
       %Accounts.User{}
       |> Accounts.User.email_changeset(valid_user_attributes(attrs))
@@ -46,15 +45,53 @@ defmodule Goodmao2.AccountsFixtures do
     user
   end
 
+  @committed_admin_email "suite-admin@example.com"
+
+  @doc """
+  Returns the sole administrator (ADR-0016).
+
+  That is normally the admin `seed_committed_admin/0` commits before the suite, so this only
+  reads. A test that emptied the table (`remove_all_users/0`) gets a fresh admin inside its
+  own sandbox transaction instead.
+  """
   def admin_fixture(attrs \\ %{}) do
-    # There is exactly one administrator (ADR-0016), now DB-enforced by
-    # `users_single_admin_index`. Reuse the existing admin if this test transaction already
-    # has one (e.g. the first `user_fixture`, which registers as admin) rather than minting a
-    # second and tripping the constraint.
     case Goodmao2.Repo.one(from u in Accounts.User, where: u.is_admin, limit: 1) do
       nil -> Goodmao2.Repo.update!(Accounts.User.admin_changeset(user_fixture(attrs)))
       %Accounts.User{} = admin -> admin
     end
+  end
+
+  @doc """
+  Commits the suite's one administrator, before the sandbox goes manual (`test_helper.exs`).
+
+  `users_single_admin_index` is a partial unique index on `is_admin`, so every admin row
+  carries the same key. While each test inserted its own admin inside its sandbox
+  transaction, PostgreSQL made every other test inserting one wait for that whole test to
+  end, serializing every async file that reached `admin_fixture/1` (Baudrate `15bec4d4`).
+  Against a committed admin, `admin_fixture/1` only reads. Idempotent.
+  """
+  def seed_committed_admin do
+    case Goodmao2.Repo.one(from u in Accounts.User, where: u.is_admin, limit: 1) do
+      %Accounts.User{} = admin ->
+        admin
+
+      nil ->
+        %Accounts.User{}
+        |> Accounts.User.email_changeset(%{email: @committed_admin_email})
+        |> Ecto.Changeset.change(is_admin: true, confirmed_at: DateTime.utc_now(:second))
+        |> Goodmao2.Repo.insert!()
+    end
+  end
+
+  @doc """
+  Deletes every user inside the calling test's sandbox, the committed admin included, so the
+  test sees the empty table that the first-registered-user-becomes-admin rule needs. Rolled
+  back with the test. Only for `async: false` modules: the delete locks the committed admin
+  row, which rows written by concurrent async tests reference.
+  """
+  def remove_all_users do
+    Goodmao2.Repo.delete_all(Accounts.User)
+    :ok
   end
 
   def valid_vet_profile_attributes(attrs \\ %{}) do
@@ -82,8 +119,8 @@ defmodule Goodmao2.AccountsFixtures do
   @doc """
   Creates a confirmed **non-admin** user.
 
-  The first-ever registered account becomes the sole admin, so this ensures another
-  account already exists (creating the admin seat if needed) before registering.
+  The first-ever registered account becomes the sole admin, so this ensures the admin seat
+  is taken (it normally is: `test_helper.exs` commits one) before registering.
   """
   def regular_user_fixture(attrs \\ %{}) do
     unless Accounts.count_users() > 0, do: admin_fixture()
