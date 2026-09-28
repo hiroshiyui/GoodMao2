@@ -8,6 +8,22 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-28
+
+A hardening release, from checking the sibling Baudrate project's recent fixes against this
+codebase. The most serious fix is to the login and registration throttles, which had been
+resetting every ten minutes. **Upgrading promptly is recommended.** It also adds photo
+descriptions (alt text), a share button, and accessibility fixes across the timeline.
+
+**Upgrade notes.**
+
+- **No runtime or configuration change is required.** The Erlang/OTP and Elixir pins are
+  unchanged from 1.5.0, so the deploy playbook alone is enough.
+- **Optional:** `ansible-playbook playbooks/setup-server.yml --tags nginx` applies the
+  template's static-path cleanup (it no longer names a non-existent `favicon.svg`). From now on
+  the role runs `nginx -t` before a reload and restores the previous config if the new one is
+  invalid. Nothing changes for visitors.
+
 ### Security
 
 - **The login, second-factor and registration-email limits reset every ten minutes.**
@@ -76,6 +92,11 @@ skill).
   is invalid. A test also ties nginx's static-path regex to the files the app ships.
 - **Tests:** the suite's one admin is committed before the sandbox starts, so async tests no
   longer queue on the single-admin index, and sandbox connections wait instead of dropping.
+- **Dependencies:** daisyUI re-vendored at 5.7.46 (it changes only `.status`, `.avatar-online`,
+  `.tooltip` and `.range`, none of which GoodMao uses) and `actions/upload-artifact` v7. The
+  test-only `lazy_html` goes to 0.1.13 for EEF-CVE-2026-92106, a mutation XSS in its
+  serializer that never shipped in a release. The TOTP browser test no longer fails
+  intermittently when a code is submitted across a 30-second step boundary.
 - **CI runs on `ubuntu-24.04` instead of `ubuntu-latest`.** GitHub moves `ubuntu-latest` to
   Ubuntu 26 from 2026-10-19. setup-beam installs the exact `.tool-versions` runtime from
   builds.hex.pm, which publishes builds per Ubuntu release, so the move could break CI with no
