@@ -74,7 +74,68 @@
     src: goodmao2.conf.j2
     dest: /etc/nginx/sites-available/goodmao2
     mode: "0644"
+    backup: true
+  register: goodmao2_site_config
   notify: Reload nginx
+
+# --- Validation, and why it is three tasks rather than `validate:` ---
+# `template`'s `validate:` runs against the rendered *temporary* file, and this
+# template is a bare `server { … }` block: `nginx -t -c <file>` reads it as a
+# whole main configuration and rejects the top-level `server` as a syntax
+# error. The fragment is only valid once nginx.conf includes it, so the check
+# runs after the write — and putting the previous file back is part of it.
+#
+# Unchecked, a bad render fails silently: `systemctl reload` refuses it, nginx
+# keeps serving the config it already holds, and nothing looks wrong until the
+# next restart or reboot finds no working config to start from.
+#
+# `failed_when: false` lets the restore run; the explicit `fail` stops the
+# play, which is also what keeps the queued `Reload nginx` handler from firing.
+# `backup: true` leaves timestamped copies in sites-available/, which are inert
+# (nginx includes sites-enabled/, holding only the symlink).
+#
+# The pre-SSL template gets no equivalent: when it is written,
+# sites-enabled/goodmao2 does not exist yet, so `nginx -t` would not read it —
+# a check that passes whatever the file holds reads as coverage it isn't. That
+# path runs only on a new server, where `flush_handlers` fails loudly with an
+# operator watching. (Baudrate e7198316.)
+- name: Validate the nginx configuration
+  when: goodmao2_site_config is changed
+  ansible.builtin.command:
+    cmd: nginx -t
+  register: nginx_config_check
+  changed_when: false
+  failed_when: false
+  # Read-only, so it runs under --check too (validating what is on the server).
+  check_mode: false
+
+- name: Restore the previous nginx config if the new one is invalid
+  when:
+    - nginx_config_check.rc | default(0) != 0
+    - goodmao2_site_config.backup_file is defined
+  ansible.builtin.copy:
+    src: "{{ goodmao2_site_config.backup_file }}"
+    dest: /etc/nginx/sites-available/goodmao2
+    remote_src: true
+    mode: "0644"
+
+- name: Fail if the nginx configuration is invalid
+  when: nginx_config_check.rc | default(0) != 0
+  ansible.builtin.fail:
+    msg: |
+      The rendered nginx configuration is invalid. nginx was NOT reloaded and
+      is still serving its previous configuration.
+
+      {% if goodmao2_site_config.backup_file is defined %}
+      The previous config has been restored to
+      /etc/nginx/sites-available/goodmao2 from
+      {{ goodmao2_site_config.backup_file }}.
+      {% else %}
+      There was no previous config to restore, so
+      /etc/nginx/sites-available/goodmao2 still holds the invalid render.
+      {% endif %}
+
+      {{ nginx_config_check.stderr | default(nginx_config_check.stdout) }}
 
 - name: Enable certbot auto-renewal timer
   ansible.builtin.systemd:

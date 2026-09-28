@@ -135,6 +135,13 @@ ansible-playbook playbooks/setup-server.yml --syntax-check      # no server need
 ansible-playbook playbooks/deploy-goodmao2.yml --check --diff   # dry run
 ```
 
+The nginx role runs `nginx -t` after writing the site config and, if the render is
+invalid, restores the previous file and fails the play without reloading. `template`'s
+own `validate:` can't do this — the template is a bare `server { … }` block, valid only
+once nginx.conf includes it. Unchecked, the failure is silent: the reload refuses the
+broken config, nginx keeps serving the old one, and nothing looks wrong until the next
+restart finds no working config to start from.
+
 ## Secrets Management
 
 Secrets are managed with [SOPS](https://github.com/getsops/sops), encrypted with
