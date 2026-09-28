@@ -63,7 +63,9 @@ grant-scoped reads.**
   optional-and-unexpired `share_expires_at`, non-deleted, and the pet's history not hidden;
   everything else is existence-hidden `nil`. Served by `SharedEntryController`
   (`GET /entries/shared/:token`), with the entry's purified media re-authorized through the same
-  token at `GET /entries/shared/:token/media/:id`. The owner manages the link (copy URL, set/clear
+  token at `GET /entries/shared/:token/media/:id`. Both, like the shared report, send
+  `X-Robots-Tag: noindex, nofollow` (404s included), so a leaked link doesn't put the entry in a
+  search index that outlives its revocation. The owner manages the link (copy URL, set/clear
   expiry) on the entry page. Per-recipient sharing (grant one external vet a scoped link) remains
   out of scope; a future ADR may revisit.
 

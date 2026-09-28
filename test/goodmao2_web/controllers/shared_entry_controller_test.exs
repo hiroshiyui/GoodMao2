@@ -33,6 +33,7 @@ defmodule Goodmao2Web.SharedEntryControllerTest do
     assert html = html_response(conn, 200)
     assert html =~ "Symptom"
     assert html =~ "front left paw"
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex, nofollow"]
     # No account was used.
     refute conn.assigns[:current_scope] && conn.assigns.current_scope.user
   end
@@ -40,6 +41,7 @@ defmodule Goodmao2Web.SharedEntryControllerTest do
   test "a bad token is existence-hidden (404)", %{conn: conn} do
     conn = get(conn, ~p"/entries/shared/#{"not-a-real-token"}")
     assert conn.status == 404
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex, nofollow"]
   end
 
   test "narrowing the entry revokes the link (404)", %{conn: conn} do

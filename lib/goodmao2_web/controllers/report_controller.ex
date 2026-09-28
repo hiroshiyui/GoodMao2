@@ -11,6 +11,9 @@ defmodule Goodmao2Web.ReportController do
 
   alias Goodmao2.Reports
 
+  # Keep share pages (and their 404s) out of search indexes.
+  plug Goodmao2Web.Plugs.NoIndex
+
   def show(conn, %{"token" => token} = params) do
     case Reports.fetch_report_by_token(token) do
       nil ->

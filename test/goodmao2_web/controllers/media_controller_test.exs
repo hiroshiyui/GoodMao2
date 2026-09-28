@@ -59,6 +59,8 @@ defmodule Goodmao2Web.MediaControllerTest do
     assert ["default-src 'none'; sandbox"] = get_resp_header(conn, "content-security-policy")
     assert get_resp_header(conn, "cache-control") == ["private, no-cache"]
     assert get_resp_header(conn, "etag") == [~s("media-#{asset.id}")]
+    # Sign-in only, so not a share page: no robots header.
+    assert get_resp_header(conn, "x-robots-tag") == []
   end
 
   test "answers a matching If-None-Match with an empty 304 (after authorization)", %{conn: conn} do
@@ -158,6 +160,7 @@ defmodule Goodmao2Web.MediaControllerTest do
       assert byte_size(response(conn, 200)) == asset.byte_size
       assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
       assert ["default-src 'none'; sandbox"] = get_resp_header(conn, "content-security-policy")
+      assert get_resp_header(conn, "x-robots-tag") == ["noindex, nofollow"]
     end
 
     test "answers a matching If-None-Match with a 304 (token still required)", %{conn: conn} do
@@ -190,6 +193,7 @@ defmodule Goodmao2Web.MediaControllerTest do
 
       conn = get(conn, ~p"/entries/shared/#{"nope"}/media/#{asset.id}")
       assert conn.status == 404
+      assert get_resp_header(conn, "x-robots-tag") == ["noindex, nofollow"]
     end
   end
 end

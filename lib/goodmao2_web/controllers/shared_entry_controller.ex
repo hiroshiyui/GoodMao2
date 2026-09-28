@@ -11,6 +11,9 @@ defmodule Goodmao2Web.SharedEntryController do
 
   alias Goodmao2.Logs
 
+  # Keep share pages (and their 404s) out of search indexes.
+  plug Goodmao2Web.Plugs.NoIndex
+
   def show(conn, %{"token" => token}) do
     case Logs.fetch_entry_by_share_token(token) do
       nil ->

@@ -31,12 +31,14 @@ defmodule Goodmao2Web.ReportControllerTest do
 
     conn = get(conn, ~p"/reports/shared/#{token}")
     assert html_response(conn, 200) =~ "health summary"
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex, nofollow"]
     assert conn.assigns[:current_scope] == nil or conn.assigns.current_scope.user == nil
   end
 
   test "a garbage token is not found", %{conn: conn} do
     conn = get(conn, ~p"/reports/shared/not-a-real-token")
     assert response(conn, 404)
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex, nofollow"]
   end
 
   test "an expired token is not found", %{conn: conn, owner: owner, pet: pet, report: report} do

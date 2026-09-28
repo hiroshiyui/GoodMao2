@@ -16,6 +16,9 @@ defmodule Goodmao2Web.MediaController do
   alias Goodmao2.{Logs, Media}
   alias Goodmao2.Media.Storage
 
+  # Keep a shared entry's media (and its 404s) out of search indexes; `show/2` is sign-in only.
+  plug Goodmao2Web.Plugs.NoIndex when action == :shared
+
   # sobelow_skip ["Traversal.SendFile", "Traversal.FileModule"]
   # The served path is `Storage.object_path(asset.id)` — derived solely from the DB row's
   # integer id after the row passed the full read-authorization check. No request string
