@@ -1,5 +1,5 @@
 [toolchain]
-channel = "1.98.1"
+channel = "1.99.0"
 # CI runs `cargo clippy -D warnings` on the NIF crate. Naming the component here makes rustup
 # install the pinned channel's own clippy, so lints never drift from the compiler that builds.
 components = ["clippy"]
