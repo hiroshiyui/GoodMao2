@@ -8,6 +8,44 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-12
+
+A dependency-maintenance release. No application behaviour changes, but it patches four
+published advisories in the HTTP client stack — one HIGH, reachable through outbound Web Push —
+so **upgrading promptly is recommended**.
+
+**Upgrade notes.**
+
+- **No configuration change is required**, and the Erlang/OTP and Elixir pins are unchanged
+  from 1.6.0, so the deploy playbook alone is enough.
+- The Rust toolchain pin moves to 1.99.0. The build host's `rustup` installs it automatically
+  on the first deploy (which makes that build a little slower); nothing needs to be installed
+  by hand.
+
+### Security
+
+- **Mint 1.10.1 → 1.11.0** (transitive, via Req/Finch) — CVE-2026-91043 (HIGH):
+  HPACK-indexed cookie fields in an HTTP/2 response bypassed `max_header_list_size` and could
+  exhaust client memory; CVE-2026-92103 (MEDIUM): oversized HTTP/2 frames were buffered up to
+  16 MiB before `max_frame_size` was enforced; CVE-2026-94194 (MEDIUM): HTTP/1 chunked framing
+  was applied when `chunked` was not the final transfer coding, enabling response smuggling.
+  Affects outbound requests — Web Push, whose endpoint is browser-supplied and may be any
+  public host.
+- **Decimal 3.1.1 → 3.2.0** (transitive, via Ecto) — CVE-2026-97853 (MEDIUM): unbounded
+  allocation in `Decimal.round/3` driven by the `places` argument. GoodMao never calls it, so
+  this is not reachable here; upgraded so the audit gate stays clean.
+
+All four came from `mix hex.audit`; `mix deps.audit` reported none.
+
+### Changed
+
+- Phoenix 1.8.14 → 1.8.15 (with phoenix_pubsub 2.4.1 and phoenix_template 1.1.0);
+  Req 0.7.4 → 0.7.5 (with Finch 0.24.0 and HPAX 1.1.0); Swoosh 1.28.1 → 1.29.0;
+  dns_cluster 0.3.0 → 0.3.1; Sobelow 0.15.0 → 0.16.0 (dev/test only).
+- Vendored daisyUI 5.7.46 → 5.7.47 — fixes the colour of a disabled link-style button.
+- Rust toolchain (the NIF crate) 1.98.1 → 1.99.0.
+- CI: `actions/upload-artifact` 7.0.1 → 7.0.2.
+
 ## [1.6.0] - 2026-09-28
 
 A hardening release, from checking the sibling Baudrate project's recent fixes against this
