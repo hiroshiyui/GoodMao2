@@ -8,6 +8,35 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-10-18
+
+A dependency-maintenance release. No application behaviour changes, but it patches two
+published advisories in the Bandit HTTP server — one HIGH, reachable by any client — so
+**upgrading promptly is recommended**.
+
+**Upgrade notes.**
+
+- **No configuration change is required**, and the Erlang/OTP and Elixir pins are unchanged
+  from 1.6.1, so the deploy playbook alone is enough.
+- The Rust toolchain pin moves to 1.99.1. The build host's `rustup` installs it automatically
+  on the first deploy; nothing needs to be installed by hand.
+
+### Security
+
+- **Bandit 1.12.5 → 1.13.1** (with thousand_island 1.5.0 → 1.6.0) — EEF-CVE-2026-105659
+  (HIGH): HTTP/2 blocked-send deadlines were reset on every `WINDOW_UPDATE`, letting a client
+  trickling window updates pin stream processes indefinitely; EEF-CVE-2026-105660 (MEDIUM):
+  an unvalidated HTTP/1 request-target authority let a client choose `conn.host` and
+  `conn.port`.
+
+Both came from `mix hex.audit`; `mix deps.audit` reported none.
+
+### Changed
+
+- Oban 2.24.1 → 2.24.2.
+- Vendored daisyUI 5.7.47 → 5.7.50.
+- Rust toolchain (the NIF crate) 1.99.0 → 1.99.1.
+
 ## [1.6.1] - 2026-10-12
 
 A dependency-maintenance release. No application behaviour changes, but it patches four
