@@ -342,6 +342,11 @@ doesn't flash a connection error.
   revoked as compromised. Selenium listens on **4445**, not its default 4444, so a server
   another checkout started cannot be mistakenly reused (a health check cannot tell whether it
   has *this* project's GeckoDriver on its PATH).
+- **Phoenix is held at 1.8.15 in `mix.lock`** (constraint untouched). 1.8.16 (PR 6880) stops
+  sending close code 1001 on the `"disconnect"` broadcast, Bandit closes with 1000, and LiveView's
+  client treats 1000 as a failsafe reload after a 5–10 s jitter instead of reconnecting. A browser
+  whose session was revoked (password change, magic-link login) then lingers on a dead page. Gate:
+  `features/session_revocation_test.exs`; lift the hold when it passes on the newer Phoenix.
 - Tests mirror `lib/` under `test/`: `use Goodmao2.DataCase` for contexts, `use
   Goodmao2Web.ConnCase` (+ `setup :register_and_log_in_user`) for LiveViews. Pet/log test
   data comes from `Goodmao2.PetsFixtures`.
