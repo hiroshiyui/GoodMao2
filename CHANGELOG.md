@@ -8,6 +8,35 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-10-25
+
+A dependency-maintenance release. No application behaviour changes, but it patches a
+published advisory in `plug_crypto` that could leak the secret key base into a stack trace,
+so upgrading is recommended.
+
+**Upgrade notes.**
+
+- **The Erlang/OTP pin moves from 29.1.1 to 29.1.2.** The build host must have it installed
+  before this release is deployed: re-run the provisioning playbook first, because the deploy
+  preflight refuses a runtime the server lacks. Elixir stays at 1.20.4-otp-29.
+- No configuration change is required.
+
+### Security
+
+- **plug_crypto 2.2.0 → 2.2.1** — EEF-CVE-2026-105963 (MEDIUM, GHSA-ffw9-w85g-f2vh): calling
+  a `Plug.Crypto` function with wrong-typed arguments exposed the secret key base in the
+  stack-trace arguments. Found by `mix hex.audit`; `mix deps.audit` reported none.
+
+### Changed
+
+- Phoenix 1.8.15 → 1.8.16, Phoenix LiveView 1.2.12 → 1.2.13 (elixir_make 0.10.0 → 0.10.1 along
+  with them).
+- esbuild and Tailwind Hex installer wrappers 0.10.0 → 0.10.1 and 0.5.1 → 0.5.2 (the pinned
+  esbuild/Tailwind/daisyUI tool versions are unchanged and already current).
+- NIF crate `Cargo.lock` refreshed: inventory 0.3.24 → 0.3.25, libc 0.2.189 → 0.2.191,
+  unicode-ident 1.0.26 → 1.0.27. `cargo audit` is clean.
+- Erlang/OTP 29.1.1 → 29.1.2.
+
 ## [1.6.2] - 2026-10-18
 
 A dependency-maintenance release. No application behaviour changes, but it patches two
