@@ -8,6 +8,23 @@ skill).
 
 ## [Unreleased]
 
+### Fixed
+
+- The hamburger menu at phone widths opened with its items off the right edge of the screen in
+  Firefox: daisyUI's `.menu` is a wrapping column flex, and the wrap made every row wider than
+  the menu. The list no longer wraps, and the account row truncates a long e-mail instead of
+  widening it.
+- A pet name with no spaces (up to the 100-character cap) widened the pet list, the pet page,
+  its edit, sharing, reports, medications and end-of-care pages, and every `<.header>`
+  subtitle, so the page scrolled sideways. Those headings and paragraphs now wrap the name.
+
+### Added
+
+- Browser gates for what only a browser runs: `layout_test.exs` (no page scrolls sideways and
+  every menu opens inside the viewport, in both themes at phone and desktop widths) and
+  `reconnect_test.exs` (a page whose socket the server dropped reconnects and keeps receiving
+  updates, rather than reloading). The release checklist now runs the browser suite.
+
 ## [1.6.4] - 2026-10-25
 
 A one-fix follow-up to 1.6.3 that rolls Phoenix back to 1.8.15. No configuration change and

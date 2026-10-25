@@ -1213,12 +1213,12 @@ defmodule Goodmao2Web.PetLive.Show do
             >
               <.icon name="hero-arrow-left" class="size-4" />
             </.link>
-            <h1 id="pet-name" class="text-2xl font-semibold">{@pet.name}</h1>
+            <h1 id="pet-name" class="min-w-0 text-2xl font-semibold wrap-anywhere">{@pet.name}</h1>
             <span :if={@role} id="pet-role-badge" class="badge badge-ghost badge-sm">
               {translate_role(@role)}
             </span>
           </div>
-          <p class="pet-header-meta text-base-content/70 mt-1 text-sm">
+          <p class="pet-header-meta text-base-content/70 mt-1 text-sm break-words">
             {[translate_species(@pet.species), translate_sex(@pet.sex), @pet.breed, @pet.color]
             |> Enum.filter(&(&1 && &1 != ""))
             |> Enum.join(" · ")}

@@ -98,7 +98,7 @@ defmodule Goodmao2Web.PetLive.Form do
       current_user_avatar={@current_user_avatar}
     >
       <section id="pet-form-section" aria-labelledby="pet-form-heading" class="mx-auto max-w-xl">
-        <h1 id="pet-form-heading" class="text-2xl font-semibold">{@page_title}</h1>
+        <h1 id="pet-form-heading" class="text-2xl font-semibold break-words">{@page_title}</h1>
 
         <.form
           for={@form}
@@ -164,7 +164,7 @@ defmodule Goodmao2Web.PetLive.Form do
           <.link
             navigate={~p"/pets/#{@pet.id}/end-of-care"}
             id="pet-eol-link"
-            class="text-base-content/70 text-sm hover:underline"
+            class="text-base-content/70 text-sm break-words hover:underline"
           >
             {gettext("End of care for %{name}…", name: @pet.name)}
           </.link>

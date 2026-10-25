@@ -421,11 +421,11 @@ defmodule Goodmao2Web.CoreComponents do
   def header(assigns) do
     ~H"""
     <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
-      <div>
-        <h1 class="text-lg font-semibold leading-8">
+      <div class="min-w-0">
+        <h1 class="text-lg font-semibold leading-8 wrap-anywhere">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
+        <p :if={@subtitle != []} class="text-sm text-base-content/70 break-words">
           {render_slot(@subtitle)}
         </p>
       </div>

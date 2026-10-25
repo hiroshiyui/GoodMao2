@@ -91,13 +91,13 @@ defmodule Goodmao2Web.PetLive.Index do
                     meta={@avatar_metas[pet.id]}
                     size={:md}
                   />
-                  <h2 class="pet-card-name card-title text-lg">{pet.name}</h2>
+                  <h2 class="pet-card-name card-title min-w-0 text-lg wrap-anywhere">{pet.name}</h2>
                 </div>
                 <span class="pet-card-species badge badge-ghost badge-sm">
                   {translate_species(pet.species)}
                 </span>
               </div>
-              <p class="pet-card-meta text-base-content/70 text-sm">
+              <p class="pet-card-meta text-base-content/70 text-sm break-words">
                 {[translate_sex(pet.sex), pet.breed, pet.color]
                 |> Enum.filter(&(&1 && &1 != ""))
                 |> Enum.join(" · ")}

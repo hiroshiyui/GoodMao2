@@ -83,7 +83,7 @@ defmodule Goodmao2Web.Layouts do
               <.icon name="hero-bars-3" class="size-5" />
             </summary>
             <div class="dropdown-content z-40 mt-2 w-56 rounded-box border border-base-200 bg-base-100 p-2 shadow">
-              <ul class="menu w-full gap-1 [&>li]:items-end">
+              <ul class="menu w-full flex-nowrap gap-1 [&>li]:items-end">
                 <.nav_links
                   current_scope={@current_scope}
                   unread_notifications={@unread_notifications}
@@ -260,7 +260,7 @@ defmodule Goodmao2Web.Layouts do
         <.link
           navigate={~p"/users/settings"}
           id={"#{@id_prefix}nav-settings"}
-          class="btn btn-ghost btn-sm gap-2"
+          class="btn btn-ghost btn-sm max-w-full gap-2"
         >
           <.avatar
             owner_type="user"
@@ -270,7 +270,7 @@ defmodule Goodmao2Web.Layouts do
             size={:sm}
             id={"#{@id_prefix}nav-avatar"}
           />
-          {account_label(@current_scope.user)}
+          <span class="truncate">{account_label(@current_scope.user)}</span>
         </.link>
       </li>
       <li>

@@ -202,7 +202,7 @@ defmodule Goodmao2Web.PetLive.Reports do
           >
             <.icon name="hero-arrow-left" class="size-4" />
           </.link>
-          <h1 id="reports-heading" class="text-2xl font-semibold">
+          <h1 id="reports-heading" class="min-w-0 text-2xl font-semibold wrap-anywhere">
             {gettext("Reports for %{name}", name: @pet.name)}
           </h1>
         </div>
