@@ -8,6 +8,11 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.5] - 2026-10-25
+
+A layout fix plus new test gates. No configuration change and no runtime pin change; the
+deploy playbook alone is enough.
+
 ### Fixed
 
 - The hamburger menu at phone widths opened with its items off the right edge of the screen in
@@ -29,6 +34,9 @@ skill).
   every menu opens inside the viewport, in both themes at phone and desktop widths) and
   `reconnect_test.exs` (a page whose socket the server dropped reconnects and keeps receiving
   updates, rather than reloading). The release checklist now runs the browser suite.
+
+- The release checklist runs the browser suite and three pre-release audits (docs, a11y, l10n);
+  every doc that names the `precommit` gate now lists credo, the gettext check and the audits.
 
 ## [1.6.4] - 2026-10-25
 
