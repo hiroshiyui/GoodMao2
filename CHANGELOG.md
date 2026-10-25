@@ -8,6 +8,21 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.4] - 2026-10-25
+
+A one-fix follow-up to 1.6.3 that rolls Phoenix back to 1.8.15. No configuration change and
+no runtime pin change; the deploy playbook alone is enough.
+
+### Fixed
+
+- **A browser whose session was revoked now leaves the page at once again.** Phoenix 1.8.16
+  (shipped in 1.6.3) stopped sending WebSocket close code 1001 on the `"disconnect"`
+  broadcast that a password change or magic-link login triggers. Bandit then closes with 1000,
+  which LiveView's client treats as a failsafe reload after a 5-10 s jitter instead of
+  reconnecting, so the signed-out browser lingered on a dead page. Phoenix is held at 1.8.15 in
+  `mix.lock` (the `mix.exs` constraint is untouched) and a two-browser feature test
+  (`session_revocation_test.exs`) is the gate for lifting the hold.
+
 ## [1.6.3] - 2026-10-25
 
 A dependency-maintenance release. No application behaviour changes, but it patches a
