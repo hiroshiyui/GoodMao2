@@ -14,7 +14,12 @@ When performing release engineering, always follow these steps:
    proceeding. **Do not continue if anything fails.**
    ```bash
    mix precommit
+   mix test.feature     # the browser suite: precommit excludes it, and only it runs the client
    ```
+   Run both. The browser suite is the only check of phoenix.js, LiveView's client, the hooks
+   and the CSS (`layout_test.exs`, `reconnect_test.exs`, `session_revocation_test.exs`), so
+   a framework or Tailwind/daisyUI bump that passes `precommit` can still be broken on the
+   page. It needs Firefox and the Selenium server (`mix selenium.setup` once).
    This also compiles the Rust NIF crate (`native/goodmao2_native`), so the **pinned Rust
    toolchain** (`rust-toolchain.toml`) must be installed on the build host. The compiled NIF
    (`priv/native/*.so`) is a **platform-specific, git-ignored build artifact** — a release
