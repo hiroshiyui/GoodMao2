@@ -127,6 +127,9 @@ jobs:
       - name: Check formatting
         run: mix format --check-formatted
 
+      - name: Lint (Credo, strict)
+        run: mix credo --strict
+
       # Fails when a gettext() call was added, removed or moved to another file without
       # re-extracting. errors.pot is hand-maintained (changeset messages aren't extractable);
       # its entries carry no `elixir-autogen` flag, so extraction never purges them.

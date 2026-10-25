@@ -122,7 +122,9 @@ defmodule Goodmao2Web.UserLive.Login do
     # driven as an unbounded outbound-mail pump. Skipping the send when throttled is invisible
     # here — the response below is already the same whether or not the address exists. The
     # email itself is sent by a background job, so its latency can't tell the two apart either.
-    if (user = Accounts.get_user_by_email(email)) && RegistrationRateLimiter.check(email) == :ok do
+    user = Accounts.get_user_by_email(email)
+
+    if user && RegistrationRateLimiter.check(email) == :ok do
       {:ok, _job} = Accounts.request_login_link(user)
     end
 

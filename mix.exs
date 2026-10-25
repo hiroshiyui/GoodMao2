@@ -108,6 +108,7 @@ defmodule Goodmao2.MixProject do
       {:dns_cluster, "~> 0.3.0"},
       {:bandit, "~> 1.5"},
       # Security tooling — advisory audit of deps and a Phoenix-aware static scan.
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       # Dialyzer, run by CI's static-checks job against .dialyzer_ignore.exs.
@@ -153,10 +154,12 @@ defmodule Goodmao2.MixProject do
         "esbuild service_worker --minify",
         "phx.digest"
       ],
+      lint: ["credo --strict"],
       precommit: [
         "compile --warnings-as-errors",
         "deps.unlock --unused",
         "format",
+        "credo --strict",
         # The .pot templates must match the source. References carry no line numbers
         # (see `gettext:` in project/0), so this fails only when a message is added,
         # removed or moves file. errors.pot's hand-added msgids carry no `elixir-autogen`
