@@ -62,7 +62,7 @@ Provisions infrastructure only — does **not** deploy the application.
 |------|-----|---------|
 | `common` | `common` | System packages incl. **ffmpeg** (runtime media purification), `goodmao` user, UFW firewall, SSH hardening, fail2ban, NTP |
 | `postgresql` | `postgresql` | PostgreSQL 15, `goodmao` role + `goodmao2_prod` database, scram-sha-256 local auth |
-| `elixir` | `elixir` | asdf + Erlang 29.1.1 + Elixir 1.20.4-otp-29 (both read from `.tool-versions`) + Hex/Rebar |
+| `elixir` | `elixir` | asdf + Erlang 29.1.2 + Elixir 1.20.4-otp-29 (both read from `.tool-versions`) + Hex/Rebar |
 | `rust` | `rust` | rustup (minimal profile) for the `goodmao2_native` Rustler NIF |
 | `nginx` | `nginx` | nginx, Let's Encrypt SSL via certbot, reverse-proxy vhost keyed on `server_name` |
 

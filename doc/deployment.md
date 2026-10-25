@@ -114,7 +114,7 @@ Provisioned once and **shared** by both apps (Baudrate's `setup-server.yml` alre
 most of these — GoodMao2 adds only ffmpeg):
 
 - **Debian 12** (or similar), a non-login **service user** `goodmao`.
-- **asdf** toolchain pinned to GoodMao2's `.tool-versions`: **Erlang 29.1.1**, **Elixir 1.20.4-otp-29**.
+- **asdf** toolchain pinned to GoodMao2's `.tool-versions`: **Erlang 29.1.2**, **Elixir 1.20.4-otp-29**.
 - **Rust toolchain** — GoodMao2 builds a Rustler NIF (`native/goodmao2_native`), pinned by
   `rust-toolchain.toml`. The build host must have `rustup`.
 - **PostgreSQL 15**, reachable on `localhost` (TCP or unix socket).
