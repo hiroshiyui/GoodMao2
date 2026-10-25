@@ -5,6 +5,11 @@ description: Manage the full GoodMao release process, including version bumps, c
 
 When performing release engineering, always follow these steps:
 
+0. **Pre-release audits**, committed *before* the version is decided so they land inside
+   the tag: run `docs-engineering`, then `a11y-engineering` over what the release changes,
+   then `l10n-engineering`. A non-doc finding is a change like any other: it gets a
+   CHANGELOG entry and may move the version.
+
 1. **Determine the release type** — review all unreleased commits since the last tag and
    classify the release as `major`, `minor`, or `patch` following
    [Semantic Versioning](https://semver.org/). Present the recommendation to the user and

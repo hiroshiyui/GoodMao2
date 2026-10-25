@@ -37,9 +37,13 @@ a11y — an `aria-label` that is an English literal is both an i18n bug and an a
     auth/settings LiveViews under `live/user_live/`.
   - Public surface: `controllers/page_html/home.html.heex` (the landing page).
 - Note the toolchain — there is **no dedicated static a11y linter** in this stack.
-  `mix precommit` (compile-as-errors + format + test) is the gate; the
+  `mix precommit` (compile-as-errors + format + credo + test) is the gate; the
   ConnCase LiveView tests assert on the semantic `id`/`class` anchors, so a11y regressions that
-  break those anchors surface as test failures. Reason through the criteria below manually.
+  break those anchors surface as test failures. `semantic_anchors_test.exs` fails a duplicate
+  `id` on a rendered page, a literal `id` on a `:for`, and a structural selector in `app.css`;
+  `features/layout_test.exs` (browser) fails sideways scroll and a menu that opens off-screen
+  or with clipped items, in both themes at phone and desktop widths. Add a new page to both
+  gates' path lists. Reason through the criteria below manually.
 
 ---
 

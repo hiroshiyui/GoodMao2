@@ -20,6 +20,11 @@ skill).
 
 ### Added
 
+- `mix credo --strict` in `precommit` and CI (`mix lint`), with the one finding it made fixed.
+- Two codebase-wide gates: `semantic_anchors_test.exs` (no duplicate `id` on a rendered guest
+  or member page, no literal `id` on a `:for`, no structural selector in `app.css`) and
+  `test/doc/adr_index_test.exs` (the ADR index agrees with every record's Status line and
+  every ADR link resolves). CLAUDE.md gained a table of every gate.
 - Browser gates for what only a browser runs: `layout_test.exs` (no page scrolls sideways and
   every menu opens inside the viewport, in both themes at phone and desktop widths) and
   `reconnect_test.exs` (a page whose socket the server dropped reconnects and keeps receiving

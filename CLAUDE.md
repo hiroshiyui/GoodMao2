@@ -29,7 +29,7 @@ mix phx.server                 # dev server: http://localhost:4000 + https://loc
 iex -S mix phx.server          # same, with a REPL
 
 mix precommit                  # THE gate: compile --warnings-as-errors + deps.unlock --unused
-                               # + format + gettext.extract --check-up-to-date
+                               # + format + credo --strict + gettext.extract --check-up-to-date
                                # + deps.audit + hex.audit + sobelow
                                # + test --warnings-as-errors (type-checker warnings fail in test/ too)
 mix test                       # full suite (auto-creates/migrates the test DB)
@@ -350,3 +350,23 @@ doesn't flash a connection error.
 - Tests mirror `lib/` under `test/`: `use Goodmao2.DataCase` for contexts, `use
   Goodmao2Web.ConnCase` (+ `setup :register_and_log_in_user`) for LiveViews. Pet/log test
   data comes from `Goodmao2.PetsFixtures`.
+
+### Gates
+
+Acceptance tests that guard a rule for the whole codebase rather than one feature. A new
+surface of the kind a gate covers goes **into** the gate (its path list, its fixture), so the
+gate's coverage never rots. Each is named where its rule is stated above.
+
+| Rule | Gate |
+|---|---|
+| Every string translated; no fuzzy; `en` blank; bindings match; `errors.pot` merged | `test/goodmao2/locale_parity_test.exs` |
+| No duplicate `id` on a rendered page; no literal `id` on a `:for`; `app.css` targets semantic selectors | `test/goodmao2_web/semantic_anchors_test.exs` |
+| The ADR index agrees with every record's Status line and every ADR link resolves | `test/doc/adr_index_test.exs` |
+| Every route sets a `page_title`; the manifest, icons and service worker stay installable | `test/goodmao2_web/pwa_test.exs`, `page_controller_test.exs` |
+| nginx serves exactly the static paths the app exposes | `test/goodmao2/nginx_static_paths_test.exs` |
+| No JavaScript error, unknown hook or `phx-error` on any page (browser) | `features/js_errors_test.exs` |
+| No page scrolls sideways; every menu opens inside the viewport, both themes, phone and desktop (browser) | `features/layout_test.exs` |
+| A dropped socket reconnects and resubscribes; a revoked session's page leaves at once (browser) | `features/reconnect_test.exs`, `features/session_revocation_test.exs` |
+
+The browser gates run under `mix test.feature`, not `precommit`; the release checklist
+runs both.
