@@ -393,5 +393,6 @@ authorization is needed to render it.
   (loop items derive an id from the record), for tooling, testing, and styling.
 - **All user-visible copy through Gettext**, including flash messages and `aria-*`. Enum
   label translations and log summaries live in `Goodmao2Web.Helpers`.
-- **`mix precommit`** (compile-warnings-as-errors + unused-deps + format + test) is the gate.
+- **`mix precommit`** (compile-warnings-as-errors + unused-deps + format + `credo --strict` +
+  gettext check + dependency audits + Sobelow + test) is the gate.
 - Tests mirror `lib/` under `test/`; contexts use `DataCase`, LiveViews use `ConnCase`.

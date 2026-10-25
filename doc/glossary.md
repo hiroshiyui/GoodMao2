@@ -207,4 +207,5 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
 - **System settings** — a small admin-managed key/value store (`Goodmao2.Settings`, ETS-cached)
   for site-wide configuration set from the Web UI. First use: the Web Push VAPID keypair.
 - **`mix precommit`** — the single gate (compile with warnings-as-errors + unused-deps
-  check + format + full test suite) that humans and agents run before finishing.
+  check + format + `credo --strict` + gettext check + dependency audits + Sobelow + full test
+  suite) that humans and agents run before finishing.

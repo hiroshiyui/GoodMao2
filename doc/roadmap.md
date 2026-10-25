@@ -155,8 +155,8 @@ context boundary, each with a test in both directions:
 ### 9. Engineering & ops maturity
 
 - **CI and Dependabot.**
-- **The `mix precommit` gate:** compile warnings, format, `deps.audit`, `hex.audit` and
-  Sobelow.
+- **The `mix precommit` gate:** compile warnings, format, `credo --strict`, the gettext
+  check, `deps.audit`, `hex.audit` and Sobelow.
 - **Operational basics:** `/health`, seeds that refuse to run outside `:dev`, and
   `CHANGELOG.md`.
 - **Content-Security-Policy** with a per-request nonce.

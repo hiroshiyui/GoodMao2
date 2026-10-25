@@ -120,8 +120,8 @@ Demo accounts (from `priv/repo/seeds.exs`):
 ## Development
 
 ```bash
-mix precommit             # compile (warnings-as-errors) + unused-deps + format
-                          # + deps.audit + hex.audit + sobelow + test
+mix precommit             # compile (warnings-as-errors) + unused-deps + format + credo
+                          # + gettext check + deps.audit + hex.audit + sobelow + test
 mix test                  # run the suite
 mix test test/goodmao2/pets_test.exs
 ```

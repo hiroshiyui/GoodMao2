@@ -233,7 +233,7 @@ failure mode that motivates it — the reasoning matters more than the rule.
   restate the failure and the fix; the version string lives in exactly one file and must
   match the git tag. (The `release-engineering` skill executes this.)
 - **A single `precommit` gate for humans and agents alike** — `mix precommit`
-  (compile with warnings-as-errors + unused-deps check + format + full tests). Never push a
+  (compile with warnings-as-errors + unused-deps check + format + lint + audits + full tests). Never push a
   red tree.
 - **Periodic project-wide audit sweeps, not only reactive fixes.** Schedule hardening passes
   across security, performance, and testing (the `security-audit`/`code-review` skills);
