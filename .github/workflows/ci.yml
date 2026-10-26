@@ -26,7 +26,7 @@ jobs:
       MIX_ENV: test
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         # Match config/test.exs: a goodmao2/goodmao2 role (superuser here, so it has
         # CREATEDB) and the test database the `test` alias creates.
         env:
@@ -280,7 +280,7 @@ jobs:
       MIX_ENV: test
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: goodmao2
           POSTGRES_PASSWORD: goodmao2

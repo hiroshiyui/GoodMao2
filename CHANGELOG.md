@@ -8,6 +8,19 @@ skill).
 
 ## [Unreleased]
 
+The production host moved to Debian 13 (trixie) with PostgreSQL 17 on 2026-10-26, in step
+with Baudrate (its ADR 0077), which shares the server. Erlang must be rebuilt there against
+trixie's OpenSSL before the next deploy: `setup-server.yml --tags elixir` after removing the
+old build, then the deploy.
+
+### Changed
+
+- Ansible inventory, README and CI's PostgreSQL service pin 17, production's major.
+- nginx: `http2` as its own directive (nginx 1.26 deprecates the `listen` flag) and no
+  OCSP stapling, which Let's Encrypt certificates no longer carry a responder URL for.
+- Every asdf command in the `elixir` role runs from the service user's home: from
+  Ansible's temp directory under root's home, asdf exits 1 without a message.
+
 ## [1.6.5] - 2026-10-25
 
 A layout fix plus new test gates. No configuration change and no runtime pin change; the

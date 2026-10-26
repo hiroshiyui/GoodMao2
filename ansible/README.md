@@ -17,7 +17,7 @@ co-hosting model and the collision table).
 - **Linting:** `ansible-lint` runs in CI at the `production` profile (`.ansible-lint`). Locally,
   from this directory: `ANSIBLE_VARS_ENABLED=host_group_vars ansible-lint playbooks/ roles/`
   (the vars override keeps the linter from opening the SOPS secrets).
-- **Target server:** Debian 12 (Bookworm) with SSH access
+- **Target server:** Debian 13 (Trixie) with SSH access
 - **DNS:** domain pointed at the server's IP (required for Let's Encrypt)
 - **Amazon SES:** a verified sender identity + an IAM credential with
   `ses:SendRawEmail` (a fresh SES account is sandboxed — request production
@@ -61,7 +61,7 @@ Provisions infrastructure only — does **not** deploy the application.
 | Role | Tag | Purpose |
 |------|-----|---------|
 | `common` | `common` | System packages incl. **ffmpeg** (runtime media purification), `goodmao` user, UFW firewall, SSH hardening, fail2ban, NTP |
-| `postgresql` | `postgresql` | PostgreSQL 15, `goodmao` role + `goodmao2_prod` database, scram-sha-256 local auth |
+| `postgresql` | `postgresql` | PostgreSQL 17, `goodmao` role + `goodmao2_prod` database, scram-sha-256 local auth |
 | `elixir` | `elixir` | asdf + Erlang 29.1.2 + Elixir 1.20.4-otp-29 (both read from `.tool-versions`) + Hex/Rebar |
 | `rust` | `rust` | rustup (minimal profile) for the `goodmao2_native` Rustler NIF |
 | `nginx` | `nginx` | nginx, Let's Encrypt SSL via certbot, reverse-proxy vhost keyed on `server_name` |

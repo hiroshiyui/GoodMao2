@@ -40,6 +40,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf version"
+    chdir: "{{ goodmao_home }}"
   register: asdf_version_check
   changed_when: false
 
@@ -63,11 +64,15 @@
     create: true
     mode: "0644"
 
+# chdir on every asdf command: a become_user command otherwise runs from Ansible's temp
+# directory under root's home, which the service user cannot read, and asdf (a Go binary)
+# exits 1 without a word when it cannot stat its working directory.
 - name: Install asdf erlang plugin
   become: true
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf plugin add erlang"
+    chdir: "{{ goodmao_home }}"
     creates: "{{ goodmao_home }}/.asdf/plugins/erlang"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
@@ -77,6 +82,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf plugin add elixir"
+    chdir: "{{ goodmao_home }}"
     creates: "{{ goodmao_home }}/.asdf/plugins/elixir"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
@@ -86,6 +92,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf install erlang {{ erlang_version }}"
+    chdir: "{{ goodmao_home }}"
     creates: "{{ goodmao_home }}/.asdf/installs/erlang/{{ erlang_version }}"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
@@ -96,6 +103,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf set --home erlang {{ erlang_version }}"
+    chdir: "{{ goodmao_home }}"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
   changed_when: true
@@ -105,6 +113,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf install elixir {{ elixir_version }}"
+    chdir: "{{ goodmao_home }}"
     creates: "{{ goodmao_home }}/.asdf/installs/elixir/{{ elixir_version }}"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
@@ -115,6 +124,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf set --home elixir {{ elixir_version }}"
+    chdir: "{{ goodmao_home }}"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
   changed_when: true
@@ -124,6 +134,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf exec mix local.hex --force"
+    chdir: "{{ goodmao_home }}"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
     PATH: "{{ goodmao_home }}/.asdf/bin:{{ goodmao_home }}/.asdf/shims:{{ ansible_facts.env.PATH }}"
@@ -134,6 +145,7 @@
   become_user: "{{ goodmao_user }}"
   ansible.builtin.command:
     cmd: "{{ goodmao_home }}/.asdf/bin/asdf exec mix local.rebar --force"
+    chdir: "{{ goodmao_home }}"
   environment:
     ASDF_DATA_DIR: "{{ goodmao_home }}/.asdf"
     PATH: "{{ goodmao_home }}/.asdf/bin:{{ goodmao_home }}/.asdf/shims:{{ ansible_facts.env.PATH }}"

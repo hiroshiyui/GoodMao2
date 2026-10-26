@@ -4,7 +4,7 @@ goodmao_user: goodmao
 goodmao_home: /opt/goodmao2
 
 # PostgreSQL
-postgres_version: "15"
+postgres_version: "17"
 postgres_db_name: goodmao2_prod
 postgres_db_user: goodmao
 # postgres_db_password provided by all.sops.yml (or auto-generated at runtime)
