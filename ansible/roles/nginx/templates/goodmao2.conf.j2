@@ -63,8 +63,8 @@ server {
     ssl_session_timeout 1d;
     ssl_session_tickets off;
 
-    # OCSP stapling — nginx fetches and caches OCSP responses, avoiding
-    # client-side OCSP lookups that add latency and leak browsing data.
+    # Resolver for upstream/certbot lookups. No OCSP stapling: Let's Encrypt stopped
+    # serving OCSP responses, so there is nothing to staple.
     resolver 1.1.1.1 8.8.8.8 valid=300s;
     resolver_timeout 5s;
 

@@ -29,7 +29,7 @@ A one-time, ordered checklist for the **first** deploy. Each step links to its d
       real users can't confirm accounts.
 - [ ] **(you) DNS** — point the domain's A/AAAA record at the host **before** provisioning, so
       Let's Encrypt (certbot) can issue the cert.
-- [ ] **(you) A host** — Debian 12 with SSH; co-hosts with Baudrate (see [collision surface](#the-collision-surface)).
+- [ ] **(you) A host** — Debian 13 with SSH; co-hosts with Baudrate (see [collision surface](#the-collision-surface)).
 - [ ] **(you) Control machine** — Ansible 2.14+, SOPS, a GPG key, and the three
       `ansible-galaxy` collections (per [`../ansible/README.md`](../ansible/README.md)).
 
@@ -113,11 +113,12 @@ other's. The release therefore refuses to start, `remote`, `rpc` or `stop` witho
 Provisioned once and **shared** by both apps (Baudrate's `setup-server.yml` already installs
 most of these — GoodMao2 adds only ffmpeg):
 
-- **Debian 12** (or similar), a non-login **service user** `goodmao`.
+- **Debian 13** (or similar), a non-login **service user** `goodmao`.
 - **asdf** toolchain pinned to GoodMao2's `.tool-versions`: **Erlang 29.1.2**, **Elixir 1.20.4-otp-29**.
 - **Rust toolchain** — GoodMao2 builds a Rustler NIF (`native/goodmao2_native`), pinned by
   `rust-toolchain.toml`. The build host must have `rustup`.
-- **PostgreSQL 15**, reachable on `localhost` (TCP or unix socket).
+- **PostgreSQL 17**, reachable on `localhost` (TCP or unix socket). `postgres_version` in
+  `ansible/inventory/group_vars/all.yml` and CI's service image move together.
 - **ffmpeg + ffprobe** on `PATH` — **required at runtime**, not just build: media purification
   (ADR-0005) shells out to them in the `Media.PurifyWorker`. This is GoodMao2-specific; Baudrate
   does not need it.
@@ -384,8 +385,8 @@ One nginx serves both apps; each gets a `server` block keyed on its `server_name
 its own loopback port. GoodMao2's upstream is `127.0.0.1:5000`.
 
 The Ansible template [`goodmao2.conf.j2`](../ansible/roles/nginx/templates/goodmao2.conf.j2) is
-the **source of truth**. It adds TLS tuning, OCSP stapling, gzip, scanner blocking and the 502
-page. Below are the parts that are not optional, and `Goodmao2.NginxConfigTest` holds both files
+the **source of truth**. It adds TLS tuning, gzip, scanner blocking and the 502 page (no OCSP
+stapling: Let's Encrypt no longer serves OCSP responses). Below are the parts that are not optional, and `Goodmao2.NginxConfigTest` holds both files
 to them:
 
 ```nginx
@@ -412,7 +413,8 @@ server {
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name goodmao.tw;
     access_log /var/log/nginx/access.log goodmao2_redacted;
 
@@ -491,6 +493,10 @@ sudo systemctl restart goodmao2
 Schema migrations are **not** auto-rolled-back; if a release migrated the DB, roll it back
 explicitly with `bin/goodmao2 eval 'Goodmao2.Release.rollback(Goodmao2.Repo, <version>)'`
 before serving the older code.
+
+After a **Debian release upgrade** of the shared host, GoodMao2's Erlang must be rebuilt against
+the new glibc/OpenSSL before the next deploy — see
+[After a Debian release upgrade](../ansible/README.md#after-a-debian-release-upgrade).
 
 ## Backups
 
