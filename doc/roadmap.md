@@ -11,11 +11,11 @@ file tracks what's done, what's open, and what was ruled out. Implementation det
 entries here stay short.
 
 **Where things stand:** [v1.0.0](#milestone-v100) shipped on 2026-07-23 and is live at
-[goodmao.tw](https://goodmao.tw). The latest release is **v1.5.0** (2026-09-25), and main also
-carries unreleased hardening from the Baudrate comparison. The
+[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.5** (2026-10-25); main carries only
+the production host's move to Debian 13 / PostgreSQL 17. The
 [releases since v1.0.0](#releases-since-v100) were mostly hardening: two project-wide reviews, a
-security audit, browser-driven tests, a runtime upgrade, and that comparison. The open work is
-in two lists:
+security audit, browser-driven tests, a runtime upgrade, the Baudrate comparison, and a run of
+advisory patches. The open work is in two lists:
 
 - [**Deferred from v1.0.0**](#open-deferred-from-v100): coordination polish, payload range
   validation, per-pet timezones, the media and sharing tail, and operations.
@@ -195,7 +195,11 @@ The [changelog](../CHANGELOG.md) has the detail.
 | 1.3.0 | 09-18 | Security audit: OTP TLS CVEs, a readable Erlang distribution cookie ([ADR-0021](adr/0021-loopback-erlang-distribution-and-per-server-cookie.md)), pet pages that kept streaming after access ended, and an unbounded TOTP brute force. Messaging now follows the shared pet. |
 | 1.4.0 | 09-20 | QuickLog had saved every entry `private`, and form errors weren't announced. The first browser-driven tests (`mix test.feature`). |
 | 1.5.0 | 09-25 | Erlang/OTP 29 and Elixir 1.20, one runtime pin across dev, CI and production, the type checker as a gate, and browser tests in CI. |
-| Unreleased | 09-28 | The [Baudrate backlog](#backlog-lessons-from-baudrate-2026-09-28)'s security, test/CI and accessibility items, including a rate-limiter crash that Dialyzer found. |
+| 1.6.0 | 09-28 | The [Baudrate backlog](#backlog-lessons-from-baudrate-2026-09-28)'s security, test/CI and accessibility items, including a rate-limiter crash that Dialyzer found. Photo descriptions and a share button. |
+| 1.6.1–1.6.3 | 10-12 – 10-25 | Advisory patches, all found by `hex.audit` only: Mint and Decimal (1.6.1), Bandit (1.6.2), plug_crypto (1.6.3). Erlang/OTP 29.1.2. |
+| 1.6.4 | 10-25 | Phoenix held at 1.8.15: 1.8.16 left a revoked session's browser on a dead page. A two-browser test is the gate for lifting the hold. |
+| 1.6.5 | 10-25 | Phone menu and long pet names kept inside the viewport. `credo --strict` in the gate, and new codebase-wide and browser gates (semantic anchors, ADR index, layout geometry, reconnect). |
+| Unreleased | 10-26 | Production host on Debian 13 / PostgreSQL 17; an Erlang rebuild switch in the provisioning role. |
 
 > **What the reviews taught, as classes of bug.** These come from the 2026-08-03 review (1.2.1),
 > the 2026-09-18 audit (1.3.0) and the 2026-09-28 Baudrate comparison.
@@ -290,10 +294,10 @@ missed dose arrives in the same stream as everything else and learns to be ignor
 Baudrate, the sibling Phoenix app this project takes its conventions from, went from v1.33.1
 to v2.0.3 (`11eeb8e`..`de8ae293`) in about 1,450 commits. About 70 of them fixed a *class* of
 problem GoodMao2 could share. Each was checked against this codebase, and only the gaps
-confirmed to exist were listed. The [changelog](../CHANGELOG.md)'s Unreleased section has the
+confirmed to exist were listed. The [changelog](../CHANGELOG.md)'s 1.6.0 entry has the
 detail.
 
-### Shipped 2026-09-28 (unreleased)
+### Shipped 2026-09-28 (released as 1.6.0)
 
 - **Security:**
   - Message pushes name the sender and never show the text, and are tagged per subject.
