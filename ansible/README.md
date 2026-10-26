@@ -130,6 +130,26 @@ ansible-playbook playbooks/deploy-goodmao2.yml \
 
 **Note:** database migrations are **not** auto-rolled-back.
 
+### After a Debian release upgrade
+
+The server is shared with Baudrate, whose `upgrade-debian.yml` playbook moves the host
+one Debian major and the PostgreSQL cluster with it (its ADR 0077); GoodMao2's database
+rides along in the same cluster. What GoodMao2 then needs is its own Erlang rebuilt
+against the new system's glibc and OpenSSL, and a deploy built on it:
+
+```bash
+GOODMAO_DOMAIN=goodmao.tw GOODMAO_CERTBOT_EMAIL=you@example.com \
+  ansible-playbook playbooks/setup-server.yml --tags elixir -e rebuild_erlang=yes
+ansible-playbook playbooks/deploy-goodmao2.yml \
+  -e release_tag=vX.Y.Z -e release_commit="$(git rev-parse 'vX.Y.Z^{commit}')"
+```
+
+`rebuild_erlang=yes` removes every installed Erlang build and `_build/prod` before the
+role installs the pinned version again; without it the role skips an Erlang that is
+already present. The running release keeps its own copy of the old runtime and stays up
+until the deploy replaces it. Bump `postgres_version` in `inventory/group_vars/all.yml`
+(and CI's service image) in the same change as the host moves.
+
 ## Selective Execution & Verification
 
 ```bash

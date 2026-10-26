@@ -20,6 +20,9 @@ old build, then the deploy.
   OCSP stapling, which Let's Encrypt certificates no longer carry a responder URL for.
 - Every asdf command in the `elixir` role runs from the service user's home: from
   Ansible's temp directory under root's home, asdf exits 1 without a message.
+- `setup-server.yml --tags elixir -e rebuild_erlang=yes` rebuilds Erlang after a Debian
+  release upgrade (`ansible/README.md`, "After a Debian release upgrade"); without the
+  switch the role skips an Erlang that is already installed.
 
 ## [1.6.5] - 2026-10-25
 
