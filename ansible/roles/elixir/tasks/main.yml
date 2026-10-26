@@ -110,6 +110,16 @@
     label: "{{ item.path }}"
   when: rebuild_erlang | default('') == 'yes'
 
+# kerl (the plugin's builder) registers every installation by path in its own
+# directory; with the install gone and the entry left, kerl 4.4 refuses to
+# install there again, and says so only on a terminal. The directory is a
+# cache (sources, builds, registries), so it goes with the builds.
+- name: Remove kerl's cache and registries along with the builds
+  ansible.builtin.file:
+    path: "{{ goodmao_home }}/.asdf/plugins/erlang/kerl-home"
+    state: absent
+  when: rebuild_erlang | default('') == 'yes'
+
 - name: Remove build artifacts made with the previous Erlang
   ansible.builtin.file:
     path: "{{ deploy_path }}/src/_build/prod"
