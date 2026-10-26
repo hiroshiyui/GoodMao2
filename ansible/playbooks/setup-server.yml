@@ -1,7 +1,7 @@
 ---
 # GoodMao2 — Server provisioning playbook
 #
-# Provisions a Debian 12 server with all infrastructure GoodMao2 needs.
+# Provisions a Debian 13 server with all infrastructure GoodMao2 needs.
 # Does NOT deploy the application itself (that is deploy-goodmao2.yml).
 #
 # Safe to run on a host that already runs the sibling Baudrate app: every
