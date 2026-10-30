@@ -11,7 +11,7 @@ file tracks what's done, what's open, and what was ruled out. Implementation det
 entries here stay short.
 
 **Where things stand:** [v1.0.0](#milestone-v100) shipped on 2026-07-23 and is live at
-[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.5** (2026-10-25); main carries only
+[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.6** (2026-10-30); main carries only
 the production host's move to Debian 13 / PostgreSQL 17. The
 [releases since v1.0.0](#releases-since-v100) were mostly hardening: two project-wide reviews, a
 security audit, browser-driven tests, a runtime upgrade, the Baudrate comparison, and a run of
@@ -199,6 +199,7 @@ The [changelog](../CHANGELOG.md) has the detail.
 | 1.6.1–1.6.3 | 10-12 – 10-25 | Advisory patches, all found by `hex.audit` only: Mint and Decimal (1.6.1), Bandit (1.6.2), plug_crypto (1.6.3). Erlang/OTP 29.1.2. |
 | 1.6.4 | 10-25 | Phoenix held at 1.8.15: 1.8.16 left a revoked session's browser on a dead page. A two-browser test is the gate for lifting the hold. |
 | 1.6.5 | 10-25 | Phone menu and long pet names kept inside the viewport. `credo --strict` in the gate, and new codebase-wide and browser gates (semantic anchors, ADR index, layout geometry, reconnect). |
+| 1.6.6 | 10-30 | Security audit: reports honour hidden history; fixed 50 MP / 600-frame purifier ceilings; bandit and hackney advisories cleared; grant-lookup, email-change and second-factor throttles hardened; pet edit form can no longer hide the history. |
 | Unreleased | 10-26 | Production host on Debian 13 / PostgreSQL 17; an Erlang rebuild switch in the provisioning role. |
 
 > **What the reviews taught, as classes of bug.** These come from the 2026-08-03 review (1.2.1),
