@@ -297,4 +297,8 @@ defmodule Goodmao2.Accounts.WebAuthn do
       :error -> {:error, :invalid_base64}
     end
   end
+
+  # A crafted POST may omit a field or send a nested value; that must be a failed attempt
+  # (logged, counted), not a crash that skips the `else` branch.
+  defp url_decode64(_), do: {:error, :invalid_base64}
 end

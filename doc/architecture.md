@@ -43,7 +43,9 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
 - **Reports** (`reports.ex`) — generated, point-in-time **health summary reports** for a pet
   ([ADR-0012](adr/0012-vet-access-model.md)): a frozen `content` snapshot over a date range
   (built from `Logs.shareable_entries/3`, which **excludes every private entry**), read by any
-  effective grant, and optionally shared through an **expiring** anonymous token.
+  effective grant, and optionally shared through an **expiring** anonymous token. A pet whose
+  history is hidden (ADR-0003) hides its reports too: list/fetch empty, generation refused, and
+  every live share link dead until the owner shows the history again.
 - **Notifications** (`notifications.ex`) — the in-site **bell feed** ([ADR-0011](adr/0011-notifications-and-messaging.md)):
   per-recipient rows with a `type` + `jsonb` payload (copy rendered at read time, never
   stored). Single-recipient grant/revoke events are created **inline** by `Pets`;

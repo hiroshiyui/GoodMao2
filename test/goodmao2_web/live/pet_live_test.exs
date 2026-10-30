@@ -377,7 +377,7 @@ defmodule Goodmao2Web.PetLiveTest do
     } do
       pet = pet_fixture(user)
       log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
-      {:ok, _} = Goodmao2.Pets.update_pet(user, pet, %{"history_hidden" => true})
+      {:ok, _} = Goodmao2.Pets.set_history_hidden(user, pet, true)
 
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
       assert has_element?(lv, "#history-hidden-notice")

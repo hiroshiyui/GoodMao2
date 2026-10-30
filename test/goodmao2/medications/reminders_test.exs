@@ -67,14 +67,14 @@ defmodule Goodmao2.Medications.RemindersTest do
     test "sends nothing for a pet whose history is hidden, and resumes once un-hidden", ctx do
       %{owner: owner, pet: pet, schedule: schedule} = ctx
       dose = due_dose(schedule, pet)
-      {:ok, hidden} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      {:ok, hidden} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
 
       assert {:ok, 0} = Medications.dispatch_due_reminders()
       assert med_due_for(owner) == []
       # Left unclaimed rather than silently stamped as reminded.
       assert Repo.get(Dose, dose.id).reminded_at == nil
 
-      {:ok, _} = Goodmao2.Pets.update_pet(owner, hidden, %{"history_hidden" => false})
+      {:ok, _} = Goodmao2.Pets.set_history_hidden(owner, hidden, false)
       assert {:ok, 1} = Medications.dispatch_due_reminders()
     end
 

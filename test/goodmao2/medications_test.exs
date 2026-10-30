@@ -220,7 +220,7 @@ defmodule Goodmao2.MedicationsTest do
     setup %{owner: owner, pet: pet} do
       schedule = medication_schedule_fixture(owner, pet)
       [dose | _] = Medications.upcoming_doses(owner, pet)
-      {:ok, _} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      {:ok, _} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
       %{schedule: schedule, dose: dose}
     end
 

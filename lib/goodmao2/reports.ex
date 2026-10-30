@@ -35,7 +35,8 @@ defmodule Goodmao2.Reports do
         period_start: %Date{} = period_start,
         period_end: %Date{} = period_end
       }) do
-    with :ok <- require(pet, user, :manage) do
+    with :ok <- require(pet, user, :manage),
+         :ok <- ensure_visible(pet) do
       from_dt = day_start(period_start)
       to_dt = day_end(period_end)
 
@@ -82,9 +83,14 @@ defmodule Goodmao2.Reports do
 
   ## Reads
 
-  @doc "Lists a pet's non-deleted reports, newest first. Requires `:read`."
+  @doc """
+  Lists a pet's non-deleted reports, newest first. Requires `:read`.
+
+  A pet whose history is hidden (ADR-0003) lists nothing: a report is a frozen slice of that
+  history, so it hides with it, like entries and medications do.
+  """
   def list_reports(%User{} = user, %Pet{} = pet) do
-    if Pets.can?(pet, user, :read) do
+    if readable?(pet, user) do
       Repo.all(
         from r in HealthSummaryReport,
           where: r.pet_id == ^pet.id and is_nil(r.deleted_at),
@@ -97,10 +103,10 @@ defmodule Goodmao2.Reports do
 
   @doc """
   Fetches one non-deleted report scoped to a readable pet, or `nil` (IDOR-hidden).
-  Requires `:read`.
+  Requires `:read`; `nil` while the pet's history is hidden.
   """
   def fetch_report(%User{} = user, %Pet{} = pet, id) do
-    with true <- Pets.can?(pet, user, :read),
+    with true <- readable?(pet, user),
          {:ok, id} <- Goodmao2.ID.normalize(id) do
       Repo.one(
         from r in HealthSummaryReport,
@@ -166,7 +172,9 @@ defmodule Goodmao2.Reports do
   Resolves a raw share token to its live report, or `nil`.
 
   Public (no pet authorization) — the only gate is a matching, **unexpired** token on a
-  non-deleted report. A malformed token, an expired link, or a revoked one all return `nil`.
+  non-deleted report whose pet's history is not hidden (hiding the history kills every live
+  link, as it does for shared entries). A malformed token, an expired link, or a revoked one
+  all return `nil`.
   """
   def fetch_report_by_token(token) when is_binary(token) do
     case Base.url_decode64(token, padding: false) do
@@ -175,8 +183,11 @@ defmodule Goodmao2.Reports do
 
         Repo.one(
           from r in HealthSummaryReport,
+            join: p in Goodmao2.Pets.Pet,
+            on: p.id == r.pet_id,
             where: r.share_token_hash == ^hash and is_nil(r.deleted_at),
-            where: not is_nil(r.share_expires_at) and r.share_expires_at > ^now()
+            where: not is_nil(r.share_expires_at) and r.share_expires_at > ^now(),
+            where: not p.history_hidden
         )
 
       :error ->
@@ -190,6 +201,13 @@ defmodule Goodmao2.Reports do
 
   defp require(pet, user, level) do
     if Pets.can?(pet, user, level), do: :ok, else: {:error, :unauthorized}
+  end
+
+  # Both read from the database now, never from the `%Pet{}` snapshot the caller holds.
+  defp readable?(pet, user), do: Pets.can?(pet, user, :read) and not Pets.history_hidden?(pet)
+
+  defp ensure_visible(pet) do
+    if Pets.history_hidden?(pet), do: {:error, :unauthorized}, else: :ok
   end
 
   # The pet authorizes the caller; the report must belong to that same pet, or `:manage` on one

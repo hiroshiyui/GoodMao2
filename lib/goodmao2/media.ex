@@ -190,13 +190,12 @@ defmodule Goodmao2.Media do
   the media disappear.
   """
   def delete_media_asset(%User{} = user, %Pet{} = pet, %LogEntry{} = entry, asset_id) do
-    asset =
-      Repo.one(
-        from m in MediaAsset,
-          where: m.id == ^asset_id and m.log_entry_id == ^entry.id and is_nil(m.deleted_at)
-      )
-
-    with %MediaAsset{} <- asset,
+    with {:ok, asset_id} <- Goodmao2.ID.normalize(asset_id),
+         %MediaAsset{} = asset <-
+           Repo.one(
+             from m in MediaAsset,
+               where: m.id == ^asset_id and m.log_entry_id == ^entry.id and is_nil(m.deleted_at)
+           ),
          true <- entry.pet_id == pet.id and is_nil(entry.deleted_at),
          true <- Logs.can_edit?(user, pet, entry) do
       asset
@@ -310,9 +309,9 @@ defmodule Goodmao2.Media do
   indistinguishable from one that doesn't exist.
   """
   def fetch_asset_for_user(%User{} = user, id) do
-    asset = Repo.one(from m in MediaAsset, where: m.id == ^id and is_nil(m.deleted_at))
-
-    with %MediaAsset{} <- asset,
+    with {:ok, id} <- Goodmao2.ID.normalize(id),
+         %MediaAsset{} = asset <-
+           Repo.one(from m in MediaAsset, where: m.id == ^id and is_nil(m.deleted_at)),
          {:ok, pet} <- Pets.fetch_pet(user, asset.pet_id),
          entry when not is_nil(entry) <- Logs.get_entry(user, pet, asset.log_entry_id) do
       _ = entry

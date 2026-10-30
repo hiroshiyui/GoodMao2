@@ -339,11 +339,8 @@ defmodule Goodmao2Web.UserLive.Settings do
 
     case Accounts.change_user_email(user, user_params, current_password: current_password) do
       %{valid?: true} = changeset ->
-        Accounts.deliver_user_update_email_instructions(
-          Ecto.Changeset.apply_action!(changeset, :insert),
-          user.email,
-          &url(~p"/users/settings/confirm-email/#{&1}")
-        )
+        new_email = Ecto.Changeset.get_change(changeset, :email)
+        :ok = Accounts.request_email_change(user, new_email)
 
         info =
           gettext("A link to confirm your email change has been sent to the new address.")

@@ -3532,3 +3532,8 @@ msgstr "分享"
 #, elixir-autogen, elixir-format
 msgid "crop selector"
 msgstr "裁切選取器"
+
+#: lib/goodmao2_web/live/pet_live/access.ex
+#, elixir-autogen, elixir-format
+msgid "Too many sharing attempts. Please try again in an hour."
+msgstr "分享嘗試次數過多，請一小時後再試。"

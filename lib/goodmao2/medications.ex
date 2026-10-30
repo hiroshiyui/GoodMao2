@@ -54,13 +54,14 @@ defmodule Goodmao2.Medications do
   the caller lacks `:read` on the pet.
   """
   def get_schedule(%User{} = user, %Pet{} = pet, id) do
-    if readable?(pet, user) do
+    with {:ok, id} <- Goodmao2.ID.normalize(id),
+         true <- readable?(pet, user) do
       Repo.one(
         from s in Schedule,
           where: s.id == ^id and s.pet_id == ^pet.id and is_nil(s.deleted_at)
       )
     else
-      nil
+      _ -> nil
     end
   end
 

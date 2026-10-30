@@ -53,6 +53,30 @@ defmodule Goodmao2.Notifications.WebPush.SafeClientTest do
     test "allows an ordinary public IPv6" do
       refute SafeClient.private_ip?({0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888})
     end
+
+    test "flags the reserved IPv4 blocks and the tunnelled / site-local IPv6 prefixes" do
+      for ip <- [
+            {192, 0, 0, 8},
+            {192, 0, 2, 1},
+            {198, 18, 0, 1},
+            {198, 19, 255, 1},
+            {198, 51, 100, 7},
+            {203, 0, 113, 9},
+            # fec0::/10 site-local
+            {0xFEC0, 0, 0, 0, 0, 0, 0, 1},
+            # 6to4 carrying 10.0.0.1
+            {0x2002, 0x0A00, 0x0001, 0, 0, 0, 0, 1},
+            # Teredo
+            {0x2001, 0, 0x1234, 0, 0, 0, 0, 1},
+            # local-use NAT64
+            {0x64, 0xFF9B, 1, 0, 0, 0, 0, 1}
+          ] do
+        assert SafeClient.private_ip?(ip), "expected #{inspect(ip)} to be private"
+      end
+
+      # 6to4 carrying a public address is still public.
+      refute SafeClient.private_ip?({0x2002, 0x0808, 0x0808, 0, 0, 0, 0, 1})
+    end
   end
 
   describe "validate_url/1" do
@@ -67,6 +91,12 @@ defmodule Goodmao2.Notifications.WebPush.SafeClientTest do
 
     test "accepts a well-formed HTTPS URL" do
       assert SafeClient.validate_url("https://push.example.com/abc") == :ok
+      assert SafeClient.validate_url("https://push.example.com:443/abc") == :ok
+      # Any other port would make the server a TLS port scanner of public hosts.
+      assert SafeClient.validate_url("https://push.example.com:22/abc") == {:error, :invalid_port}
+
+      assert SafeClient.validate_url("https://push.example.com:8443/abc") ==
+               {:error, :invalid_port}
     end
   end
 end

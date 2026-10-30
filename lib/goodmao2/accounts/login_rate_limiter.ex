@@ -27,10 +27,13 @@ defmodule Goodmao2.Accounts.LoginRateLimiter do
   per user id, under the same hourly ceiling. It charges the attempt *before* the factor is
   evaluated — a check-then-record would let a concurrent burst all pass the check while their
   verifications run — and only a successful factor clears it. Reaching the second-factor stage
-  already requires the password, so this cannot be tripped by a stranger.
+  already requires the password, so this cannot be tripped by a stranger. That reservation is
+  the one call routed *through* the process: an inline ETS check-then-insert is two operations,
+  so N parallel guesses that all read "9 so far" all pass, and the cap is really "limit +
+  concurrency". Serialized in the GenServer, exactly `limit` reservations succeed.
 
-  Owns a public ETS table so callers check inline without a GenServer round-trip; the process
-  exists only to keep the table alive. The window is one hour and the ceiling is
+  Owns a public ETS table so the email-keyed callers check inline without a GenServer
+  round-trip. The window is one hour and the ceiling is
   `config :goodmao2, Goodmao2.Accounts, :login_attempts_per_hour`.
   """
   use GenServer
@@ -96,9 +99,12 @@ defmodule Goodmao2.Accounts.LoginRateLimiter do
   the budget is gone.
   """
   def reserve_second_factor(user_id) when is_integer(user_id) do
-    key = {:second_factor, user_id}
+    GenServer.call(__MODULE__, {:reserve, {:second_factor, user_id}})
+  end
 
-    with :ok <- check_key(key), do: record_key(key)
+  @impl true
+  def handle_call({:reserve, key}, _from, state) do
+    {:reply, with(:ok <- check_key(key), do: record_key(key)), state}
   end
 
   @doc "Clears the user's second-factor failure counter (called after a factor succeeds)."

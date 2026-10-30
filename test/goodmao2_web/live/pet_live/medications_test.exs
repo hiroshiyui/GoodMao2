@@ -91,7 +91,7 @@ defmodule Goodmao2Web.PetLive.MedicationsTest do
   } do
     pet = pet_fixture(user)
     medication_schedule_fixture(user, pet)
-    {:ok, _} = Goodmao2.Pets.update_pet(user, pet, %{"history_hidden" => true})
+    {:ok, _} = Goodmao2.Pets.set_history_hidden(user, pet, true)
 
     {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/medications")
 

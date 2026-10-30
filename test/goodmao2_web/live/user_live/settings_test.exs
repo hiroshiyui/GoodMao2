@@ -1,7 +1,9 @@
 defmodule Goodmao2Web.UserLive.SettingsTest do
   use Goodmao2Web.ConnCase, async: true
+  use Oban.Testing, repo: Goodmao2.Repo
 
   alias Goodmao2.Accounts
+  alias Goodmao2.Accounts.EmailChangeWorker
   import Phoenix.LiveViewTest
   import Goodmao2.AccountsFixtures
 
@@ -141,6 +143,42 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
 
       assert result =~ "A link to confirm your email"
       assert Accounts.get_user_by_email(user.email)
+
+      # Sent off the request path, and only once the job runs.
+      assert_enqueued(
+        worker: EmailChangeWorker,
+        args: %{"user_id" => user.id, "new_email" => new_email}
+      )
+
+      assert :ok =
+               perform_job(EmailChangeWorker, %{
+                 "user_id" => user.id,
+                 "current_email" => user.email,
+                 "new_email" => new_email
+               })
+
+      assert_received {:email, %Swoosh.Email{to: [{"", ^new_email}]}}
+    end
+
+    test "the target address is rate-limited, so settings cannot pump mail at an inbox", %{
+      conn: conn
+    } do
+      new_email = unique_user_email()
+      limit = Application.fetch_env!(:goodmao2, Goodmao2.Accounts)[:registration_emails_per_hour]
+      for _ <- 1..limit, do: :ok = Goodmao2.Accounts.RegistrationRateLimiter.check(new_email)
+
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      result =
+        lv
+        |> form("#email_form", %{
+          "user" => %{"email" => new_email, "current_password" => valid_user_password()}
+        })
+        |> render_submit()
+
+      # Same copy either way: the limiter is not an oracle.
+      assert result =~ "A link to confirm your email"
+      refute_enqueued(worker: EmailChangeWorker)
     end
 
     test "does not send the email change with a wrong current password", %{conn: conn, user: user} do

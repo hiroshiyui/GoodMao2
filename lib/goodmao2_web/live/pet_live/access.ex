@@ -54,6 +54,14 @@ defmodule Goodmao2Web.PetLive.Access do
       {:error, :grantee_not_found} ->
         {:noreply, put_flash(socket, :error, gettext("No account matches that handle or email."))}
 
+      {:error, :rate_limited} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Too many sharing attempts. Please try again in an hour.")
+         )}
+
       {:error, :vet_not_verified} ->
         {:noreply,
          put_flash(

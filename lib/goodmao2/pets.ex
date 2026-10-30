@@ -160,6 +160,18 @@ defmodule Goodmao2.Pets do
     end
   end
 
+  @doc """
+  Hides or shows a pet's history (ADR-0003). Requires `:manage`.
+
+  Its own transition rather than a `Pet.changeset/2` field: the everyday edit form must not be
+  able to carry a crafted `history_hidden` param that locks every grantee out of the timeline.
+  """
+  def set_history_hidden(%User{} = user, %Pet{} = pet, hidden?) when is_boolean(hidden?) do
+    with :ok <- require(pet, user, :manage) do
+      pet |> Pet.privacy_changeset(%{history_hidden: hidden?}) |> Repo.update()
+    end
+  end
+
   defp require(pet, user, level) do
     if can?(pet, user, level), do: :ok, else: {:error, :unauthorized}
   end
@@ -208,10 +220,13 @@ defmodule Goodmao2.Pets do
   Grants (or re-grants) access to a pet, identifying the grantee by `@handle` or email.
 
   Requires the granter to hold `:manage`. Returns `{:error, :grantee_not_found}` if
-  no user matches the identifier.
+  no user matches the identifier, and `{:error, :rate_limited}` once the granter has used
+  their hourly attempts (`Goodmao2.Pets.GrantRateLimiter` — the lookup is an email
+  membership oracle, so it is metered per granter, found or not).
   """
   def grant_access(%User{} = granter, %Pet{} = pet, %{"identifier" => identifier} = attrs) do
     with :ok <- require(pet, granter, :manage),
+         :ok <- Goodmao2.Pets.GrantRateLimiter.check(granter.id),
          %User{} = grantee <- resolve_user(identifier),
          :ok <- require_verified_vet(attrs["role"], grantee) do
       # This path doubles as the grant-*update* path (insert_or_update), so it must

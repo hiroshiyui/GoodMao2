@@ -339,6 +339,60 @@ defmodule Goodmao2.PetsTest do
     end
   end
 
+  describe "grant attempt rate limit (email membership oracle)" do
+    test "a granter's lookups are capped per hour, found or not" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      limit = Application.fetch_env!(:goodmao2, Goodmao2.Pets)[:grant_attempts_per_hour]
+
+      for _ <- 1..limit do
+        assert {:error, :grantee_not_found} =
+                 Pets.grant_access(owner, pet, %{
+                   "identifier" => "nobody-#{System.unique_integer([:positive])}@example.com",
+                   "role" => "viewer"
+                 })
+      end
+
+      real = user_fixture()
+
+      assert Pets.grant_access(owner, pet, %{"identifier" => real.email, "role" => "viewer"}) ==
+               {:error, :rate_limited}
+    end
+  end
+
+  describe "history_hidden (ADR-0003) and mass assignment" do
+    test "the everyday edit form cannot hide the history or store a photo URL" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+
+      assert {:ok, updated} =
+               Pets.update_pet(owner, pet, %{
+                 "name" => "Still visible",
+                 "history_hidden" => true,
+                 "photo_url" => "javascript:alert(1)"
+               })
+
+      refute updated.history_hidden
+      assert updated.photo_url == nil
+      refute Pets.history_hidden?(pet)
+    end
+
+    test "set_history_hidden/3 is :manage-only and toggles the flag" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      caretaker = user_fixture()
+      grant_fixture(pet, owner, caretaker, "co_caretaker")
+
+      assert Pets.set_history_hidden(caretaker, pet, true) == {:error, :unauthorized}
+      refute Pets.history_hidden?(pet)
+
+      assert {:ok, hidden} = Pets.set_history_hidden(owner, pet, true)
+      assert Pets.history_hidden?(pet)
+      assert {:ok, _} = Pets.set_history_hidden(owner, hidden, false)
+      refute Pets.history_hidden?(pet)
+    end
+  end
+
   describe "list_pets/2 and lifecycle" do
     test "lists active pets and, separately, ended pets" do
       owner = user_fixture()

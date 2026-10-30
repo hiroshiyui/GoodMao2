@@ -41,6 +41,18 @@ defmodule Goodmao2.Media.Purifier do
   @probe_timeout_ms 30_000
   @encode_timeout_ms 120_000
 
+  # Hard pixel-count ceiling, *not* admin-configurable. The byte caps bound the compressed input,
+  # but a decompression bomb is tiny on disk: a 30 000×30 000 PNG is a few hundred KB and decodes
+  # to a 2.7 GB rgb24 frame, which the flatten/overlay chain holds several copies of — enough to
+  # OOM the whole node before the wall-clock deadline fires. 50 MP covers a 48 MP phone photo and
+  # 8K video (33 MP); whatever the admin sets `max_*_width/height` to, this still applies.
+  @max_pixels 50_000_000
+
+  # Frame ceiling for animated gif/webp (re-encoded frame by frame, so a tiny file with tens of
+  # thousands of frames would hold a `:media` slot for the whole deadline and fill the temp dir).
+  # 600 frames is ~20 s at 30 fps; anything longer is truncated, not refused.
+  @max_animation_frames 600
+
   @video_types %{
     mp4: %{content_type: "video/mp4", ext: "mp4", video: ~w(h264), audio: ~w(aac)},
     webm: %{
@@ -235,7 +247,7 @@ defmodule Goodmao2.Media.Purifier do
   defp single_frame_flags(format) when format in [:jpeg, :png],
     do: ["-frames:v", "1", "-update", "1"]
 
-  defp single_frame_flags(_format), do: []
+  defp single_frame_flags(_format), do: ["-frames:v", Integer.to_string(@max_animation_frames)]
 
   # Duplicate the frame, paint one copy fully opaque white, overlay the original (honouring its
   # alpha) on top, then force an alpha-less pixel format. Needs no knowledge of the dimensions.
@@ -281,11 +293,19 @@ defmodule Goodmao2.Media.Purifier do
     end
   end
 
-  # Enforce the admin-configurable floor/ceiling (`0` on either side = unbounded).
+  @doc "The non-configurable pixel-count ceiling (width × height) for any image or video frame."
+  def max_pixels, do: @max_pixels
+
+  @doc "The frame ceiling an animated gif/webp is truncated to."
+  def max_animation_frames, do: @max_animation_frames
+
+  # Enforce the hard pixel ceiling, then the admin-configurable floor/ceiling (`0` on either
+  # side = unbounded).
   defp within_resolution?(w, h, kind) do
     %{min_w: min_w, min_h: min_h, max_w: max_w, max_h: max_h} = resolution_bounds(kind)
 
     cond do
+      w * h > @max_pixels -> {:error, :above_max_resolution}
       w < min_w or h < min_h -> {:error, :below_min_resolution}
       max_w > 0 and w > max_w -> {:error, :above_max_resolution}
       max_h > 0 and h > max_h -> {:error, :above_max_resolution}

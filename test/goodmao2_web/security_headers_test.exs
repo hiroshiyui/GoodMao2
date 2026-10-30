@@ -34,7 +34,8 @@ defmodule Goodmao2Web.SecurityHeadersTest do
     # to supply it; now the app must, or removing it from the proxy would silently drop it.
     assert get_resp_header(conn, "x-frame-options") == ["DENY"]
     assert [csp] = get_resp_header(conn, "content-security-policy")
-    assert csp =~ "frame-ancestors 'self'"
+    assert csp =~ "frame-ancestors 'none'"
+    assert csp =~ "form-action 'self'"
   end
 
   test "the application, not the proxy, sets nosniff and a referrer policy", %{conn: conn} do

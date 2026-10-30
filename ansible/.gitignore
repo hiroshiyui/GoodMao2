@@ -5,3 +5,6 @@
 # to commit; guard against an accidental plaintext copy.
 inventory/group_vars/all.sops.yml.dec
 *.decrypted
+
+# A SECRET_KEY_BASE the deploy playbook generated for you to move into SOPS.
+inventory/group_vars/secret_key_base.generated

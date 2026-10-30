@@ -114,6 +114,9 @@ defmodule Goodmao2Web.MediaControllerTest do
     stranger = user_fixture()
     conn = conn |> log_in_user(stranger) |> get(~p"/media/#{asset.id}")
     assert conn.status == 404
+    # The not-found path is hardened by the pipeline, not only the controller's served path.
+    assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
+    assert get_resp_header(conn, "x-frame-options") == ["DENY"]
   end
 
   test "requires authentication", %{conn: conn} do

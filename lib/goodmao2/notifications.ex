@@ -101,7 +101,8 @@ defmodule Goodmao2.Notifications do
         {count, _} =
           Repo.update_all(
             from(n in Notification,
-              where: n.id == ^id and n.user_id == ^user_id and is_nil(n.read_at)
+              where: n.id == ^id and n.user_id == ^user_id and is_nil(n.read_at),
+              where: is_nil(n.deleted_at)
             ),
             set: [read_at: now(), updated_at: now()]
           )
@@ -310,7 +311,10 @@ defmodule Goodmao2.Notifications do
     entry = Goodmao2.Logs.get_entry_for_fanout(entry_id)
     pet = entry && Goodmao2.Repo.get(Goodmao2.Pets.Pet, pet_id)
 
-    if entry && pet && entry.pet_id == pet.id do
+    # `pet` is loaded fresh here, so its `history_hidden` is current: the owner may have hidden
+    # the history since the entry was created, and a bell naming the pet and log type would
+    # then be the only thing a grantee still sees of it.
+    if entry && pet && entry.pet_id == pet.id && not pet.history_hidden do
       actor_id = entry.recorded_by_user_id
 
       recipients =

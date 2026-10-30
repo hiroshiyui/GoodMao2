@@ -45,7 +45,11 @@ defmodule Goodmao2Web.Plugs.ContentSecurityPolicy do
       [
         "default-src 'self'",
         "base-uri 'self'",
-        "frame-ancestors 'self'",
+        # 'none' matches the legacy `X-Frame-Options: DENY` the router sends: a browser that
+        # understands CSP ignores XFO, so 'self' would silently re-allow same-origin framing.
+        "frame-ancestors 'none'",
+        # A markup-injection bug must not be able to re-target a form (TOTP, password) cross-origin.
+        "form-action 'self'",
         "object-src 'none'",
         "img-src 'self' data:",
         "font-src 'self'",

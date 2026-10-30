@@ -33,6 +33,9 @@ defmodule Goodmao2Web.Router do
     # The route is GET-only, but keep CSRF protection in the stack anyway (it is a no-op for
     # safe methods) so no future unsafe verb can be added here unguarded.
     plug :protect_from_forgery
+    # The controllers harden their own 200/206/304 responses; this covers the constant-body
+    # "Not found" path too, so no response from this pipeline leaves without nosniff/XFO.
+    plug :put_secure_browser_headers, %{"x-frame-options" => "DENY"}
     plug :fetch_current_scope_for_user
   end
 

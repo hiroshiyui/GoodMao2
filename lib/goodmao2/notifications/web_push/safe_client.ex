@@ -78,6 +78,7 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
 
     with :ok <- validate_scheme(uri),
          :ok <- validate_host(uri),
+         :ok <- validate_port(uri),
          {:ok, ip} <- safe_resolve_ip(uri.host) do
       {:ok, %{ip: ip, host: uri.host, uri: uri}}
     end
@@ -97,7 +98,13 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
       headers: headers_with_host,
       connect_options: [
         timeout: @connect_timeout,
-        transport_opts: [server_name_indication: String.to_charlist(host)]
+        # Peer verification is Mint's default, but a dependency default is not a contract:
+        # state it, so a future client change cannot silently downgrade it.
+        transport_opts: [
+          verify: :verify_peer,
+          cacerts: :public_key.cacerts_get(),
+          server_name_indication: String.to_charlist(host)
+        ]
       ],
       receive_timeout: @receive_timeout,
       max_redirects: 0,
@@ -120,6 +127,13 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
   end
 
   defp validate_scheme(_), do: {:error, :https_required}
+
+  # A push service lives on 443. Honouring any port would let a browser-supplied endpoint turn
+  # the server into a TLS port scanner of public hosts (the body is never read, but a connect
+  # succeeding or failing is an oracle). The http-localhost test path keeps its ephemeral port.
+  defp validate_port(%URI{scheme: "https", port: port}) when port in [nil, 443], do: :ok
+  defp validate_port(%URI{scheme: "http"}), do: :ok
+  defp validate_port(_), do: {:error, :invalid_port}
 
   defp validate_host(%URI{host: nil}), do: {:error, :invalid_host}
   defp validate_host(%URI{host: ""}), do: {:error, :invalid_host}
@@ -158,6 +172,13 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
   def private_ip?({0, _, _, _}), do: true
   # 100.64.0.0/10 — CGNAT / shared address space (RFC 6598)
   def private_ip?({100, b, _, _}) when b >= 64 and b <= 127, do: true
+  # 192.0.0.0/24 IETF protocol assignments, 192.0.2.0/24 TEST-NET-1 (RFC 6890)
+  def private_ip?({192, 0, 0, _}), do: true
+  def private_ip?({192, 0, 2, _}), do: true
+  # 198.18.0.0/15 benchmarking (RFC 2544); 198.51.100.0/24 TEST-NET-2; 203.0.113.0/24 TEST-NET-3
+  def private_ip?({198, b, _, _}) when b in [18, 19], do: true
+  def private_ip?({198, 51, 100, _}), do: true
+  def private_ip?({203, 0, 113, _}), do: true
   # 224.0.0.0/4 multicast and 240.0.0.0/4 reserved (covers 255.255.255.255)
   def private_ip?({a, _, _, _}) when a >= 224, do: true
   # IPv6 unspecified ::
@@ -166,8 +187,16 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
   def private_ip?({0, 0, 0, 0, 0, 0, 0, 1}), do: true
   # IPv6 fc00::/7 (unique local)
   def private_ip?({a, _, _, _, _, _, _, _}) when a >= 0xFC00 and a <= 0xFDFF, do: true
-  # IPv6 fe80::/10 (link-local)
-  def private_ip?({a, _, _, _, _, _, _, _}) when a >= 0xFE80 and a <= 0xFEBF, do: true
+  # IPv6 fe80::/10 (link-local) and fec0::/10 (deprecated site-local)
+  def private_ip?({a, _, _, _, _, _, _, _}) when a >= 0xFE80 and a <= 0xFEFF, do: true
+  # 6to4 (2002::/16) embeds an IPv4 in the next 32 bits; a relay could route it into RFC 1918.
+  def private_ip?({0x2002, hi, lo, _, _, _, _, _}),
+    do: private_ip?({hi >>> 8, hi &&& 0xFF, lo >>> 8, lo &&& 0xFF})
+
+  # Teredo (2001:0::/32) tunnels to an obfuscated IPv4 we cannot vet; deny the whole prefix.
+  def private_ip?({0x2001, 0, _, _, _, _, _, _}), do: true
+  # 64:ff9b:1::/48 local-use NAT64 (RFC 8215) — a site-private translator, deny outright.
+  def private_ip?({0x64, 0xFF9B, 1, _, _, _, _, _}), do: true
   # IPv6 ff00::/8 (multicast)
   def private_ip?({a, _, _, _, _, _, _, _}) when a >= 0xFF00 and a <= 0xFFFF, do: true
   # IPv4-mapped IPv6 (::ffff:x.y.z.w) — extract embedded IPv4 and re-check.

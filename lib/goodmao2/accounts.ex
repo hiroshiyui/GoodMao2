@@ -575,6 +575,28 @@ defmodule Goodmao2.Accounts do
   end
 
   @doc """
+  Queues the confirm-new-address email for an email change (`Goodmao2.Accounts.EmailChangeWorker`).
+
+  `new_email` is the validated target address (the caller has already applied
+  `change_user_email/3` with the current password). The per-address
+  `RegistrationRateLimiter` is charged for the *target* first, so an authenticated account
+  cannot use its own settings page to flood an arbitrary inbox; over the cap the request is
+  silently dropped — `:ok` either way, so the page says the same thing and the limiter adds no
+  oracle. Web forms use this rather than `deliver_user_update_email_instructions/3`, which
+  sends inline.
+  """
+  def request_email_change(%User{id: user_id, email: current_email}, new_email)
+      when is_binary(new_email) do
+    if Goodmao2.Accounts.RegistrationRateLimiter.check(new_email) == :ok do
+      %{"user_id" => user_id, "current_email" => current_email, "new_email" => new_email}
+      |> Goodmao2.Accounts.EmailChangeWorker.new()
+      |> Oban.insert()
+    end
+
+    :ok
+  end
+
+  @doc """
   Queues a magic-link login email for `user` (`Goodmao2.Accounts.LoginLinkWorker`).
 
   Web forms use this rather than `deliver_login_instructions/2` so no request waits on outbound

@@ -207,7 +207,7 @@ defmodule Goodmao2.LogsTest do
 
     test "is empty when history is hidden (ADR-0003)", %{owner: owner, pet: pet} do
       log_entry_fixture(owner, pet, %{"type" => "weight", "data" => %{"weight_grams" => 4200}})
-      {:ok, hidden} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      {:ok, hidden} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
       assert Logs.weight_series(owner, hidden) == []
     end
   end
@@ -215,7 +215,7 @@ defmodule Goodmao2.LogsTest do
   describe "history_hidden (ADR-0003)" do
     setup %{owner: owner, pet: pet} do
       log_entry_fixture(owner, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
-      {:ok, hidden} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      {:ok, hidden} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
       %{hidden: hidden}
     end
 
@@ -235,7 +235,7 @@ defmodule Goodmao2.LogsTest do
     end
 
     test "reads return again once un-hidden", %{owner: owner, hidden: hidden} do
-      {:ok, shown} = Goodmao2.Pets.update_pet(owner, hidden, %{"history_hidden" => false})
+      {:ok, shown} = Goodmao2.Pets.set_history_hidden(owner, hidden, false)
       assert length(Logs.list_entries(owner, shown)) == 1
     end
 
@@ -619,7 +619,7 @@ defmodule Goodmao2.LogsTest do
 
     test "hiding the pet's history kills a live link", %{owner: owner, pet: pet} do
       entry = public_entry(owner, pet)
-      {:ok, _} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      {:ok, _} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
       assert Logs.fetch_entry_by_share_token(entry.share_token) == nil
     end
 

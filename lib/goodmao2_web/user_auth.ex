@@ -14,10 +14,14 @@ defmodule Goodmao2Web.UserAuth do
   # the session validity setting in UserToken.
   @max_cookie_age_in_days 14
   @remember_me_cookie "_goodmao2_web_user_remember_me"
+  # `secure`/`http_only` mirror the session cookie's own options (`Goodmao2Web.Endpoint`): this
+  # token is a 14-day credential, so it must never ride a clear-text request either.
   @remember_me_options [
     sign: true,
     max_age: @max_cookie_age_in_days * 24 * 60 * 60,
-    same_site: "Lax"
+    same_site: "Lax",
+    secure: Mix.env() == :prod,
+    http_only: true
   ]
 
   # How old the session token should be before a new one is issued. When a request is made

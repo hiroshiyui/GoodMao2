@@ -133,6 +133,54 @@ defmodule Goodmao2.MediaTest do
       assert {:error, :above_max_resolution} = Media.purify(make_png("color=c=red:s=200x50"))
     end
 
+    test "rejects an image above the hard pixel ceiling even when the admin lifts every bound" do
+      # Decompression bomb: a flat-colour frame far above `Purifier.max_pixels/0` is tiny on
+      # disk, so the byte cap cannot catch it, and `0` = unbounded on the configurable ceiling.
+      Settings.put("media_max_image_width", "0")
+      Settings.put("media_max_image_height", "0")
+      Settings.put("media_max_image_bytes", "0")
+      side = :math.sqrt(Goodmao2.Media.Purifier.max_pixels()) |> ceil() |> Kernel.+(1)
+
+      assert {:error, :above_max_resolution} =
+               Media.purify(make_png("color=c=red:s=#{side}x#{side}"))
+    end
+
+    test "truncates an animated gif to the frame ceiling" do
+      Settings.put("media_min_image_width", "0")
+      Settings.put("media_min_image_height", "0")
+      cap = Goodmao2.Media.Purifier.max_animation_frames()
+      path = tmp("gif")
+
+      {_, 0} =
+        System.cmd(
+          "ffmpeg",
+          ~w(-hide_banner -v error -f lavfi -i color=c=red:s=16x16:r=30 -frames:v #{cap + 100} -y) ++
+            [path]
+        )
+
+      on_exit(fn -> File.rm(path) end)
+
+      result = Media.purify(path)
+      cleanup_purified(result)
+      assert {:ok, %{kind: "image", content_type: "image/gif", path: out}} = result
+
+      {frames, 0} =
+        System.cmd("ffprobe", [
+          "-v",
+          "error",
+          "-count_frames",
+          "-select_streams",
+          "v:0",
+          "-show_entries",
+          "stream=nb_read_frames",
+          "-of",
+          "csv=p=0",
+          out
+        ])
+
+      assert String.to_integer(String.trim(frames)) <= cap
+    end
+
     test "rejects an image larger than the configured byte cap" do
       # A 1000×1000 PNG is a few KB; a 1-byte cap rejects it as too_large.
       Settings.put("media_max_image_bytes", "1")
@@ -210,7 +258,7 @@ defmodule Goodmao2.MediaTest do
 
       assert Media.create_life_log(viewer, pet, %{"note" => "no"}, []) == {:error, :unauthorized}
 
-      {:ok, hidden} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      {:ok, hidden} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
 
       assert Media.create_life_log(owner, hidden, %{"note" => "no"}, []) ==
                {:error, :unauthorized}

@@ -162,6 +162,10 @@ config :goodmao2, Goodmao2.Notifications, push_subscribe_per_hour: 60
 # recipient, so this bounds how hard one account can reach another's phone.
 config :goodmao2, Goodmao2.Messaging, messages_per_hour: 120
 
+# Access-grant attempts per granter per hour: the grant form resolves by email, so this bounds
+# how fast one account can probe which addresses are registered (`Pets.GrantRateLimiter`).
+config :goodmao2, Goodmao2.Pets, grant_attempts_per_hour: 30
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

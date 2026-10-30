@@ -82,18 +82,31 @@
           ansible.builtin.set_fact:
             secret_key_base: "{{ lookup('ansible.builtin.password', '/dev/null length=64 chars=ascii_letters,digits') }}"
 
-        - name: Display generated secret key base
+        # Never echo the value: it keys sessions, TOTP secrets, recovery-code HMACs and the
+        # VAPID vault, and stdout lands in scrollback and CI logs. Write it to a local
+        # 0600 file the operator moves into SOPS, then deletes.
+        - name: Write generated secret key base to a local file (never printed)
+          ansible.builtin.copy:
+            content: "{{ secret_key_base }}\n"
+            dest: "{{ playbook_dir }}/../inventory/group_vars/secret_key_base.generated"
+            mode: "0600"
+          delegate_to: localhost
+          become: false
+          no_log: true
+
+        - name: Explain where the generated secret key base went
           ansible.builtin.debug:
             msg: |
               ============================================================
-              Generated SECRET_KEY_BASE: {{ secret_key_base }}
+              A SECRET_KEY_BASE was generated and written (mode 0600) to:
 
-              Save this to your SOPS secrets file:
+                inventory/group_vars/secret_key_base.generated
+
+              Save it to your SOPS secrets file, then delete that file:
 
                 sops inventory/group_vars/all.sops.yml
-
-              Add the value:
-                secret_key_base: "{{ secret_key_base }}"
+                  secret_key_base: "<contents of the file>"
+                rm inventory/group_vars/secret_key_base.generated
               ============================================================
 
         - name: Confirm secret key base has been saved

@@ -3532,3 +3532,8 @@ msgstr "共有"
 #, elixir-autogen, elixir-format
 msgid "crop selector"
 msgstr "切り抜き範囲の選択"
+
+#: lib/goodmao2_web/live/pet_live/access.ex
+#, elixir-autogen, elixir-format
+msgid "Too many sharing attempts. Please try again in an hour."
+msgstr "共有の試行回数が多すぎます。1時間後にもう一度お試しください。"

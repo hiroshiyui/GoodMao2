@@ -40,12 +40,12 @@ defmodule Goodmao2.ReportsTest do
       refute "symptom" in types
     end
 
-    test "returns an empty snapshot when history is hidden", %{owner: owner, pet: pet} do
+    test "is refused while history is hidden", %{owner: owner, pet: pet} do
       log_entry_fixture(owner, pet, %{"type" => "food"})
-      {:ok, pet} = Goodmao2.Pets.update_pet(owner, pet, %{"history_hidden" => true})
+      {:ok, _} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
 
-      {:ok, report} = Reports.generate_report(owner, pet, today_range())
-      assert report.content["entries"] == []
+      # The stale `pet` snapshot still says visible; the gate reads the database.
+      assert Reports.generate_report(owner, pet, today_range()) == {:error, :unauthorized}
     end
 
     test "requires :manage", %{pet: pet} do
@@ -73,6 +73,35 @@ defmodule Goodmao2.ReportsTest do
       grant_fixture(pet, owner, vet, "vet")
       assert %{id: id} = Reports.fetch_report(vet, pet, report.id)
       assert id == report.id
+    end
+  end
+
+  describe "history_hidden (ADR-0003)" do
+    test "hides existing reports from every grantee and kills live share links", ctx do
+      %{owner: owner, pet: pet} = ctx
+      vet = user_fixture()
+      grant_fixture(pet, owner, vet, "viewer")
+      log_entry_fixture(owner, pet, %{"type" => "food"})
+      {:ok, report} = Reports.generate_report(owner, pet, today_range())
+
+      {:ok, {_, token}} =
+        Reports.create_share_token(owner, pet, report, DateTime.add(DateTime.utc_now(), 3600))
+
+      assert [_] = Reports.list_reports(vet, pet)
+      assert %{id: _} = Reports.fetch_report_by_token(token)
+
+      {:ok, hidden} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
+
+      # A grantee holding the pre-hide `%Pet{}` snapshot sees nothing.
+      assert Reports.list_reports(vet, pet) == []
+      assert Reports.fetch_report(vet, pet, report.id) == nil
+      assert Reports.list_reports(owner, pet) == []
+      assert Reports.fetch_report(owner, pet, report.id) == nil
+      assert Reports.fetch_report_by_token(token) == nil
+
+      {:ok, _} = Goodmao2.Pets.set_history_hidden(owner, hidden, false)
+      assert [_] = Reports.list_reports(vet, pet)
+      assert %{id: _} = Reports.fetch_report_by_token(token)
     end
   end
 

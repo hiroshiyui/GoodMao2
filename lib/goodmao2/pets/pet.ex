@@ -49,7 +49,10 @@ defmodule Goodmao2.Pets.Pet do
   Changeset for creating or editing a pet's descriptive attributes.
 
   Lifecycle transitions are handled separately by `lifecycle_changeset/2` so the
-  everyday edit form can never accidentally end a pet's care.
+  everyday edit form can never accidentally end a pet's care, and the privacy flag by
+  `privacy_changeset/2` so a crafted edit-form param cannot hide the history from every
+  grantee. `photo_url` is a dormant column (avatars replaced it, ADR-0020): never cast, so no
+  user-supplied URL is ever stored for a template to one day render.
   """
   def changeset(pet, attrs) do
     pet
@@ -61,9 +64,7 @@ defmodule Goodmao2.Pets.Pet do
       :sex,
       :birth_date,
       :neutered,
-      :photo_url,
-      :weight_unit,
-      :history_hidden
+      :weight_unit
     ])
     |> validate_required([:name, :species, :sex, :weight_unit])
     |> validate_length(:name, min: 1, max: 100)
@@ -88,6 +89,13 @@ defmodule Goodmao2.Pets.Pet do
     |> validate_inclusion(:lifecycle_status, @lifecycle_statuses)
     |> put_ended_at()
     |> validate_ended_at_not_future()
+  end
+
+  @doc "Changeset for the history-hidden privacy toggle (ADR-0003). Owner-only via `Pets`."
+  def privacy_changeset(pet, attrs) do
+    pet
+    |> cast(attrs, [:history_hidden])
+    |> validate_required([:history_hidden])
   end
 
   defp put_ended_at(changeset) do

@@ -24,4 +24,19 @@ defmodule Goodmao2.Accounts.LoginRateLimiterTest do
     assert :ets.lookup(table, stale) == []
     assert [{^live, _}] = :ets.lookup(table, live)
   end
+
+  test "a concurrent burst of second-factor reservations never exceeds the hourly cap" do
+    user_id = System.unique_integer([:positive])
+    limit = Application.fetch_env!(:goodmao2, Goodmao2.Accounts)[:login_attempts_per_hour]
+
+    results =
+      1..(limit * 5)
+      |> Task.async_stream(fn _ -> Limiter.reserve_second_factor(user_id) end,
+        max_concurrency: 50
+      )
+      |> Enum.map(fn {:ok, r} -> r end)
+
+    assert Enum.count(results, &(&1 == :ok)) == limit
+    assert Limiter.reserve_second_factor(user_id) == {:error, :rate_limited}
+  end
 end

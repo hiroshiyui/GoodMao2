@@ -21,6 +21,8 @@ defmodule Goodmao2.Application do
       Goodmao2.Notifications.PushRateLimiter,
       # Owns the message-send rate-limit ETS table (ADR-0011).
       Goodmao2.Messaging.SendRateLimiter,
+      # Owns the access-grant attempt rate-limit ETS table (ADR-0014).
+      Goodmao2.Pets.GrantRateLimiter,
       # Owns the registration / magic-link email rate-limit ETS table (ADR-0016).
       Goodmao2.Accounts.RegistrationRateLimiter,
       # Owns the failed email+password login rate-limit ETS table.

@@ -190,6 +190,29 @@ defmodule Goodmao2Web.UserTwoFactorControllerTest do
     end
   end
 
+  describe "WebAuthn challenge" do
+    @describetag :capture_log
+
+    test "a malformed assertion is a counted failure, not a crash", %{conn: conn} do
+      {user, _secret} = totp_login_user()
+      webauthn_credential_fixture(user)
+      conn = start_login(conn, user)
+
+      # A real, unexpired challenge so the request reaches the assertion decoding, with the
+      # fields a browser would base64url-encode missing or of the wrong shape.
+      {token, _options_json} = Goodmao2.Accounts.WebAuthn.begin_authentication(user)
+
+      conn =
+        post(conn, ~p"/users/two-factor/webauthn", %{
+          "webauthn" => %{"challenge_token" => token, "credential_id" => %{"nested" => "map"}}
+        })
+
+      refute get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/users/two-factor"
+      assert get_session(conn, :pending_2fa_attempts) == 1
+    end
+  end
+
   describe "forced-setup completion guard" do
     test "a challenge user cannot skip their factor by posting to /complete", %{conn: conn} do
       # An attacker who has only the password reaches the pending state legitimately, then

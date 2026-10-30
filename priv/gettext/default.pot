@@ -3536,3 +3536,8 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "crop selector"
 msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/access.ex
+#, elixir-autogen, elixir-format
+msgid "Too many sharing attempts. Please try again in an hour."
+msgstr ""
