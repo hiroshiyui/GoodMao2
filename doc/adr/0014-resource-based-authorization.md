@@ -107,6 +107,13 @@ reported as not-found.**
   correctness-by-recomputation is simpler and cannot go stale.
 - **Return `403 Forbidden` for inaccessible pets** — rejected: leaks existence and enables
   enumeration; not-found is the only non-leaking answer.
+- **A uniform answer from `grant_access/3`** ("if that account exists, access was granted") —
+  rejected: the grant form resolves by `@handle` *or email*, and an owner who mistyped a
+  family member's address needs to hear so. The found/not-found answer is an email-membership
+  oracle, so it is metered instead — `Pets.GrantRateLimiter` caps lookups per granter per hour,
+  charged before the lookup, found or not (creating a pet is free, so per pet would bound
+  nothing). Handle-only lookup remains the fallback if the oracle ever matters more than
+  email sharing.
 - **Enforce the ≥1-owner rule with a DB constraint** — rejected: "at least one *effective*
   owner" depends on `status` and a time comparison, which a static `CHECK` can't express;
   the transactional `FOR UPDATE` guard enforces it precisely where owner grants change.

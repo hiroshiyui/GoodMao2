@@ -77,8 +77,9 @@ many-recipient fan-out runs through Oban. Web Push is a separate, later stage.**
 
 - **Web Push is Stage 2 (now shipped).** Browser-supplied push endpoints are user-supplied
   URLs, so an **SSRF-safe outbound client** (`WebPush.SafeClient` — private-range denylist
-  incl. IPv4-mapped/NAT64 IPv6, DNS pinning) validates each endpoint at storage *and* send
-  time. Stage 2 adds a `push_subscriptions` entity, the RFC 8291/8188/8292 crypto
+  incl. IPv4-mapped/NAT64/6to4/Teredo IPv6 and the reserved IPv4 blocks, DNS pinning, HTTPS on
+  port 443 only so the server cannot be used as a TLS port scanner, explicit peer verification)
+  validates each endpoint at storage *and* send time. Stage 2 adds a `push_subscriptions` entity, the RFC 8291/8188/8292 crypto
   (hand-rolled on `:crypto`, **no external library**), an Oban `PushDispatchWorker` hooked at
   the single `Notifications.create/3` choke point (so all four bell types push with no drift),
   browser subscribe/unsubscribe endpoints, and a service worker — reusing the Stage-1

@@ -76,7 +76,11 @@ S3-compatible object store is a later option behind the same seam).
   - **Byte-size caps and min/max pixel dimensions** (per kind, images *and* videos) are enforced
     against `Media.Limits` — resolved from the `Settings` store so an administrator can tune every
     bound at runtime from `/admin/settings` (`0` on either side = unbounded). Defaults: images
-    ≤ 8 MB with a 640×480 floor, videos ≤ 16 MB; all other bounds ship unbounded.
+    ≤ 8 MB with a 640×480 floor, videos ≤ 16 MB; all other bounds ship unbounded. Two bounds
+    sit outside the admin's reach: a **50-megapixel frame ceiling** (a decompression bomb is a
+    few hundred KB on disk and gigabytes decoded, so the byte cap cannot catch it and an
+    unbounded dimension cap would OOM the node) and a **600-frame cap** that truncates animated
+    gif/webp, which are re-encoded frame by frame.
 - **Serving.** One authenticated endpoint resolves the asset by its own id, re-applies the
   **parent log's read authorization** (effective grant + ADR-0004 `visibility` + recorder
   + `history_hidden`), hides existence with `not_found`, and streams the bytes with

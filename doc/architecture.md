@@ -19,11 +19,15 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   regression enforced), the supervised single-use `Accounts.WebAuthnChallenges` ETS store, and
   `Accounts.TotpVault` (AES-256-GCM secret-at-rest, keyed off `SECRET_KEY_BASE`). 2FA is
   **required for the admin**, opt-in for everyone else. Per-address ETS sliding-window abuse
-  throttles: `Accounts.RegistrationRateLimiter` (registration + magic-link email) and
-  `Accounts.LoginRateLimiter` (failed email+password logins, reset on success).
+  throttles: `Accounts.RegistrationRateLimiter` (registration + magic-link email, and the
+  target address of an email change, which `EmailChangeWorker` mails off the request path) and
+  `Accounts.LoginRateLimiter` (failed email+password logins, reset on success; the per-user
+  second-factor budget, serialized through the process).
 - **Pets** (`pets.ex`) — pets, access grants, and the **resource-based authorization**
   core ([ADR-0014](adr/0014-resource-based-authorization.md)). Authorization is computed
-  per request from an *effective* grant, never global.
+  per request from an *effective* grant, never global. Grant lookups (by `@handle` or email)
+  are metered per granter (`Pets.GrantRateLimiter`); hiding the history is the owner-only
+  `set_history_hidden/3` transition, not an edit-form field.
 - **Logs** (`logs.ex`) — structured log entries ([ADR-0015](adr/0015-structured-one-table-logging.md)),
   the timeline query (soft-delete-aware), and real-time broadcasts over PubSub.
 - **Medications** (`medications.ex`) — recurring medication **schedules** + materialized **dose**
@@ -107,7 +111,8 @@ Descriptive attributes (`name`, `species`, `breed`, `color`, `sex`, `birth_date`
 with role `owner`. `created_by_user_id` is an audit reference (no FK navigation).
 `lifecycle_status` (`active` / `passed_away` / `rehomed` / `lost` / `other`) with
 `ended_at`; end-of-care is a **status transition, not a deletion**. `history_hidden`
-exists-hides the timeline.
+exists-hides the timeline, set only through `Pets.set_history_hidden/3` (`Pet.privacy_changeset/2`);
+`photo_url` is a dormant column that is never cast ([ADR-0020](adr/0020-profile-images.md)).
 
 ### `pet_accesses` (Pets.PetAccess) — the authorization core
 ([ADR-0014](adr/0014-resource-based-authorization.md).) One row per `(pet, user)`. `role` ∈ {`owner`, `co_caretaker`, `viewer`, `vet`},
@@ -262,7 +267,8 @@ keyed off `SECRET_KEY_BASE`), `vapid_subject`; `default_timezone`, the system de
 resolved through `Media.Limits` — `media_max_image_bytes`, `media_max_video_bytes`, and the
 min/max width/height pairs for images and videos ([ADR-0005](adr/0005-media-storage.md)).
 A limit of `0` means *unbounded*; absent keys fall back to the built-in defaults, so the table
-holds only what an admin has actually overridden.
+holds only what an admin has actually overridden. Independent of these, the purifier enforces a
+fixed 50-megapixel frame ceiling and truncates animated gif/webp at 600 frames.
 
 ## Authorization logic
 

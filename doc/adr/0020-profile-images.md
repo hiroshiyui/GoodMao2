@@ -32,7 +32,9 @@ and an authorization endpoint whose rules match the owner — not a log entry.**
 - **One polymorphic table.** `avatars(owner_type ∈ {user,pet}, owner_id, status, content_type,
   byte_size, uploaded_by_user_id)` with a **unique index on `(owner_type, owner_id)`** — exactly
   one avatar per owner, the upsert target. No FK navigation (the id spans two tables; audit-only,
-  per the repo convention). `pets.photo_url` is left dormant, not repurposed.
+  per the repo convention). `pets.photo_url` is left dormant, not repurposed — and since the
+  security audit, no longer cast by `Pet.changeset/2`, so no user-supplied URL is stored for a
+  template to one day render.
 
 - **Images only, purified off the request path.** `Media.Avatars.set_avatar/5` stages the raw
   upload (`Media.Storage.stage/1`), upserts the row to `processing`, and enqueues an

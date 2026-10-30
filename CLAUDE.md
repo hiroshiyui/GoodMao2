@@ -113,8 +113,11 @@ each described below; the web layer is thin LiveViews that call them.
   Abuse throttles are per-address ETS sliding windows: `Accounts.RegistrationRateLimiter`
   (registration + magic-link emails) and `Accounts.LoginRateLimiter` (failed email+password
   logins — a success resets the counter, and the generic error adds no enumeration/lockout oracle
-  — plus the **per-user second-factor budget**, charged before each factor is evaluated; the
-  pending session's own counter is cookie-held and resets on replay, so it bounds nothing alone).
+  — plus the **per-user second-factor budget**, charged before each factor is evaluated and
+  serialized through the limiter process so a parallel burst cannot overshoot it; the pending
+  session's own counter is cookie-held and resets on replay, so it bounds nothing alone). An
+  email change is mailed off the request path too (`Accounts.request_email_change/2` →
+  `EmailChangeWorker`), metered per *target* address by the registration limiter.
 - **`Pets`** (`pets.ex`) — pets, `pet_accesses` grants, and the **resource-based
   authorization core** ([ADR-0014](doc/adr/0014-resource-based-authorization.md)). This is
   the security-critical module:
@@ -126,6 +129,12 @@ each described below; the web layer is thin LiveViews that call them.
     "forbidden").
   - Creating a pet inserts the creator's `owner` grant in the **same transaction**; the
     **≥1-owner invariant** is enforced on revoke (`{:error, :last_owner}`).
+  - `grant_access/3` resolves the grantee by `@handle` *or email* and must say whether it found
+    one, which is an email-membership oracle; it is metered per granter by
+    `Pets.GrantRateLimiter` (`grant_attempts_per_hour`), charged before the lookup.
+  - Hiding a pet's history (ADR-0003) is its own `:manage`-only transition,
+    `Pets.set_history_hidden/3` — `Pet.changeset/2` casts neither `history_hidden` nor the
+    dormant `photo_url`, so the edit form cannot carry either.
 - **`Logs`** (`logs.ex`) — structured entries + the timeline + **PubSub**
   ([ADR-0015](doc/adr/0015-structured-one-table-logging.md)). All entry types
   share **one `log_entries` table** with a `type` discriminator and a `jsonb` `data`
@@ -167,7 +176,10 @@ each described below; the web layer is thin LiveViews that call them.
   wall-clock deadline (`System.cmd` has none) — one slow or hostile file must never occupy a
   `:default` slot, which is what carries medication reminders and Web Push. Byte-size caps and min/max pixel dimensions (images *and* videos) are
   **admin-configurable** via `Media.Limits` (Settings-backed, `0` = unbounded; image floor ships
-  640×480) and enforced in the purifier; the same size cap gates the LiveView upload. `Media.Storage`
+  640×480) and enforced in the purifier; the same size cap gates the LiveView upload. Two bounds
+  are **not** configurable: a 50-megapixel frame ceiling (`Purifier.max_pixels/0` — a
+  decompression bomb is tiny on disk, so the byte cap cannot catch it) and a 600-frame cap that
+  truncates animated gif/webp. `Media.Storage`
   writes id-keyed opaque objects under a configured `storage_dir` (physical path never stored —
   traversal-proof), served IDOR-hidden per request. `Media.OrphanJanitor` (daily Oban cron →
   `delete_orphans/0`) reclaims stray objects + stale staged uploads. `Media.RateLimiter` throttles uploads.

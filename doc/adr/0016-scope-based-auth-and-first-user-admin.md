@@ -74,7 +74,10 @@ global operational role that confers no pet access.**
 - **Registration is existence-hidden and rate-limited.** The registration form responds to a
   duplicate email exactly as to a fresh signup (sending the existing account a login link
   instead), so it can't be used to enumerate members; and registration / magic-link emails are
-  throttled per address (`Accounts.RegistrationRateLimiter`) to cap outbound auth mail.
+  throttled per address (`Accounts.RegistrationRateLimiter`) to cap outbound auth mail. The
+  email-change confirmation rides the same limiter, keyed by the *target* address, and is sent
+  by `EmailChangeWorker` off the request path: a signed-in account in sudo mode must not be
+  able to pump mail at an arbitrary inbox from its own settings page.
 - **The admin/pet-access separation is load-bearing.** Any future admin feature must resist
   the temptation to "just let the admin see it" for pet data; oversight surfaces show
   counts and identities, not timelines.

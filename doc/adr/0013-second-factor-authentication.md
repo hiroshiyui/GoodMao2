@@ -100,7 +100,9 @@ admin, gating every primary-auth path through a new pending-2FA stage. Use `wax_
   counter lives in the signed session *cookie*, so a client replaying its pre-failure cookie
   resets it; the authoritative bound is therefore server-side — `Accounts.LoginRateLimiter`
   charges every factor attempt to a **per-user** hourly budget *before* evaluating it and
-  refuses to evaluate any factor once it is spent (cleared only by a successful factor). TOTP
+  refuses to evaluate any factor once it is spent (cleared only by a successful factor). The
+  reservation is serialized through the limiter process: an inline ETS check-then-insert let
+  N parallel guesses all read the same count and all pass, so the cap was "limit + concurrency". TOTP
   replay within a 30 s window is rejected by `Accounts.consume_totp/3`, which verifies the code
   and claims its window in one conditional `UPDATE` of `users.totp_last_used_at` — a
   read-then-stamp let two concurrent requests with the same code both pass (the stamp is

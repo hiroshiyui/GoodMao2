@@ -13,6 +13,38 @@ with Baudrate (its ADR 0077), which shares the server. Erlang must be rebuilt th
 trixie's OpenSSL before the next deploy: `setup-server.yml --tags elixir` after removing the
 old build, then the deploy.
 
+### Security
+
+A project-wide security audit (OWASP Top 10 against the authorization core, injection,
+auth/2FA, secrets, configuration, the Rust NIF and dependencies) found no critical issue
+and two an effective grantee could exploit, both fixed with regression tests:
+
+- **Reports ignored a pet's hidden history.** Listing, fetching, generating, and the
+  anonymous `/reports/shared/:token` link all served frozen snapshots after the owner hid
+  the timeline, while entries and medications hid. Every path now reads the flag fresh.
+- **No pixel-count ceiling on uploads.** The admin-configurable dimension caps ship
+  unbounded, so a few-hundred-KB PNG at 30 000×30 000 decoded into multi-GB ffmpeg
+  frames. The purifier now enforces a fixed 50-megapixel ceiling and truncates animated
+  gif/webp at 600 frames.
+- bandit 1.13.1 → 1.14.1 (nine advisories: HTTP/2 flow control, request smuggling,
+  WebSocket fragment-size bypass) and hackney 4.7.4 → 4.9.1 (test-only, five advisories).
+- The second-factor attempt budget is reserved through the limiter process, so a parallel
+  burst can no longer overshoot the hourly cap.
+- An email change is mailed off the request path (`EmailChangeWorker`) and metered per
+  target address, so a signed-in account cannot pump mail at an arbitrary inbox.
+- Access-grant lookups are metered per granter (`Pets.GrantRateLimiter`): the grant form
+  resolves by email, which is an account-membership oracle.
+- The pet edit form can no longer carry `history_hidden` (now the owner-only
+  `Pets.set_history_hidden/3`) or the dormant `photo_url`.
+- The Web Push client refuses HTTPS ports other than 443, states TLS peer verification
+  explicitly, and denies the remaining reserved ranges (6to4, Teredo, site-local, local-use
+  NAT64, TEST-NETs, benchmarking).
+- A malformed WebAuthn POST is a counted failure instead of a 500; the remember-me cookie
+  carries `secure`/`http_only`; CSP moves to `frame-ancestors 'none'` plus
+  `form-action 'self'`; the media-serving pipeline sends secure headers on its 404 path.
+- The deploy playbook writes a generated `SECRET_KEY_BASE` to a local 0600 file instead
+  of printing it.
+
 ### Changed
 
 - Ansible inventory, README and CI's PostgreSQL service pin 17, production's major.
