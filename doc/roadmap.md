@@ -11,8 +11,8 @@ file tracks what's done, what's open, and what was ruled out. Implementation det
 entries here stay short.
 
 **Where things stand:** [v1.0.0](#milestone-v100) shipped on 2026-07-23 and is live at
-[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.6** (2026-10-30); main carries only
-the production host's move to Debian 13 / PostgreSQL 17. The
+[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.6** (2026-10-30), and main carries
+nothing unreleased. The
 [releases since v1.0.0](#releases-since-v100) were mostly hardening: two project-wide reviews, a
 security audit, browser-driven tests, a runtime upgrade, the Baudrate comparison, and a run of
 advisory patches. The open work is in two lists:
