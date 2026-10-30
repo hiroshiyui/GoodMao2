@@ -8,6 +8,8 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.6] - 2026-10-30
+
 The production host moved to Debian 13 (trixie) with PostgreSQL 17 on 2026-10-26, in step
 with Baudrate (its ADR 0077), which shares the server. Erlang must be rebuilt there against
 trixie's OpenSSL before the next deploy: `setup-server.yml --tags elixir` after removing the
