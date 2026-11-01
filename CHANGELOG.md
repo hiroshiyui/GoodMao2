@@ -8,7 +8,9 @@ skill).
 
 ## [Unreleased]
 
-Production must install Elixir 1.20.5-otp-29 before the next deploy
+## [1.6.7] - 2026-11-01
+
+Production must install Elixir 1.20.5-otp-29 before the deploy
 (`setup-server.yml --tags elixir`); the deploy preflight refuses a runtime the server lacks.
 
 ### Security
@@ -19,20 +21,24 @@ Production must install Elixir 1.20.5-otp-29 before the next deploy
   certificates matching across a label boundary). Test-only (via Wallaby's `hackney`);
   production never loaded it.
 
-### Fixed
-
-- **A revoked session's open pages leave at once again** (logout, password change, magic-link
-  login). Each LiveView of the session is now told directly and redirects its page to the log-in
-  page; the socket's `"disconnect"` follows a second later as the backstop. It no longer depends
-  on the WebSocket close code, which is what held Phoenix at 1.8.15.
+Both were found by `hex.audit` only; `mix_audit` reported neither.
 
 ### Changed
 
-- **Phoenix 1.8.15 → 1.8.16.** The hold is lifted: since 1.8.16 a `"disconnect"` closes with
-  code 1000, which LiveView answers with a 5–10 s delayed reload, and the fix above no longer
-  relies on it.
+- **A revoked session's open pages leave by redirect, not by the socket close** (logout,
+  password change, magic-link login). Each LiveView of the session is told directly, checks its
+  token again, and sends its page to the log-in page with "Your session has ended. Please log in
+  again."; the socket's `"disconnect"` follows a second later as the backstop. Released
+  versions already left at once, but only because Phoenix was held at 1.8.15.
+- **Phoenix 1.8.15 → 1.8.16.** The hold is lifted. Since 1.8.16 a `"disconnect"` closes with
+  code 1000, which LiveView's client answers with a 5–10 s delayed reload; the change above no
+  longer relies on it. The reconnect browser gate now drops the socket by killing its process,
+  the way a deploy or lost network does.
 - **Elixir 1.20.4 → 1.20.5** (`1.20.5-otp-29`, `.tool-versions`).
-- `swoosh` 1.29.0 → 1.29.3; `sobelow` (dev/test) 0.16.0 → 0.18.1.
+- `swoosh` 1.29.0 → 1.29.3; `websock_adapter` 0.6.0 → 0.7.0 (with Phoenix); `sobelow`
+  (dev/test) 0.16.0 → 0.18.1.
+- `doc/architecture.md` describes session revocation; the roadmap records what this release
+  carries.
 
 ## [1.6.6] - 2026-10-30
 
