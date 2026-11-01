@@ -2,13 +2,17 @@ defmodule Goodmao2Web.Features.ReconnectTest do
   @moduledoc """
   The server drops a live page's socket while its session stays valid, and the page comes back.
 
-  This is what a deploy or a restart does to every open page, and what the `"disconnect"`
-  broadcast does to a session that is *not* being revoked. The client's job is to reconnect,
-  rejoin the LiveView through the auth `on_mount`, and resubscribe, so an update made in the
-  meantime still arrives. Nothing but a browser runs that code: the phoenix.js connection
-  layer, LiveView's close handling and the reconnect-flash guard. Phoenix 1.8.16 rewrote the
-  connection handling and changed the close code, so this is the gate for phoenix.js and
-  LiveView client bumps alongside `session_revocation_test.exs`.
+  This is what a deploy, a restart or a lost network does to every open page. The client's job
+  is to reconnect, rejoin the LiveView through the auth `on_mount`, and resubscribe, so an update
+  made in the meantime still arrives. Nothing but a browser runs that code: the phoenix.js
+  connection layer, LiveView's close handling and the reconnect-flash guard, so this is the gate
+  for phoenix.js and LiveView client bumps alongside `session_revocation_test.exs`.
+
+  The drop kills the socket's connection process, so the connection ends without a close code
+  the client could read as an instruction. It is deliberately not the `"disconnect"`
+  broadcast: since Phoenix 1.8.16 that closes with 1000, which LiveView answers with a delayed
+  reload, and the app only ever sends it to a session it is revoking (whose pages leave
+  through `UserAuth`'s revocation hook instead).
   """
   use Goodmao2Web.FeatureCase, async: false
 
@@ -42,13 +46,16 @@ defmodule Goodmao2Web.Features.ReconnectTest do
       |> assert_has(Query.css("[data-phx-main].phx-connected"))
       |> execute_script(@count_drops)
 
-    # The same broadcast a revocation sends, but the session token stays: the page must
-    # reconnect rather than leave.
-    tokens =
+    # Every socket process of the owner's sessions is subscribed to its `live_socket_id` topic.
+    socket_pids =
       Repo.all(from t in UserToken, where: t.user_id == ^owner.id and t.context == "session")
+      |> Enum.flat_map(fn %{token: token} ->
+        Registry.lookup(Goodmao2.PubSub, "users_sessions:#{Base.url_encode64(token)}")
+      end)
+      |> Enum.map(fn {pid, _} -> pid end)
 
-    assert tokens != []
-    Goodmao2Web.UserAuth.disconnect_sessions(tokens)
+    assert socket_pids != []
+    Enum.each(socket_pids, &Process.exit(&1, :kill))
 
     wait_until(session, "return window.__drops > 0", "the socket was never closed")
     assert_has(session, Query.css("[data-phx-main].phx-connected"))

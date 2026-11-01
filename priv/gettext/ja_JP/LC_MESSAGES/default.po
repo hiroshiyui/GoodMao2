@@ -3537,3 +3537,8 @@ msgstr "切り抜き範囲の選択"
 #, elixir-autogen, elixir-format
 msgid "Too many sharing attempts. Please try again in an hour."
 msgstr "共有の試行回数が多すぎます。1時間後にもう一度お試しください。"
+
+#: lib/goodmao2_web/user_auth.ex
+#, elixir-autogen, elixir-format
+msgid "Your session has ended. Please log in again."
+msgstr "セッションが終了しました。もう一度ログインしてください。"

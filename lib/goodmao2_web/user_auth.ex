@@ -190,7 +190,7 @@ defmodule Goodmao2Web.UserAuth do
     user_token && Accounts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
-      Goodmao2Web.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+      revoke_live_session(live_socket_id)
     end
 
     conn
@@ -309,15 +309,43 @@ defmodule Goodmao2Web.UserAuth do
   end
 
   @doc """
-  Disconnects existing sockets for the given tokens.
+  Sends the open pages of the given (just-revoked) session tokens to the log-in page, then
+  disconnects their sockets.
+
+  See `revoke_live_session/1` for why it takes two steps.
   """
   def disconnect_sessions(tokens) do
-    Enum.each(tokens, fn %{token: token} ->
-      Goodmao2Web.Endpoint.broadcast(user_session_topic(token), "disconnect", %{})
-    end)
+    Enum.each(tokens, fn %{token: token} -> revoke_live_session(user_session_topic(token)) end)
+  end
+
+  # How long the `"disconnect"` broadcast waits behind the revocation message.
+  @disconnect_grace_ms 1_000
+
+  # A revoked session's open pages must leave at once. The `"disconnect"` broadcast alone no
+  # longer does that: since Phoenix 1.8.16 (PR 6880) the socket closes with code 1000, which
+  # LiveView's client answers with a reload after a 5–10 s random delay, leaving a dead page on
+  # screen. So each LiveView of the session is told first, through `:require_authenticated`'s
+  # revocation hook, and redirects its page to the log-in page itself. The `"disconnect"` then
+  # follows as the backstop that closes the socket whatever the client does; it waits because,
+  # sent together, it reaches the socket process before any LiveView's redirect can, and the
+  # redirect would be lost with the closed socket.
+  defp revoke_live_session(live_socket_id) do
+    Phoenix.PubSub.broadcast(Goodmao2.PubSub, revocation_topic(live_socket_id), :session_revoked)
+
+    {:ok, _} =
+      :timer.apply_after(@disconnect_grace_ms, Goodmao2Web.Endpoint, :broadcast, [
+        live_socket_id,
+        "disconnect",
+        %{}
+      ])
+
+    :ok
   end
 
   defp user_session_topic(token), do: "users_sessions:#{Base.url_encode64(token)}"
+
+  # Not the `live_socket_id` topic itself: the socket process is subscribed to that one.
+  defp revocation_topic(live_socket_id), do: live_socket_id <> ":revoked"
 
   @doc """
   Handles mounting and authenticating the current_scope in LiveViews.
@@ -331,7 +359,9 @@ defmodule Goodmao2Web.UserAuth do
     * `:require_authenticated` - Authenticates the user from the session,
       and assigns the current_scope to socket assigns based
       on user_token.
-      Redirects to login page if there's no logged user.
+      Redirects to login page if there's no logged user. On a connected socket it also
+      watches for the session's revocation and then redirects the page to the log-in page
+      (see `disconnect_sessions/1`).
 
     * `:require_admin` - Requires the current user to be the global
       administrator (`is_admin`). Silently redirects non-admins home
@@ -363,7 +393,7 @@ defmodule Goodmao2Web.UserAuth do
     socket = mount_current_scope(socket, session)
 
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
-      {:cont, socket}
+      {:cont, watch_revocation(socket, session)}
     else
       socket =
         socket
@@ -425,6 +455,38 @@ defmodule Goodmao2Web.UserAuth do
           |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
 
         {:halt, socket}
+    end
+  end
+
+  # Leaves for the log-in page when this session is revoked (`revoke_live_session/1`). The
+  # token is checked again rather than trusted from the message, so a page whose session is
+  # still valid stays put and simply reconnects after the `"disconnect"`.
+  defp watch_revocation(socket, %{"live_socket_id" => live_socket_id, "user_token" => token})
+       when is_binary(live_socket_id) and is_binary(token) do
+    if Phoenix.LiveView.connected?(socket) do
+      Phoenix.PubSub.subscribe(Goodmao2.PubSub, revocation_topic(live_socket_id))
+
+      Phoenix.LiveView.attach_hook(socket, :session_revocation, :handle_info, fn
+        :session_revoked, socket -> {:halt, leave_if_revoked(socket, token)}
+        _message, socket -> {:cont, socket}
+      end)
+    else
+      socket
+    end
+  end
+
+  defp watch_revocation(socket, _session), do: socket
+
+  defp leave_if_revoked(socket, token) do
+    if Accounts.get_user_by_session_token(token) do
+      socket
+    else
+      socket
+      |> Phoenix.LiveView.put_flash(
+        :error,
+        gettext("Your session has ended. Please log in again.")
+      )
+      |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
     end
   end
 

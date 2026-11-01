@@ -2,15 +2,12 @@ defmodule Goodmao2Web.Features.SessionRevocationTest do
   @moduledoc """
   A revoked session's open page leaves promptly, driven through two real browsers.
 
-  `UserAuth.disconnect_sessions/1` is covered at the PubSub level in `user_auth_test.exs`,
-  which proves the `"disconnect"` broadcast is sent. What only a browser can prove is what the
-  client does with it: Phoenix closes the socket, LiveView reconnects, and the auth `on_mount`
-  sends the dead session to the login page. That chain depends on the WebSocket close code
-  Phoenix sends. 1.8.16 stopped sending 1001 (phoenixframework/phoenix PR 6880), Bandit then
-  closes with 1000, and LiveView's client treats 1000 as a failsafe: a full reload after a
-  5–10 s random delay instead of an immediate reconnect, so the revoked browser lingers on a
-  dead page. Phoenix is held at 1.8.15 until a reconnect follows the close; this test is the
-  gate for lifting the hold (`wait_for_path/2` allows five seconds).
+  `UserAuth.disconnect_sessions/1` and its revocation hook are covered in `user_auth_test.exs`
+  against the LiveView process. What only a browser can prove is that the page really leaves:
+  the redirect has to reach the client before the delayed `"disconnect"` closes the socket.
+  Without the hook, the close alone decides, and since Phoenix 1.8.16 (PR 6880) that close is
+  code 1000, which LiveView's client answers with a reload after a 5–10 s random delay, so the
+  revoked browser would linger on a dead page (`wait_for_path/2` allows five seconds).
   """
   use Goodmao2Web.FeatureCase, async: false
 

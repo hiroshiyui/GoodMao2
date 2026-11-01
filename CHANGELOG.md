@@ -19,8 +19,18 @@ Production must install Elixir 1.20.5-otp-29 before the next deploy
   certificates matching across a label boundary). Test-only (via Wallaby's `hackney`);
   production never loaded it.
 
+### Fixed
+
+- **A revoked session's open pages leave at once again** (logout, password change, magic-link
+  login). Each LiveView of the session is now told directly and redirects its page to the log-in
+  page; the socket's `"disconnect"` follows a second later as the backstop. It no longer depends
+  on the WebSocket close code, which is what held Phoenix at 1.8.15.
+
 ### Changed
 
+- **Phoenix 1.8.15 → 1.8.16.** The hold is lifted: since 1.8.16 a `"disconnect"` closes with
+  code 1000, which LiveView answers with a 5–10 s delayed reload, and the fix above no longer
+  relies on it.
 - **Elixir 1.20.4 → 1.20.5** (`1.20.5-otp-29`, `.tool-versions`).
 - `swoosh` 1.29.0 → 1.29.3; `sobelow` (dev/test) 0.16.0 → 0.18.1.
 

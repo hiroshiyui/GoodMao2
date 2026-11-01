@@ -124,15 +124,18 @@ defmodule Goodmao2Web.UserAuthTest do
       refute Accounts.get_user_by_session_token(user_token)
     end
 
-    test "broadcasts to the given live_socket_id", %{conn: conn} do
+    test "tells the session's LiveViews first, then disconnects its socket", %{conn: conn} do
       live_socket_id = "users_sessions:abcdef-token"
       Goodmao2Web.Endpoint.subscribe(live_socket_id)
+      Goodmao2Web.Endpoint.subscribe(live_socket_id <> ":revoked")
 
       conn
       |> put_session(:live_socket_id, live_socket_id)
       |> UserAuth.log_out_user()
 
-      assert_receive %Phoenix.Socket.Broadcast{event: "disconnect", topic: ^live_socket_id}
+      assert_received :session_revoked
+      refute_received %Phoenix.Socket.Broadcast{event: "disconnect"}
+      assert_receive %Phoenix.Socket.Broadcast{event: "disconnect", topic: ^live_socket_id}, 2_000
     end
 
     test "works even if user is already logged out", %{conn: conn} do
@@ -437,24 +440,58 @@ defmodule Goodmao2Web.UserAuthTest do
   end
 
   describe "disconnect_sessions/1" do
-    test "broadcasts disconnect messages for each token" do
-      tokens = [%{token: "token1"}, %{token: "token2"}]
+    test "tells each session's LiveViews first, then disconnects its socket" do
+      topics = ["users_sessions:dG9rZW4x", "users_sessions:dG9rZW4y"]
 
-      for %{token: token} <- tokens do
-        Goodmao2Web.Endpoint.subscribe("users_sessions:#{Base.url_encode64(token)}")
+      for topic <- topics do
+        Goodmao2Web.Endpoint.subscribe(topic)
+        Goodmao2Web.Endpoint.subscribe(topic <> ":revoked")
       end
 
-      UserAuth.disconnect_sessions(tokens)
+      UserAuth.disconnect_sessions([%{token: "token1"}, %{token: "token2"}])
 
-      assert_receive %Phoenix.Socket.Broadcast{
-        event: "disconnect",
-        topic: "users_sessions:dG9rZW4x"
-      }
+      assert_received :session_revoked
+      assert_received :session_revoked
+      refute_received %Phoenix.Socket.Broadcast{event: "disconnect"}
 
-      assert_receive %Phoenix.Socket.Broadcast{
-        event: "disconnect",
-        topic: "users_sessions:dG9rZW4y"
-      }
+      for topic <- topics do
+        assert_receive %Phoenix.Socket.Broadcast{event: "disconnect", topic: ^topic}, 2_000
+      end
+    end
+  end
+
+  describe "the revocation hook of on_mount :require_authenticated" do
+    import Phoenix.LiveViewTest
+
+    setup %{conn: conn, user: user} do
+      token = Accounts.generate_user_session_token(user)
+
+      conn =
+        conn
+        |> put_session(:user_token, token)
+        |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
+
+      %{conn: conn, token: token}
+    end
+
+    test "sends a revoked session's page to the log-in page", %{conn: conn, token: token} do
+      {:ok, lv, _html} = live(conn, ~p"/pets")
+
+      Accounts.delete_user_session_token(token)
+      UserAuth.disconnect_sessions([%{token: token}])
+
+      flash = assert_redirect(lv, ~p"/users/log-in")
+      assert flash["error"] == "Your session has ended. Please log in again."
+    end
+
+    test "leaves a page whose session is still valid in place", %{conn: conn, token: token} do
+      {:ok, lv, _html} = live(conn, ~p"/pets")
+
+      UserAuth.disconnect_sessions([%{token: token}])
+
+      # Broadcasts are delivered synchronously, so the hook has run by the time this renders.
+      assert render(lv) =~ "pets-heading"
+      refute_redirected(lv, ~p"/users/log-in")
     end
   end
 end

@@ -354,11 +354,17 @@ doesn't flash a connection error.
   revoked as compromised. Selenium listens on **4445**, not its default 4444, so a server
   another checkout started cannot be mistakenly reused (a health check cannot tell whether it
   has *this* project's GeckoDriver on its PATH).
-- **Phoenix is held at 1.8.15 in `mix.lock`** (constraint untouched). 1.8.16 (PR 6880) stops
-  sending close code 1001 on the `"disconnect"` broadcast, Bandit closes with 1000, and LiveView's
-  client treats 1000 as a failsafe reload after a 5–10 s jitter instead of reconnecting. A browser
-  whose session was revoked (password change, magic-link login) then lingers on a dead page. Gate:
-  `features/session_revocation_test.exs`; lift the hold when it passes on the newer Phoenix.
+- **A revoked session's pages leave through a LiveView redirect, not the socket close.** Since
+  Phoenix 1.8.16 (PR 6880) the `"disconnect"` broadcast closes the socket with code 1000, which
+  LiveView's client (still, as of 1.2.13) answers with a reload after a 5–10 s random delay, so a
+  browser whose session was revoked (logout, password change, magic-link login) would linger on a
+  dead page. `UserAuth.revoke_live_session/1` therefore broadcasts `:session_revoked` on
+  `<live_socket_id>:revoked` first; the hook `on_mount :require_authenticated` attaches re-checks
+  the token and redirects to the log-in page; the `"disconnect"` follows **1 s later** as the
+  backstop (sent together, it reaches the socket process first and the redirect is lost). Only
+  revocations may call `disconnect_sessions/1`. Gates: `features/session_revocation_test.exs`
+  and `features/reconnect_test.exs` (which drops the socket by killing its process, the way a
+  deploy or lost network does).
 - Tests mirror `lib/` under `test/`: `use Goodmao2.DataCase` for contexts, `use
   Goodmao2Web.ConnCase` (+ `setup :register_and_log_in_user`) for LiveViews. Pet/log test
   data comes from `Goodmao2.PetsFixtures`.
