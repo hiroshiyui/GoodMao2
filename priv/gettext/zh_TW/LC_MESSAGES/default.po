@@ -3541,4 +3541,4 @@ msgstr "分享嘗試次數過多，請一小時後再試。"
 #: lib/goodmao2_web/user_auth.ex
 #, elixir-autogen, elixir-format
 msgid "Your session has ended. Please log in again."
-msgstr "您的登入工作階段已結束，請重新登入。"
+msgstr "您的登入已失效，請重新登入。"
