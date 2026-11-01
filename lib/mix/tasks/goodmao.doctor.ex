@@ -114,7 +114,7 @@ defmodule Mix.Tasks.Goodmao.Doctor do
 
   # A ".tool-versions" pin may be a bare version or "ref:...". Treat a leading-prefix
   # match as satisfying the pin (e.g. running 1.19.5 satisfies a 1.19 pin). An asdf Elixir
-  # pin may carry the OTP it was built against ("1.20.4-otp-29"); System.version/0 never does,
+  # pin may carry the OTP it was built against ("1.20.5-otp-29"); System.version/0 never does,
   # and the OTP major is checked separately, so the suffix is dropped before comparing.
   defp version_matches?(current, wanted) do
     wanted = String.replace(wanted, ~r/-otp-\d+\z/, "")

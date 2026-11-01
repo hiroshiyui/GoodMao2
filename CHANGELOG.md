@@ -8,6 +8,22 @@ skill).
 
 ## [Unreleased]
 
+Production must install Elixir 1.20.5-otp-29 before the next deploy
+(`setup-server.yml --tags elixir`); the deploy preflight refuses a runtime the server lacks.
+
+### Security
+
+- **`phoenix_html` 4.3.0 → 4.4.0** — EEF-CVE-2026-117645 (attribute injection via
+  unvalidated attribute names in `attributes_escape/1`).
+- **`ssl_verify_fun` 1.1.7 → 1.1.9** — EEF-CVE-2026-117666 (partial-label wildcard
+  certificates matching across a label boundary). Test-only (via Wallaby's `hackney`);
+  production never loaded it.
+
+### Changed
+
+- **Elixir 1.20.4 → 1.20.5** (`1.20.5-otp-29`, `.tool-versions`).
+- `swoosh` 1.29.0 → 1.29.3; `sobelow` (dev/test) 0.16.0 → 0.18.1.
+
 ## [1.6.6] - 2026-10-30
 
 The production host moved to Debian 13 (trixie) with PostgreSQL 17 on 2026-10-26, in step
