@@ -343,6 +343,15 @@ hook on that live_session: it assigns the counts and `attach_hook(:handle_info, 
 them from PubSub in **every** authenticated LiveView without per-view code
 ([ADR-0011](adr/0011-notifications-and-messaging.md)).
 
+**Session revocation.** Logging out, changing the password, or logging in by magic link
+revokes session tokens, and every page open on a revoked session must leave at once.
+`UserAuth.disconnect_sessions/1` (and `log_out_user/1`) first broadcasts `:session_revoked` on
+`<live_socket_id>:revoked`; the `:require_authenticated` on_mount attaches a hook that re-checks
+the token and redirects the page to the log-in page. The socket's `"disconnect"` broadcast
+follows **1 s later** as the backstop. It cannot be the signal itself: since Phoenix 1.8.16 it
+closes with code 1000, which LiveView's client answers with a 5–10 s delayed reload, and sent
+together it would close the socket before any redirect got through.
+
 `AdminLive` (`live/admin_live.ex`, `GET /admin`) is a separate `:require_admin`-gated,
 read-only site-overview surface for the sole administrator (user count, admin identity,
 first-registration gate status), plus the **veterinarian-credential review queue** (verify /
