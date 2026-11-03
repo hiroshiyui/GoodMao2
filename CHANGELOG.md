@@ -8,6 +8,8 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.9] - 2026-11-03
+
 The deploy runs a data migration that retires push subscriptions registered before 1.6.8 (they
 name no session, so revoking one could never release them). Their owners see "Enable push" on
 the settings page and re-enable it once.
