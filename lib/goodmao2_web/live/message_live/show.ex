@@ -153,8 +153,16 @@ defmodule Goodmao2Web.MessageLive.Show do
                 "bg-base-200"
             ]}>
               <p class="message-body break-words whitespace-pre-wrap">{message.body}</p>
-              <p class="message-time text-xs opacity-80">
-                {format_datetime(message.inserted_at)}
+              <%!-- Contrast (WCAG 1.4.3): on your own primary-coloured bubble any alpha drops the
+                    time under 4.5:1 (80% measures 4.01 light / 4.44 dark), so it keeps full
+                    opacity there; on the other side's base-200 bubble 80% still clears 7:1. --%>
+              <p class={[
+                "message-time text-xs",
+                !mine?(message, @current_scope) && "opacity-80"
+              ]}>
+                <time datetime={DateTime.to_iso8601(message.inserted_at)}>
+                  {format_datetime(message.inserted_at)}
+                </time>
               </p>
             </div>
           </li>
