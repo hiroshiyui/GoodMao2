@@ -124,14 +124,17 @@ defmodule Goodmao2.Medications do
     attrs = attrs |> string_keys() |> Map.delete("pet_id")
 
     with :ok <- ensure_schedule_belongs(schedule, pet),
-         :ok <- authorize(pet, user, :write),
-         {:ok, updated} <- schedule |> Schedule.changeset(attrs) |> Repo.update() do
-      if timing_changed?(schedule, updated) do
-        drop_future_pending_doses(updated)
-        materialize_doses(updated)
-      end
+         :ok <- authorize(pet, user, :write) do
+      with_live_schedule(schedule, fn current ->
+        with {:ok, updated} <- current |> Schedule.changeset(attrs) |> Repo.update() do
+          if timing_changed?(current, updated) do
+            drop_future_pending_doses(updated)
+            materialize_doses(updated)
+          end
 
-      {:ok, updated}
+          {:ok, updated}
+        end
+      end)
     end
   end
 
@@ -142,11 +145,14 @@ defmodule Goodmao2.Medications do
   def set_active(%User{} = user, %Pet{} = pet, %Schedule{} = schedule, active?)
       when is_boolean(active?) do
     with :ok <- ensure_schedule_belongs(schedule, pet),
-         :ok <- authorize(pet, user, :write),
-         {:ok, updated} <-
-           schedule |> Schedule.changeset(%{"active" => active?}) |> Repo.update() do
-      if active?, do: materialize_doses(updated), else: drop_future_pending_doses(updated)
-      {:ok, updated}
+         :ok <- authorize(pet, user, :write) do
+      with_live_schedule(schedule, fn current ->
+        with {:ok, updated} <-
+               current |> Schedule.changeset(%{"active" => active?}) |> Repo.update() do
+          if active?, do: materialize_doses(updated), else: drop_future_pending_doses(updated)
+          {:ok, updated}
+        end
+      end)
     end
   end
 
@@ -156,12 +162,28 @@ defmodule Goodmao2.Medications do
   def delete_schedule(%User{} = user, %Pet{} = pet, %Schedule{} = schedule) do
     with :ok <- ensure_schedule_belongs(schedule, pet),
          :ok <- authorize(pet, user, :manage) do
-      drop_future_pending_doses(schedule)
+      with_live_schedule(schedule, fn current ->
+        drop_future_pending_doses(current)
 
-      schedule
-      |> Ecto.Changeset.change(deleted_at: now())
-      |> Repo.update()
+        current
+        |> Ecto.Changeset.change(deleted_at: now())
+        |> Repo.update()
+      end)
     end
+  end
+
+  # Runs `fun` on a fresh, row-locked copy of a *live* schedule, inside a transaction. The
+  # caller's struct may predate a deletion: resuming a deleted schedule through it used to
+  # materialize fresh dose slots for a schedule nobody can see. A deleted one is `:not_found`.
+  defp with_live_schedule(%Schedule{id: id}, fun) do
+    Repo.transact(fn ->
+      case Repo.one(
+             from s in Schedule, where: s.id == ^id and is_nil(s.deleted_at), lock: "FOR UPDATE"
+           ) do
+        nil -> {:error, :not_found}
+        %Schedule{} = current -> fun.(current)
+      end
+    end)
   end
 
   ## Cron sweep (called by Medications.ReminderWorker)

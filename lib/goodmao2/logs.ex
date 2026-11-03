@@ -340,26 +340,49 @@ defmodule Goodmao2.Logs do
 
     with :ok <- ensure_entry_of(pet, entry),
          :ok <- ensure_visible(pet),
-         :ok <- authorize_write(role, entry.type),
+         {:ok, {:edited, updated}} <-
+           with_locked_entry(entry, &edit_locked(&1, pet, user, role, attrs)) do
+      broadcast(pet, {:entry_updated, updated})
+      {:ok, updated}
+    else
+      {:ok, {:unchanged, current}} -> {:ok, current}
+      {:error, _} = error -> error
+    end
+  end
+
+  # Every check runs against the row as it is *now*, locked: the caller's struct may predate a
+  # deletion, a visibility change by the owner, or a concurrent edit. Trusting it let an edit
+  # land on a deleted entry, two edits both pass the edit cap, and a non-owner "keep" a
+  # visibility the owner had since narrowed — re-widening it and minting a share link.
+  defp edit_locked(entry, pet, user, role, attrs) do
+    with :ok <- authorize_write(role, entry.type),
          :ok <- authorize_modify(role, user, entry),
          :ok <- authorize_visibility_change(role, entry, attrs) do
       changeset = entry |> LogEntry.changeset(attrs) |> put_share_token()
 
       cond do
-        not changeset.valid? ->
-          {:error, %{changeset | action: :update}}
-
-        unchanged?(entry, changeset) ->
-          {:ok, entry}
-
-        entry.edit_count >= @max_edits ->
-          {:error, :edit_limit}
-
-        true ->
-          commit_edit(pet, user, entry, changeset)
+        not changeset.valid? -> {:error, %{changeset | action: :update}}
+        unchanged?(entry, changeset) -> {:ok, {:unchanged, with_media(entry)}}
+        entry.edit_count >= @max_edits -> {:error, :edit_limit}
+        true -> commit_edit(pet, user, entry, changeset)
       end
     end
   end
+
+  # Runs `fun` on a fresh, row-locked, *live* copy of `entry` inside a transaction. A row that
+  # has since been deleted is refused like any other write the caller may not make.
+  defp with_locked_entry(%LogEntry{id: id}, fun) do
+    Repo.transact(fn ->
+      case Repo.one(
+             from e in LogEntry, where: e.id == ^id and is_nil(e.deleted_at), lock: "FOR UPDATE"
+           ) do
+        nil -> {:error, :unauthorized}
+        %LogEntry{} = fresh -> fun.(fresh)
+      end
+    end)
+  end
+
+  defp with_media(entry), do: Repo.preload(entry, media_assets: media_preload_query())
 
   # A real change is one that alters any snapshotted field; the re-sanitized `data` map can
   # differ by identity without differing by value, so compare applied snapshots, not `changes`.
@@ -389,15 +412,15 @@ defmodule Goodmao2.Logs do
 
     changeset = Ecto.Changeset.put_change(changeset, :edit_count, entry.edit_count + 1)
 
+    # Runs inside `with_locked_entry/2`'s transaction; the caller broadcasts after the commit,
+    # so a subscriber re-reading the entry sees the edit rather than the row before it.
     Multi.new()
     |> Multi.insert(:revision, revision)
     |> Multi.update(:entry, changeset)
     |> Repo.transaction()
     |> case do
       {:ok, %{entry: updated}} ->
-        updated = Repo.preload(updated, media_assets: media_preload_query())
-        broadcast(pet, {:entry_updated, updated})
-        {:ok, updated}
+        {:ok, {:edited, with_media(updated)}}
 
       {:error, :entry, %Ecto.Changeset{} = changeset, _changes} ->
         {:error, changeset}
@@ -424,22 +447,21 @@ defmodule Goodmao2.Logs do
     with :ok <- ensure_entry_of(pet, entry),
          :ok <- ensure_visible(pet),
          :ok <- authorize_owner(role),
-         :ok <- ensure_shared(entry),
-         :ok <- validate_future_or_nil(expires_at) do
-      expires_at = expires_at && DateTime.truncate(expires_at, :second)
-
-      entry
-      |> Ecto.Changeset.change(%{share_expires_at: expires_at})
-      |> Repo.update()
-      |> case do
-        {:ok, updated} ->
-          updated = Repo.preload(updated, media_assets: media_preload_query())
-          broadcast(pet, {:entry_updated, updated})
-          {:ok, updated}
-
-        error ->
-          error
-      end
+         :ok <- validate_future_or_nil(expires_at),
+         # Shared-ness is read from the locked row: the struct may predate a narrowing.
+         {:ok, updated} <-
+           with_locked_entry(entry, fn fresh ->
+             with :ok <- ensure_shared(fresh) do
+               fresh
+               |> Ecto.Changeset.change(
+                 share_expires_at: expires_at && DateTime.truncate(expires_at, :second)
+               )
+               |> Repo.update()
+             end
+           end) do
+      updated = with_media(updated)
+      broadcast(pet, {:entry_updated, updated})
+      {:ok, updated}
     end
   end
 
@@ -494,17 +516,20 @@ defmodule Goodmao2.Logs do
 
     with :ok <- ensure_entry_of(pet, entry),
          :ok <- ensure_visible(pet),
-         :ok <- authorize_delete(role, user, entry) do
-      case entry
-           |> Ecto.Changeset.change(deleted_at: DateTime.utc_now() |> DateTime.truncate(:second))
-           |> Repo.update() do
-        {:ok, deleted} ->
-          broadcast(pet, {:entry_deleted, deleted})
-          {:ok, deleted}
-
-        error ->
-          error
-      end
+         # Checked against the locked live row, so an already-deleted entry is not stamped (and
+         # broadcast) a second time, and the recorder/type come from the row, not the struct.
+         {:ok, deleted} <-
+           with_locked_entry(entry, fn fresh ->
+             with :ok <- authorize_delete(role, user, fresh) do
+               fresh
+               |> Ecto.Changeset.change(
+                 deleted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+               )
+               |> Repo.update()
+             end
+           end) do
+      broadcast(pet, {:entry_deleted, deleted})
+      {:ok, deleted}
     end
   end
 

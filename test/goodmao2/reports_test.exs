@@ -277,4 +277,16 @@ defmodule Goodmao2.ReportsTest do
     |> Enum.filter(&(&1.role == "owner"))
     |> Enum.map(& &1.user)
   end
+
+  describe "a report deleted meanwhile" do
+    test "gets no share link and is not deleted twice", %{owner: owner, pet: pet} do
+      {:ok, stale} = Reports.generate_report(owner, pet, today_range())
+      {:ok, _} = Reports.delete_report(owner, pet, stale)
+      tomorrow = DateTime.utc_now() |> DateTime.add(1, :day)
+
+      assert Reports.create_share_token(owner, pet, stale, tomorrow) == {:error, :not_found}
+      assert Reports.revoke_share_token(owner, pet, stale) == {:error, :not_found}
+      assert Reports.delete_report(owner, pet, stale) == {:error, :not_found}
+    end
+  end
 end

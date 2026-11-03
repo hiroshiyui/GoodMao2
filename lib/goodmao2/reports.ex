@@ -144,7 +144,7 @@ defmodule Goodmao2.Reports do
   def delete_report(%User{} = user, %Pet{} = pet, %HealthSummaryReport{} = report) do
     with :ok <- ensure_report_of(pet, report),
          :ok <- require(pet, user, :manage) do
-      report |> change_deleted() |> Repo.update()
+      with_live_report(report, fn current -> current |> change_deleted() |> Repo.update() end)
     end
   end
 
@@ -168,12 +168,14 @@ defmodule Goodmao2.Reports do
       token = :crypto.strong_rand_bytes(@token_bytes)
       hash = :crypto.hash(:sha256, token)
 
-      report
-      |> Ecto.Changeset.change(%{
-        share_token_hash: hash,
-        share_expires_at: DateTime.truncate(expires_at, :second)
-      })
-      |> Repo.update()
+      with_live_report(report, fn current ->
+        current
+        |> Ecto.Changeset.change(%{
+          share_token_hash: hash,
+          share_expires_at: DateTime.truncate(expires_at, :second)
+        })
+        |> Repo.update()
+      end)
       |> case do
         {:ok, report} -> {:ok, {report, Base.url_encode64(token, padding: false)}}
         error -> error
@@ -185,9 +187,11 @@ defmodule Goodmao2.Reports do
   def revoke_share_token(%User{} = user, %Pet{} = pet, %HealthSummaryReport{} = report) do
     with :ok <- ensure_report_of(pet, report),
          :ok <- require(pet, user, :manage) do
-      report
-      |> Ecto.Changeset.change(%{share_token_hash: nil, share_expires_at: nil})
-      |> Repo.update()
+      with_live_report(report, fn current ->
+        current
+        |> Ecto.Changeset.change(%{share_token_hash: nil, share_expires_at: nil})
+        |> Repo.update()
+      end)
     end
   end
 
@@ -243,6 +247,22 @@ defmodule Goodmao2.Reports do
   end
 
   defp validate_future(_), do: {:error, :expiry_in_past}
+
+  # Runs `fun` on a fresh, row-locked copy of a *live* report, inside a transaction: the
+  # caller's struct may predate a deletion, and minting a share link on a deleted report (or
+  # re-stamping its deletion) must not go through. A deleted one is `{:error, :not_found}`.
+  defp with_live_report(%HealthSummaryReport{id: id}, fun) do
+    Repo.transact(fn ->
+      case Repo.one(
+             from r in HealthSummaryReport,
+               where: r.id == ^id and is_nil(r.deleted_at),
+               lock: "FOR UPDATE"
+           ) do
+        nil -> {:error, :not_found}
+        %HealthSummaryReport{} = current -> fun.(current)
+      end
+    end)
+  end
 
   defp change_deleted(report), do: Ecto.Changeset.change(report, %{deleted_at: now()})
 

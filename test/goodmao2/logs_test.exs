@@ -656,4 +656,65 @@ defmodule Goodmao2.LogsTest do
       assert {:error, :not_shared} = Logs.set_share_expiry(owner, pet, limited, future)
     end
   end
+
+  describe "writes check the row as it is now, not the caller's struct" do
+    setup %{owner: owner, pet: pet} do
+      co = user_fixture()
+      grant_fixture(pet, owner, co, "co_caretaker")
+
+      {:ok, logged} =
+        Logs.create_entry(co, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
+
+      # Only the owner may widen; the co-caretaker stays the recorder. This struct — public,
+      # one edit — is the copy every test below treats as stale.
+      {:ok, entry} = Logs.update_entry(owner, pet, logged, %{"visibility" => "public"})
+
+      %{co: co, entry: entry}
+    end
+
+    test "a non-owner cannot keep a visibility the owner has since narrowed",
+         %{owner: owner, pet: pet, co: co, entry: stale} do
+      {:ok, _} = Logs.update_entry(owner, pet, stale, %{"visibility" => "limited"})
+
+      # The co-caretaker's struct still says "public", so the old check saw no change.
+      assert Logs.update_entry(co, pet, stale, %{"visibility" => "public", "note" => "x"}) ==
+               {:error, :unauthorized}
+
+      fresh = Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, stale.id)
+      assert fresh.visibility == "limited"
+      assert is_nil(fresh.share_token)
+    end
+
+    test "an entry deleted meanwhile can be neither edited nor deleted again",
+         %{owner: owner, pet: pet, co: co, entry: stale} do
+      {:ok, deleted} = Logs.delete_entry(owner, pet, stale)
+
+      assert Logs.update_entry(co, pet, stale, %{"note" => "too late"}) ==
+               {:error, :unauthorized}
+
+      assert Logs.delete_entry(owner, pet, stale) == {:error, :unauthorized}
+      # Not re-stamped: the first deletion's time stands.
+      assert Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, stale.id).deleted_at == deleted.deleted_at
+    end
+
+    test "a share expiry is refused once the owner has narrowed the entry",
+         %{owner: owner, pet: pet, entry: stale} do
+      {:ok, _} = Logs.update_entry(owner, pet, stale, %{"visibility" => "limited"})
+      tomorrow = DateTime.utc_now() |> DateTime.add(1, :day)
+
+      assert Logs.set_share_expiry(owner, pet, stale, tomorrow) == {:error, :not_shared}
+    end
+
+    test "the edit cap counts edits made through other copies of the entry",
+         %{owner: owner, pet: pet, entry: stale} do
+      # The setup's widening was edit 1; spend the rest through the same stale struct.
+      for i <- 2..Logs.max_edits() do
+        {:ok, _} = Logs.update_entry(owner, pet, stale, %{"note" => "edit #{i}"})
+      end
+
+      # The struct still says edit_count 1.
+      assert Logs.update_entry(owner, pet, stale, %{"note" => "one more"}) ==
+               {:error, :edit_limit}
+    end
+  end
 end

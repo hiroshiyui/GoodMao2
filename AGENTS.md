@@ -33,6 +33,11 @@ reminders), `Media` (ffmpeg-purified LifeLog photos/videos + avatars, id-keyed s
     `Pets.effective_role/2`, the hidden-history flag via `Pets.history_hidden?/1`), and every
     function taking a pet *and* a child record (entry, report, schedule, grant) refuses a child
     of another pet.
+  - **So is a child-record struct.** A mutation checks the child's own state — deleted,
+    visibility, shared, edit count, recorder — on the row re-read `FOR UPDATE` inside its
+    transaction (`with_locked_entry/2` and its siblings), never on the struct the caller holds.
+    A stale struct let a non-owner "keep" a visibility the owner had since narrowed, re-widening
+    the entry and minting a share link.
 - **Log entries are one table** (`log_entries`) keyed by `type` with a `jsonb` `data`
   payload; per-type validation is in `LogEntry.changeset/2`. Entries are
   **soft-deleted** via `deleted_at` — never hard-delete; reads filter `deleted_at IS NULL`.

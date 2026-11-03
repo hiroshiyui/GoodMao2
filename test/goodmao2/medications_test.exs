@@ -415,4 +415,26 @@ defmodule Goodmao2.MedicationsTest do
 
   defp local_time(dose, tz), do: dose.due_at |> DateTime.shift_zone!(tz) |> DateTime.to_time()
   defp local_date(dose, tz), do: dose.due_at |> DateTime.shift_zone!(tz) |> DateTime.to_date()
+
+  describe "a schedule deleted meanwhile" do
+    test "cannot be resumed, edited or deleted again through a stale struct",
+         %{owner: owner, pet: pet} do
+      stale = medication_schedule_fixture(owner, pet)
+      {:ok, _} = Medications.set_active(owner, pet, stale, false)
+      {:ok, _} = Medications.delete_schedule(owner, pet, stale)
+
+      assert Medications.set_active(owner, pet, stale, true) == {:error, :not_found}
+
+      assert Medications.update_schedule(owner, pet, stale, %{"dose" => "1mg"}) ==
+               {:error, :not_found}
+
+      assert Medications.delete_schedule(owner, pet, stale) == {:error, :not_found}
+
+      # Resuming used to materialize fresh slots for the deleted schedule.
+      assert Repo.aggregate(
+               from(d in Dose, where: d.schedule_id == ^stale.id and d.status == "pending"),
+               :count
+             ) == 0
+    end
+  end
 end

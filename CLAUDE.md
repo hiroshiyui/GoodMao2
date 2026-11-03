@@ -149,7 +149,9 @@ each described below; the web layer is thin LiveViews that call them.
   is owner-only). **Editing and deleting both need `:write` *plus* being the recorder**
   (owner short-circuits, so an owner may delete a `vet_note` they cannot author) — recorder
   alone is not enough, because a caretaker demoted to `viewer` keeps `recorded_by_user_id`
-  on everything they logged. Setting an entry **`public`** (owner-only, on create *and* edit, timeline
+  on everything they logged. Each edit/delete/share-expiry check runs on the entry **re-read
+  `FOR UPDATE`** (live rows only), never the caller's struct; schedules, reports and media
+  writes do the same. Setting an entry **`public`** (owner-only, on create *and* edit, timeline
   *and* media paths) mints an unguessable `share_token` via `Logs.put_share_token/1`; narrowing
   clears it. `fetch_entry_by_share_token/1` is the **sole anonymous read path** (still-public +
   unexpired `share_expires_at` + non-deleted + history not hidden, else existence-hidden) —

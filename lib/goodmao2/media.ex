@@ -205,11 +205,20 @@ defmodule Goodmao2.Media do
   # two concurrent additions to one entry take turns, so each counts the other's queued jobs.
   defp lock_and_recheck_cap(entry, adding) do
     Multi.run(Multi.new(), :media_cap, fn repo, _changes ->
-      repo.one!(from e in LogEntry, where: e.id == ^entry.id, lock: "FOR UPDATE", select: e.id)
+      # Only a *live* entry: the caller's struct may predate a deletion.
+      live =
+        repo.one(
+          from e in LogEntry,
+            where: e.id == ^entry.id and is_nil(e.deleted_at),
+            lock: "FOR UPDATE",
+            select: e.id
+        )
 
-      if media_count(entry.id) + adding > config(:max_entries),
-        do: {:error, :media_limit},
-        else: {:ok, :room}
+      cond do
+        is_nil(live) -> {:error, :unauthorized}
+        media_count(entry.id) + adding > config(:max_entries) -> {:error, :media_limit}
+        true -> {:ok, :room}
+      end
     end)
   end
 
@@ -224,10 +233,13 @@ defmodule Goodmao2.Media do
     with {:ok, asset_id} <- Goodmao2.ID.normalize(asset_id),
          %MediaAsset{} = asset <-
            Repo.one(
+             # Joined to the *live* entry, not trusting the struct's `deleted_at`.
              from m in MediaAsset,
+               join: e in LogEntry,
+               on: e.id == m.log_entry_id and is_nil(e.deleted_at),
                where: m.id == ^asset_id and m.log_entry_id == ^entry.id and is_nil(m.deleted_at)
            ),
-         true <- entry.pet_id == pet.id and is_nil(entry.deleted_at),
+         true <- entry.pet_id == pet.id,
          true <- Logs.can_edit?(user, pet, entry) do
       asset
       |> Ecto.Changeset.change(deleted_at: DateTime.utc_now(:second))

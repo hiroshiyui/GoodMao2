@@ -361,6 +361,22 @@ defmodule Goodmao2.MediaTest do
                {:error, :media_limit}
     end
 
+    test "refuses an entry deleted meanwhile, whatever the struct says", %{
+      owner: owner,
+      pet: pet,
+      entry: stale
+    } do
+      {:ok, _} = Goodmao2.Logs.delete_entry(owner, pet, stale)
+
+      assert Media.add_media_to_life_log(owner, pet, stale, [%{token: "late"}]) ==
+               {:error, :unauthorized}
+
+      assert Goodmao2.Repo.aggregate(
+               from(j in Oban.Job, where: j.worker == "Goodmao2.Media.PurifyWorker"),
+               :count
+             ) == 0
+    end
+
     test "the per-entry cap counts files still being purified", %{
       owner: owner,
       pet: pet,
