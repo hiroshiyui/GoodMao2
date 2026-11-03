@@ -8,6 +8,74 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.8] - 2026-11-03
+
+The deploy runs two additive migrations: `conversation_participants.last_read_message_id`
+(backfilled from the old `last_read_at`, which it replaces) and
+`push_subscriptions.session_token_hash`. Push subscriptions registered before this release have
+no session recorded, so revoking a session cannot release them; the settings page still drops a
+browser subscription that isn't the signed-in user's when it is opened.
+
+### Security
+
+A third project-wide review found no critical issue. Fixed, each with a regression test:
+
+- **Rate limits could be overshot by a parallel burst.** Every ETS limiter (failed logins,
+  registration and magic-link mail, grant lookups, uploads, push subscriptions, messages) read
+  its count and then wrote it as two steps, so concurrent requests all passed at "limit − 1"
+  and lost each other's writes. Check-and-record now runs in the owning process, and a password
+  attempt is charged before bcrypt and refunded on success.
+- **Web Push outlived log-out.** A browser's push endpoint stayed registered to the account
+  that subscribed, so the next person signed in on that device received the previous user's
+  pushes (pet names, medication reminders), and a session revoked from another device kept
+  receiving them. Each subscription now records the hash of the session that registered it:
+  revoking that session releases it, and a token change that keeps the device signed in carries
+  it over. The settings page asks the server whether the browser's subscription is the current
+  user's instead of trusting the browser, a failed registration no longer leaves the browser
+  subscribed, and malformed subscription requests get a 422 instead of a 500.
+- **An admin could be left with no second factor.** Removing TOTP in one tab and a security key
+  in another at the same moment could pass both checks. Removal now checks and deletes under a
+  lock on the user row, reading the user fresh.
+- **A pet could become ownerless.** The last-owner rule counted a time-boxed co-owner, so the
+  sole permanent owner could leave and nobody could manage the pet once that grant expired. Only
+  a permanent owner now counts as the one left behind (ADR-0014).
+- **A demoted co-owner kept the share link.** The single-entry page held the role it saw on
+  load, so a co-owner demoted while it was open still saw an entry's anonymous share link after
+  it was made public. The role is re-read on every update, and the page leaves once the entry is
+  no longer readable.
+
+### Fixed
+
+- **The weight chart showed the oldest 200 readings**, so on a long history today's weight was
+  missing. It keeps the newest.
+- **Medication reminders kept arriving after end-of-care**, including for a pet that had died.
+  A pet no longer in care gets no new dose slots and no reminders; its schedules are kept.
+- **Report periods were UTC days.** In Taipei a report for October missed the morning of
+  October 1 and listed its period as 10-01 – 11-01. The period is now the generator's local
+  days, and the zone is saved with the report so every reader sees the dates as entered. A
+  period with more than 5,000 entries is refused with a request for a shorter one, instead of
+  silently dropping the newest.
+- **The calendar silently undercounted busy months.** Past 500 entries the earliest days showed
+  as empty. The cap is 3,000 and a month past it says so. "Today" and the opening month are the
+  viewer's local date, not UTC's.
+- **A message sent in the same second as a read was never counted as unread.** The read cursor
+  is now a message id rather than a second-resolution time.
+- **The per-entry media limit ignored files still being processed**, so a second batch sent
+  before the first finished could exceed it. Queued files count, re-checked under a lock.
+- Removing an avatar while it was processing made its job retry ffmpeg three times; it now
+  stops at once.
+- An out-of-range avatar or media id returned a 500 instead of a 404.
+- **Message timestamps fell below AA contrast** (WCAG 1.4.3) at 60% opacity. On your own
+  bubble the time is at full opacity (5.35:1 light, 6.09:1 dark); on the other side's, 80%
+  (7.37:1, 9.52:1). It is marked up as `<time datetime>`.
+- A password change no longer sends this browser's other tabs to the log-in page; only other
+  sessions are signed out.
+
+### Changed
+
+- `CLAUDE.md`, `AGENTS.md`, `doc/architecture.md`, the glossary and ADR-0014 describe the new
+  rules; the roadmap records three new bug classes from the review.
+
 ## [1.6.7] - 2026-11-01
 
 Production must install Elixir 1.20.5-otp-29 before the deploy
