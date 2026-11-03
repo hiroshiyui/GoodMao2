@@ -18,13 +18,11 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
     with {:ok, pet} <- Pets.fetch_pet(user, pet_id),
          entry when not is_nil(entry) <- Logs.get_entry(user, pet, id) do
-      role = Pets.effective_role(pet, user)
       if connected?(socket), do: Logs.subscribe(pet)
 
       {:ok,
        socket
        |> assign(:pet, pet)
-       |> assign(:role, role)
        |> assign(:page_title, gettext("%{type} entry", type: log_type_label(entry.type)))
        |> assign(:media_captions, %{})
        |> assign(:caption_errors, %{})
@@ -45,8 +43,10 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     end
   end
 
-  # (Re)load everything derived from the entry: the edit form, the cap state, and the
-  # revision history with its editors' labels.
+  # (Re)load everything derived from the entry: the viewer's role, the edit form, the cap state,
+  # and the revision history with its editors' labels. The role is re-read each time, not kept
+  # from mount: a co-owner demoted while this page is open must stop seeing owner-only controls
+  # (the anonymous share link above all) on the next update, not keep them until a reload.
   defp load_entry(socket, entry) do
     user = socket.assigns.current_scope.user
     pet = socket.assigns.pet
@@ -54,6 +54,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     editors = Accounts.get_users_map(Enum.map(revisions, & &1.edited_by_user_id))
 
     socket
+    |> assign(:role, Pets.effective_role(pet, user))
     |> assign(:entry, entry)
     |> assign(:can_edit?, Logs.can_edit?(user, pet, entry))
     |> assign(:at_limit?, entry.edit_count >= Logs.max_edits())
@@ -272,8 +273,13 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
     if id == entry.id do
       case Logs.get_entry(user, pet, id) do
+        # No longer readable — the grant was revoked, the entry narrowed past this viewer, or
+        # the history hidden. Leave, as for a deletion, rather than keep showing stale content.
         nil ->
-          {:noreply, socket}
+          {:noreply,
+           socket
+           |> put_flash(:error, gettext("Entry not found."))
+           |> push_navigate(to: ~p"/pets/#{pet.id}")}
 
         updated ->
           # Keep whatever the viewer has typed: a media attach changes no form field, and

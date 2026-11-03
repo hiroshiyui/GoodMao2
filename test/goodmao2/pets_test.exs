@@ -337,6 +337,36 @@ defmodule Goodmao2.PetsTest do
 
       assert Pets.effective_role(pet, owner) == "viewer"
     end
+
+    test "a time-boxed co-owner does not count as the owner left behind" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      temp_owner = user_fixture()
+      tomorrow = DateTime.utc_now() |> DateTime.add(1, :day) |> DateTime.truncate(:second)
+
+      assert {:ok, _} =
+               Pets.grant_access(owner, pet, %{
+                 "identifier" => temp_owner.email,
+                 "role" => "owner",
+                 "expires_at" => tomorrow
+               })
+
+      own_grant = Repo.get_by!(PetAccess, pet_id: pet.id, user_id: owner.id)
+
+      # Each way the permanent owner could leave would orphan the pet once tomorrow passes.
+      assert Pets.revoke_access(owner, pet, own_grant) == {:error, :last_owner}
+
+      assert Pets.grant_access(owner, pet, %{"identifier" => owner.email, "role" => "viewer"}) ==
+               {:error, :last_owner}
+
+      assert Pets.grant_access(owner, pet, %{
+               "identifier" => owner.email,
+               "role" => "owner",
+               "expires_at" => DateTime.add(tomorrow, 7, :day)
+             }) == {:error, :last_owner}
+
+      assert Pets.effective_role(pet, owner) == "owner"
+    end
   end
 
   describe "grant attempt rate limit (email membership oracle)" do

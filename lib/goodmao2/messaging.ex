@@ -17,8 +17,8 @@ defmodule Goodmao2.Messaging do
   One conversation exists per unordered pair (canonical `(user_lo_id, user_hi_id)`, DB
   unique + CHECK ordered). Reading or sending within a thread requires being a
   participant; a non-participant sees `nil`/`{:error, :not_participant}` (existence
-  hidden). Each participant carries a read cursor (`last_read_at`); a message is unread
-  when it arrived after that cursor and wasn't sent by the reader.
+  hidden). Each participant carries a read cursor (`last_read_message_id`); a message is
+  unread when its id is past that cursor and it wasn't sent by the reader.
 
   Unread counts and new messages are live over PubSub: a per-user topic carries the
   recomputed mailbox count (badge), and a per-conversation topic carries new messages.
@@ -279,7 +279,7 @@ defmodule Goodmao2.Messaging do
               from(p in Participant,
                 where: p.conversation_id == ^conversation.id and p.user_id == ^user.id
               ),
-              set: [last_read_at: now, updated_at: now]
+              set: [last_read_message_id: message.id, updated_at: now]
             )
 
             message
@@ -319,12 +319,17 @@ defmodule Goodmao2.Messaging do
     if participant?(conversation.id, user.id) do
       now = now()
 
+      newest =
+        Repo.one(
+          from m in Message, where: m.conversation_id == ^conversation.id, select: max(m.id)
+        )
+
       {count, _} =
         Repo.update_all(
           from(p in Participant,
             where: p.conversation_id == ^conversation.id and p.user_id == ^user.id
           ),
-          set: [last_read_at: now, updated_at: now]
+          set: [last_read_message_id: newest, updated_at: now]
         )
 
       if count > 0, do: broadcast_count(user.id)
@@ -397,7 +402,7 @@ defmodule Goodmao2.Messaging do
       on: p.conversation_id == m.conversation_id,
       where: p.user_id == ^user_id and is_nil(p.deleted_at),
       where: is_nil(m.deleted_at) and m.sender_id != ^user_id,
-      where: is_nil(p.last_read_at) or m.inserted_at > p.last_read_at,
+      where: is_nil(p.last_read_message_id) or m.id > p.last_read_message_id,
       group_by: m.conversation_id
   end
 

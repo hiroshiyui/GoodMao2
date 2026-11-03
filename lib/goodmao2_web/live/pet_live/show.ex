@@ -18,6 +18,11 @@ defmodule Goodmao2Web.PetLive.Show do
   # any other value is rejected back to it, so a crafted select can't request an unbounded page.
   @page_sizes User.timeline_page_sizes()
 
+  # The most entries one month grid loads. Entries come newest-first, so a grid past the cap
+  # loses its *earliest* days' counts; the grid then says so (`@month_truncated`) rather than
+  # show those days as empty.
+  @calendar_cap 3000
+
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     user = socket.assigns.current_scope.user
@@ -44,9 +49,13 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:has_next?, false)
          |> assign(:visible_ids, MapSet.new())
          |> assign(:view, "list")
-         |> assign(:cal_month, CalendarGrid.month_of(Date.utc_today()))
+         |> assign(
+           :cal_month,
+           CalendarGrid.month_of(Goodmao2.Timezone.today(socket.assigns.timezone))
+         )
          |> assign(:selected_day, nil)
          |> assign(:month_entries, [])
+         |> assign(:month_truncated, false)
          |> assign(:day_buckets, %{})
          |> assign(:quicklog_type, "food")
          |> assign(:quick_form, to_form(%{}, as: :log))
@@ -118,11 +127,14 @@ defmodule Goodmao2Web.PetLive.Show do
         type: socket.assigns.filter,
         from: from,
         to: to,
-        limit: 500
+        limit: @calendar_cap + 1
       )
+
+    {entries, overflow} = Enum.split(entries, @calendar_cap)
 
     socket
     |> assign(:month_entries, entries)
+    |> assign(:month_truncated, overflow != [])
     |> assign(:day_buckets, day_buckets(entries, socket.assigns.timezone))
   end
 
@@ -801,8 +813,9 @@ defmodule Goodmao2Web.PetLive.Show do
           grid={CalendarGrid.month_grid(@cal_month)}
           buckets={@day_buckets}
           selected_day={@selected_day}
-          today={Date.utc_today()}
+          today={Goodmao2.Timezone.today(@timezone)}
           day_entries={selected_day_entries(@month_entries, @selected_day, @timezone)}
+          truncated={@month_truncated}
           can_write?={@can_write?}
           weight_unit={@pet.weight_unit}
         />
@@ -966,6 +979,7 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :day_entries, :list, default: []
   attr :can_write?, :boolean, default: false
   attr :weight_unit, :string, default: "kilograms"
+  attr :truncated, :boolean, default: false
 
   defp log_calendar(assigns) do
     ~H"""
@@ -996,6 +1010,12 @@ defmodule Goodmao2Web.PetLive.Show do
           <.icon name="hero-chevron-right" class="size-4" />
         </button>
       </nav>
+
+      <p :if={@truncated} id="cal-truncated" role="status" class="text-base-content/70 mt-2 text-sm">
+        {gettext(
+          "This month has more entries than the calendar can count; the earliest days may show fewer than they hold. Use the list view to see them all."
+        )}
+      </p>
 
       <table class="mt-3 w-full table-fixed border-collapse">
         <caption class="sr-only">

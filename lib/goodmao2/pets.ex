@@ -266,8 +266,8 @@ defmodule Goodmao2.Pets do
 
   @doc """
   Revokes an access grant. Requires `:manage` and a grant on this same pet (`{:error,
-  :not_found}` otherwise), and refuses to remove the pet's last effective owner (`{:error,
-  :last_owner}`).
+  :not_found}` otherwise), and refuses to remove the pet's last permanent (non-expiring) owner
+  (`{:error, :last_owner}`) — a time-boxed co-owner does not count, since it lapses on its own.
 
   Revocation happens once: the `active → revoked` transition is a conditional update, so of two
   concurrent revokes (or a revoke of an already-revoked grant) only one succeeds and notifies;
@@ -335,13 +335,16 @@ defmodule Goodmao2.Pets do
 
   defp guard_owner_retirement(_pet, _existing, _attrs), do: :ok
 
+  # Only a *permanent* owner counts as the one left behind. A time-boxed owner is effective
+  # today but lapses on its own, so counting it would let the sole permanent owner leave and
+  # the pet become ownerless — unmanageable by anyone — the day that grant expires.
   defp guard_last_owner(pet, %PetAccess{role: "owner"} = access) do
     other_owners =
       Repo.aggregate(
         from(a in PetAccess,
           where: a.pet_id == ^pet.id and a.role == "owner" and a.status == "active",
           where: a.id != ^access.id,
-          where: is_nil(a.expires_at) or a.expires_at > ^now()
+          where: is_nil(a.expires_at)
         ),
         :count
       )

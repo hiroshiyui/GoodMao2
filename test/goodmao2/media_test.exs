@@ -360,6 +360,21 @@ defmodule Goodmao2.MediaTest do
       assert Media.add_media_to_life_log(owner, pet, entry, [%{token: "sometoken"}]) ==
                {:error, :media_limit}
     end
+
+    test "the per-entry cap counts files still being purified", %{
+      owner: owner,
+      pet: pet,
+      entry: entry
+    } do
+      max = Media.config(:max_entries)
+      batch = for i <- 1..max, do: %{token: "queued-#{i}"}
+
+      # The first batch is only queued (no worker has run), so nothing is attached yet...
+      assert :ok = Media.add_media_to_life_log(owner, pet, entry, batch)
+      # ...but a second batch must still not fit.
+      assert Media.add_media_to_life_log(owner, pet, entry, [%{token: "one-more"}]) ==
+               {:error, :media_limit}
+    end
   end
 
   describe "delete_media_asset/4" do

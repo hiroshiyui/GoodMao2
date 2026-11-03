@@ -63,7 +63,10 @@ reported as not-found.**
 
 - **The ≥1-owner invariant.** A pet must always have at least one effective owner. Creating
   a pet inserts the creator's `owner` grant in the **same transaction**. Revoking, demoting,
-  or time-boxing the last owner is refused (`{:error, :last_owner}`). Because two concurrent
+  or time-boxing the last owner is refused (`{:error, :last_owner}`). Only a **permanent**
+  (non-expiring) owner counts as the one left behind: a time-boxed co-owner is effective today
+  but lapses on its own, so counting it would let the pet become ownerless on the day it
+  expires. Because two concurrent
   revokes could each see the other owner as still-effective and both commit (write skew),
   owner-invariant mutations run inside a transaction that takes `FOR UPDATE` on the pet's
   owner rows (`with_owner_lock/2`), serializing them.

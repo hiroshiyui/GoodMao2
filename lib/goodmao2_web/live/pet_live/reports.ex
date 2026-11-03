@@ -96,6 +96,16 @@ defmodule Goodmao2Web.PetLive.Reports do
       {:error, :unauthorized} ->
         {:noreply, put_flash(socket, :error, gettext("You are not allowed to generate reports."))}
 
+      {:error, :too_many_entries} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("This period has more than %{max} entries. Choose a shorter period.",
+             max: Reports.max_entries()
+           )
+         )}
+
       {:error, %Ecto.Changeset{}} ->
         {:noreply,
          put_flash(socket, :error, gettext("Could not generate the report. Check the dates."))}
@@ -251,7 +261,7 @@ defmodule Goodmao2Web.PetLive.Reports do
             <div class="card-body flex-row items-center justify-between gap-3 p-3">
               <div class="min-w-0">
                 <p class="report-row-period font-medium">
-                  {format_date(report.period_start)} – {format_date(report.period_end)}
+                  {report_period(report)}
                 </p>
                 <p class="report-row-meta text-base-content/70 text-sm">
                   {gettext("Generated %{t}", t: format_datetime(report.inserted_at))}
@@ -385,5 +395,11 @@ defmodule Goodmao2Web.PetLive.Reports do
       </section>
     </Layouts.app>
     """
+  end
+
+  # The period in the zone it was entered in, not the viewer's (see `Reports.period_timezone/1`).
+  defp report_period(report) do
+    tz = Reports.period_timezone(report)
+    "#{format_date(report.period_start, tz)} – #{format_date(report.period_end, tz)}"
   end
 end

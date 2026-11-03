@@ -166,9 +166,18 @@ defmodule Goodmao2.Medications do
 
   @write_roles ~w(owner co_caretaker vet)
 
-  @doc "Materializes upcoming dose slots for every live, active schedule. Returns `:ok`."
+  @doc """
+  Materializes upcoming dose slots for every live, active schedule of a pet still in care.
+  Returns `:ok`. A pet whose care has ended (passed away, rehomed, lost) gets no new slots.
+  """
   def materialize_due_doses do
-    Repo.all(from s in Schedule, where: s.active == true and is_nil(s.deleted_at))
+    Repo.all(
+      from s in Schedule,
+        join: p in Pet,
+        on: p.id == s.pet_id,
+        where: s.active == true and is_nil(s.deleted_at),
+        where: p.lifecycle_status == "active"
+    )
     |> Enum.each(&materialize_doses/1)
 
     :ok
@@ -176,7 +185,7 @@ defmodule Goodmao2.Medications do
 
   @doc """
   Sends a `medication_due` reminder (bell + Web Push) for every pending, unreminded dose that is
-  now due, then stamps `reminded_at` so it nudges once. Recipients are the pet's effective
+  now due on a pet still in care, then stamps `reminded_at` so it nudges once. Recipients are the pet's effective
   caretakers who can write (owner / co-caretaker / vet). Returns `{:ok, sent}` (dose count).
   """
   def dispatch_due_reminders do
@@ -190,6 +199,9 @@ defmodule Goodmao2.Medications do
           where: s.active == true and is_nil(s.deleted_at),
           # Left unclaimed, so un-hiding within the grace window still reminds.
           where: not p.history_hidden,
+          # End-of-care is not a deletion, so the schedules survive it — but nobody should be
+          # paged to dose a pet that has died or been rehomed.
+          where: p.lifecycle_status == "active",
           where: d.status == "pending" and is_nil(d.reminded_at) and d.due_at <= ^now(),
           preload: [schedule: s]
       )

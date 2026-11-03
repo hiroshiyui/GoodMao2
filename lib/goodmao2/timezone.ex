@@ -88,6 +88,11 @@ defmodule Goodmao2.Timezone do
   @doc "The active zone for the current process, or `Etc/UTC` if none was established."
   def current, do: Process.get(@process_key, @fallback)
 
+  @doc "Today's date in `tz` — the day a viewer there would call today (UTC on a bad zone)."
+  def today(tz) when is_binary(tz) do
+    DateTime.utc_now() |> to_local(tz) |> DateTime.to_date()
+  end
+
   @doc """
   Shifts a UTC `%DateTime{}` into `tz` for display; returns it unchanged on any failure so
   rendering never crashes on a bad stored zone.

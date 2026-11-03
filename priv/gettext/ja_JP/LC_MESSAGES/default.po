@@ -3542,3 +3542,13 @@ msgstr "共有の試行回数が多すぎます。1時間後にもう一度お�
 #, elixir-autogen, elixir-format
 msgid "Your session has ended. Please log in again."
 msgstr "セッションが終了しました。もう一度ログインしてください。"
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "This month has more entries than the calendar can count; the earliest days may show fewer than they hold. Use the list view to see them all."
+msgstr "今月の記録はカレンダーで数えられる件数を超えています。月初めの日は実際より少なく表示されることがあります。すべて確認するにはリスト表示をご利用ください。"
+
+#: lib/goodmao2_web/live/pet_live/reports.ex
+#, elixir-autogen, elixir-format
+msgid "This period has more than %{max} entries. Choose a shorter period."
+msgstr "この期間の記録は %{max} 件を超えています。もっと短い期間を選んでください。"

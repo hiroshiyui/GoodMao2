@@ -24,7 +24,7 @@ defmodule Goodmao2Web.AvatarController do
   defp serve(conn, owner_type, id_param) do
     actor = conn.assigns.current_scope.user
 
-    with {:ok, id} <- parse_id(id_param),
+    with {:ok, id} <- Goodmao2.ID.normalize(id_param),
          {:ok, {content_type, path, version}} <-
            Avatars.fetch_avatar_object_for_user(owner_type, id, actor),
          true <- File.exists?(path) do
@@ -38,13 +38,6 @@ defmodule Goodmao2Web.AvatarController do
       end
     else
       _ -> conn |> put_status(:not_found) |> text("Not found")
-    end
-  end
-
-  defp parse_id(param) do
-    case Integer.parse(param) do
-      {id, ""} when id > 0 -> {:ok, id}
-      _ -> :error
     end
   end
 

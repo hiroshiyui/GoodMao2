@@ -165,6 +165,16 @@ defmodule Goodmao2.Media.AvatarsTest do
              )
     end
 
+    test "an avatar removed before its job runs ends the job without retries", %{owner: owner} do
+      token = staged_png()
+      {:ok, _} = Avatars.set_avatar("user", owner.id, owner, token)
+      assert :ok = Avatars.delete_avatar("user", owner.id, owner)
+
+      assert %{success: 1, failure: 0} = Oban.drain_queue(queue: :media)
+      assert Avatars.get_avatar("user", owner.id) == nil
+      refute File.exists?(Storage.staged_path(token))
+    end
+
     test "a video is rejected (avatars are images only)", %{owner: owner} do
       path = Path.join(System.tmp_dir!(), "gm_v_#{System.unique_integer([:positive])}.mp4")
 

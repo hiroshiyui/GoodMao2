@@ -190,6 +190,20 @@ defmodule Goodmao2.LogsTest do
       assert DateTime.compare(hd(series).at, List.last(series).at) == :lt
     end
 
+    test "past the limit, keeps the newest readings, not the oldest", %{owner: owner, pet: pet} do
+      base = DateTime.utc_now() |> DateTime.add(-10, :day) |> DateTime.truncate(:second)
+
+      for {grams, day} <- [{4000, 0}, {4100, 1}, {4200, 2}] do
+        log_entry_fixture(owner, pet, %{
+          "type" => "weight",
+          "data" => %{"weight_grams" => grams},
+          "occurred_at" => DateTime.add(base, day, :day)
+        })
+      end
+
+      assert Enum.map(Logs.weight_series(owner, pet, limit: 2), & &1.grams) == [4100, 4200]
+    end
+
     test "applies per-entry visibility (ADR-0004)", %{owner: owner, pet: pet} do
       viewer = user_fixture()
       grant_fixture(pet, owner, viewer, "viewer")

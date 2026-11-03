@@ -404,6 +404,38 @@ defmodule Goodmao2Web.PetLiveTest do
       refute has_element?(lv, "#timeline-calendar")
     end
 
+    test "says so when the month holds more entries than the grid counts", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#view-calendar") |> render_click()
+      refute has_element?(lv, "#cal-truncated")
+
+      at = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      rows =
+        for _ <- 1..3001 do
+          %{
+            pet_id: pet.id,
+            recorded_by_user_id: user.id,
+            type: "water",
+            data: %{},
+            visibility: "limited",
+            occurred_at: at,
+            inserted_at: at,
+            updated_at: at
+          }
+        end
+
+      Goodmao2.Repo.insert_all(Goodmao2.Logs.LogEntry, rows)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#view-calendar") |> render_click()
+      assert has_element?(lv, "#cal-truncated")
+    end
+
     test "a day with entries is selectable and drills into that day", %{conn: conn, user: user} do
       pet = pet_fixture(user)
       log_entry_fixture(user, pet, %{"type" => "food", "data" => %{"amount" => "full"}})
@@ -1090,6 +1122,38 @@ defmodule Goodmao2Web.PetLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
       assert has_element?(lv, ".log-entry-summary")
       refute has_element?(lv, "#log-share-section")
+    end
+
+    test "a co-owner demoted while the page is open loses the share link on the next update",
+         %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      entry = public_log(owner, pet)
+      grant_fixture(pet, owner, user, "owner")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      assert has_element?(lv, "#log-share-section")
+
+      {:ok, _} =
+        Goodmao2.Pets.grant_access(owner, pet, %{"identifier" => user.email, "role" => "viewer"})
+
+      {:ok, _} = Goodmao2.Logs.update_entry(owner, pet, entry, %{"note" => "re-shared"})
+
+      assert has_element?(lv, ".log-entry-summary")
+      refute has_element?(lv, "#log-share-section")
+    end
+
+    test "leaves the page once an update makes the entry unreadable", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      entry = public_log(owner, pet)
+      access = grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+      {:ok, _} = Goodmao2.Pets.revoke_access(owner, pet, access)
+      {:ok, _} = Goodmao2.Logs.update_entry(owner, pet, entry, %{"note" => "after revoke"})
+
+      assert_redirect(lv, ~p"/pets/#{pet.id}")
     end
 
     test "an owner can set and clear the link expiry", %{conn: conn, user: user} do

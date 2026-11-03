@@ -12,6 +12,7 @@ defmodule Goodmao2.Media.AvatarPurifyWorker do
     * **Classified purify failure**, or a **video** (avatars are images only) — terminal: unstage,
       resolve the row (`mark_failed/1`), notify the uploader with an `avatar_failed` bell, and
       return `:ok` so Oban does not retry a file that can never succeed.
+    * **Avatar removed meanwhile** — the attach finds no row: unstage and return `:ok`.
     * **Attach/store error** (e.g. a transient disk write) — return `{:error, _}` so Oban retries.
   """
   use Oban.Worker, queue: :media, max_attempts: 3
@@ -41,6 +42,12 @@ defmodule Goodmao2.Media.AvatarPurifyWorker do
 
         case result do
           {:ok, _avatar} ->
+            Storage.unstage(token)
+            :ok
+
+          # The avatar was removed while this job waited. Nothing will ever attach these bytes,
+          # so a retry would only re-run ffmpeg on the `:media` queue: drop them and stop.
+          {:error, :not_found} ->
             Storage.unstage(token)
             :ok
 

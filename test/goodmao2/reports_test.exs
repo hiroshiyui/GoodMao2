@@ -25,6 +25,60 @@ defmodule Goodmao2.ReportsTest do
       assert entry["type"] == "food"
     end
 
+    test "bounds the period by the generator's local days, and freezes that zone",
+         %{owner: owner, pet: pet} do
+      owner = %{owner | timezone: "Asia/Taipei"}
+
+      # 07:00 on Oct 1 in Taipei is still Sep 30 in UTC; 07:00 on Oct 2 is Oct 1 in UTC.
+      for {amount, at} <- [
+            {"full", ~U[2026-09-30 23:00:00Z]},
+            {"partial", ~U[2026-10-01 23:00:00Z]}
+          ] do
+        log_entry_fixture(owner, pet, %{
+          "type" => "food",
+          "data" => %{"amount" => amount},
+          "occurred_at" => at
+        })
+      end
+
+      assert {:ok, report} =
+               Reports.generate_report(owner, pet, %{
+                 period_start: ~D[2026-10-01],
+                 period_end: ~D[2026-10-01]
+               })
+
+      assert [%{"data" => %{"amount" => "full"}}] = report.content["entries"]
+      assert report.period_start == ~U[2026-09-30 16:00:00Z]
+      assert report.period_end == ~U[2026-10-01 15:59:59Z]
+      assert Reports.period_timezone(report) == "Asia/Taipei"
+    end
+
+    test "refuses a period with more entries than one snapshot holds", %{owner: owner, pet: pet} do
+      at = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      rows =
+        for _ <- 1..(Reports.max_entries() + 1) do
+          %{
+            pet_id: pet.id,
+            recorded_by_user_id: owner.id,
+            type: "food",
+            data: %{"amount" => "full"},
+            visibility: "limited",
+            occurred_at: at,
+            inserted_at: at,
+            updated_at: at
+          }
+        end
+
+      Goodmao2.Repo.insert_all(Goodmao2.Logs.LogEntry, rows)
+
+      assert Reports.generate_report(owner, pet, today_range()) == {:error, :too_many_entries}
+    end
+
+    test "a report without a frozen zone renders its period in UTC" do
+      assert Reports.content_timezone(%{"entries" => []}) == "Etc/UTC"
+    end
+
     test "omits private entries even when the owner generates it", %{owner: owner, pet: pet} do
       log_entry_fixture(owner, pet, %{"type" => "food", "visibility" => "limited"})
 

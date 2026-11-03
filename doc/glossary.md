@@ -119,8 +119,8 @@ terms name its Phoenix/LiveView/Ecto/Gettext stack.
   with someone you already share a pet with (an effective grant on a common pet) — no cold DMs.
   A failed attempt returns a **uniform, non-leaking** refusal that never reveals whether the
   recipient exists (ADR-0007).
-- **Read cursor** — a conversation participant's `last_read_at`: a message is unread for them
-  when it arrived after this timestamp (and they didn't send it). Drives the per-thread and
+- **Read cursor** — a conversation participant's `last_read_message_id`: a message is unread for
+  them when its id is past this one (and they didn't send it). Drives the per-thread and
   mailbox unread counts.
 - **Fan-out** — creating one notification row **per recipient** for a many-recipient event
   (`log_added` to every other viewer of the entry; an `announcement` to every user), run

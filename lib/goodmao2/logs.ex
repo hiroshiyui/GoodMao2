@@ -118,12 +118,15 @@ defmodule Goodmao2.Logs do
       query =
         from e in LogEntry,
           where: e.pet_id == ^pet.id and e.type == "weight" and is_nil(e.deleted_at),
-          order_by: [asc: e.occurred_at, asc: e.id],
+          # Newest `limit` readings, so a long history drops its oldest points rather than
+          # today's; reversed below to the oldest-first order the chart expects.
+          order_by: [desc: e.occurred_at, desc: e.id],
           limit: ^limit
 
       query
       |> filter_by_visibility(role, user.id)
       |> Repo.all()
+      |> Enum.reverse()
       |> Enum.flat_map(fn entry ->
         case entry.data["weight_grams"] do
           grams when is_number(grams) -> [%{at: entry.occurred_at, grams: grams}]

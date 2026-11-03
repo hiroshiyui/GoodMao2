@@ -3542,3 +3542,13 @@ msgstr "分享嘗試次數過多，請一小時後再試。"
 #, elixir-autogen, elixir-format
 msgid "Your session has ended. Please log in again."
 msgstr "您的登入已失效，請重新登入。"
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "This month has more entries than the calendar can count; the earliest days may show fewer than they hold. Use the list view to see them all."
+msgstr "本月的紀錄超過日曆可統計的數量，最早幾天顯示的筆數可能少於實際。請改用列表檢視查看全部紀錄。"
+
+#: lib/goodmao2_web/live/pet_live/reports.ex
+#, elixir-autogen, elixir-format
+msgid "This period has more than %{max} entries. Choose a shorter period."
+msgstr "此期間的紀錄超過 %{max} 筆，請選擇較短的期間。"

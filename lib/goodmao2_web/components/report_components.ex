@@ -16,6 +16,7 @@ defmodule Goodmao2Web.ReportComponents do
     only: [
       format_weight: 2,
       format_date: 1,
+      format_date: 2,
       format_datetime: 1,
       log_type_label: 1,
       log_summary: 2,
@@ -230,6 +231,7 @@ defmodule Goodmao2Web.ReportComponents do
         entries: visible,
         weights: weights,
         counts: counts,
+        period_tz: Goodmao2.Reports.content_timezone(assigns.content),
         pet_name: Map.get(pet, "name"),
         pet_species: Map.get(pet, "species"),
         pet_weight_unit: Map.get(pet, "weight_unit", "kilograms"),
@@ -249,7 +251,9 @@ defmodule Goodmao2Web.ReportComponents do
         <dt>{gettext("Pet")}</dt>
         <dd class="font-medium break-words">{@pet_name}</dd>
         <dt>{gettext("Period")}</dt>
-        <dd>{format_date(@period_start)} – {format_date(@period_end)}</dd>
+        <dd>
+          {format_date(@period_start, @period_tz)} – {format_date(@period_end, @period_tz)}
+        </dd>
         <dt>{gettext("Entries")}</dt>
         <dd class="tabular-nums">{@total}</dd>
       </dl>

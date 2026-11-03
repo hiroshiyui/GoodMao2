@@ -153,7 +153,7 @@ defmodule Goodmao2Web.MessageLive.Show do
                 "bg-base-200"
             ]}>
               <p class="message-body break-words whitespace-pre-wrap">{message.body}</p>
-              <p class="message-time text-xs opacity-60">
+              <p class="message-time text-xs opacity-80">
                 {format_datetime(message.inserted_at)}
               </p>
             </div>

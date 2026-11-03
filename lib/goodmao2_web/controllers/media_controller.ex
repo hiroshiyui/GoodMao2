@@ -26,7 +26,7 @@ defmodule Goodmao2Web.MediaController do
   def show(conn, %{"id" => id_param}) do
     user = conn.assigns.current_scope.user
 
-    with {:ok, id} <- parse_id(id_param),
+    with {:ok, id} <- Goodmao2.ID.normalize(id_param),
          {:ok, asset} <- Media.fetch_asset_for_user(user, id),
          path = Storage.object_path(asset.id),
          true <- File.exists?(path) do
@@ -42,7 +42,7 @@ defmodule Goodmao2Web.MediaController do
   # entry; only then is `Storage.object_path(asset.id)` (an id-derived path, never a request
   # string) touched. A dead token or an unrelated media id is existence-hidden, like `show/2`.
   def shared(conn, %{"token" => token, "id" => id_param}) do
-    with {:ok, id} <- parse_id(id_param),
+    with {:ok, id} <- Goodmao2.ID.normalize(id_param),
          %{media_assets: assets} <- Logs.fetch_entry_by_share_token(token),
          %Media.MediaAsset{} = asset <- Enum.find(assets, &(&1.id == id)),
          path = Storage.object_path(asset.id),
@@ -50,13 +50,6 @@ defmodule Goodmao2Web.MediaController do
       conn |> harden(asset) |> send_cached_bytes(asset, path)
     else
       _ -> conn |> put_status(:not_found) |> text("Not found")
-    end
-  end
-
-  defp parse_id(param) do
-    case Integer.parse(param) do
-      {id, ""} when id > 0 -> {:ok, id}
-      _ -> :error
     end
   end
 

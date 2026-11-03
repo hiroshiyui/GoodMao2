@@ -149,9 +149,28 @@ defmodule Goodmao2.Media do
     end
   end
 
+  # Attached media *plus* files still in the purify pipeline: the rows land asynchronously, so
+  # counting only attached ones let a second batch submitted before the first finished pass the
+  # cap and the entry end up holding both.
   defp media_count(log_entry_id) do
+    attached =
+      Repo.aggregate(
+        from(m in MediaAsset, where: m.log_entry_id == ^log_entry_id and is_nil(m.deleted_at)),
+        :count
+      )
+
+    attached + pending_purify_count(log_entry_id)
+  end
+
+  @pending_job_states ~w(available scheduled executing retryable)
+  @purify_worker inspect(PurifyWorker)
+
+  defp pending_purify_count(log_entry_id) do
     Repo.aggregate(
-      from(m in MediaAsset, where: m.log_entry_id == ^log_entry_id and is_nil(m.deleted_at)),
+      from(j in Oban.Job,
+        where: j.worker == @purify_worker and j.state in @pending_job_states,
+        where: fragment("(?->>'log_entry_id')::bigint", j.args) == ^log_entry_id
+      ),
       :count
     )
   end
@@ -162,7 +181,7 @@ defmodule Goodmao2.Media do
     multi =
       staged
       |> Enum.with_index()
-      |> Enum.reduce(Multi.new(), fn {s, i}, m ->
+      |> Enum.reduce(lock_and_recheck_cap(entry, length(staged)), fn {s, i}, m ->
         Multi.run(m, {:purify, i}, fn _repo, _changes ->
           Oban.insert(
             PurifyWorker.new(%{
@@ -180,6 +199,18 @@ defmodule Goodmao2.Media do
       {:ok, _} -> :ok
       {:error, _step, reason, _changes} -> {:error, reason}
     end
+  end
+
+  # The authoritative cap check, inside the enqueue transaction. Locking the entry row makes
+  # two concurrent additions to one entry take turns, so each counts the other's queued jobs.
+  defp lock_and_recheck_cap(entry, adding) do
+    Multi.run(Multi.new(), :media_cap, fn repo, _changes ->
+      repo.one!(from e in LogEntry, where: e.id == ^entry.id, lock: "FOR UPDATE", select: e.id)
+
+      if media_count(entry.id) + adding > config(:max_entries),
+        do: {:error, :media_limit},
+        else: {:ok, :room}
+    end)
   end
 
   @doc """

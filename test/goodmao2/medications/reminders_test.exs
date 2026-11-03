@@ -78,6 +78,27 @@ defmodule Goodmao2.Medications.RemindersTest do
       assert {:ok, 1} = Medications.dispatch_due_reminders()
     end
 
+    test "sends nothing, and materializes nothing, once the pet's care has ended", ctx do
+      %{owner: owner, pet: pet, schedule: schedule} = ctx
+      due_dose(schedule, pet)
+
+      {:ok, _} =
+        Goodmao2.Pets.update_pet_lifecycle(owner, pet, %{
+          "lifecycle_status" => "passed_away",
+          "ended_at" => DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      assert {:ok, 0} = Medications.dispatch_due_reminders()
+      assert med_due_for(owner) == []
+
+      future =
+        from(d in Dose, where: d.schedule_id == ^schedule.id and d.due_at > ^DateTime.utc_now())
+
+      Repo.delete_all(future)
+      assert :ok = Medications.materialize_due_doses()
+      assert Repo.aggregate(future, :count) == 0
+    end
+
     test "ignores doses of a paused schedule", %{owner: owner, pet: pet, schedule: schedule} do
       due_dose(schedule, pet)
       {:ok, _} = Medications.set_active(owner, pet, schedule, false)

@@ -183,6 +183,22 @@ defmodule Goodmao2.MessagingTest do
       assert Messaging.unread_count(co) == 0
     end
 
+    test "a reply in the same second as the read is still unread" do
+      %{owner: owner, co: co} = sharing_pair()
+      {:ok, conversation} = Messaging.start_conversation(owner, co.email)
+      {:ok, _} = Messaging.send_message(owner, conversation, "ping")
+      {:ok, _} = Messaging.mark_conversation_read(co, conversation)
+
+      # Within the same wall-clock second (timestamps are second-resolution): the old
+      # `inserted_at > last_read_at` cursor compared equal here and dropped the reply.
+      {:ok, _} = Messaging.send_message(owner, conversation, "pong")
+      assert Messaging.unread_count(co) == 1
+
+      # The sender's own cursor covers their message without hiding the other side's.
+      {:ok, _} = Messaging.send_message(co, conversation, "back")
+      assert Messaging.unread_count(owner) == 1
+    end
+
     test "list_conversations reports the other user and the per-thread unread count" do
       %{owner: owner, co: co} = sharing_pair()
       {:ok, conversation} = Messaging.start_conversation(owner, co.email)

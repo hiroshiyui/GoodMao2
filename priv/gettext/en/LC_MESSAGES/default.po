@@ -3546,3 +3546,13 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Your session has ended. Please log in again."
 msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/show.ex
+#, elixir-autogen, elixir-format
+msgid "This month has more entries than the calendar can count; the earliest days may show fewer than they hold. Use the list view to see them all."
+msgstr ""
+
+#: lib/goodmao2_web/live/pet_live/reports.ex
+#, elixir-autogen, elixir-format
+msgid "This period has more than %{max} entries. Choose a shorter period."
+msgstr ""

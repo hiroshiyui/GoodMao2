@@ -21,6 +21,11 @@ defmodule Goodmao2.Reports do
   alias Goodmao2.Reports.HealthSummaryReport
 
   @snapshot_version 1
+
+  # The most entries one snapshot freezes. Larger periods are refused (`:too_many_entries`)
+  # rather than silently cut short: a report that quietly drops its newest entries reads as a
+  # complete record to the vet holding it.
+  @max_entries 5000
   @token_bytes 32
 
   ## Generation
@@ -28,8 +33,14 @@ defmodule Goodmao2.Reports do
   @doc """
   Generates and stores a frozen health-summary snapshot for `pet` over a date range.
 
-  Requires `:manage`. `period_start`/`period_end` are `Date`s (inclusive); the window is
-  the full days from start 00:00:00 to end 23:59:59 UTC.
+  Requires `:manage`. `period_start`/`period_end` are `Date`s (inclusive) as the generator
+  sees them: the window runs from start 00:00:00 to end 23:59:59 **in the generator's
+  timezone** (`Goodmao2.Timezone.resolve/1`, ADR-0018), and that zone is frozen into the
+  snapshot (`"timezone"`) so the period renders as entered to every reader — see
+  `period_timezone/1`.
+
+  A period holding more than `max_entries/0` shareable entries is refused with
+  `{:error, :too_many_entries}` instead of being cut short.
   """
   def generate_report(%User{} = user, %Pet{} = pet, %{
         period_start: %Date{} = period_start,
@@ -37,28 +48,40 @@ defmodule Goodmao2.Reports do
       }) do
     with :ok <- require(pet, user, :manage),
          :ok <- ensure_visible(pet) do
-      from_dt = day_start(period_start)
-      to_dt = day_end(period_end)
+      tz = Goodmao2.Timezone.resolve(user)
+      from_dt = local_day_bound(period_start, ~T[00:00:00], tz)
+      to_dt = local_day_bound(period_end, ~T[23:59:59], tz)
 
-      entries = Logs.shareable_entries(user, pet, from: from_dt, to: to_dt)
+      entries =
+        Logs.shareable_entries(user, pet, from: from_dt, to: to_dt, limit: @max_entries + 1)
 
-      content = %{
-        "version" => @snapshot_version,
-        "generated_at" => DateTime.to_iso8601(now()),
-        "pet" => pet_descriptor(pet),
-        "entries" => Enum.map(entries, &entry_snapshot/1)
-      }
-
-      %HealthSummaryReport{}
-      |> HealthSummaryReport.create_changeset(%{
-        pet_id: pet.id,
-        generated_by_user_id: user.id,
-        period_start: from_dt,
-        period_end: to_dt,
-        content: content
-      })
-      |> Repo.insert()
+      if length(entries) > @max_entries,
+        do: {:error, :too_many_entries},
+        else: insert_report(user, pet, entries, tz, from_dt, to_dt)
     end
+  end
+
+  @doc "The most entries a report may hold; a longer period is `{:error, :too_many_entries}`."
+  def max_entries, do: @max_entries
+
+  defp insert_report(user, pet, entries, tz, from_dt, to_dt) do
+    content = %{
+      "version" => @snapshot_version,
+      "generated_at" => DateTime.to_iso8601(now()),
+      "timezone" => tz,
+      "pet" => pet_descriptor(pet),
+      "entries" => Enum.map(entries, &entry_snapshot/1)
+    }
+
+    %HealthSummaryReport{}
+    |> HealthSummaryReport.create_changeset(%{
+      pet_id: pet.id,
+      generated_by_user_id: user.id,
+      period_start: from_dt,
+      period_end: to_dt,
+      content: content
+    })
+    |> Repo.insert()
   end
 
   defp pet_descriptor(%Pet{} = pet) do
@@ -223,11 +246,23 @@ defmodule Goodmao2.Reports do
 
   defp change_deleted(report), do: Ecto.Changeset.change(report, %{deleted_at: now()})
 
-  defp day_start(%Date{} = d),
-    do: DateTime.new!(d, ~T[00:00:00], "Etc/UTC") |> DateTime.truncate(:second)
+  @doc """
+  The zone a report's period was entered in, for rendering `period_start`/`period_end` as the
+  generator's dates. Reports generated before the zone was frozen used UTC days, so `"Etc/UTC"`
+  renders those correctly too.
+  """
+  def period_timezone(%HealthSummaryReport{content: content}), do: content_timezone(content)
 
-  defp day_end(%Date{} = d),
-    do: DateTime.new!(d, ~T[23:59:59], "Etc/UTC") |> DateTime.truncate(:second)
+  @doc "As `period_timezone/1`, from a report's frozen `content` map."
+  def content_timezone(%{"timezone" => tz}) when is_binary(tz), do: tz
+  def content_timezone(_content), do: "Etc/UTC"
+
+  # A day's wall-clock bound in `tz`, as UTC. `tz` comes from `Timezone.resolve/1`, which only
+  # returns known zones, so the conversion cannot fail.
+  defp local_day_bound(%Date{} = d, %Time{} = t, tz) do
+    {:ok, utc} = Goodmao2.Timezone.local_naive_to_utc(NaiveDateTime.new!(d, t), tz)
+    utc
+  end
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:second)
 end
