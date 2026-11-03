@@ -266,7 +266,8 @@ Per browser/device: `user_id`, the push-service `endpoint` (browser-supplied —
 to a public HTTPS host before storage; globally unique), the subscriber's `p256dh` (65 B) + `auth`
 (16 B) keys (raw binary, for RFC 8291 encryption), `user_agent?` (truncated to 255),
 `session_token_hash?` (SHA-256 of the registering session's token — revoking that session releases
-the row; null on rows older than the column), and `deleted_at` (a 410-gone endpoint is soft-deleted
+the row; every live row has one — those registered before the column were retired by a data
+migration, and `upsert_push_subscription/3` requires the token), and `deleted_at` (a 410-gone endpoint is soft-deleted
 on the next send). A soft-deleted row may be re-claimed by whoever next presents its endpoint. See [ADR-0011](adr/0011-notifications-and-messaging.md) §Web Push.
 
 ### `settings` (Settings.Setting) — admin-managed system settings

@@ -235,13 +235,14 @@ defmodule Goodmao2.Notifications do
   and the endpoint is a capability only the browser holding it can present. A **live** row of
   another user is `{:error, :endpoint_conflict}`. The endpoint is SSRF-validated by the
   changeset before it can be stored.
-  """
-  def upsert_push_subscription(user, attrs, session_token \\ nil)
 
+  `session_token` is the registering browser's session token (required): the row keeps its
+  SHA-256 so revoking that session releases the subscription (`release_push_subscriptions/1`).
+  """
   def upsert_push_subscription(%User{} = user, %{endpoint: endpoint} = attrs, session_token)
-      when is_binary(endpoint) do
+      when is_binary(endpoint) and is_binary(session_token) do
     attrs = Map.put(attrs, :user_id, user.id)
-    session_hash = session_token && session_token_hash(session_token)
+    session_hash = session_token_hash(session_token)
 
     case Repo.get_by(PushSubscription, endpoint: endpoint) do
       nil ->
