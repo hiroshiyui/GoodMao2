@@ -11,7 +11,9 @@ defmodule Goodmao2.Medications do
   **Hidden history (ADR-0003) hides medications too.** Schedules and the given/skipped record are
   part of a pet's history, so while it is hidden every read comes back empty, every write is
   refused (for every role, as in `Goodmao2.Logs`), and no `medication_due` reminder is sent. The
-  flag is read fresh (`Pets.history_hidden?/1`), never from the passed `%Pet{}`.
+  flag is read fresh (`Pets.history_hidden?/1`), never from the passed `%Pet{}`. Likewise a pet
+  whose care has ended (`lifecycle_status` not `"active"`) keeps its schedules but gets no new
+  dose slots and no reminders from the cron sweeps.
 
   Dose slots are **materialized** from each schedule in the schedule's own timezone (see
   `Goodmao2.Timezone`), so any caretaker can see whether a specific slot is handled and reminders

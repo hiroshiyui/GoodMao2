@@ -22,7 +22,9 @@ reminders), `Media` (ffmpeg-purified LifeLog photos/videos + avatars, id-keyed s
   `Pets.can?(pet, user, level)` (`:read`/`:write`/`:manage`) and `Pets.fetch_pet/3`
   (returns `{:error, :not_found}` — IDOR-hidden — never "forbidden"). Re-check
   capability at the context boundary, not only in the LiveView. There is **no admin
-  backdoor** to pet data. Keep the **≥1-owner invariant**.
+  backdoor** to pet data. Keep the **≥1-owner invariant** — and count only a *permanent*
+  (non-expiring) owner as the one left behind, or a time-boxed co-owner lets the pet go ownerless
+  the day it lapses.
   Two ways a check made at mount goes stale, both of which leaked before:
   - **A PubSub subscription outlives its grant.** Revoking, expiring, or demoting a grant (or
     hiding the history) disconnects nothing, so never render a broadcast payload — re-read it

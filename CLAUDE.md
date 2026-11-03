@@ -131,7 +131,9 @@ each described below; the web layer is thin LiveViews that call them.
     latter returns `{:error, :not_found}` for inaccessible pets (**IDOR-hidden**, never
     "forbidden").
   - Creating a pet inserts the creator's `owner` grant in the **same transaction**; the
-    **≥1-owner invariant** is enforced on revoke (`{:error, :last_owner}`).
+    **≥1-owner invariant** is enforced on revoke, demote and time-box (`{:error, :last_owner}`),
+    and only a **permanent** owner counts as the one left behind — a time-boxed co-owner lapses
+    on its own, and counting it let a pet go ownerless the day it expired.
   - `grant_access/3` resolves the grantee by `@handle` *or email* and must say whether it found
     one, which is an email-membership oracle; it is metered per granter by
     `Pets.GrantRateLimiter` (`grant_attempts_per_hour`), charged before the lookup.
@@ -164,7 +166,9 @@ each described below; the web layer is thin LiveViews that call them.
   and give/skip a dose need **`:write`**; delete needs **`:manage`**. `Medications.ReminderWorker`
   (Oban cron, `*/15`) fills the horizon, ages overdue slots to `missed`, and fans out a
   **`medication_due`** bell + Web Push to effective `:write` caretakers, de-duped via `reminded_at`.
-  **Hidden history hides medications too** — reads empty, writes refused, no reminders.
+  **Hidden history hides medications too** — reads empty, writes refused, no reminders. A pet
+  whose **care has ended** gets no new dose slots and no reminders (the schedules survive, as
+  end-of-care is not a deletion).
   Web UI: `PetLive.Medications` (`/pets/:pet_id/medications`), linked from the pet page.
 - **`Media`** (`media.ex`) — purified LifeLog photos/videos attached to `life` logs
   ([ADR-0005](doc/adr/0005-media-storage.md)). Purification runs **off the request path**:
@@ -186,6 +190,8 @@ each described below; the web layer is thin LiveViews that call them.
   writes id-keyed opaque objects under a configured `storage_dir` (physical path never stored —
   traversal-proof), served IDOR-hidden per request. `Media.OrphanJanitor` (daily Oban cron →
   `delete_orphans/0`) reclaims stray objects + stale staged uploads. `Media.RateLimiter` throttles uploads.
+  The per-entry media cap counts files **still queued** for purification too (re-checked under the
+  entry's row lock), since a `life` entry's rows land asynchronously.
   - **`Media.Avatars`** — optional **profile images** for users and pets ([ADR-0020](doc/adr/0020-profile-images.md)),
     reusing the same `Purifier`/`Storage`/`Limits` primitives. One polymorphic `avatars` row per
     owner (`owner_type` ∈ {`user`,`pet`}, unique on `(owner_type, owner_id)`); `set_avatar/5` stages
@@ -203,7 +209,11 @@ each described below; the web layer is thin LiveViews that call them.
 - **`Reports`** (`reports.ex`) — generated **health summary reports**
   ([ADR-0012](doc/adr/0012-vet-access-model.md)). `generate_report/3` (`:manage`) freezes a
   `jsonb` `content` snapshot over a date range built from `Logs.shareable_entries/3`, which
-  **excludes every `private` entry** so the snapshot is safe to share. Reading needs `:read`;
+  **excludes every `private` entry** so the snapshot is safe to share. The range is the
+  generator's **local** days (`Timezone.resolve/1`), and that zone is frozen into the snapshot
+  (`"timezone"`) so the period renders as entered to every reader (`period_timezone/1`); a period
+  over `max_entries/0` (5 000) is refused with `:too_many_entries` rather than cut short.
+  Reading needs `:read`;
   an optional **expiring** share link stores only the token's SHA-256 hash. Also:
   **`Accounts.VetProfile`** — the `vet` role is grantable only to a user with a **verified**
   profile (`Accounts.verified_vet?/1`), gated in `Pets.grant_access/3` on grant *and* re-grant.
@@ -220,7 +230,11 @@ each described below; the web layer is thin LiveViews that call them.
   at storage *and* send time; `WebPush.VapidVault` AES-256-GCM-encrypts the VAPID private key
   (keyed off `SECRET_KEY_BASE`). Browsers subscribe via `PushSubscriptionController`
   (`/api/push-subscriptions`, CSRF + rate-limited); `service_worker.js` + `push_manager_hook.js`
-  drive display and opt-in (on `/users/settings`).
+  drive display and opt-in (on `/users/settings`). An endpoint belongs to the **device**, so each
+  row records the hash of the session token that registered it: **revoking that session** (log-out,
+  `UserAuth.disconnect_sessions/1`) releases it, a token change that keeps the device signed in
+  rebinds it, and the settings page asks `POST /api/push-subscriptions/status` rather than trust
+  the browser's own `getSubscription()`, which outlives a log-out.
 - **`Settings`** (`settings.ex`) — a tiny admin-managed key/value system-settings store
   (ETS-cached via `Settings.Cache`), used for the **VAPID keypair**, the **system default
   timezone** (`default_timezone`), and the **media upload limits** (`media_*`, resolved through
@@ -248,7 +262,8 @@ each described below; the web layer is thin LiveViews that call them.
   whether the recipient is unknown, self, or unshared — and **re-checked on every send**, so a
   thread goes read-only once the two stop sharing a pet; sends are also capped per user per hour
   (`Messaging.SendRateLimiter`). Thread reads require participation
-  (existence-hidden `nil`/`:not_participant`); each participant has a **read cursor**; messages
+  (existence-hidden `nil`/`:not_participant`); each participant has a **read cursor**
+  (`last_read_message_id` — an id, since a second-resolution timestamp lost same-second replies); messages
   are capped at 2 000 codepoints and soft-deleted. A new message also **Web Push**es to the other
   participant (`send_message/3` → `MessagePushWorker` → `Notifications.push_to_user/2`), gated on
   `WebPush.vapid_configured?/0` — messages write no bell row, so this is their only push path.

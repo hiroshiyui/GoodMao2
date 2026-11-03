@@ -37,12 +37,14 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   **atomic `pending → given` claim** that reuses the `medication` `log_entry` (`Logs.create_entry`).
   `Medications.ReminderWorker` (Oban cron) fills the horizon, ages overdue slots to `missed`, and
   fans out a `medication_due` bell + Web Push to effective `:write` caretakers, de-duped. A pet whose
-  history is hidden has its medications hidden too: reads empty, writes refused, no reminders.
+  history is hidden has its medications hidden too: reads empty, writes refused, no reminders. A pet
+  whose care has ended keeps its schedules but gets no new slots and no reminders.
 - **Media** (`media.ex`) — purified photos/videos attached to `life` logs (ADR-0005):
   ffmpeg-based purification (`Media.Purifier`), an id-keyed storage seam (`Media.Storage`),
   atomic create with the log, add/remove on an existing entry from its page
   (`add_media_to_life_log/4` / soft-deleting `delete_media_asset/4` — same right as editing
-  the entry, per-entry cap, not an edit), an upload rate limiter (`Media.RateLimiter`, shared with
+  the entry, per-entry cap — counting files still queued for purification, re-checked under the
+  entry's row lock — not an edit), an upload rate limiter (`Media.RateLimiter`, shared with
   avatar uploads), and
   the authorization for the serving endpoint.
 - **Reports** (`reports.ex`) — generated, point-in-time **health summary reports** for a pet
@@ -231,7 +233,8 @@ enforced in `Pets.grant_access/3` on grant *and* re-grant ([ADR-0012](adr/0012-v
 
 Per pet: `period_start` / `period_end`, `generated_by_user_id` (audit ref), a `jsonb`
 **`content`** snapshot (frozen at generation — pet descriptor + shareable entries, private
-entries omitted), an optional `share_token_hash` (SHA-256 of the raw token, shown once) always
+entries omitted, and the generator's `timezone`: the period is that zone's local days, rendered in
+it for every reader; more than 5 000 entries is refused, not truncated), an optional `share_token_hash` (SHA-256 of the raw token, shown once) always
 paired with `share_expires_at`, and `deleted_at` (soft-delete). Generation/sharing/deletion
 require `:manage`; reading requires `:read`; the anonymous token path is gated only by an
 unexpired, matching token. See [ADR-0012](adr/0012-vet-access-model.md).
@@ -261,8 +264,10 @@ requires participation. See [ADR-0011](adr/0011-notifications-and-messaging.md).
 
 Per browser/device: `user_id`, the push-service `endpoint` (browser-supplied — **SSRF-validated**
 to a public HTTPS host before storage; globally unique), the subscriber's `p256dh` (65 B) + `auth`
-(16 B) keys (raw binary, for RFC 8291 encryption), `user_agent?`, and `deleted_at` (a 410/410-gone
-endpoint is soft-deleted on the next send). See [ADR-0011](adr/0011-notifications-and-messaging.md) §Web Push.
+(16 B) keys (raw binary, for RFC 8291 encryption), `user_agent?` (truncated to 255),
+`session_token_hash?` (SHA-256 of the registering session's token — revoking that session releases
+the row; null on rows older than the column), and `deleted_at` (a 410-gone endpoint is soft-deleted
+on the next send). A soft-deleted row may be re-claimed by whoever next presents its endpoint. See [ADR-0011](adr/0011-notifications-and-messaging.md) §Web Push.
 
 ### `settings` (Settings.Setting) — admin-managed system settings
 
