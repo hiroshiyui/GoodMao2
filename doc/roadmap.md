@@ -11,8 +11,8 @@ file tracks what's done, what's open, and what was ruled out. Implementation det
 entries here stay short.
 
 **Where things stand:** [v1.0.0](#milestone-v100) shipped on 2026-07-23 and is live at
-[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.8** (2026-11-03), and main carries
-nothing unreleased. The
+[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.8** (2026-11-03); main carries
+three follow-up fixes from the same review. The
 [releases since v1.0.0](#releases-since-v100) were mostly hardening: project-wide reviews, a
 security audit, browser-driven tests, a runtime upgrade, the Baudrate comparison, and a run of
 advisory patches. The open work is in two lists:
@@ -202,6 +202,7 @@ The [changelog](../CHANGELOG.md) has the detail.
 | 1.6.6 | 10-30 | Security audit: reports honour hidden history; fixed 50 MP / 600-frame purifier ceilings; bandit and hackney advisories cleared; grant-lookup, email-change and second-factor throttles hardened; pet edit form can no longer hide the history. Production host moved to Debian 13 / PostgreSQL 17. |
 | 1.6.7 | 11-01 | Advisory patches found by `hex.audit` only (phoenix_html; ssl_verify_fun, test-only), Elixir 1.20.5. A revoked session's pages leave by LiveView redirect, not the socket close, which lifts the Phoenix 1.8.15 hold. |
 | 1.6.8 | 11-03 | Third project-wide review: rate limiters serialized, push subscriptions tied to the session that registered them, a time-boxed co-owner no longer counts toward the last-owner rule, reports bounded by the generator's local days, no reminders after end-of-care, an id-based message read cursor, and silent truncations (weight chart, calendar, reports, media cap) fixed. |
+| Unreleased | 11-03 | Writes check the locked row rather than the caller's copy (a stale copy let a co-caretaker re-widen an entry the owner had narrowed); push subscriptions from before 1.6.8 retired so each is tied to a session; grant lists ordered deterministically. |
 
 > **What the reviews taught, as classes of bug.** These come from the 2026-08-03 review (1.2.1),
 > the 2026-09-18 audit (1.3.0), the 2026-09-28 Baudrate comparison and the 2026-11-03 review.
@@ -233,6 +234,9 @@ The [changelog](../CHANGELOG.md) has the detail.
 > - **A cap that silently drops the newest data.** The weight chart kept its *oldest* 200
 >   points, reports their first 1 000 entries, the calendar its newest 500. A cap now either
 >   keeps what the reader needs or says that it cut.
+> - **A copy trusted as the row.** Writes checked an entry's deletion and visibility on the
+>   struct the caller held. A copy from before the owner narrowed an entry let a co-caretaker
+>   keep it public. Each write now re-reads its row under a lock.
 > - **State that belongs to the device, not the account.** A push endpoint outlived log-out,
 >   so the next person on the phone got the last one's medication reminders.
 > - **A copy that drifts from its source.** The hand-deploy nginx example appended
