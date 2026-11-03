@@ -194,7 +194,7 @@ defmodule Goodmao2.Pets do
     Repo.all(
       from a in PetAccess,
         where: a.pet_id == ^pet_id and a.status == "active",
-        order_by: [asc: a.role, asc: a.inserted_at],
+        order_by: [asc: a.role, asc: a.inserted_at, asc: a.id],
         preload: [:user]
     )
   end
@@ -209,7 +209,7 @@ defmodule Goodmao2.Pets do
       from a in PetAccess,
         where: a.pet_id == ^pet_id and a.status == "active",
         where: is_nil(a.expires_at) or a.expires_at > ^now(),
-        order_by: [asc: a.role, asc: a.inserted_at]
+        order_by: [asc: a.role, asc: a.inserted_at, asc: a.id]
     )
   end
 

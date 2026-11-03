@@ -8,6 +8,27 @@ skill).
 
 ## [Unreleased]
 
+The deploy runs a data migration that retires push subscriptions registered before 1.6.8 (they
+name no session, so revoking one could never release them). Their owners see "Enable push" on
+the settings page and re-enable it once.
+
+### Security
+
+- **Writes trusted the caller's copy of a record.** Editing, deleting and setting a share
+  expiry checked an entry's deletion, visibility and edit count on the struct the caller held,
+  not the row. A co-caretaker whose copy still showed an entry as `public` could keep it public
+  after the owner narrowed it — re-widening it and minting a share link — and an edit could land
+  on an entry deleted meanwhile. Each check now runs on the row re-read `FOR UPDATE`. The same
+  fix covers medication schedules (resuming a deleted one re-created its doses), report share
+  links (one could be minted on a deleted report) and adding or removing media.
+- **Push subscriptions registered before 1.6.8 are retired**, so every live subscription is
+  bound to a session and released when that session ends. Registering now requires the session.
+
+### Fixed
+
+- The access list orders grants of one role created in the same second by id, so it no longer
+  reshuffles between loads.
+
 ## [1.6.8] - 2026-11-03
 
 The deploy runs two additive migrations: `conversation_participants.last_read_message_id`

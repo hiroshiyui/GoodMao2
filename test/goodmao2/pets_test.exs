@@ -471,4 +471,23 @@ defmodule Goodmao2.PetsTest do
       assert %{ended_at: _} = errors_on(changeset)
     end
   end
+
+  describe "grant list ordering" do
+    test "grants of one role created in the same second come back in a stable order" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      viewers = for _ <- 1..3, do: user_fixture()
+      for v <- viewers, do: grant_fixture(pet, owner, v, "viewer")
+
+      # Second-resolution timestamps tie; the id breaks it, so the list never reshuffles.
+      Repo.update_all(from(a in PetAccess, where: a.pet_id == ^pet.id),
+        set: [inserted_at: ~U[2026-11-03 00:00:00Z]]
+      )
+
+      ids = fn list -> list |> Enum.filter(&(&1.role == "viewer")) |> Enum.map(& &1.id) end
+
+      assert ids.(Pets.list_accesses(pet)) == Enum.sort(ids.(Pets.list_accesses(pet)))
+      assert ids.(Pets.list_effective_accesses(pet)) == Enum.sort(ids.(Pets.list_accesses(pet)))
+    end
+  end
 end
