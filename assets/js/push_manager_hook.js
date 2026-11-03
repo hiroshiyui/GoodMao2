@@ -19,13 +19,34 @@ const PushManager = {
         this.registration = registration
         return registration.pushManager.getSubscription()
       })
-      .then((subscription) => {
-        this.pushEvent("push_support", { supported: true, subscribed: !!subscription })
-      })
+      .then((subscription) => this.verify(subscription))
+      .then((subscribed) => this.pushEvent("push_support", { supported: true, subscribed }))
       .catch(() => this.pushEvent("push_support", { supported: false, subscribed: false }))
 
     this.el.addEventListener("push:subscribe", () => this.subscribe())
     this.el.addEventListener("push:unsubscribe", () => this.unsubscribe())
+  },
+
+  // The browser's subscription outlives a log-out and a change of user on this profile, so
+  // ask the server whether it is a live subscription of the *current* user. A definite "no"
+  // (404) drops the browser's copy, so the page offers to enable push instead of claiming it
+  // is on; any other failure trusts the browser rather than discard a working subscription.
+  verify(subscription) {
+    if (!subscription) return Promise.resolve(false)
+
+    return fetch("/api/push-subscriptions/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-csrf-token": this.csrf() },
+      body: JSON.stringify({ endpoint: subscription.endpoint }),
+    }).then((response) => {
+      if (response.status === 404) {
+        return subscription
+          .unsubscribe()
+          .catch(() => {})
+          .then(() => false)
+      }
+      return true
+    }, () => true)
   },
 
   csrf() {
@@ -48,12 +69,16 @@ const PushManager = {
             auth: arrayBufferToBase64Url(subscription.getKey("auth")),
             user_agent: navigator.userAgent,
           }),
+        }).then((response) => {
+          if (response.ok) return this.pushEvent("push_subscribed", {})
+          // The server stored nothing: drop the browser's half too, or the next visit would
+          // read it as "push is on" while no push ever arrives.
+          return subscription
+            .unsubscribe()
+            .catch(() => {})
+            .then(() => this.pushEvent("push_subscribe_error", { reason: "server_error" }))
         })
       )
-      .then((response) => {
-        if (response && response.ok) this.pushEvent("push_subscribed", {})
-        else this.pushEvent("push_subscribe_error", { reason: "server_error" })
-      })
       .catch((err) => {
         if (err.name === "NotAllowedError") this.pushEvent("push_permission_denied", {})
         else this.pushEvent("push_subscribe_error", { reason: err.message || "unknown" })

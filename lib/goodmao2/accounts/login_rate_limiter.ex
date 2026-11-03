@@ -1,7 +1,8 @@
 defmodule Goodmao2.Accounts.LoginRateLimiter do
   @moduledoc """
   A tiny sliding-window limiter for **failed** login attempts: email+password failures per
-  target email, and second-factor failures per user.
+  target email, and second-factor failures per user. Each attempt is charged before it is
+  evaluated and refunded on success, so the counter holds failures (plus any in flight).
 
   Bcrypt's cost blunts offline-scale guessing, but the password `create` path had no online
   throttle, so an attacker could try passwords at request speed against a known address. This
@@ -32,8 +33,11 @@ defmodule Goodmao2.Accounts.LoginRateLimiter do
   so N parallel guesses that all read "9 so far" all pass, and the cap is really "limit +
   concurrency". Serialized in the GenServer, exactly `limit` reservations succeed.
 
-  Owns a public ETS table so the email-keyed callers check inline without a GenServer
-  round-trip. The window is one hour and the ceiling is
+  The password path reserves the same way (`reserve_password_attempt/1`): a burst of parallel
+  guesses against one address would otherwise all pass an inline check before any failure was
+  recorded. Every reservation goes through the process; `clear/1` deletes inline.
+
+  Owns a public ETS table. The window is one hour and the ceiling is
   `config :goodmao2, Goodmao2.Accounts, :login_attempts_per_hour`.
   """
   use GenServer
@@ -84,11 +88,18 @@ defmodule Goodmao2.Accounts.LoginRateLimiter do
 
   defp schedule_sweep, do: Process.send_after(self(), :sweep, @sweep_interval_ms)
 
-  @doc "Returns `:ok` while failures for `email` are under the hourly cap, else `{:error, :rate_limited}`."
-  def check(email) when is_binary(email), do: check_key(email_key(email))
+  @doc """
+  Spends one of `email`'s hourly password attempts ahead of verifying the password. Returns
+  `:ok`, or `{:error, :rate_limited}` — without spending — once the budget is gone.
 
-  @doc "Records a failed login attempt for `email`."
-  def record_failure(email) when is_binary(email), do: record_key(email_key(email))
+  Charged *before* bcrypt and serialized through the process, like `reserve_second_factor/1`:
+  an inline check followed by a record after the verification let a parallel burst of guesses
+  all pass the check while their bcrypt ran, and lost concurrent writes to the same row, so the
+  cap was really "limit + concurrency". A successful login refunds the budget via `clear/1`.
+  """
+  def reserve_password_attempt(email) when is_binary(email) do
+    GenServer.call(__MODULE__, {:reserve, email_key(email)})
+  end
 
   @doc "Clears the failure counter for `email` (called after a successful login)."
   def clear(email) when is_binary(email), do: clear_key(email_key(email))

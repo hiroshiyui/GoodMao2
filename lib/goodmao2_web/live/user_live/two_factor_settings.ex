@@ -7,7 +7,7 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   enrollment holds the setup secret in a socket assign, and security-key registration
   finishes via a `pushEvent` callback from the `WebAuthn` JS hook (no controller round-trip,
   live list update). Removing the admin's last remaining factor is refused
-  (`Accounts.can_remove_second_factor?/2`).
+  (`Accounts.remove_second_factor/2`, which checks and removes under one lock).
 
   Sudo mode is checked at mount *and* again in every event that changes a factor. A LiveView
   outlives the sudo window it was opened in, so a mount-only gate would leave a tab opened hours
@@ -297,16 +297,16 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   def handle_event("disable_totp", _params, socket) do
     user = sudo_user!(socket)
 
-    if Accounts.can_remove_second_factor?(user, :totp) do
-      {:ok, _user} = Accounts.disable_totp(user)
+    case Accounts.remove_second_factor(user, :totp) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> assign(recovery_codes: nil)
+         |> put_flash(:info, gettext("Authenticator app turned off."))
+         |> load_state()}
 
-      {:noreply,
-       socket
-       |> assign(recovery_codes: nil)
-       |> put_flash(:info, gettext("Authenticator app turned off."))
-       |> load_state()}
-    else
-      {:noreply, put_flash(socket, :error, last_factor_message())}
+      {:error, :last_factor} ->
+        {:noreply, put_flash(socket, :error, last_factor_message())}
     end
   end
 
@@ -374,16 +374,15 @@ defmodule Goodmao2Web.UserLive.TwoFactorSettings do
   def handle_event("delete_key", %{"id" => id}, socket) do
     user = sudo_user!(socket)
 
-    if Accounts.can_remove_second_factor?(user, :webauthn) do
-      case Accounts.delete_webauthn_credential(user, id) do
-        {:ok, _} ->
-          {:noreply, socket |> put_flash(:info, gettext("Security key removed.")) |> load_state()}
+    case Accounts.remove_second_factor(user, {:webauthn, id}) do
+      {:ok, _} ->
+        {:noreply, socket |> put_flash(:info, gettext("Security key removed.")) |> load_state()}
 
-        {:error, :not_found} ->
-          {:noreply, put_flash(socket, :error, gettext("That security key was not found."))}
-      end
-    else
-      {:noreply, put_flash(socket, :error, last_factor_message())}
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("That security key was not found."))}
+
+      {:error, :last_factor} ->
+        {:noreply, put_flash(socket, :error, last_factor_message())}
     end
   end
 

@@ -709,6 +709,34 @@ defmodule Goodmao2.Accounts do
 
   defp totp_factor_count(user), do: if(totp_enabled?(user), do: 1, else: 0)
 
+  @doc """
+  Removes one of `user`'s second factors — `:totp`, or `{:webauthn, credential_id}` — unless
+  that would leave the admin with none (`{:error, :last_factor}`).
+
+  The check and the removal run in one transaction holding the user row `FOR UPDATE`, and the
+  check reads the user fresh inside it. Checked apart (as `can_remove_second_factor?/2` alone
+  would be), two removals from two tabs could each see the other factor still there, both
+  succeed, and leave the admin with none — and the next login would then be a forced setup that
+  whoever holds the password could complete first.
+  """
+  @spec remove_second_factor(User.t(), :totp | {:webauthn, integer() | String.t()}) ::
+          {:ok, term()} | {:error, :last_factor | :not_found | Ecto.Changeset.t()}
+  def remove_second_factor(%User{id: user_id}, factor) do
+    Repo.transact(fn ->
+      user = Repo.one!(from u in User, where: u.id == ^user_id, lock: "FOR UPDATE")
+
+      if can_remove_second_factor?(user, factor_kind(factor)),
+        do: do_remove_second_factor(user, factor),
+        else: {:error, :last_factor}
+    end)
+  end
+
+  defp factor_kind(:totp), do: :totp
+  defp factor_kind({:webauthn, _id}), do: :webauthn
+
+  defp do_remove_second_factor(user, :totp), do: TwoFactor.disable_totp(user)
+  defp do_remove_second_factor(user, {:webauthn, id}), do: WebAuthn.delete_credential(user, id)
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do

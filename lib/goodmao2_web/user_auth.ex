@@ -183,11 +183,14 @@ defmodule Goodmao2Web.UserAuth do
   @doc """
   Logs the user out.
 
-  It clears all session data for safety. See renew_session.
+  It clears all session data for safety. See renew_session. Also releases the Web Push
+  subscription this session registered, if any: the endpoint belongs to the device, so leaving
+  it live would send this user's pushes to whoever signs in there next.
   """
   def log_out_user(conn) do
     user_token = get_session(conn, :user_token)
     user_token && Accounts.delete_user_session_token(user_token)
+    Goodmao2.Notifications.release_push_subscriptions([user_token])
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       revoke_live_session(live_socket_id)
@@ -252,6 +255,12 @@ defmodule Goodmao2Web.UserAuth do
     token = Accounts.generate_user_session_token(user)
     remember_me = get_session(conn, :user_remember_me)
 
+    # The device keeps its push subscription across the token change (scoped to this user, so a
+    # different account signing in here never inherits one).
+    if old_token = get_session(conn, :user_token) do
+      Goodmao2.Notifications.rebind_push_subscriptions(user.id, old_token, token)
+    end
+
     conn
     |> renew_session(user)
     |> put_token_in_session(token)
@@ -310,11 +319,13 @@ defmodule Goodmao2Web.UserAuth do
 
   @doc """
   Sends the open pages of the given (just-revoked) session tokens to the log-in page, then
-  disconnects their sockets.
+  disconnects their sockets, and releases the Web Push subscriptions those sessions
+  registered (a revoked device must stop receiving pushes too).
 
   See `revoke_live_session/1` for why it takes two steps.
   """
   def disconnect_sessions(tokens) do
+    Goodmao2.Notifications.release_push_subscriptions(Enum.map(tokens, & &1.token))
     Enum.each(tokens, fn %{token: token} -> revoke_live_session(user_session_topic(token)) end)
   end
 

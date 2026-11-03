@@ -9,8 +9,8 @@ defmodule Goodmao2.Accounts.RegistrationRateLimiter do
   abuse. It does **not** stop a distributed flood across many distinct addresses — that is a
   CAPTCHA / edge-WAF concern, tracked separately.
 
-  Owns a public ETS table so callers check inline without a GenServer round-trip; the process
-  exists only to keep the table alive. Mirrors `Goodmao2.Media.RateLimiter`. The window is one
+  Owns an ETS table; each check-and-record is serialized through the process, so parallel
+  requests cannot send an address more than the cap. Mirrors `Goodmao2.Media.RateLimiter`. The window is one
   hour and the ceiling is `config :goodmao2, Goodmao2.Accounts, :registration_emails_per_hour`.
   """
   use GenServer
@@ -62,6 +62,16 @@ defmodule Goodmao2.Accounts.RegistrationRateLimiter do
 
   @doc "Records a send for `email`, or `{:error, :rate_limited}` if over the hourly cap."
   def check(email) when is_binary(email) do
+    # Through the process, not inline: the ETS read-then-insert below is two operations, so
+    # a parallel burst that all read "limit - 1 so far" would all pass, and concurrent
+    # inserts would overwrite each other's timestamps. Serialized, exactly `limit` succeed.
+    GenServer.call(__MODULE__, {:check, email})
+  end
+
+  @impl true
+  def handle_call({:check, email}, _from, state), do: {:reply, record(email), state}
+
+  defp record(email) do
     key = email |> String.trim() |> String.downcase()
     limit = Application.fetch_env!(:goodmao2, Goodmao2.Accounts)[:registration_emails_per_hour]
     now = System.system_time(:second)

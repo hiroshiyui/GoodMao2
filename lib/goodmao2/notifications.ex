@@ -230,22 +230,31 @@ defmodule Goodmao2.Notifications do
   Registers (or refreshes) a browser push subscription for `user`.
 
   Endpoints are globally unique. If the endpoint is new, it is inserted; if it already
-  belongs to `user`, its keys are refreshed and any soft-delete is reversed (re-subscribe);
-  if it belongs to **another** user, `{:error, :endpoint_conflict}`. The endpoint is
-  SSRF-validated by the changeset before it can be stored.
+  belongs to `user`, its keys are refreshed and any soft-delete is reversed (re-subscribe).
+  A **soft-deleted** row of another user is re-claimed: that user logged out or unsubscribed,
+  and the endpoint is a capability only the browser holding it can present. A **live** row of
+  another user is `{:error, :endpoint_conflict}`. The endpoint is SSRF-validated by the
+  changeset before it can be stored.
   """
-  def upsert_push_subscription(%User{} = user, attrs) do
-    attrs = Map.put(attrs, :user_id, user.id)
+  def upsert_push_subscription(user, attrs, session_token \\ nil)
 
-    case Repo.get_by(PushSubscription, endpoint: attrs.endpoint) do
+  def upsert_push_subscription(%User{} = user, %{endpoint: endpoint} = attrs, session_token)
+      when is_binary(endpoint) do
+    attrs = Map.put(attrs, :user_id, user.id)
+    session_hash = session_token && session_token_hash(session_token)
+
+    case Repo.get_by(PushSubscription, endpoint: endpoint) do
       nil ->
         %PushSubscription{}
         |> PushSubscription.changeset(attrs)
+        |> Ecto.Changeset.put_change(:session_token_hash, session_hash)
         |> Repo.insert()
 
-      %PushSubscription{user_id: uid} = existing when uid == user.id ->
+      %PushSubscription{user_id: uid, deleted_at: deleted_at} = existing
+      when uid == user.id or not is_nil(deleted_at) ->
         existing
         |> PushSubscription.changeset(attrs)
+        |> Ecto.Changeset.put_change(:session_token_hash, session_hash)
         |> Ecto.Changeset.put_change(:deleted_at, nil)
         |> Repo.update()
 
@@ -254,17 +263,74 @@ defmodule Goodmao2.Notifications do
     end
   end
 
+  # A missing or non-string endpoint never reaches the lookup (Ecto refuses a nil comparison
+  # and cannot cast a map): it is a validation error like any other.
+  def upsert_push_subscription(%User{} = user, attrs, _session_token) do
+    {:error,
+     %PushSubscription{}
+     |> PushSubscription.changeset(attrs |> Map.delete(:endpoint) |> Map.put(:user_id, user.id))}
+  end
+
+  @doc "Whether `endpoint` is a live subscription of `user` (a browser checking its own state)."
+  def push_subscription_active?(%User{id: user_id}, endpoint) when is_binary(endpoint) do
+    Repo.exists?(
+      from s in PushSubscription,
+        where: s.endpoint == ^endpoint and s.user_id == ^user_id and is_nil(s.deleted_at)
+    )
+  end
+
   @doc "Soft-deletes `user`'s subscription for `endpoint`, or `{:error, :not_found}`."
   def delete_push_subscription(%User{} = user, endpoint) when is_binary(endpoint) do
     case Repo.get_by(PushSubscription, endpoint: endpoint, user_id: user.id) do
-      nil ->
-        {:error, :not_found}
-
-      %PushSubscription{} = subscription ->
-        subscription
-        |> Ecto.Changeset.change(deleted_at: now())
-        |> Repo.update()
+      nil -> {:error, :not_found}
+      %PushSubscription{} = subscription -> soft_delete_subscription(subscription)
     end
+  end
+
+  @doc """
+  Soft-deletes every live subscription registered through one of `session_tokens`. Called
+  whenever sessions are revoked (log-out, and the revocations behind
+  `Goodmao2Web.UserAuth.disconnect_sessions/1`): the endpoint belongs to the device, so leaving
+  it live would keep pushing to a lost phone, or to the next person to sign in there. `:ok`.
+  """
+  def release_push_subscriptions(session_tokens) when is_list(session_tokens) do
+    hashes = for token <- session_tokens, is_binary(token), do: session_token_hash(token)
+
+    if hashes != [] do
+      Repo.update_all(
+        from(s in PushSubscription,
+          where: s.session_token_hash in ^hashes and is_nil(s.deleted_at)
+        ),
+        set: [deleted_at: now()]
+      )
+    end
+
+    :ok
+  end
+
+  @doc """
+  Moves `user_id`'s subscriptions from one session token to its replacement — a token
+  reissue, a sudo re-authentication, or a password change keeps the device signed in under a
+  new token, and its subscription must follow, or a later revocation would miss it. `:ok`.
+  """
+  def rebind_push_subscriptions(user_id, old_token, new_token)
+      when is_integer(user_id) and is_binary(old_token) and is_binary(new_token) do
+    Repo.update_all(
+      from(s in PushSubscription,
+        where: s.user_id == ^user_id and s.session_token_hash == ^session_token_hash(old_token)
+      ),
+      set: [session_token_hash: session_token_hash(new_token)]
+    )
+
+    :ok
+  end
+
+  defp session_token_hash(token), do: :crypto.hash(:sha256, token)
+
+  defp soft_delete_subscription(subscription) do
+    subscription
+    |> Ecto.Changeset.change(deleted_at: now())
+    |> Repo.update()
   end
 
   @doc "Inline single-recipient notification that `actor` granted `role` on `pet`."

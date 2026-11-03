@@ -39,4 +39,24 @@ defmodule Goodmao2.Accounts.LoginRateLimiterTest do
     assert Enum.count(results, &(&1 == :ok)) == limit
     assert Limiter.reserve_second_factor(user_id) == {:error, :rate_limited}
   end
+
+  test "a concurrent burst of password attempts never exceeds the hourly cap" do
+    email = "burst-#{System.unique_integer([:positive])}@example.com"
+    limit = Application.fetch_env!(:goodmao2, Goodmao2.Accounts)[:login_attempts_per_hour]
+
+    results =
+      1..(limit * 5)
+      |> Task.async_stream(fn _ -> Limiter.reserve_password_attempt(email) end,
+        max_concurrency: 50
+      )
+      |> Enum.map(fn {:ok, r} -> r end)
+
+    assert Enum.count(results, &(&1 == :ok)) == limit
+    # The key is normalized: case and padding don't buy a fresh budget.
+    assert Limiter.reserve_password_attempt(" " <> String.upcase(email)) ==
+             {:error, :rate_limited}
+
+    Limiter.clear(email)
+    assert Limiter.reserve_password_attempt(email) == :ok
+  end
 end

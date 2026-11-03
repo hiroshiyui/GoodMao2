@@ -7,8 +7,8 @@ defmodule Goodmao2.Pets.GrantRateLimiter do
   for email addresses, which registration, magic-link and messaging all carefully avoid. Rather
   than take email sharing away (families share by email), cap *how many* lookups one account can
   make: creating a pet is free, so the cap is per granter, not per pet. Charged on every attempt,
-  found or not, before the lookup. Mirrors `Goodmao2.Messaging.SendRateLimiter`: a public ETS
-  table checked inline, the process only keeps it alive. The window is one hour; the ceiling is
+  found or not, before the lookup. Mirrors `Goodmao2.Messaging.SendRateLimiter`: an ETS table
+  whose check-and-record is serialized through the owning process. The window is one hour; the ceiling is
   `:grant_attempts_per_hour` under `Goodmao2.Pets`.
   """
   use GenServer
@@ -33,6 +33,16 @@ defmodule Goodmao2.Pets.GrantRateLimiter do
 
   @doc "Records a grant attempt for `user_id`, or `{:error, :rate_limited}` if over the hourly cap."
   def check(user_id) do
+    # Through the process, not inline: the ETS read-then-insert below is two operations, so
+    # a parallel burst that all read "limit - 1 so far" would all pass, and concurrent
+    # inserts would overwrite each other's timestamps. Serialized, exactly `limit` succeed.
+    GenServer.call(__MODULE__, {:check, user_id})
+  end
+
+  @impl true
+  def handle_call({:check, user_id}, _from, state), do: {:reply, record(user_id), state}
+
+  defp record(user_id) do
     limit = Application.fetch_env!(:goodmao2, Goodmao2.Pets)[:grant_attempts_per_hour]
     now = System.system_time(:second)
     cutoff = now - @window_seconds

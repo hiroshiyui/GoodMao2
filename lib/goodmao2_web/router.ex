@@ -161,6 +161,7 @@ defmodule Goodmao2Web.Router do
 
     post "/push-subscriptions", PushSubscriptionController, :create
     delete "/push-subscriptions", PushSubscriptionController, :delete
+    post "/push-subscriptions/status", PushSubscriptionController, :status
   end
 
   # Second-factor challenge and forced setup (ADR-0013). The user has passed primary auth

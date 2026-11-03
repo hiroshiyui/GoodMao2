@@ -175,4 +175,28 @@ defmodule Goodmao2.Accounts.TwoFactorTest do
       assert Accounts.can_remove_second_factor?(admin, :webauthn)
     end
   end
+
+  describe "remove_second_factor/2" do
+    test "re-reads the admin under the lock, so a stale view can't remove the last factor" do
+      admin = admin_fixture()
+      {:ok, admin} = Accounts.enable_totp(admin, Accounts.generate_totp_secret())
+      key = webauthn_credential_fixture(admin)
+
+      # Two tabs opened while both factors were enrolled each hold this struct.
+      stale = admin
+
+      assert {:ok, _} = Accounts.remove_second_factor(stale, :totp)
+      # The struct still says TOTP is on; only a fresh read knows the key is now the last one.
+      assert Accounts.remove_second_factor(stale, {:webauthn, key.id}) == {:error, :last_factor}
+      assert Goodmao2.Accounts.WebAuthn.credential_count(admin) == 1
+    end
+
+    test "a non-admin may remove every factor; an unknown key is not found" do
+      user = regular_user_fixture()
+      key = webauthn_credential_fixture(user)
+
+      assert Accounts.remove_second_factor(user, {:webauthn, "999999999"}) == {:error, :not_found}
+      assert {:ok, _} = Accounts.remove_second_factor(user, {:webauthn, key.id})
+    end
+  end
 end

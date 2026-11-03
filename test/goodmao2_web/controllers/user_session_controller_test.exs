@@ -276,6 +276,86 @@ defmodule Goodmao2Web.UserSessionControllerTest do
       assert Accounts.get_user_by_email_and_password(user.email, new_password)
     end
 
+    test "ends every other session, but not this browser's other tabs", %{conn: conn, user: user} do
+      other_device = Accounts.generate_user_session_token(user)
+      conn = log_in_user(conn, user)
+      this_browser = get_session(conn, :user_token)
+
+      for token <- [other_device, this_browser] do
+        Phoenix.PubSub.subscribe(
+          Goodmao2.PubSub,
+          "users_sessions:#{Base.url_encode64(token)}:revoked"
+        )
+      end
+
+      new_password = "a brand new valid password"
+
+      post(conn, ~p"/users/update-password", %{
+        "user" => %{
+          "email" => user.email,
+          "current_password" => valid_user_password(),
+          "password" => new_password,
+          "password_confirmation" => new_password
+        }
+      })
+
+      # Exactly one revocation arrives: the other device's.
+      assert_receive :session_revoked
+      refute_receive :session_revoked, 50
+      refute Accounts.get_user_by_session_token(other_device)
+    end
+
+    test "releases the other sessions' push subscriptions and keeps this browser's", %{
+      conn: conn,
+      user: user
+    } do
+      alias Goodmao2.Notifications
+      alias Goodmao2.Notifications.PushSubscription
+      alias Goodmao2.Repo
+
+      other_device = Accounts.generate_user_session_token(user)
+      conn = log_in_user(conn, user)
+      this_browser = get_session(conn, :user_token)
+
+      subscribe = fn token ->
+        {:ok, sub} =
+          Notifications.upsert_push_subscription(
+            user,
+            %{
+              endpoint: "https://push.example.com/#{System.unique_integer([:positive])}",
+              p256dh: elem(:crypto.generate_key(:ecdh, :prime256v1), 0),
+              auth: :crypto.strong_rand_bytes(16)
+            },
+            token
+          )
+
+        sub
+      end
+
+      lost_phone = subscribe.(other_device)
+      here = subscribe.(this_browser)
+
+      new_password = "a brand new valid password"
+
+      conn =
+        post(conn, ~p"/users/update-password", %{
+          "user" => %{
+            "email" => user.email,
+            "current_password" => valid_user_password(),
+            "password" => new_password,
+            "password_confirmation" => new_password
+          }
+        })
+
+      assert Repo.get!(PushSubscription, lost_phone.id).deleted_at
+      refute Repo.get!(PushSubscription, here.id).deleted_at
+
+      # This browser's subscription followed it onto the re-issued token, so logging out
+      # later still releases it.
+      Notifications.release_push_subscriptions([get_session(conn, :user_token)])
+      assert Repo.get!(PushSubscription, here.id).deleted_at
+    end
+
     test "rejects a direct POST with a wrong current password", %{conn: conn, user: user} do
       new_password = "a brand new valid password"
 

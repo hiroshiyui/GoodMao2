@@ -43,7 +43,11 @@ defmodule Goodmao2Web.UserSessionController do
        when is_binary(email) and is_binary(password) and byte_size(email) <= @max_email_bytes do
     # Throttle online password guessing. A rate-limited attempt returns the same generic error
     # as a wrong password, so it leaks nothing about whether the address exists or is locked.
-    with :ok <- LoginRateLimiter.check(email),
+    # The attempt is charged before bcrypt runs (serialized, so a parallel burst can't all slip
+    # past the cap) and refunded on success. A rate-limited request spends nothing, so a
+    # locked-out attacker can't keep extending the window. The logs name no address: it is
+    # attacker-chosen, and for a real account it is PII.
+    with {:reserve, :ok} <- {:reserve, LoginRateLimiter.reserve_password_attempt(email)},
          user when not is_nil(user) <- Accounts.get_user_by_email_and_password(email, password) do
       LoginRateLimiter.clear(email)
 
@@ -51,18 +55,13 @@ defmodule Goodmao2Web.UserSessionController do
       |> put_flash(:info, info)
       |> UserAuth.log_in_or_challenge(user, user_params)
     else
-      _ ->
-        # Only spend a failure slot on a genuine bad-password attempt (not on an already
-        # rate-limited request), so a locked-out attacker can't keep extending the window.
-        # The log names no address: it is attacker-chosen, and for a real account it is PII.
-        if LoginRateLimiter.check(email) == :ok do
-          LoginRateLimiter.record_failure(email)
-          Logger.info("auth.login_failed client=#{UserAuth.client_ip(conn)}")
-        else
-          Logger.warning("auth.login_rate_limited client=#{UserAuth.client_ip(conn)}")
-        end
-
+      {:reserve, {:error, :rate_limited}} ->
+        Logger.warning("auth.login_rate_limited client=#{UserAuth.client_ip(conn)}")
         # Don't disclose whether the email is registered (user-enumeration defense).
+        invalid_credentials(conn, email)
+
+      nil ->
+        Logger.info("auth.login_failed client=#{UserAuth.client_ip(conn)}")
         invalid_credentials(conn, email)
     end
   end
@@ -95,8 +94,12 @@ defmodule Goodmao2Web.UserSessionController do
     # LiveView) so a direct POST can't bypass it.
     case Accounts.update_user_password(user, current_password, user_params) do
       {:ok, {user, expired_tokens}} ->
-        # disconnect all existing LiveViews with old sessions
-        UserAuth.disconnect_sessions(expired_tokens)
+        # Disconnect every *other* session's LiveViews. This browser's own token was deleted
+        # too, but this response re-issues it a fresh one below, so its other tabs are still
+        # signed in: sending them to the log-in page with "your session has ended" would be
+        # wrong. They pick the new token up from the cookie when they next reconnect.
+        current = get_session(conn, :user_token)
+        UserAuth.disconnect_sessions(Enum.reject(expired_tokens, &(&1.token == current)))
 
         # The user is already fully authenticated (they are in sudo mode and just
         # re-entered their password), so re-issue the session directly rather than

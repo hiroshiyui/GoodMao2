@@ -29,7 +29,9 @@ defmodule Goodmao2Web.PushSubscriptionController do
         user_agent: params["user_agent"]
       }
 
-      case Notifications.upsert_push_subscription(user, attrs) do
+      # Bound to this browser's session, so revoking the session (log-out included) releases
+      # the subscription: the endpoint belongs to the device, not the account.
+      case Notifications.upsert_push_subscription(user, attrs, get_session(conn, :user_token)) do
         {:ok, _subscription} ->
           json(conn, %{status: "ok"})
 
@@ -61,11 +63,29 @@ defmodule Goodmao2Web.PushSubscriptionController do
   def delete(conn, params) do
     user = conn.assigns.current_scope.user
 
-    case Notifications.delete_push_subscription(user, params["endpoint"] || "") do
-      {:ok, _subscription} ->
-        json(conn, %{status: "ok"})
+    with endpoint when is_binary(endpoint) <- params["endpoint"],
+         {:ok, _subscription} <- Notifications.delete_push_subscription(user, endpoint) do
+      json(conn, %{status: "ok"})
+    else
+      _ -> conn |> put_status(:not_found) |> json(%{error: "not_found"})
+    end
+  end
 
-      {:error, :not_found} ->
+  @doc """
+  Tells the browser whether its endpoint is a live subscription of the *current* user — `200`
+  or `404`. The settings page asks on load instead of trusting `pushManager.getSubscription()`,
+  which survives a log-out and a change of user on the same browser profile.
+  """
+  def status(conn, params) do
+    user = conn.assigns.current_scope.user
+
+    case params["endpoint"] do
+      endpoint when is_binary(endpoint) ->
+        if Notifications.push_subscription_active?(user, endpoint),
+          do: json(conn, %{status: "active"}),
+          else: conn |> put_status(:not_found) |> json(%{error: "not_found"})
+
+      _ ->
         conn |> put_status(:not_found) |> json(%{error: "not_found"})
     end
   end

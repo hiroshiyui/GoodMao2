@@ -111,11 +111,14 @@ each described below; the web layer is thin LiveViews that call them.
   everyone else; secrets are encrypted/hashed at rest; security keys are **hard-deleted** (the
   soft-delete exception). The `:wax_` config (RP id/origin) lives in `config/{dev,test,runtime}.exs`.
   Abuse throttles are per-address ETS sliding windows: `Accounts.RegistrationRateLimiter`
-  (registration + magic-link emails) and `Accounts.LoginRateLimiter` (failed email+password
-  logins — a success resets the counter, and the generic error adds no enumeration/lockout oracle
-  — plus the **per-user second-factor budget**, charged before each factor is evaluated and
-  serialized through the limiter process so a parallel burst cannot overshoot it; the pending
-  session's own counter is cookie-held and resets on replay, so it bounds nothing alone). An
+  (registration + magic-link emails) and `Accounts.LoginRateLimiter` (email+password attempts,
+  charged before bcrypt — a success refunds the counter, and the generic error adds no
+  enumeration/lockout oracle — plus the **per-user second-factor budget**, charged before each
+  factor is evaluated). **Every limiter's check-and-record is serialized through its owning
+  process** (`GenServer.call`): an inline ETS read-then-insert let a parallel burst all pass at
+  "limit − 1" and lost concurrent writes, so the cap was really "limit + concurrency". The pending
+  session's own second-factor counter is cookie-held and resets on replay, so it bounds nothing
+  alone. An
   email change is mailed off the request path too (`Accounts.request_email_change/2` →
   `EmailChangeWorker`), metered per *target* address by the registration limiter.
 - **`Pets`** (`pets.ex`) — pets, `pet_accesses` grants, and the **resource-based

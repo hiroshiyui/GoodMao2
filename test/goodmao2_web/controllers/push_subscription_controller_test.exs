@@ -49,6 +49,44 @@ defmodule Goodmao2Web.PushSubscriptionControllerTest do
       assert json_response(other_conn, 409) == %{"error" => "endpoint_conflict"}
     end
 
+    test "log-out releases this browser's subscription, and the next user may claim it",
+         %{conn: conn, user: user} do
+      params = keys()
+      conn = post(conn, ~p"/api/push-subscriptions", params)
+      assert json_response(conn, 200)
+
+      conn = delete(conn, ~p"/users/log-out")
+      assert redirected_to(conn) == ~p"/"
+
+      sub = Repo.get_by(PushSubscription, endpoint: params["endpoint"])
+      assert sub.user_id == user.id
+      assert sub.deleted_at
+
+      next = user_fixture()
+      next_conn = post(log_in_user(build_conn(), next), ~p"/api/push-subscriptions", params)
+
+      assert json_response(next_conn, 200) == %{"status" => "ok"}
+      sub = Repo.get_by(PushSubscription, endpoint: params["endpoint"])
+      assert sub.user_id == next.id
+      assert is_nil(sub.deleted_at)
+    end
+
+    test "422, not a crash, on a missing or non-string endpoint", %{conn: conn} do
+      missing = post(conn, ~p"/api/push-subscriptions", Map.delete(keys(), "endpoint"))
+      assert %{"errors" => %{"endpoint" => _}} = json_response(missing, 422)
+
+      mapped = post(conn, ~p"/api/push-subscriptions", %{keys() | "endpoint" => %{"a" => "b"}})
+      assert %{"errors" => %{"endpoint" => _}} = json_response(mapped, 422)
+    end
+
+    test "keeps the head of an over-long user agent", %{conn: conn} do
+      params = %{keys() | "user_agent" => String.duplicate("a", 600)}
+      assert json_response(post(conn, ~p"/api/push-subscriptions", params), 200)
+
+      sub = Repo.get_by(PushSubscription, endpoint: params["endpoint"])
+      assert String.length(sub.user_agent) == 255
+    end
+
     test "422 on a wrong-size p256dh", %{conn: conn} do
       params = %{keys() | "p256dh" => Base.url_encode64("short", padding: false)}
       conn = post(conn, ~p"/api/push-subscriptions", params)
@@ -64,6 +102,24 @@ defmodule Goodmao2Web.PushSubscriptionControllerTest do
     test "redirects an unauthenticated caller to log in", %{} do
       conn = post(build_conn(), ~p"/api/push-subscriptions", keys())
       assert redirected_to(conn) =~ "/users/log-in"
+    end
+  end
+
+  describe "status" do
+    test "200 for the current user's live endpoint, 404 for anyone else's", %{conn: conn} do
+      params = keys()
+      post(conn, ~p"/api/push-subscriptions", params)
+      body = %{"endpoint" => params["endpoint"]}
+
+      assert json_response(post(conn, ~p"/api/push-subscriptions/status", body), 200)
+
+      other_conn = log_in_user(build_conn(), user_fixture())
+      assert json_response(post(other_conn, ~p"/api/push-subscriptions/status", body), 404)
+
+      assert json_response(
+               post(conn, ~p"/api/push-subscriptions/status", %{"endpoint" => ["x"]}),
+               404
+             )
     end
   end
 

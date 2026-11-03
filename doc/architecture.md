@@ -21,8 +21,9 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   **required for the admin**, opt-in for everyone else. Per-address ETS sliding-window abuse
   throttles: `Accounts.RegistrationRateLimiter` (registration + magic-link email, and the
   target address of an email change, which `EmailChangeWorker` mails off the request path) and
-  `Accounts.LoginRateLimiter` (failed email+password logins, reset on success; the per-user
-  second-factor budget, serialized through the process).
+  `Accounts.LoginRateLimiter` (email+password attempts charged before bcrypt, refunded on
+  success; the per-user second-factor budget). Every limiter serializes its check-and-record
+  through its owning process, so a parallel burst cannot overshoot the cap.
 - **Pets** (`pets.ex`) — pets, access grants, and the **resource-based authorization**
   core ([ADR-0014](adr/0014-resource-based-authorization.md)). Authorization is computed
   per request from an *effective* grant, never global. Grant lookups (by `@handle` or email)
@@ -59,7 +60,12 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   `PushDispatchWorker` when VAPID is configured. `WebPush` hand-rolls RFC 8291/8188/8292 on
   `:crypto`; `WebPush.SafeClient` is the SSRF-safe, DNS-pinned outbound client; `WebPush.VapidVault`
   encrypts the private key. Browsers subscribe via `PushSubscriptionController`; a root-scope
-  `service_worker.js` shows the notification.
+  `service_worker.js` shows the notification. An endpoint belongs to the *device*, so each row records the
+  SHA-256 of the session token that registered it: revoking that session (log-out, or the
+  revocations behind `UserAuth.disconnect_sessions/1`) soft-deletes it, and a token change that
+  keeps the device signed in (reissue, sudo, password change) rebinds it. The settings
+  page asks the server (`POST /api/push-subscriptions/status`) whether the browser's subscription
+  is the current user's rather than trusting `pushManager.getSubscription()`.
 - **Settings** (`settings.ex`) — a tiny admin-managed key/value system-settings store (ETS-cached),
   holding the Web Push VAPID keypair and the **system default timezone**; managed on
   `AdminLive.Settings` (`/admin/settings`).
@@ -244,7 +250,8 @@ on unread rows backs the badge count. See [ADR-0011](adr/0011-notifications-and-
 One `conversations` row per **unordered user pair** — stored as ordered `user_lo_id` <
 `user_hi_id` columns (DB `CHECK` + unique index; the canonical pair key), plus a denormalized
 `last_message_at`. Each `conversation_participants` row is one user's membership and carries the
-per-participant **read cursor** `last_read_at` (a message is unread when it arrived after it).
+per-participant **read cursor** `last_read_message_id` (a message is unread when its id is past it —
+an id, because a second-resolution timestamp lost replies landing in the cursor's own second).
 `messages` hold `conversation_id`, `sender_id` (audit ref, nilified on user deletion), and a
 `body` capped at **2 000** characters (column + changeset). All three soft-delete via
 `deleted_at`. Starting a conversation is gated by the **shared-pet rule**; thread access
@@ -296,7 +303,8 @@ fixed 50-megapixel frame ceiling and truncates animated gif/webp at 600 frames.
 - `Pets.fetch_pet/3` returns `{:error, :not_found}` (never "forbidden") for pets the
   caller cannot access — **IDOR-hidden**.
 - **Owner invariant:** creating a pet inserts the creator's `owner` grant in the same
-  transaction; revoking/expiring the last effective owner is refused (`{:error, :last_owner}`).
+  transaction; revoking/demoting/time-boxing the last *permanent* owner is refused (`{:error, :last_owner}`) —
+  a time-boxed co-owner doesn't count, since it lapses on its own.
 
 ## Deferred / future entities
 

@@ -23,6 +23,9 @@ defmodule Goodmao2.Notifications.PushSubscription do
     field :p256dh, :binary
     field :auth, :binary
     field :user_agent, :string
+    # SHA-256 of the session token that registered this endpoint (never the token itself), so
+    # revoking that session releases the subscription. Set by `Notifications`, never cast.
+    field :session_token_hash, :binary
     field :deleted_at, :utc_datetime
 
     timestamps(type: :utc_datetime)
@@ -33,6 +36,9 @@ defmodule Goodmao2.Notifications.PushSubscription do
     subscription
     |> cast(attrs, [:endpoint, :p256dh, :auth, :user_agent, :user_id])
     |> validate_required([:endpoint, :p256dh, :auth, :user_id])
+    # Diagnostic only, and `varchar(255)`: a longer header would raise at the database rather
+    # than fail validation, so keep its head instead of refusing the subscription.
+    |> update_change(:user_agent, &String.slice(&1, 0, 255))
     |> validate_length(:endpoint, max: 2048)
     |> validate_endpoint_url()
     |> unique_constraint(:endpoint)
