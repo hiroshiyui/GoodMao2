@@ -11,8 +11,8 @@ file tracks what's done, what's open, and what was ruled out. Implementation det
 entries here stay short.
 
 **Where things stand:** [v1.0.0](#milestone-v100) shipped on 2026-07-23 and is live at
-[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.7** (2026-11-01); main carries
-the fixes from a third project-wide review. The
+[goodmao.tw](https://goodmao.tw). The latest release is **v1.6.8** (2026-11-03), and main carries
+nothing unreleased. The
 [releases since v1.0.0](#releases-since-v100) were mostly hardening: project-wide reviews, a
 security audit, browser-driven tests, a runtime upgrade, the Baudrate comparison, and a run of
 advisory patches. The open work is in two lists:
@@ -201,7 +201,7 @@ The [changelog](../CHANGELOG.md) has the detail.
 | 1.6.5 | 10-25 | Phone menu and long pet names kept inside the viewport. `credo --strict` in the gate, and new codebase-wide and browser gates (semantic anchors, ADR index, layout geometry, reconnect). |
 | 1.6.6 | 10-30 | Security audit: reports honour hidden history; fixed 50 MP / 600-frame purifier ceilings; bandit and hackney advisories cleared; grant-lookup, email-change and second-factor throttles hardened; pet edit form can no longer hide the history. Production host moved to Debian 13 / PostgreSQL 17. |
 | 1.6.7 | 11-01 | Advisory patches found by `hex.audit` only (phoenix_html; ssl_verify_fun, test-only), Elixir 1.20.5. A revoked session's pages leave by LiveView redirect, not the socket close, which lifts the Phoenix 1.8.15 hold. |
-| Unreleased | 11-03 | Third project-wide review: rate limiters serialized, push subscriptions tied to the session that registered them, a time-boxed co-owner no longer counts toward the last-owner rule, reports bounded by the generator's local days, no reminders after end-of-care, an id-based message read cursor, and silent truncations (weight chart, calendar, reports, media cap) fixed. |
+| 1.6.8 | 11-03 | Third project-wide review: rate limiters serialized, push subscriptions tied to the session that registered them, a time-boxed co-owner no longer counts toward the last-owner rule, reports bounded by the generator's local days, no reminders after end-of-care, an id-based message read cursor, and silent truncations (weight chart, calendar, reports, media cap) fixed. |
 
 > **What the reviews taught, as classes of bug.** These come from the 2026-08-03 review (1.2.1),
 > the 2026-09-18 audit (1.3.0), the 2026-09-28 Baudrate comparison and the 2026-11-03 review.
