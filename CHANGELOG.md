@@ -8,6 +8,23 @@ skill).
 
 ## [Unreleased]
 
+## [1.6.10] - 2026-11-09
+
+A dependency release: no schema, behaviour or configuration change, and no migration.
+
+### Security
+
+- **`ecto` 3.14.2 → 3.14.3** — EEF-CVE-2026-118391 / GHSA-cxjx-vmm2-qr8r (HIGH): the
+  per-repo query cache grew without bound when a request-controlled value was interpolated
+  into `json_extract_path/2`, `field[^key]` or `splice/1`. No query in `lib/` uses those
+  constructs, so no reachable path was found here. Found by `hex.audit` only; `mix_audit`
+  did not report it.
+
+### Changed
+
+- **Tailwind CLI 4.3.3 → 4.3.5** (`config/config.exs`, `assets/package.json`).
+- `lazy_html` 0.1.13 → 0.1.14 and its `fine` 0.1.6 → 0.2.0 (test-only).
+
 ## [1.6.9] - 2026-11-03
 
 The deploy runs a data migration that retires push subscriptions registered before 1.6.8 (they
