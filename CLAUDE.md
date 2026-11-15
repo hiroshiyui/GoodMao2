@@ -125,7 +125,9 @@ each described below; the web layer is thin LiveViews that call them.
   authorization core** ([ADR-0014](doc/adr/0014-resource-based-authorization.md)). This is
   the security-critical module:
   - Authorization is *computed per request* from an **effective grant** (`status=active`
-    AND not expired), never global. Roles: `owner` / `co_caretaker` / `viewer` / `vet`;
+    AND not expired AND, for `vet`, a profile verified *now*), never global — stated once, in
+    `PetAccess.effective/0`, which every effective-grant query (Pets, the fan-outs, the
+    Messaging gate) composes on. Roles: `owner` / `co_caretaker` / `viewer` / `vet`;
     capability levels: `:read` / `:write` / `:manage`.
   - `Pets.can?(pet, user, level)` and `Pets.fetch_pet(user, id, require: level)` — the
     latter returns `{:error, :not_found}` for inaccessible pets (**IDOR-hidden**, never
@@ -152,8 +154,10 @@ each described below; the web layer is thin LiveViews that call them.
   on everything they logged. Each edit/delete/share-expiry check runs on the entry **re-read
   `FOR UPDATE`** (live rows only), never the caller's struct; schedules, reports and media
   writes do the same. Setting an entry **`public`** (owner-only, on create *and* edit, timeline
-  *and* media paths) mints an unguessable `share_token` via `Logs.put_share_token/1`; narrowing
-  clears it. `fetch_entry_by_share_token/1` is the **sole anonymous read path** (still-public +
+  *and* media paths) mints an unguessable share token via `Logs.put_share_token/1`, stored
+  **never in the clear** — `share_token_hash` (the lookup) + `share_token_encrypted`
+  (`Logs.ShareTokenVault`, decrypted only for the owner's copy button via `Logs.share_token/1`);
+  narrowing clears both. `fetch_entry_by_share_token/1` is the **sole anonymous read path** (still-public +
   unexpired `share_expires_at` + non-deleted + history not hidden, else existence-hidden) —
   [ADR-0004](doc/adr/0004-log-visibility.md). Each real edit snapshots the prior state into `log_entry_revisions`
   (append-only, edit-count-capped). `create/update/delete_entry` broadcast on the pet's
@@ -178,12 +182,14 @@ each described below; the web layer is thin LiveViews that call them.
   `_staging` tree) and creates the entry immediately, enqueuing a **`Media.PurifyWorker`** (Oban)
   per file **transactionally**. The worker runs `Media.Purifier` (ffmpeg: magic-byte typing,
   EXIF/GPS stripped, images re-encoded with **alpha flattened onto opaque white**, codec
-  allow-list + duration cap), then `attach_purified_asset/2` inserts the ready row + writes bytes
+  allow-list + duration cap — the cap also enforced on output with `-t`, since a container's
+  declared duration can lie — and every ffmpeg/ffprobe call pinned by `-format_whitelist` to
+  the demuxers its magic bytes imply), then `attach_purified_asset/2` inserts the ready row + writes bytes
   and **re-broadcasts** so the media appears live; a classified failure sends the uploader a
   **`media_failed`** bell. So **a `life` entry with no media yet is a normal state**, not a bug.
   Purify jobs run on their own **`:media` Oban queue** and ffmpeg/ffprobe run under a hard
   wall-clock deadline (`System.cmd` has none) — one slow or hostile file must never occupy a
-  `:default` slot, which is what carries medication reminders and Web Push. Byte-size caps and min/max pixel dimensions (images *and* videos) are
+  `:default` slot, which is what carries medication reminders and login mail. Byte-size caps and min/max pixel dimensions (images *and* videos) are
   **admin-configurable** via `Media.Limits` (Settings-backed, `0` = unbounded; image floor ships
   640×480) and enforced in the purifier; the same size cap gates the LiveView upload. Two bounds
   are **not** configurable: a 50-megapixel frame ceiling (`Purifier.max_pixels/0` — a
@@ -218,7 +224,9 @@ each described below; the web layer is thin LiveViews that call them.
   Reading needs `:read`;
   an optional **expiring** share link stores only the token's SHA-256 hash. Also:
   **`Accounts.VetProfile`** — the `vet` role is grantable only to a user with a **verified**
-  profile (`Accounts.verified_vet?/1`), gated in `Pets.grant_access/3` on grant *and* re-grant.
+  profile (`Accounts.verified_vet?/1`), gated in `Pets.grant_access/3` on grant *and* re-grant,
+  and **re-checked on every use**: a re-submission (back to `pending`) or a rejection leaves the
+  grant in place but **dormant** — it confers nothing until the profile is verified again.
 - **`Notifications`** (`notifications.ex`) — the in-site **bell feed** ([ADR-0011](doc/adr/0011-notifications-and-messaging.md)).
   Per-recipient rows keyed by `type` + a `jsonb` payload; **copy is rendered at read time**
   (`Goodmao2Web.Helpers.notification_summary/1`), never stored. Grant/revoke notify **inline**
@@ -231,7 +239,12 @@ each described below; the web layer is thin LiveViews that call them.
   (private-range denylist incl. IPv4-mapped/NAT64) validating the browser-supplied `endpoint`
   at storage *and* send time; `WebPush.VapidVault` AES-256-GCM-encrypts the VAPID private key
   (keyed off `SECRET_KEY_BASE`). Browsers subscribe via `PushSubscriptionController`
-  (`/api/push-subscriptions`, CSRF + rate-limited); `service_worker.js` + `push_manager_hook.js`
+  (`/api/push-subscriptions`, CSRF + rate-limited, **at most 10 live per user** — registering past
+  that retires the least-recently refreshed). Push jobs run on their own **`:push` Oban queue**
+  and send to a user's subscriptions concurrently, each under its own deadline and isolated (a
+  bad browser-supplied key fails that one send only): every endpoint is a host the browser
+  named, and on `:default` a few slow ones could stall reminders and login mail site-wide.
+  `service_worker.js` + `push_manager_hook.js`
   drive display and opt-in (on `/users/settings`). An endpoint belongs to the **device**, so each
   row records the hash of the session token that registered it: **revoking that session** (log-out,
   `UserAuth.disconnect_sessions/1`) releases it, a token change that keeps the device signed in
@@ -289,7 +302,13 @@ authenticated live_session — no per-LiveView code. `AdminLive` (`live/admin_li
 admin-only read-only `/admin` site overview **and** the vet-credential review queue;
 `AdminLive.Announcements` (`/admin/announcements`) composes announcement broadcasts, and
 `AdminLive.Settings` (`/admin/settings`) generates/manages the Web Push VAPID keys, the system
-default timezone, and the media upload limits (`Media.Limits`).
+default timezone, and the media upload limits (`Media.Limits`). Every admin page also needs a
+**recent sign-in** (`on_mount :require_admin_sudo`, after `:require_admin` so a non-admin is
+still just sent home), re-checked on each event — the admin is the one account whose second
+factor is mandatory, and a stolen remember-me session must not bypass it.
+Upload channels exist only for a caller with the capability (`Helpers.allow_upload_if/4`), and
+each save re-checks capability and the upload limiter (`Media.upload_precheck/2`) **before**
+staging, so a refused upload is never copied.
 They authorize in `mount` via `Pets.fetch_pet/3` and `push_navigate` on failure. Purified
 media is served by `MediaController` at `GET /media/:id` (re-applies the parent log's read
 authorization, IDOR-hidden, hardened headers, `Range` support), and anonymously for a `public`
@@ -349,7 +368,11 @@ doesn't flash a connection error.
   and `UserAuth.client_ip/1` — never the password, code, token, or an attacker-supplied address.
   Token-bearing request paths (magic links, share links) log below production's `:info`
   (`Endpoint.request_log_level/1`) and nginx redacts them from its access log; send account
-  email through `Accounts.request_login_link/1` (an Oban job), never inline on a request.
+  email through `Accounts.request_login_link/1` (an Oban job), never inline on a request — and a
+  public form's magic link through `request_login_link_for_email/2`, which does the same work
+  (limiter + job) for an unknown address as for a registered one. Each password, email or
+  second-factor change also mails the account a **security notice** (`notify_security_event/3`
+  → `SecurityNoticeWorker`; an email change tells the address it *replaced*); no link, no token.
 - Audit-only user references (`recorded_by_user_id`, `granted_by_user_id`,
   `created_by_user_id`) are plain id columns **without FK navigations** (deliberate — avoids
   multiple cascade paths).

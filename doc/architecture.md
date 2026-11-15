@@ -59,7 +59,7 @@ Elixir/Phoenix monolith — one server-rendered, real-time tier over Ecto + Post
   `log_added` (visibility-aware) and admin `announcement`s fan out via **Oban**
   (`LogFanoutWorker` / `AnnouncementFanoutWorker`). Every change broadcasts the recomputed
   unread count over PubSub. **Web Push** (Stage 2) rides the same rows: `create/3` enqueues a
-  `PushDispatchWorker` when VAPID is configured. `WebPush` hand-rolls RFC 8291/8188/8292 on
+  `PushDispatchWorker` (on its own `:push` Oban queue) when VAPID is configured. `WebPush` hand-rolls RFC 8291/8188/8292 on
   `:crypto`; `WebPush.SafeClient` is the SSRF-safe, DNS-pinned outbound client; `WebPush.VapidVault`
   encrypts the private key. Browsers subscribe via `PushSubscriptionController`; a root-scope
   `service_worker.js` shows the notification. An endpoint belongs to the *device*, so each row records the
@@ -127,15 +127,19 @@ exists-hides the timeline, set only through `Pets.set_history_hidden/3` (`Pet.pr
 `status` ∈ {`active`, `revoked`}, optional `expires_at` (time-boxed grants, typical for
 vets). Unique index on `(pet_id, user_id)`.
 
-**Effective access** = `status == "active"` AND (`expires_at` is null OR in the future).
+**Effective access** = `status == "active"` AND (`expires_at` is null OR in the future) AND, for a
+`vet` grant, the grantee's `VetProfile` is `verified` now. `PetAccess.effective/0` is the one
+query that states it; every effective-grant read composes on it.
 
 ### `log_entries` (Logs.LogEntry) — one table, typed
 ([ADR-0015](adr/0015-structured-one-table-logging.md).)
 Common columns (`pet_id`, `recorded_by_user_id` audit ref, `type`, `occurred_at`,
 `note`, `visibility` ∈ `private` / `limited` / `public`, defaulting to **`limited`**
 — `private` is the recorder and owners only, `limited` is every effective grant, `public`
-additionally mints a share link; `deleted_at`; and — for a `public` entry — a `share_token` +
-optional `share_expires_at`, [ADR-0004](adr/0004-log-visibility.md)) plus a `jsonb`
+additionally mints a share link; `deleted_at`; and — for a `public` entry — the share token,
+never stored in the clear (`share_token_hash`, SHA-256, the lookup; `share_token_encrypted`,
+AES-256-GCM under `SECRET_KEY_BASE`, for the owner's copy) + optional `share_expires_at`,
+[ADR-0004](adr/0004-log-visibility.md)) plus a `jsonb`
 **`data`** payload holding the subtype's structured fields. `type` is the discriminator; per-type payload validation
 lives in `LogEntry.changeset/2`. Soft-deleted via `deleted_at` (reads filter
 `deleted_at IS NULL`). `occurred_at` (when the event happened) is distinct from the
@@ -191,7 +195,7 @@ rolled-back entry leaves none). The worker inserts the `media_assets` row once t
 exist and re-broadcasts so the media appears live. **A `life` entry with no media yet is a
 normal intermediate state** — a classified failure sends the uploader a `media_failed` bell
 instead. Purify jobs run on their own `:media` Oban queue, so a slow encode cannot occupy the
-shared `:default` slots that carry reminders and push.
+shared `:default` slots that carry reminders and login mail (Web Push has its own `:push` queue).
 
 ### `avatars` (Media.Avatar) — profile images for users and pets
 
@@ -227,7 +231,9 @@ At most **one** per user: `license_number`, `licensing_body`, `region`, `clinic_
 `specialty?`, `verification_status` (`pending` / `verified` / `rejected`), `verified_at?`,
 `verified_by_admin_id?` (audit ref, no FK navigation). A (re)submission returns the profile to
 `pending`. The per-pet `vet` role is granted only to a user with a **verified** profile —
-enforced in `Pets.grant_access/3` on grant *and* re-grant ([ADR-0012](adr/0012-vet-access-model.md)).
+enforced in `Pets.grant_access/3` on grant *and* re-grant — and a `vet` grant confers anything
+only while the profile stays verified: a re-submission or rejection leaves it dormant, and a
+re-verification restores it ([ADR-0012](adr/0012-vet-access-model.md)).
 
 ### `health_summary_reports` (Reports.HealthSummaryReport) — generated summary
 
@@ -268,7 +274,8 @@ to a public HTTPS host before storage; globally unique), the subscriber's `p256d
 `session_token_hash?` (SHA-256 of the registering session's token — revoking that session releases
 the row; every live row has one — those registered before the column were retired by a data
 migration, and `upsert_push_subscription/3` requires the token), and `deleted_at` (a 410-gone endpoint is soft-deleted
-on the next send). A soft-deleted row may be re-claimed by whoever next presents its endpoint. See [ADR-0011](adr/0011-notifications-and-messaging.md) §Web Push.
+on the next send). A soft-deleted row may be re-claimed by whoever next presents its endpoint.
+At most 10 rows per user are live: registering past that retires the least-recently refreshed. See [ADR-0011](adr/0011-notifications-and-messaging.md) §Web Push.
 
 ### `settings` (Settings.Setting) — admin-managed system settings
 
@@ -302,9 +309,10 @@ fixed 50-megapixel frame ceiling and truncates animated gif/webp at 600 frames.
   not enough: a caretaker demoted to `viewer` keeps `recorded_by_user_id` on everything they
   logged, and capability is what withdraws their ability to change it.
 - **The `vet` role is granted only to a verified `VetProfile`** (`Accounts.verified_vet?/1`),
-  on grant *and* re-grant ([ADR-0012](adr/0012-vet-access-model.md)).
+  on grant *and* re-grant, and **counts only while it stays verified** (`PetAccess.effective/0`)
+  ([ADR-0012](adr/0012-vet-access-model.md)).
 - **Changing a log's `visibility` requires `owner`** (and creating a `public` entry does too);
-  setting `public` mints a revocable `share_token` — the sole anonymous read path
+  setting `public` mints a revocable share token (stored hashed + encrypted) — the sole anonymous read path
   (`Logs.fetch_entry_by_share_token/1`, `GET /entries/shared/:token`), [ADR-0004](adr/0004-log-visibility.md).
 - `Pets.fetch_pet/3` returns `{:error, :not_found}` (never "forbidden") for pets the
   caller cannot access — **IDOR-hidden**.
@@ -366,7 +374,8 @@ follows **1 s later** as the backstop. It cannot be the signal itself: since Pho
 closes with code 1000, which LiveView's client answers with a 5–10 s delayed reload, and sent
 together it would close the socket before any redirect got through.
 
-`AdminLive` (`live/admin_live.ex`, `GET /admin`) is a separate `:require_admin`-gated,
+`AdminLive` (`live/admin_live.ex`, `GET /admin`) is a separate `:require_admin`-gated
+(plus `:require_admin_sudo`: a recent sign-in, re-checked on every event),
 read-only site-overview surface for the sole administrator (user count, admin identity,
 first-registration gate status), plus the **veterinarian-credential review queue** (verify /
 reject pending `VetProfile`s). `AdminLive.Announcements` (`/admin/announcements`, same

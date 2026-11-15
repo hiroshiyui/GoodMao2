@@ -58,7 +58,10 @@ grant-scoped reads.**
 - **GoodMao status: shipped.** The `visibility` enum, the owner-only change rule, and the
   `public` scope + **per-entry share link** are all live. Setting an entry `public` (only an
   owner may — enforced on create *and* edit, in the timeline *and* the media-log path) mints an
-  unguessable URL-safe `share_token`; narrowing clears it. `Logs.fetch_entry_by_share_token/1`
+  unguessable URL-safe share token; narrowing clears it. The token is stored only as its SHA-256
+  (`share_token_hash`, the lookup) and AES-256-GCM encrypted (`share_token_encrypted`, for the
+  owner's copy button), so a database dump alone holds no working link _(since the 2026-11-15
+  security audit; earlier tokens were carried over by migration)_. `Logs.fetch_entry_by_share_token/1`
   is the sole anonymous read path — gated on a matching token, still-`public` scope, an
   optional-and-unexpired `share_expires_at`, non-deleted, and the pet's history not hidden;
   everything else is existence-hidden `nil`. Served by `SharedEntryController`

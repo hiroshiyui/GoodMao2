@@ -71,7 +71,10 @@ S3-compatible object store is a later option behind the same seam).
     alpha channel onto an opaque background** so a transparent region cannot smuggle hidden or
     deceptive pixels.
   - **Videos** are validated (codec allow-list, duration cap) then **remuxed** to strip
-    all container metadata (incl. GPS) and non-A/V streams.
+    all container metadata (incl. GPS) and non-A/V streams. The remux applies the duration cap
+    itself (`-t`): the probed duration is the container's own claim, which can lie.
+  - Every ffmpeg/ffprobe call is pinned to the demuxers the magic bytes imply
+    (`-format_whitelist`), alongside `-protocol_whitelist file`.
   - **Text** (caption/note) is trimmed, control-character-stripped, and length-capped.
   - **Byte-size caps and min/max pixel dimensions** (per kind, images *and* videos) are enforced
     against `Media.Limits` — resolved from the `Settings` store so an administrator can tune every

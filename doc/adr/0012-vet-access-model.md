@@ -28,7 +28,11 @@ licensing body, region, clinic, optional specialty, `verification_status`). A us
 resubmits on `/users/vet-profile` (a resubmission returns to `pending`); the sole
 administrator verifies or rejects from `/admin`. `Pets.grant_access/3` refuses the `vet` role
 with `{:error, :vet_not_verified}` unless `Accounts.verified_vet?/1` holds — checked on the
-shared grant/re-grant path, so promotion to `vet` is gated too.
+shared grant/re-grant path, so promotion to `vet` is gated too. The check is repeated on every
+use, not only at grant time: the effective-grant query (`PetAccess.effective/0`) counts a `vet`
+grant only while its holder's profile is `verified`, so a resubmission or a rejection leaves the
+grant dormant and a re-verification restores it _(enforced after the 2026-11-15 security audit;
+until then a lapsed vet kept every grant made while verified)_.
 
 **Frozen health-summary reports.** We add a `Reports` context and `HealthSummaryReport` schema.
 `generate_report/3` (requires `:manage`) **freezes** a `jsonb` snapshot of the pet descriptor
