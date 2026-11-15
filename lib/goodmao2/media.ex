@@ -36,6 +36,21 @@ defmodule Goodmao2.Media do
   defdelegate unstage_upload(token), to: Storage, as: :unstage
 
   @doc """
+  An early refusal for an upload the caller is about to stage: `{:error, :unauthorized}` when
+  `allowed?` (the caller's capability, read fresh) is false, `{:error, :rate_limited}` when the
+  user is already at the hourly cap, else `:ok`. Charges nothing.
+
+  The authoritative checks stay in `create_life_log/4`, `add_media_to_life_log/4` and
+  `Avatars.set_avatar/5`; this only spares staging (a copy of every file) for an upload those
+  would refuse anyway.
+  """
+  def upload_precheck(%User{}, false), do: {:error, :unauthorized}
+
+  def upload_precheck(%User{id: user_id}, true) do
+    if RateLimiter.limited?(user_id), do: {:error, :rate_limited}, else: :ok
+  end
+
+  @doc """
   Creates a `life` log entry and schedules its uploaded media for **async** purification (ADR-0005).
 
   `staged` is a list of `%{token, caption}` from `stage_upload/1` (raw bytes already on disk); the

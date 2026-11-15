@@ -375,38 +375,16 @@ defmodule Goodmao2Web.UserLive.Settings do
   def handle_event("save_avatar", params, socket) do
     user = socket.assigns.current_scope.user
 
-    staged =
-      consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
-        {:ok, Media.stage_upload(path)}
-      end)
+    # An account already at its upload cap is turned away before its file is staged.
+    case Media.upload_precheck(user, true) do
+      :ok ->
+        save_user_avatar(socket, user, params)
 
-    case staged do
-      [{:ok, token}] ->
-        case Avatars.set_avatar("user", user.id, user, token, params["crop"]) do
-          {:ok, avatar} ->
-            {:noreply,
-             socket
-             |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
-             |> assign(:avatar_menu_open, false)
-             |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
-
-          {:error, :rate_limited} ->
-            Media.unstage_upload(token)
-
-            {:noreply,
-             put_flash(
-               socket,
-               :error,
-               gettext("You've uploaded a lot recently — please try again later.")
-             )}
-
-          {:error, _} ->
-            Media.unstage_upload(token)
-            {:noreply, put_flash(socket, :error, gettext("Couldn't upload your photo."))}
-        end
-
-      _ ->
-        {:noreply, put_flash(socket, :error, gettext("Please choose an image to upload."))}
+      {:error, _} ->
+        {:noreply,
+         socket
+         |> discard_uploads(:avatar)
+         |> put_flash(:error, gettext("You've uploaded a lot recently — please try again later."))}
     end
   end
 
@@ -462,6 +440,42 @@ defmodule Goodmao2Web.UserLive.Settings do
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+  defp save_user_avatar(socket, user, params) do
+    staged =
+      consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
+        {:ok, Media.stage_upload(path)}
+      end)
+
+    case staged do
+      [{:ok, token}] ->
+        case Avatars.set_avatar("user", user.id, user, token, params["crop"]) do
+          {:ok, avatar} ->
+            {:noreply,
+             socket
+             |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
+             |> assign(:avatar_menu_open, false)
+             |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
+
+          {:error, :rate_limited} ->
+            Media.unstage_upload(token)
+
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("You've uploaded a lot recently — please try again later.")
+             )}
+
+          {:error, _} ->
+            Media.unstage_upload(token)
+            {:noreply, put_flash(socket, :error, gettext("Couldn't upload your photo."))}
+        end
+
+      _ ->
+        {:noreply, put_flash(socket, :error, gettext("Please choose an image to upload."))}
+    end
+  end
 
   # (Password change moved to Goodmao2Web.UserLive.PasswordSettings — gated by the
   # current password in addition to sudo mode.)

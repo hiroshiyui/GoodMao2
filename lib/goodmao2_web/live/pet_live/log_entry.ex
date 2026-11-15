@@ -26,13 +26,6 @@ defmodule Goodmao2Web.PetLive.LogEntry do
        |> assign(:page_title, gettext("%{type} entry", type: log_type_label(entry.type)))
        |> assign(:media_captions, %{})
        |> assign(:caption_errors, %{})
-       |> allow_upload(:media,
-         accept: ~w(.jpg .jpeg .png .gif .webp .mp4 .webm),
-         max_entries: Media.config(:max_entries),
-         # The larger per-kind cap gates the client upload; the purifier re-checks each file
-         # against its own image/video byte cap (Media.Limits), so this is only a coarse ceiling.
-         max_file_size: Media.Limits.upload_byte_cap(:max_video_bytes)
-       )
        |> load_entry(entry)}
     else
       _ ->
@@ -40,6 +33,47 @@ defmodule Goodmao2Web.PetLive.LogEntry do
          socket
          |> put_flash(:error, gettext("Entry not found."))
          |> push_navigate(to: ~p"/pets/#{pet_id}")}
+    end
+  end
+
+  defp stage_and_save_media(socket, user, pet, entry, captions) do
+    staged =
+      socket
+      |> consume_uploaded_entries(:media, fn %{path: path}, upload ->
+        {:ok, {Media.stage_upload(path), Map.get(captions, upload.ref)}}
+      end)
+      |> Enum.flat_map(fn
+        {{:ok, token}, caption} -> [%{token: token, caption: caption}]
+        _ -> []
+      end)
+
+    case Media.add_media_to_life_log(user, pet, entry, staged) do
+      :ok ->
+        {:noreply,
+         socket
+         |> assign(:media_captions, %{})
+         |> put_flash(:info, gettext("Uploading — your files will appear once processed."))}
+
+      error ->
+        Enum.each(staged, &Media.unstage_upload(&1.token))
+        {:noreply, put_flash(socket, :error, media_error_message(error))}
+    end
+  end
+
+  # An upload channel exists only once the caller may add media here (a `life` entry they can
+  # edit); a reload that grants the right adds it then. `save_media` re-checks before staging.
+  defp ensure_media_upload(socket) do
+    if socket.assigns.can_edit? and socket.assigns.entry.type == "life" and
+         not Map.has_key?(socket.assigns[:uploads] || %{}, :media) do
+      allow_upload(socket, :media,
+        accept: ~w(.jpg .jpeg .png .gif .webp .mp4 .webm),
+        max_entries: Media.config(:max_entries),
+        # The larger per-kind cap gates the client upload; the purifier re-checks each file
+        # against its own image/video byte cap (Media.Limits), so this is only a coarse ceiling.
+        max_file_size: Media.Limits.upload_byte_cap(:max_video_bytes)
+      )
+    else
+      socket
     end
   end
 
@@ -53,10 +87,15 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     revisions = Logs.list_revisions(user, pet, entry)
     editors = Accounts.get_users_map(Enum.map(revisions, & &1.edited_by_user_id))
 
+    role = Pets.effective_role(pet, user)
+
     socket
     |> assign(:role, role)
     |> assign(:entry, entry)
+    # Decrypted for an owner only — no other viewer's socket ever holds the raw token.
+    |> assign(:share_token, if(role == "owner", do: Logs.share_token(entry)))
     |> assign(:can_edit?, Logs.can_edit?(user, pet, entry))
+    |> ensure_media_upload()
     |> assign(:at_limit?, entry.edit_count >= Logs.max_edits())
     |> assign(:revisions, revisions)
     |> assign(:editors, editors)
@@ -87,13 +126,9 @@ defmodule Goodmao2Web.PetLive.LogEntry do
   defp weight_grams_to_field(%{"weight_grams" => g} = data, "weight", unit) do
     data
     |> Map.delete("weight_grams")
-    role = Pets.effective_role(pet, user)
-
     |> Map.put("weight", Goodmao2Web.Helpers.weight_input_value(g, unit))
   end
 
-    # Decrypted for an owner only — no other viewer's socket ever holds the raw token.
-    |> assign(:share_token, if(role == "owner", do: Logs.share_token(entry)))
   defp weight_grams_to_field(data, _type, _unit), do: data
 
   @impl true
@@ -152,28 +187,15 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
   def handle_event("save_media", params, socket) do
     %{current_scope: %{user: user}, pet: pet, entry: entry} = socket.assigns
-    captions = captions_param(params)
 
-    staged =
-      socket
-      |> consume_uploaded_entries(:media, fn %{path: path}, upload ->
-        {:ok, {Media.stage_upload(path), Map.get(captions, upload.ref)}}
-      end)
-      |> Enum.flat_map(fn
-        {{:ok, token}, caption} -> [%{token: token, caption: caption}]
-        _ -> []
-      end)
-
-    case Media.add_media_to_life_log(user, pet, entry, staged) do
+    # Refused before staging, so no copy is made of files the save would turn away.
+    case Media.upload_precheck(user, Logs.can_edit?(user, pet, entry)) do
       :ok ->
-        {:noreply,
-         socket
-         |> assign(:media_captions, %{})
-         |> put_flash(:info, gettext("Uploading — your files will appear once processed."))}
+        stage_and_save_media(socket, user, pet, entry, captions_param(params))
 
       error ->
-        Enum.each(staged, &Media.unstage_upload(&1.token))
-        {:noreply, put_flash(socket, :error, media_error_message(error))}
+        {:noreply,
+         socket |> discard_uploads(:media) |> put_flash(:error, media_error_message(error))}
     end
   end
 

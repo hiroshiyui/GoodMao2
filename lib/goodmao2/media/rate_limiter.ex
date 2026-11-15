@@ -35,8 +35,27 @@ defmodule Goodmao2.Media.RateLimiter do
     GenServer.call(__MODULE__, {:check, user_id})
   end
 
+  @doc """
+  Whether `user_id` is at the hourly cap now, **without** recording an upload.
+
+  For a cheap early refusal before an upload is staged; the charge itself stays with `check/1`
+  in the context, so a caller that pre-checks is never counted twice.
+  """
+  def limited?(user_id), do: GenServer.call(__MODULE__, {:limited?, user_id})
+
   @impl true
   def handle_call({:check, user_id}, _from, state), do: {:reply, record(user_id), state}
+  def handle_call({:limited?, user_id}, _from, state), do: {:reply, at_cap?(user_id), state}
+
+  defp at_cap?(user_id) do
+    limit = Application.fetch_env!(:goodmao2, Goodmao2.Media)[:rate_limit_per_hour]
+    cutoff = System.system_time(:second) - @window_seconds
+
+    case :ets.lookup(@table, user_id) do
+      [{^user_id, times}] -> Enum.count(times, &(&1 > cutoff)) >= limit
+      [] -> false
+    end
+  end
 
   defp record(user_id) do
     limit = Application.fetch_env!(:goodmao2, Goodmao2.Media)[:rate_limit_per_hour]

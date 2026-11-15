@@ -727,6 +727,115 @@ defmodule Goodmao2Web.PetLiveTest do
     end
   end
 
+  describe "uploads are refused before staging (audit 2026-11-15)" do
+    defp png_bytes do
+      src = Path.join(System.tmp_dir!(), "gm_pre_#{System.unique_integer([:positive])}.png")
+
+      {_, 0} =
+        System.cmd(
+          "ffmpeg",
+          ~w(-hide_banner -v error -f lavfi -i color=c=red:s=16x16 -frames:v 1 -y) ++ [src]
+        )
+
+      content = File.read!(src)
+      File.rm(src)
+      content
+    end
+
+    # Reports every `Media.Storage.stage/1` call the LiveView process makes, so a test can tell
+    # "refused before staging" from "staged, then discarded" (which look alike afterwards).
+    defp trace_staging(lv) do
+      :erlang.trace_pattern({Goodmao2.Media.Storage, :stage, 1}, true, [])
+      :erlang.trace(lv.pid, true, [:call])
+      on_exit(fn -> :erlang.trace_pattern({Goodmao2.Media.Storage, :stage, 1}, false, []) end)
+    end
+
+    # Puts `user` at the hourly upload cap without a million GenServer calls.
+    defp at_upload_cap(user) do
+      limit = Application.fetch_env!(:goodmao2, Goodmao2.Media)[:rate_limit_per_hour]
+      now = System.system_time(:second)
+      :ets.insert(:media_upload_rate, {user.id, List.duplicate(now, limit)})
+      on_exit(fn -> :ets.delete(:media_upload_rate, user.id) end)
+    end
+
+    test "a viewer is given no upload channel at all", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grant_fixture(pet, owner, user, "viewer")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      state = :sys.get_state(lv.pid)
+      uploads = state.socket.assigns[:uploads] || %{}
+
+      refute Map.has_key?(uploads, :media)
+      refute Map.has_key?(uploads, :avatar)
+    end
+
+    test "a co-caretaker gets a media channel but no pet-avatar one", %{conn: conn, user: user} do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      grant_fixture(pet, owner, user, "co_caretaker")
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      uploads = :sys.get_state(lv.pid).socket.assigns.uploads
+
+      assert Map.has_key?(uploads, :media)
+      refute Map.has_key?(uploads, :avatar)
+    end
+
+    test "an account at its upload cap is turned away and its files discarded", %{
+      conn: conn,
+      user: user
+    } do
+      pet = pet_fixture(user)
+      at_upload_cap(user)
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}")
+      lv |> element("#quicklog-type-life") |> render_click()
+
+      photo =
+        file_input(lv, "#quicklog-form", :media, [
+          %{name: "cat.png", content: png_bytes(), type: "image/png"}
+        ])
+
+      render_upload(photo, "cat.png")
+      trace_staging(lv)
+      html = lv |> form("#quicklog-form", log: %{note: "Nap"}) |> render_submit()
+
+      refute_receive {:trace, _, :call, {Goodmao2.Media.Storage, :stage, _}}, 200
+      assert html =~ "uploaded a lot recently"
+      assert :sys.get_state(lv.pid).socket.assigns.uploads.media.entries == []
+      refute has_element?(lv, ".timeline-entry-type", "Daily life")
+    end
+
+    test "access lost after the page opened refuses the upload before staging", %{
+      conn: conn,
+      user: user
+    } do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      access = grant_fixture(pet, owner, user, "co_caretaker")
+      {:ok, entry} = Goodmao2.Media.create_life_log(user, pet, %{"note" => "walkies"}, [])
+
+      {:ok, lv, _html} = live(conn, ~p"/pets/#{pet.id}/logs/#{entry.id}")
+
+      photo =
+        file_input(lv, "#log-media-form", :media, [
+          %{name: "cat.png", content: png_bytes(), type: "image/png"}
+        ])
+
+      render_upload(photo, "cat.png")
+      {:ok, _} = Goodmao2.Pets.revoke_access(owner, pet, access)
+
+      trace_staging(lv)
+      html = lv |> form("#log-media-form") |> render_submit()
+
+      refute_receive {:trace, _, :call, {Goodmao2.Media.Storage, :stage, _}}, 200
+      assert html =~ "Couldn&#39;t add those files"
+      assert :sys.get_state(lv.pid).socket.assigns.uploads.media.entries == []
+    end
+  end
+
   describe "LifeLog media (ADR-0005)" do
     test "uploads a purified photo with a daily-life note", %{conn: conn, user: user} do
       pet = pet_fixture(user)

@@ -62,14 +62,15 @@ defmodule Goodmao2Web.PetLive.Show do
          |> assign(:quick_error, nil)
          |> assign(:media_captions, %{})
          |> assign(:weight_series, [])
-         |> allow_upload(:media,
+         # Upload channels only for a caller who may use them (re-checked before staging).
+         |> allow_upload_if(Pets.can?(pet, user, :write), :media,
            accept: ~w(.jpg .jpeg .png .gif .webp .mp4 .webm),
            max_entries: Media.config(:max_entries),
            # The larger per-kind cap gates the client upload; the purifier re-checks each file
            # against its own image/video byte cap (Media.Limits), so this is only a coarse ceiling.
            max_file_size: Media.Limits.upload_byte_cap(:max_video_bytes)
          )
-         |> allow_upload(:avatar,
+         |> allow_upload_if(Pets.can?(pet, user, :manage), :avatar,
            accept: ~w(.jpg .jpeg .png .gif .webp),
            max_entries: 1,
            max_file_size: Media.Limits.upload_byte_cap(:max_image_bytes)
@@ -293,38 +294,9 @@ defmodule Goodmao2Web.PetLive.Show do
     pet = socket.assigns.pet
     user = socket.assigns.current_scope.user
 
-    staged =
-      consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
-        {:ok, Media.stage_upload(path)}
-      end)
-
-    case staged do
-      [{:ok, token}] ->
-        case Avatars.set_avatar("pet", pet.id, user, token, params["crop"]) do
-          {:ok, avatar} ->
-            {:noreply,
-             socket
-             |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
-             |> assign(:avatar_menu_open, false)
-             |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
-
-          {:error, :rate_limited} ->
-            Media.unstage_upload(token)
-
-            {:noreply,
-             put_flash(
-               socket,
-               :error,
-               gettext("You've uploaded a lot recently — please try again later.")
-             )}
-
-          {:error, _} ->
-            Media.unstage_upload(token)
-            {:noreply, put_flash(socket, :error, gettext("Couldn't update this pet's photo."))}
-        end
-
-      _ ->
-        {:noreply, put_flash(socket, :error, gettext("Please choose an image to upload."))}
+    case Media.upload_precheck(user, Pets.can?(pet, user, :manage)) do
+      :ok -> save_pet_avatar(socket, pet, user, params)
+      {:error, reason} -> {:noreply, refuse_upload(socket, :avatar, reason)}
     end
   end
 
@@ -382,10 +354,69 @@ defmodule Goodmao2Web.PetLive.Show do
   # entry immediately; the ffmpeg purification runs off the request path in `Media.PurifyWorker`,
   # which attaches each media row and re-broadcasts so it appears live. If the log itself fails to
   # create, the staged uploads are discarded.
+  defp save_pet_avatar(socket, pet, user, params) do
+    staged =
+      consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
+        {:ok, Media.stage_upload(path)}
+      end)
+
+    case staged do
+      [{:ok, token}] ->
+        case Avatars.set_avatar("pet", pet.id, user, token, params["crop"]) do
+          {:ok, avatar} ->
+            {:noreply,
+             socket
+             |> assign(:avatar_meta, %{status: avatar.status, version: Avatars.version(avatar)})
+             |> assign(:avatar_menu_open, false)
+             |> put_flash(:info, gettext("Photo uploaded — it will appear once processed."))}
+
+          {:error, :rate_limited} ->
+            Media.unstage_upload(token)
+
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("You've uploaded a lot recently — please try again later.")
+             )}
+
+          {:error, _} ->
+            Media.unstage_upload(token)
+            {:noreply, put_flash(socket, :error, gettext("Couldn't update this pet's photo."))}
+        end
+
+      _ ->
+        {:noreply, put_flash(socket, :error, gettext("Please choose an image to upload."))}
+    end
+  end
+
+  # Refused before anything was staged: drop the received entries (their temp files go too).
+  defp refuse_upload(socket, name, :rate_limited) do
+    socket
+    |> discard_uploads(name)
+    |> put_flash(:error, gettext("You've uploaded a lot recently — please try again later."))
+  end
+
+  defp refuse_upload(socket, name, _reason) do
+    socket
+    |> discard_uploads(name)
+    |> put_flash(:error, gettext("Couldn't update this pet's photo."))
+  end
+
   defp save_life_log(socket, params, captions) do
     pet = socket.assigns.pet
     user = socket.assigns.current_scope.user
 
+    # Refuse before staging: a copy of every file is not made for a save that would be refused.
+    with [_ | _] <- pending_uploads(socket, :media),
+         {:error, reason} <- Media.upload_precheck(user, Pets.can?(pet, user, :write)) do
+      socket |> discard_uploads(:media) |> handle_life_result({:error, reason})
+    else
+      _ -> stage_and_save_life_log(socket, pet, user, params, captions)
+    end
+  end
+
+  defp stage_and_save_life_log(socket, pet, user, params, captions) do
     attrs =
       %{
         "note" => blank_to_nil(Map.get(params, "note")),
@@ -607,7 +638,7 @@ defmodule Goodmao2Web.PetLive.Show do
         can_manage?={@can_manage?}
         avatar_meta={@avatar_meta}
         avatar_menu_open={@avatar_menu_open}
-        avatar_upload={@uploads.avatar}
+        avatar_upload={if @can_manage?, do: @uploads.avatar}
       />
 
       <div
@@ -1142,7 +1173,7 @@ defmodule Goodmao2Web.PetLive.Show do
   attr :can_manage?, :boolean, default: false
   attr :avatar_meta, :map, default: nil
   attr :avatar_menu_open, :boolean, default: false
-  attr :avatar_upload, :map, required: true
+  attr :avatar_upload, :map, default: nil
 
   defp pet_header(assigns) do
     ~H"""

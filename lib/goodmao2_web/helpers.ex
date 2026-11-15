@@ -663,4 +663,33 @@ defmodule Goodmao2Web.Helpers do
     |> Enum.filter(&(&1 && &1 != ""))
     |> Enum.join(" · ")
   end
+
+  @doc """
+  `Phoenix.LiveView.allow_upload/3`, but only when `allowed?` — so a caller without the
+  capability gets no upload channel at all, rather than one whose bytes are refused only after
+  they have been received and staged.
+  """
+  def allow_upload_if(socket, allowed?, name, opts)
+
+  def allow_upload_if(socket, true, name, opts),
+    do: Phoenix.LiveView.allow_upload(socket, name, opts)
+
+  # No upload channel means no `@uploads` key either (LiveView reserves the assign): a template
+  # must read `@uploads` only under the same condition that allowed it.
+  def allow_upload_if(socket, false, _name, _opts), do: socket
+
+  @doc "The entries pending on upload `name`, or `[]` when there is no such upload."
+  def pending_uploads(socket, name) do
+    case socket.assigns[:uploads] do
+      %{^name => %{entries: entries}} -> entries
+      _ -> []
+    end
+  end
+
+  @doc "Cancels every pending entry of upload `name` (its temp files go with them)."
+  def discard_uploads(socket, name) do
+    socket
+    |> pending_uploads(name)
+    |> Enum.reduce(socket, &Phoenix.LiveView.cancel_upload(&2, name, &1.ref))
+  end
 end
