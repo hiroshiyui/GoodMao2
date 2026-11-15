@@ -155,4 +155,27 @@ defmodule Goodmao2.Accounts.WebAuthnTest do
                )
     end
   end
+
+  describe "sign-count claim (audit 2026-11-15)" do
+    alias Goodmao2.Accounts.WebAuthn
+
+    test "two assertions read at the same counter: only one may advance it" do
+      user = user_fixture()
+      {:ok, stored} = Accounts.create_webauthn_credential(user, cred_attrs(%{sign_count: 5}))
+
+      # Both requests loaded the row at 5 and present 6 — a cloned key answering twice.
+      assert {:ok, %{sign_count: 6}} = WebAuthn.claim_sign_count(stored, 6)
+      assert {:error, :sign_count_regression} = WebAuthn.claim_sign_count(stored, 6)
+    end
+
+    test "a counter that moved before may not fall back to 0; a counterless key may stay at 0" do
+      user = user_fixture()
+      {:ok, moved} = Accounts.create_webauthn_credential(user, cred_attrs(%{sign_count: 3}))
+      assert {:error, :sign_count_regression} = WebAuthn.claim_sign_count(moved, 0)
+
+      {:ok, counterless} = Accounts.create_webauthn_credential(user, cred_attrs())
+      assert {:ok, _} = WebAuthn.claim_sign_count(counterless, 0)
+      assert {:ok, _} = WebAuthn.claim_sign_count(counterless, 0)
+    end
+  end
 end

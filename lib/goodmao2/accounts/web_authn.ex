@@ -233,23 +233,18 @@ defmodule Goodmao2.Accounts.WebAuthn do
             {:ok, auth_data} ->
               # Wax returns the counter but deliberately leaves the comparison to us
               # (its own docs point at WebAuthn §7.2 step 17), so this must happen here.
-              if sign_count_regressed?(credential.sign_count, auth_data.sign_count) do
-                Logger.warning(
-                  "accounts.webauthn_sign_count_regression user_id=#{user.id} " <>
-                    "credential_id=#{Base.url_encode64(credential_id, padding: false)} " <>
-                    "stored=#{credential.sign_count} presented=#{auth_data.sign_count}"
-                )
+              case claim_sign_count(credential, auth_data.sign_count) do
+                {:ok, _} = ok ->
+                  ok
 
-                {:error, :sign_count_regression}
-              else
-                now = DateTime.utc_now() |> DateTime.truncate(:second)
+                {:error, :sign_count_regression} = error ->
+                  Logger.warning(
+                    "accounts.webauthn_sign_count_regression user_id=#{user.id} " <>
+                      "credential_id=#{Base.url_encode64(credential_id, padding: false)} " <>
+                      "stored=#{credential.sign_count} presented=#{auth_data.sign_count}"
+                  )
 
-                credential
-                |> WebAuthnCredential.update_changeset(%{
-                  sign_count: auth_data.sign_count,
-                  last_used_at: now
-                })
-                |> Repo.update()
+                  error
               end
 
             {:error, _} = err ->
@@ -286,12 +281,29 @@ defmodule Goodmao2.Accounts.WebAuthn do
   defp reduce_cbor_binaries([_ | _] = list), do: Enum.map(list, &reduce_cbor_binaries/1)
   defp reduce_cbor_binaries(v), do: v
 
+  @doc false
   # WebAuthn §7.2 step 17. A counter that fails to advance means two authenticators are
   # answering for one credential — the signal that a key was cloned. Authenticators that
   # don't implement a counter report 0 forever, and the spec exempts exactly that case;
   # a counter that has moved before and now reports 0 is a regression, not an exemption.
-  defp sign_count_regressed?(0, 0), do: false
-  defp sign_count_regressed?(stored, presented), do: presented <= stored
+  #
+  # Compared and advanced in one conditional UPDATE, not against the row read earlier: two
+  # assertions from a cloned key carrying the same counter, verified at once, would both pass a
+  # read-then-write check and both update — exactly the clone the counter exists to catch.
+  # Here only one of them can advance it; the other finds the counter already there.
+  def claim_sign_count(%WebAuthnCredential{id: id}, presented) when is_integer(presented) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    advance =
+      if presented == 0,
+        do: from(c in WebAuthnCredential, where: c.id == ^id and c.sign_count == 0),
+        else: from(c in WebAuthnCredential, where: c.id == ^id and c.sign_count < ^presented)
+
+    case Repo.update_all(select(advance, [c], c), set: [sign_count: presented, last_used_at: now]) do
+      {1, [credential]} -> {:ok, credential}
+      {0, _} -> {:error, :sign_count_regression}
+    end
+  end
 
   defp url_decode64(b64) when is_binary(b64) do
     case Base.url_decode64(b64, padding: false) do
