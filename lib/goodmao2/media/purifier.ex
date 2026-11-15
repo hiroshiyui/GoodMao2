@@ -128,7 +128,7 @@ defmodule Goodmao2.Media.Purifier do
   defp process({:image, format}, source, opts) do
     %{content_type: content_type, ext: ext} = @image_types[format]
 
-    with {:ok, %{"streams" => streams}} <- probe(source),
+    with {:ok, %{"streams" => streams}} <- probe(source, format),
          {:ok, {w, h}} <- dimensions(streams),
          :ok <- within_resolution?(w, h, :image) do
       out = temp_path(ext)
@@ -146,6 +146,8 @@ defmodule Goodmao2.Media.Purifier do
           "error",
           "-protocol_whitelist",
           "file",
+          "-format_whitelist",
+          format_whitelist(format),
           "-i",
           source,
           "-filter_complex",
@@ -169,7 +171,7 @@ defmodule Goodmao2.Media.Purifier do
     spec = @video_types[format]
     out = temp_path(spec.ext)
 
-    with {:ok, %{"streams" => streams, "format" => fmt}} <- probe(source),
+    with {:ok, %{"streams" => streams, "format" => fmt}} <- probe(source, format),
          :ok <- validate_video(streams, fmt, spec),
          :ok <- remux(source, out, format),
          {:ok, size} <- output_size(out) do
@@ -331,6 +333,11 @@ defmodule Goodmao2.Media.Purifier do
     }
   end
 
+  # The declared duration `validate_video/3` checks is the container's own claim (mvhd /
+  # Segment), while `-c copy` copies every packet: a file declaring 5 s can carry an hour. The
+  # output-side `-t` makes the cap hold for what is actually stored.
+  defp max_video_seconds_arg, do: config(:max_video_seconds) |> to_string()
+
   # Copy the first video + optional first audio stream, strip all metadata/chapters and any
   # data/subtitle streams. No re-encode (fast), but the container is rebuilt clean.
   defp remux(source, out, :mp4) do
@@ -341,6 +348,8 @@ defmodule Goodmao2.Media.Purifier do
       "error",
       "-protocol_whitelist",
       "file",
+      "-format_whitelist",
+      format_whitelist(:mp4),
       "-i",
       source,
       "-map",
@@ -349,6 +358,8 @@ defmodule Goodmao2.Media.Purifier do
       "0:a:0?",
       "-c",
       "copy",
+      "-t",
+      max_video_seconds_arg(),
       "-map_metadata",
       "-1",
       "-map_chapters",
@@ -369,6 +380,8 @@ defmodule Goodmao2.Media.Purifier do
       "error",
       "-protocol_whitelist",
       "file",
+      "-format_whitelist",
+      format_whitelist(:webm),
       "-i",
       source,
       "-map",
@@ -377,6 +390,8 @@ defmodule Goodmao2.Media.Purifier do
       "0:a:0?",
       "-c",
       "copy",
+      "-t",
+      max_video_seconds_arg(),
       "-map_metadata",
       "-1",
       "-map_chapters",
@@ -395,12 +410,14 @@ defmodule Goodmao2.Media.Purifier do
   # still exiting 0 (e.g. ffmpeg 5.x probing a multi-frame phone JPEG), and merged noise
   # corrupts the JSON. Stderr passes through to the VM's log instead. Decode failures are
   # normalized to `:probe_failed` so every purify error reason stays a plain atom.
-  defp probe(source) do
+  defp probe(source, format) do
     args = [
       "-v",
       "error",
       "-protocol_whitelist",
       "file",
+      "-format_whitelist",
+      format_whitelist(format),
       "-print_format",
       "json",
       "-show_format",
@@ -420,6 +437,24 @@ defmodule Goodmao2.Media.Purifier do
   end
 
   # --- ffmpeg/ffprobe invocation --------------------------------------------
+  #
+  # Every call also passes `-format_whitelist` for the type the magic bytes named, so ffmpeg's
+  # own probe can only open the demuxer that type implies. The magic bytes otherwise choose
+  # only which branch runs; ffmpeg would still pick its demuxer by its own guess, and the
+  # local-file-read tricks (hls, concat, a container naming other inputs) live in demuxers
+  # this list never allows. `image2` covers a caller's path that carries an extension (it
+  # reads exactly the named file — the paths here are server-generated, with no `%` pattern);
+  # `webp_anim` is ffmpeg 8+'s animated-WebP demuxer, an unknown name to older builds.
+  @format_whitelists %{
+    jpeg: "image2,jpeg_pipe",
+    png: "image2,png_pipe,apng",
+    gif: "gif,image2",
+    webp: "image2,webp_pipe,webp_anim",
+    mp4: "mov,mp4,m4a,3gp,3g2,mj2",
+    webm: "matroska,webm"
+  }
+
+  defp format_whitelist(format), do: Map.fetch!(@format_whitelists, format)
   #
   # Every ffmpeg and ffprobe call passes `-protocol_whitelist file`. An upload is a local file,
   # but a container can name *other* inputs — playlists, segment lists, external data references
