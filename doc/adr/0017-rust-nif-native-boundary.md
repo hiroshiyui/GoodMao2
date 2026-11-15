@@ -39,8 +39,8 @@ The candidate mechanisms and their costs:
 scaffolding for future CPU-bound work. Ship it now with only a placeholder `add/2`.**
 
 - **Rustler + a pinned toolchain.** The `{:rustler, "~> 0.38"}` dep builds the crate during
-  `mix compile`; `rust-toolchain.toml` pins the Rust channel (currently `1.98.1`) so
-  `rustup` auto-installs the exact version on a build host. The `rustler` **crate** version
+  `mix compile`; `rust-toolchain.toml` pins the Rust channel (the one place its version is
+  stated) so `rustup` auto-installs the exact version on a build host. The `rustler` **crate** version
   in `Cargo.toml` is kept in lockstep with the `:rustler` **Hex** dep.
 
 - **Proven, minimal surface.** `Goodmao2.Native.add/2` is deliberate placeholder
