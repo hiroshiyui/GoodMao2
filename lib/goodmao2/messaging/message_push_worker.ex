@@ -8,11 +8,12 @@ defmodule Goodmao2.Messaging.MessagePushWorker do
   `Messaging.send_message/3`, only when VAPID is configured. Mailbox messages write no bell
   row, so this is their sole push path.
   """
-  use Oban.Worker, queue: :default, max_attempts: 3
+  use Oban.Worker, queue: :push, max_attempts: 3
 
   # Each POST is bounded per read, not end to end: an endpoint that dribbles its response slowly
-  # enough could hold a `:default` slot — the queue that carries medication reminders —
-  # indefinitely. A hard job deadline caps the whole fan-out.
+  # enough could hold a slot indefinitely. A hard job deadline caps the whole fan-out, and the
+  # job runs on its own `:push` queue, so even a slot it holds to the deadline is never one the
+  # medication reminders or login mail on `:default` are waiting for.
   @impl Oban.Worker
   def timeout(_job), do: :timer.seconds(60)
 

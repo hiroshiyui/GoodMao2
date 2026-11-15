@@ -85,4 +85,75 @@ defmodule Goodmao2.Notifications.PushDispatchWorkerTest do
       assert :ok = perform_job(PushDispatchWorker, %{"notification_id" => notification.id})
     end
   end
+
+  describe "one account cannot stall push for everyone (audit 2026-11-15)" do
+    test "push jobs run on their own queue, not the one carrying reminders and login mail" do
+      configure_vapid()
+      user = user_fixture()
+      {:ok, _} = announce(user)
+
+      assert_enqueued(worker: PushDispatchWorker, queue: :push)
+      refute_enqueued(worker: PushDispatchWorker, queue: :default)
+    end
+
+    test "registering past the cap retires the least-recently refreshed subscription" do
+      user = user_fixture()
+      cap = Notifications.max_push_subscriptions()
+
+      [first | _] =
+        for _ <- 1..(cap + 1) do
+          {p256dh, _} = :crypto.generate_key(:ecdh, :prime256v1)
+
+          {:ok, sub} =
+            Notifications.upsert_push_subscription(
+              user,
+              %{
+                endpoint: "https://push.example.com/#{System.unique_integer([:positive])}",
+                p256dh: p256dh,
+                auth: :crypto.strong_rand_bytes(16)
+              },
+              "session-token"
+            )
+
+          sub
+        end
+
+      live =
+        Repo.all(
+          from s in PushSubscription, where: s.user_id == ^user.id and is_nil(s.deleted_at)
+        )
+
+      assert length(live) == cap
+      assert Repo.get(PushSubscription, first.id).deleted_at
+    end
+
+    test "a subscription whose key cannot be used does not stop the others" do
+      configure_vapid()
+      user = user_fixture()
+
+      # 65 bytes, so it passes storage validation, but not a point on P-256.
+      {:ok, _bad} =
+        %PushSubscription{}
+        |> PushSubscription.changeset(%{
+          endpoint: "https://push.example.com/bad-#{System.unique_integer([:positive])}",
+          p256dh: <<4>> <> :binary.copy(<<0xFF>>, 64),
+          auth: :crypto.strong_rand_bytes(16),
+          user_id: user.id
+        })
+        |> Repo.insert()
+
+      good = insert_subscription(user)
+      test_pid = self()
+
+      Req.Test.stub(SafeClient, fn conn ->
+        send(test_pid, {:pushed, conn.request_path})
+        Plug.Conn.send_resp(conn, 201, "")
+      end)
+
+      assert :ok = Notifications.push_to_user(user.id, %{"title" => "t"})
+
+      good_path = URI.parse(good.endpoint).path
+      assert_received {:pushed, ^good_path}
+    end
+  end
 end

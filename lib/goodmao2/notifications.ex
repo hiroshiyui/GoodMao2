@@ -29,12 +29,20 @@ defmodule Goodmao2.Notifications do
   """
   import Ecto.Query, warn: false
 
+  require Logger
+
   alias Goodmao2.Repo
   alias Goodmao2.Accounts.User
   alias Goodmao2.Notifications.Notification
   alias Goodmao2.Notifications.PushDispatchWorker
   alias Goodmao2.Notifications.PushSubscription
   alias Goodmao2.Notifications.WebPush
+
+  # A per-user cap on live push subscriptions (see `max_push_subscriptions/0`).
+  @max_push_subscriptions 10
+
+  # Ends one stuck push POST well inside the push workers' 60 s job deadline.
+  @push_send_timeout :timer.seconds(20)
 
   @default_limit 50
 
@@ -214,10 +222,39 @@ defmodule Goodmao2.Notifications do
 
       subscriptions ->
         json = Jason.encode!(payload)
-        Enum.each(subscriptions, &WebPush.send_web_push(&1, json))
-        :ok
+
+        # Concurrently, each under its own deadline: one after another, a handful of endpoints
+        # that answer as slowly as `SafeClient`'s timeouts allow would add up past the job's.
+        subscriptions
+        |> Task.async_stream(&send_isolated(&1, json),
+          max_concurrency: @max_push_subscriptions,
+          timeout: @push_send_timeout,
+          on_timeout: :kill_task,
+          ordered: false
+        )
+        |> Stream.run()
     end
   end
+
+  # One subscription's failure is its own: a browser-supplied key that is not a valid P-256
+  # point makes the encryption raise, and that must not skip the rest — nor fail the job,
+  # whose retry would re-push to every subscription that had already succeeded.
+  defp send_isolated(subscription, json) do
+    WebPush.send_web_push(subscription, json)
+  rescue
+    error ->
+      Logger.warning(
+        "Web push raised #{inspect(error.__struct__)} for subscription ##{subscription.id}"
+      )
+
+      {:error, :raised}
+  end
+
+  @doc """
+  The most live push subscriptions one user keeps. Registering past it retires the
+  least-recently refreshed; each live one costs an outbound POST per notification.
+  """
+  def max_push_subscriptions, do: @max_push_subscriptions
 
   defp live_push_subscriptions(user_id) do
     Repo.all(
@@ -244,23 +281,29 @@ defmodule Goodmao2.Notifications do
     attrs = Map.put(attrs, :user_id, user.id)
     session_hash = session_token_hash(session_token)
 
-    case Repo.get_by(PushSubscription, endpoint: endpoint) do
-      nil ->
-        %PushSubscription{}
-        |> PushSubscription.changeset(attrs)
-        |> Ecto.Changeset.put_change(:session_token_hash, session_hash)
-        |> Repo.insert()
+    result =
+      case Repo.get_by(PushSubscription, endpoint: endpoint) do
+        nil ->
+          %PushSubscription{}
+          |> PushSubscription.changeset(attrs)
+          |> Ecto.Changeset.put_change(:session_token_hash, session_hash)
+          |> Repo.insert()
 
-      %PushSubscription{user_id: uid, deleted_at: deleted_at} = existing
-      when uid == user.id or not is_nil(deleted_at) ->
-        existing
-        |> PushSubscription.changeset(attrs)
-        |> Ecto.Changeset.put_change(:session_token_hash, session_hash)
-        |> Ecto.Changeset.put_change(:deleted_at, nil)
-        |> Repo.update()
+        %PushSubscription{user_id: uid, deleted_at: deleted_at} = existing
+        when uid == user.id or not is_nil(deleted_at) ->
+          existing
+          |> PushSubscription.changeset(attrs)
+          |> Ecto.Changeset.put_change(:session_token_hash, session_hash)
+          |> Ecto.Changeset.put_change(:deleted_at, nil)
+          |> Repo.update()
 
-      %PushSubscription{} ->
-        {:error, :endpoint_conflict}
+        %PushSubscription{} ->
+          {:error, :endpoint_conflict}
+      end
+
+    with {:ok, subscription} <- result do
+      retire_excess_subscriptions(user.id)
+      {:ok, subscription}
     end
   end
 
@@ -270,6 +313,23 @@ defmodule Goodmao2.Notifications do
     {:error,
      %PushSubscription{}
      |> PushSubscription.changeset(attrs |> Map.delete(:endpoint) |> Map.put(:user_id, user.id))}
+  end
+
+  # Keeps at most `@max_push_subscriptions` live, retiring the least-recently refreshed. The
+  # subscribe limiter bounds the *rate* only; without a cap, live endpoints (each an outbound
+  # POST per notification, to a host the browser named) accumulate without end.
+  defp retire_excess_subscriptions(user_id) do
+    excess =
+      from s in PushSubscription,
+        where: s.user_id == ^user_id and is_nil(s.deleted_at),
+        order_by: [desc: s.updated_at, desc: s.id],
+        offset: @max_push_subscriptions,
+        select: s.id
+
+    Repo.update_all(
+      from(s in PushSubscription, where: s.id in subquery(excess)),
+      set: [deleted_at: now()]
+    )
   end
 
   @doc "Whether `endpoint` is a live subscription of `user` (a browser checking its own state)."

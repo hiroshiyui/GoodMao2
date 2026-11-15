@@ -118,7 +118,10 @@ config :goodmao2, :default_timezone, "Etc/UTC"
 # occupy every slot and stall medication reminders, push, and the bell feed site-wide.
 config :goodmao2, Oban,
   repo: Goodmao2.Repo,
-  queues: [default: 10, media: 4],
+  # Web Push gets its own queue too: each POST goes to a browser-supplied endpoint that may
+  # answer as slowly as the client's timeouts allow, so on `default` a few slow endpoints
+  # could hold every slot and stall the reminders and login mail that share it.
+  queues: [default: 10, media: 4, push: 5],
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
