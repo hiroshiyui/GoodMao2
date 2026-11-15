@@ -337,7 +337,14 @@ defmodule Goodmao2Web.UserLive.Settings do
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_email(user, user_params, current_password: current_password) do
+    # No uniqueness check here: "has already been taken" would tell any signed-in account
+    # whether an address is registered, unmetered. The answer is the same either way, and
+    # `EmailChangeWorker` (off the request path) skips an address another account holds;
+    # the unique index still guards the confirm step.
+    case Accounts.change_user_email(user, user_params,
+           current_password: current_password,
+           validate_unique: false
+         ) do
       %{valid?: true} = changeset ->
         new_email = Ecto.Changeset.get_change(changeset, :email)
         :ok = Accounts.request_email_change(user, new_email)

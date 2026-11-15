@@ -176,8 +176,9 @@ defmodule Goodmao2.Accounts.User do
   ## Options
 
     * `:validate_unique` - Set to false if you don't want to validate the
-      uniqueness of the email, useful when displaying live validations.
-      Defaults to `true`.
+      uniqueness of the email, useful when displaying live validations — and on any form
+      a user can submit at will, where "has already been taken" is an email-membership
+      oracle. Defaults to `true`.
   """
   def email_changeset(user, attrs, opts \\ []) do
     user
@@ -194,11 +195,14 @@ defmodule Goodmao2.Accounts.User do
       )
       |> validate_length(:email, max: 160)
 
+    # "did not change" names only the caller's own address, so it holds either way; only the
+    # uniqueness check (which reveals whether *another* account owns an address) is optional.
+    changeset = validate_email_changed(changeset)
+
     if Keyword.get(opts, :validate_unique, true) do
       changeset
       |> unsafe_validate_unique(:email, Goodmao2.Repo)
       |> unique_constraint(:email)
-      |> validate_email_changed()
     else
       changeset
     end

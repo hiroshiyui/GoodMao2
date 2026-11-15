@@ -181,6 +181,41 @@ defmodule Goodmao2Web.UserLive.SettingsTest do
       refute_enqueued(worker: EmailChangeWorker)
     end
 
+    test "another account's address gets the same answer and no mail (no membership oracle)", %{
+      conn: conn,
+      user: user
+    } do
+      %{email: taken} = user_fixture()
+
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      result =
+        lv
+        |> form("#email_form", %{
+          "user" => %{
+            "email" => String.upcase(taken),
+            "current_password" => valid_user_password()
+          }
+        })
+        |> render_submit()
+
+      assert result =~ "A link to confirm your email"
+      refute result =~ "has already been taken"
+
+      # The job is enqueued exactly as for a free address; it is the worker, off the request
+      # path, that declines to mail an address another account holds.
+      assert_enqueued(worker: EmailChangeWorker, args: %{"user_id" => user.id})
+
+      assert :ok =
+               perform_job(EmailChangeWorker, %{
+                 "user_id" => user.id,
+                 "current_email" => user.email,
+                 "new_email" => String.upcase(taken)
+               })
+
+      refute_received {:email, %Swoosh.Email{subject: "Update email instructions"}}
+    end
+
     test "does not send the email change with a wrong current password", %{conn: conn, user: user} do
       new_email = unique_user_email()
 
