@@ -378,6 +378,11 @@ defmodule Goodmao2Web.UserAuth do
       administrator (`is_admin`). Silently redirects non-admins home
       (IDOR-hidden), so it must run after `:require_authenticated`.
 
+    * `:require_admin_sudo` - Requires a recent re-authentication (the sudo
+      window) on the admin pages, at mount **and on every event**. Runs after
+      `:require_admin`, so a non-admin is still sent home rather than told to
+      re-authenticate.
+
   ## Examples
 
   Use the `on_mount` lifecycle macro in LiveViews to mount or authenticate
@@ -446,6 +451,24 @@ defmodule Goodmao2Web.UserAuth do
     end
   end
 
+  # The admin is the one account whose second factor is mandatory, yet a stolen admin session
+  # (a remember-me cookie lasts days) could otherwise rotate the VAPID keys, push an
+  # announcement to every user, or verify a vet without ever facing that factor. So the admin
+  # pages, like the account's own security settings, need a recent sign-in — and because an
+  # admin page stays open, the window is re-checked on each event, not only at mount.
+  def on_mount(:require_admin_sudo, _params, _session, socket) do
+    # The same windows as the account security pages: 10 minutes to open the page, 20 for
+    # an event on it, so a page opened near the limit is still usable for a while.
+    if admin_sudo?(socket, -10) do
+      {:cont,
+       Phoenix.LiveView.attach_hook(socket, :admin_sudo, :handle_event, fn _event, _params, s ->
+         if admin_sudo?(s, -20), do: {:cont, s}, else: {:halt, reauthenticate(s)}
+       end)}
+    else
+      {:halt, reauthenticate(socket)}
+    end
+  end
+
   # `:require_pending_2fa` — for the second-factor challenge/setup LiveViews (ADR-0013).
   # The user has passed primary auth but holds NO session token yet; a non-expired
   # pending marker must be present. Assigns `@pending_2fa_user`.
@@ -467,6 +490,20 @@ defmodule Goodmao2Web.UserAuth do
 
         {:halt, socket}
     end
+  end
+
+  defp admin_sudo?(socket, minutes) do
+    user = socket.assigns.current_scope && socket.assigns.current_scope.user
+    user && Accounts.sudo_mode?(user, minutes)
+  end
+
+  defp reauthenticate(socket) do
+    socket
+    |> Phoenix.LiveView.put_flash(
+      :error,
+      gettext("You must re-authenticate to access this page.")
+    )
+    |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
   end
 
   # Leaves for the log-in page when this session is revoked (`revoke_live_session/1`). The

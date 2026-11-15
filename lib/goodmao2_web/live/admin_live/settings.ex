@@ -10,6 +10,7 @@ defmodule Goodmao2Web.AdminLive.Settings do
   use Goodmao2Web, :live_view
 
   on_mount {Goodmao2Web.UserAuth, :require_admin}
+  on_mount {Goodmao2Web.UserAuth, :require_admin_sudo}
 
   alias Goodmao2.Media.Limits
   alias Goodmao2.Notifications.WebPush

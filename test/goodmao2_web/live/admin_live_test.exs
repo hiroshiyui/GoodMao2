@@ -18,6 +18,42 @@ defmodule Goodmao2Web.AdminLiveTest do
       assert {:error, {:redirect, %{to: "/"}}} = live(conn, ~p"/admin")
     end
 
+    test "a stale administrator session must re-authenticate (audit 2026-11-15)", %{conn: conn} do
+      stale = DateTime.add(DateTime.utc_now(:second), -11, :minute)
+      conn = log_in_user(conn, admin_fixture(), token_authenticated_at: stale)
+
+      for path <- [~p"/admin", ~p"/admin/settings", ~p"/admin/announcements"] do
+        assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, path)
+      end
+    end
+
+    test "a non-admin is still sent home, never told to re-authenticate", %{conn: conn} do
+      _admin = admin_fixture()
+      stale = DateTime.add(DateTime.utc_now(:second), -60, :minute)
+      conn = log_in_user(conn, user_fixture(), token_authenticated_at: stale)
+
+      assert {:error, {:redirect, %{to: "/"}}} = live(conn, ~p"/admin/settings")
+    end
+
+    test "an admin action on a page left open past the window is refused", %{conn: conn} do
+      conn = log_in_user(conn, admin_fixture())
+      applicant = user_fixture()
+      profile = vet_profile_fixture(applicant)
+      {:ok, lv, _html} = live(conn, ~p"/admin")
+
+      # The window lapses while the page stays open.
+      :sys.replace_state(lv.pid, fn state ->
+        update_in(state.socket.assigns.current_scope.user.authenticated_at, fn _ ->
+          DateTime.add(DateTime.utc_now(:second), -21, :minute)
+        end)
+      end)
+
+      assert {:error, {:redirect, %{to: "/users/log-in"}}} =
+               lv |> element("#verify-#{profile.id}") |> render_click()
+
+      refute Goodmao2.Accounts.verified_vet?(applicant)
+    end
+
     test "lets the administrator in", %{conn: conn} do
       conn = log_in_user(conn, admin_fixture())
       {:ok, _lv, html} = live(conn, ~p"/admin")
