@@ -134,6 +134,10 @@ defmodule Goodmao2Web.PetLive.Medications do
       {:error, :already_recorded} ->
         {:noreply, socket |> put_flash(:info, gettext("Already recorded.")) |> load()}
 
+      # Its schedule was deleted since this page loaded: the refreshed list no longer has it.
+      {:error, :not_found} ->
+        {:noreply, load(socket)}
+
       {:error, :unauthorized} ->
         {:noreply, put_flash(socket, :error, gettext("Not allowed."))}
 

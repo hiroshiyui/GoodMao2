@@ -332,6 +332,41 @@ defmodule Goodmao2.MedicationsTest do
       assert entry.data["medication_name"] == "Amoxicillin"
     end
 
+    test "a dose of a deleted schedule can be neither given nor skipped (audit 2026-11-15)", %{
+      owner: owner,
+      pet: pet,
+      dose: dose
+    } do
+      # A dose already due when the schedule is deleted — the page still lists it.
+      past = DateTime.utc_now() |> DateTime.add(-3600, :second) |> DateTime.truncate(:second)
+      Repo.update_all(from(d in Dose, where: d.id == ^dose.id), set: [due_at: past])
+      schedule = Repo.get!(Schedule, dose.schedule_id)
+
+      {:ok, _} = Medications.delete_schedule(owner, pet, schedule)
+
+      # Deleting drops every pending slot, the due one included...
+      refute Repo.get(Dose, dose.id)
+      assert Medications.mark_dose_given(owner, pet, dose) == {:error, :not_found}
+      assert Medications.mark_dose_skipped(owner, pet, dose) == {:error, :not_found}
+      assert Logs.list_entries(owner, pet) == []
+    end
+
+    test "the claim itself refuses a dose whose schedule is gone", %{
+      owner: owner,
+      pet: pet,
+      dose: dose
+    } do
+      # ...and the claim refuses even a slot left behind (e.g. by a schedule deleted before
+      # pending slots were dropped on delete).
+      Repo.update_all(from(s in Schedule, where: s.id == ^dose.schedule_id),
+        set: [deleted_at: DateTime.utc_now() |> DateTime.truncate(:second)]
+      )
+
+      assert Medications.mark_dose_given(owner, pet, dose) == {:error, :not_found}
+      assert Repo.get!(Dose, dose.id).status == "pending"
+      assert Logs.list_entries(owner, pet) == []
+    end
+
     test "a co-caretaker can give; a viewer cannot", %{owner: owner, pet: pet, dose: dose} do
       co = regular_user_fixture()
       grant_fixture(pet, owner, co, "co_caretaker")

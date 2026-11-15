@@ -163,7 +163,9 @@ defmodule Goodmao2.Medications do
     with :ok <- ensure_schedule_belongs(schedule, pet),
          :ok <- authorize(pet, user, :manage) do
       with_live_schedule(schedule, fn current ->
-        drop_future_pending_doses(current)
+        # Every pending slot goes, not only future ones: a dose already due would otherwise
+        # stay givable (and age into `missed`) for a schedule nobody can see any more.
+        drop_all_pending_doses(current)
 
         current
         |> Ecto.Changeset.change(deleted_at: now())
@@ -291,14 +293,8 @@ defmodule Goodmao2.Medications do
       given_at = now()
 
       Repo.transact(fn ->
-        # Atomic claim: only a still-pending dose can be given.
-        {claimed, _} =
-          Repo.update_all(
-            from(d in Dose, where: d.id == ^dose.id and d.status == "pending"),
-            set: [status: "given", updated_at: given_at]
-          )
-
-        if claimed == 1 do
+        # Atomic claim: only a still-pending dose of a live schedule can be given.
+        with :ok <- claim_dose(dose, status: "given", updated_at: given_at) do
           log_attrs = %{
             "type" => "medication",
             "data" => %{"medication_name" => schedule.medication_name, "dose" => schedule.dose},
@@ -319,8 +315,6 @@ defmodule Goodmao2.Medications do
 
             {:ok, Repo.get(Dose, dose.id)}
           end
-        else
-          {:error, :already_recorded}
         end
       end)
       |> tap_broadcast(pet)
@@ -334,16 +328,9 @@ defmodule Goodmao2.Medications do
   def mark_dose_skipped(%User{} = user, %Pet{} = pet, %Dose{} = dose) do
     with :ok <- authorize(pet, user, :write),
          :ok <- ensure_dose_belongs(dose, pet) do
-      {claimed, _} =
-        Repo.update_all(
-          from(d in Dose, where: d.id == ^dose.id and d.status == "pending"),
-          set: [status: "skipped", recorded_by_user_id: user.id, updated_at: now()]
-        )
-
-      if claimed == 1 do
+      with :ok <-
+             claim_dose(dose, status: "skipped", recorded_by_user_id: user.id, updated_at: now()) do
         {:ok, Repo.get(Dose, dose.id)} |> tap_broadcast(pet)
-      else
-        {:error, :already_recorded}
       end
     end
   end
@@ -434,6 +421,42 @@ defmodule Goodmao2.Medications do
 
   defp local_slot_to_utc(date, time, tz) do
     Goodmao2.Timezone.local_naive_to_utc(NaiveDateTime.new!(date, time), tz)
+  end
+
+  defp drop_all_pending_doses(%Schedule{id: id}) do
+    Repo.delete_all(from d in Dose, where: d.schedule_id == ^id and d.status == "pending")
+    :ok
+  end
+
+  # The atomic `pending → given/skipped` claim, which also requires the dose's schedule to be
+  # live: a page loaded before the schedule was deleted still lists the dose, and claiming it
+  # would record a medication for a schedule nobody can see. `delete_schedule/3` drops pending
+  # doses under the schedule's row lock, so the two cannot interleave into a claimed orphan.
+  defp claim_dose(%Dose{id: id}, set) do
+    claimable =
+      from d in Dose,
+        as: :dose,
+        where: d.id == ^id and d.status == "pending",
+        where:
+          exists(
+            from s in Schedule,
+              where: s.id == parent_as(:dose).schedule_id and is_nil(s.deleted_at),
+              select: 1
+          )
+
+    case Repo.update_all(claimable, set: set) do
+      {1, _} -> :ok
+      {0, _} -> if live_schedule?(id), do: {:error, :already_recorded}, else: {:error, :not_found}
+    end
+  end
+
+  defp live_schedule?(dose_id) do
+    Repo.exists?(
+      from d in Dose,
+        join: s in Schedule,
+        on: s.id == d.schedule_id,
+        where: d.id == ^dose_id and is_nil(s.deleted_at)
+    )
   end
 
   defp drop_future_pending_doses(%Schedule{id: id}) do
