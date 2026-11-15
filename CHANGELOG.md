@@ -8,6 +8,67 @@ skill).
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-15
+
+A security audit release (2026-11-15) plus dependency bumps. **One migration**:
+`log_entries.share_token` is replaced by a hash and an encrypted copy. It carries every existing
+link over, so links already handed out keep working; it needs `SECRET_KEY_BASE` at migrate time,
+which `bin/migrate` has. Admins now have to sign in again after 10 minutes on the admin pages, and
+accounts start receiving security notice emails.
+
+### Security
+
+- **A vet kept vet access after their verification lapsed.** The vet role was checked only when
+  granted. Resubmitting the profile (back to `pending`) or an administrator rejecting it left
+  every existing vet grant working: `:read`/`:write`, `vet_note` authorship, dose reminders. A
+  `vet` grant now counts only while the profile is verified (`PetAccess.effective/0`, the single
+  effective-grant rule every access check, fan-out and the Messaging gate composes on). The grant
+  stays in place but dormant, so re-verification restores it.
+- **The email-change form revealed registered addresses.** "Has already been taken" answered
+  any signed-in user, unmetered and without needing the right password. The form now answers the
+  same for every address; the background worker skips a taken one.
+- **One account could stall push, medication reminders and login mail site-wide.** The number of
+  push subscriptions per user was unbounded, they were sent one after another, and push shared
+  the `:default` queue. Push now has its own `:push` queue, a user keeps at most 10 live
+  subscriptions, and sends run concurrently with a 20 s deadline each, isolated so one bad key
+  fails only its own send.
+- **Share tokens were stored in plain text.** A database dump held a working link to every public
+  entry. They are now stored as a SHA-256 hash (the lookup) and AES-GCM encrypted (the owner's
+  copy button only).
+- **Uploads were staged before the permission check.** A viewer, or an account at its upload cap,
+  could push files through staging unchecked. Upload channels now exist only for a caller with
+  the right, and each save checks permission and the limiter before anything is copied.
+- **Admin pages now need a recent sign-in** (10 minutes to open, 20 for an action, re-checked on
+  every event), so a stolen admin session cannot use them without the mandatory second factor.
+- **Security-key clone detection was racy.** The sign-count check is now one conditional update,
+  so two simultaneous assertions with the same counter cannot both pass.
+- **Video length cap** is enforced on the output (`-t`), not only on the duration the container
+  declares; every ffmpeg/ffprobe call is pinned to the demuxers the magic bytes imply
+  (`-format_whitelist`).
+- **Magic-link requests** do the same work for every address (limiter and job), closing a timing
+  difference between registered and unknown addresses.
+- **Push-endpoint SSRF denylist**: adds IPv4-translated IPv6 (`::ffff:0:a.b.c.d`), the 6to4 relay
+  block, IPv6 documentation and benchmarking prefixes, `100::/64` and `5f00::/16`.
+- Integrity fixes:
+  - A revoke runs the last-owner check on the grant as it stands now, not on the caller's copy.
+  - A dose of a deleted schedule can no longer be given or skipped, and deleting a schedule
+    drops all its pending doses.
+  - A caption can no longer be written onto an entry deleted since the page loaded.
+
+### Added
+
+- **Security notice emails**: a password, email or second-factor change mails the account a
+  short notice with no link and no token. An email change is told to the address it replaced.
+
+### Changed
+
+- **Rust toolchain 1.99.1 → 1.100.0** (`rust-toolchain.toml`; every build host needs it, and
+  rustup installs it on the first build).
+- **daisyUI 5.7.50 → 5.8.0** (re-vendored; adds reduced-motion guards and fixes avatar alignment).
+- `sobelow` 0.18.1 → 0.19.0 and `dialyxir` 1.4.8 → 1.4.9 (dev/test); `libloading` 0.9.0 → 0.9.1
+  (transitive, Rust).
+
+
 ## [1.6.10] - 2026-11-09
 
 A dependency release: no schema, behaviour or configuration change, and no migration.
