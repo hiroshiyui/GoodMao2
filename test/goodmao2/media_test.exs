@@ -490,6 +490,20 @@ defmodule Goodmao2.MediaTest do
       assert Media.update_media_caption(owner, pet, entry, "nope", "x") == {:error, :not_found}
       assert Goodmao2.Repo.reload(asset).caption == nil
     end
+
+    test "an entry deleted since the caller loaded it cannot be described (audit 2026-11-15)", %{
+      owner: owner,
+      pet: pet,
+      entry: entry,
+      asset: asset
+    } do
+      # `entry` is the struct a page loaded before the deletion: its own `deleted_at` is nil.
+      {:ok, _} = Logs.delete_entry(owner, pet, entry)
+      assert is_nil(entry.deleted_at)
+
+      assert Media.update_media_caption(owner, pet, entry, asset.id, "x") == {:error, :not_found}
+      assert Goodmao2.Repo.reload(asset).caption == nil
+    end
   end
 
   describe "fetch_asset_for_user/2" do

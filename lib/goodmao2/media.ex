@@ -303,9 +303,13 @@ defmodule Goodmao2.Media do
     end
   end
 
+  # Joined to the *live* entry, as in `delete_media_asset/4`: the caller's struct may predate
+  # the entry's deletion, so its own `deleted_at` is not to be trusted.
   defp live_asset(entry, id) do
     Repo.one(
       from m in MediaAsset,
+        join: e in LogEntry,
+        on: e.id == m.log_entry_id and is_nil(e.deleted_at),
         where: m.id == ^id and m.log_entry_id == ^entry.id and is_nil(m.deleted_at)
     )
   end
