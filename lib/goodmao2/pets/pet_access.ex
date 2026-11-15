@@ -7,16 +7,44 @@ defmodule Goodmao2.Pets.PetAccess do
   context, not here).
 
   **Effective access** = `status == "active"` AND (`expires_at` is nil OR in the
-  future). Time-boxed grants (`expires_at` set) are typical for vets.
+  future) AND, for a `vet` grant, the grantee's `VetProfile` is **verified** now — not
+  only when the grant was made. Time-boxed grants (`expires_at` set) are typical for vets.
+  `effective/0` is the one query that states this; every effective-grant read goes through it.
   """
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
 
   @roles ~w(owner co_caretaker viewer vet)
   @statuses ~w(active revoked)
 
   def roles, do: @roles
   def statuses, do: @statuses
+
+  @doc """
+  The **effective** grants, as a query (named binding `:access`) to compose on.
+
+  A `vet` grant counts only while its grantee's `VetProfile` is `verified` (ADR-0012): a
+  re-submission returns the profile to `pending` and an administrator may reject it, and
+  either must take the vet's authority with it. The grant is left in place, dormant, so a
+  re-verification restores it without the owner granting again.
+  """
+  def effective do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    from a in __MODULE__,
+      as: :access,
+      where: a.status == "active",
+      where: is_nil(a.expires_at) or a.expires_at > ^now,
+      where:
+        a.role != "vet" or
+          exists(
+            from v in Goodmao2.Accounts.VetProfile,
+              where: v.user_id == parent_as(:access).user_id,
+              where: v.verification_status == "verified",
+              select: 1
+          )
+  end
 
   schema "pet_accesses" do
     field :role, :string

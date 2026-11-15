@@ -386,6 +386,60 @@ defmodule Goodmao2.PetsTest do
       real = user_fixture()
 
       assert Pets.grant_access(owner, pet, %{"identifier" => real.email, "role" => "viewer"}) ==
+  describe "a vet grant lapses with the vet's verification (ADR-0012)" do
+    setup do
+      owner = user_fixture()
+      vet = user_fixture()
+      pet = pet_fixture(owner)
+      access = grant_fixture(pet, owner, vet, "vet")
+      %{owner: owner, vet: vet, pet: pet, access: access}
+    end
+
+    test "a re-submitted (pending) profile confers nothing until re-verified", ctx do
+      %{owner: owner, vet: vet, pet: pet} = ctx
+      assert Pets.can?(pet, vet, :write)
+
+      {:ok, pending} =
+        Goodmao2.Accounts.submit_vet_profile(vet, valid_vet_profile_attributes())
+
+      refute Pets.can?(pet, vet, :read)
+      assert Pets.effective_role(pet, vet) == nil
+      assert {:error, :not_found} = Pets.fetch_pet(vet, pet.id)
+      assert Pets.list_pets(vet) == []
+      refute Enum.any?(Pets.list_effective_accesses(pet), &(&1.user_id == vet.id))
+      refute Goodmao2.Messaging.can_message?(vet, owner)
+
+      assert {:error, :unauthorized} =
+               Goodmao2.Logs.create_entry(vet, pet, %{
+                 "type" => "vet_note",
+                 "data" => %{"assessment" => "x"}
+               })
+
+      # The grant is dormant, not revoked: re-verification restores it without a re-grant.
+      {:ok, _} = Goodmao2.Accounts.verify_vet_profile(admin_fixture(), pending)
+      assert Pets.can?(pet, vet, :write)
+      assert [%{id: id}] = Pets.list_pets(vet)
+      assert id == pet.id
+    end
+
+    test "a rejected profile confers nothing", %{vet: vet, pet: pet} do
+      profile = Goodmao2.Accounts.get_vet_profile(vet)
+      {:ok, _} = Goodmao2.Accounts.reject_vet_profile(admin_fixture(), profile)
+
+      refute Pets.can?(pet, vet, :read)
+      assert {:error, :not_found} = Pets.fetch_pet(vet, pet.id)
+    end
+
+    test "other roles never depend on a vet profile", %{owner: owner, pet: pet} do
+      co = user_fixture()
+      grant_fixture(pet, owner, co, "co_caretaker")
+      vet_profile_fixture(co)
+
+      assert Pets.can?(pet, co, :write)
+      assert Pets.can?(pet, owner, :manage)
+    end
+  end
+
                {:error, :rate_limited}
     end
   end

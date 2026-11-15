@@ -65,23 +65,20 @@ defmodule Goodmao2.Messaging do
   @doc """
   Returns `true` if `a` and `b` share at least one pet through effective grants.
 
-  A self-join on `pet_accesses`, both grants effective (`status == "active"` and not
-  expired) — the same predicate as `Pets.effective_access/2`. No lifecycle filter.
+  A self-join on `pet_accesses`, both grants effective — `PetAccess.effective/0`, the same
+  predicate as `Pets.effective_access/2` (a lapsed vet verification included). No lifecycle
+  filter.
   """
   def can_message?(%User{id: a}, %User{id: b}) when a != b, do: share_a_pet?(a, b)
 
   def can_message?(%User{}, %User{}), do: false
 
   defp share_a_pet?(a, b) do
-    now = now()
-
     Repo.exists?(
-      from a1 in Goodmao2.Pets.PetAccess,
-        join: a2 in Goodmao2.Pets.PetAccess,
+      from a1 in subquery(Goodmao2.Pets.PetAccess.effective()),
+        join: a2 in subquery(Goodmao2.Pets.PetAccess.effective()),
         on: a2.pet_id == a1.pet_id,
-        where: a1.user_id == ^a and a2.user_id == ^b,
-        where: a1.status == "active" and (is_nil(a1.expires_at) or a1.expires_at > ^now),
-        where: a2.status == "active" and (is_nil(a2.expires_at) or a2.expires_at > ^now)
+        where: a1.user_id == ^a and a2.user_id == ^b
     )
   end
 

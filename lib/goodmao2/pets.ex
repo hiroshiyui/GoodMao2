@@ -13,7 +13,9 @@ defmodule Goodmao2.Pets do
     * `:manage` — owner only                 (edit pet, lifecycle, grants)
 
   The `vet` role additionally requires the grantee to hold a **verified** `VetProfile`
-  (`Accounts.verified_vet?/1`), checked on grant *and* re-grant in `grant_access/3`.
+  (`Accounts.verified_vet?/1`), checked on grant *and* re-grant in `grant_access/3`, and
+  again on every use: a `vet` grant whose profile is no longer verified confers nothing
+  (`PetAccess.effective/0`).
 
   """
   import Ecto.Query, warn: false
@@ -27,17 +29,16 @@ defmodule Goodmao2.Pets do
   @doc """
   Returns the caller's effective `PetAccess` for a pet, or `nil`.
 
-  Effective = `status == "active"` and not expired.
+  Effective = `status == "active"`, not expired, and — for `vet` — a verified profile
+  (`PetAccess.effective/0`).
   """
   def effective_access(%Pet{id: pet_id}, %User{id: user_id}),
     do: effective_access(pet_id, user_id)
 
   def effective_access(pet_id, user_id) when is_integer(pet_id) or is_binary(pet_id) do
     Repo.one(
-      from a in PetAccess,
-        where: a.pet_id == ^pet_id and a.user_id == ^user_id,
-        where: a.status == "active",
-        where: is_nil(a.expires_at) or a.expires_at > ^now()
+      from a in PetAccess.effective(),
+        where: a.pet_id == ^pet_id and a.user_id == ^user_id
     )
   end
 
@@ -82,10 +83,8 @@ defmodule Goodmao2.Pets do
 
     base =
       from p in Pet,
-        join: a in PetAccess,
+        join: a in subquery(PetAccess.effective()),
         on: a.pet_id == p.id and a.user_id == ^user_id,
-        where: a.status == "active",
-        where: is_nil(a.expires_at) or a.expires_at > ^now(),
         order_by: [desc: p.inserted_at, desc: p.id]
 
     query =
@@ -206,9 +205,8 @@ defmodule Goodmao2.Pets do
   """
   def list_effective_accesses(%Pet{id: pet_id}) do
     Repo.all(
-      from a in PetAccess,
-        where: a.pet_id == ^pet_id and a.status == "active",
-        where: is_nil(a.expires_at) or a.expires_at > ^now(),
+      from a in PetAccess.effective(),
+        where: a.pet_id == ^pet_id,
         order_by: [asc: a.role, asc: a.inserted_at, asc: a.id]
     )
   end
