@@ -50,10 +50,15 @@ defmodule Goodmao2.Logs.LogEntry do
     # the context on each snapshotted edit; not user-castable.
     field :edit_count, :integer, default: 0
 
-    # Per-entry anonymous share link (ADR-0004). `share_token` is the raw URL-safe token minted
-    # when an owner sets `visibility` to `public` and cleared when narrowed; `share_expires_at`
-    # is an optional expiry. Both are managed by the context, never user-castable.
-    field :share_token, :string
+    # Per-entry anonymous share link (ADR-0004), minted when an owner sets `visibility` to
+    # `public` and cleared when narrowed; `share_expires_at` is an optional expiry. The token is
+    # never stored in the clear: `share_token_hash` is what the anonymous read path looks up and
+    # `share_token_encrypted` is decrypted only for the owner's copy button
+    # (`Logs.ShareTokenVault`). `share_token` (virtual) carries a freshly minted token on the
+    # struct the write returns. All managed by the context, never user-castable.
+    field :share_token, :string, virtual: true, redact: true
+    field :share_token_hash, :binary, redact: true
+    field :share_token_encrypted, :binary, redact: true
     field :share_expires_at, :utc_datetime
 
     belongs_to :pet, Goodmao2.Pets.Pet

@@ -149,7 +149,7 @@ defmodule Goodmao2Web.MediaControllerTest do
     defp public_asset_and_token(owner, pet) do
       asset = make_asset(owner, pet, visibility: "public")
       entry = Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, asset.log_entry_id)
-      {asset, entry.share_token}
+      {asset, Goodmao2.Logs.share_token(entry)}
     end
 
     test "serves bytes anonymously for a valid token, hardened", %{conn: conn} do

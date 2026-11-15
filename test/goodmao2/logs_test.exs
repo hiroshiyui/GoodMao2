@@ -581,11 +581,35 @@ defmodule Goodmao2.LogsTest do
 
     test "setting an entry public mints a token; narrowing clears it", %{owner: owner, pet: pet} do
       entry = public_entry(owner, pet)
-      assert is_binary(entry.share_token) and byte_size(entry.share_token) > 20
+      assert is_binary(Logs.share_token(entry)) and byte_size(Logs.share_token(entry)) > 20
 
       {:ok, narrowed} = Logs.update_entry(owner, pet, entry, %{"visibility" => "limited"})
-      assert narrowed.share_token == nil
+      assert Logs.share_token(narrowed) == nil
       assert narrowed.share_expires_at == nil
+    end
+
+    test "the token is never stored in the clear (a database dump holds no working link)", %{
+      owner: owner,
+      pet: pet
+    } do
+      entry = public_entry(owner, pet)
+      token = Logs.share_token(entry)
+
+      %{columns: columns, rows: [row]} =
+        Goodmao2.Repo.query!("SELECT * FROM log_entries WHERE id = $1", [entry.id])
+
+      stored = Enum.zip(columns, row) |> Map.new()
+
+      refute Enum.any?(row, &(is_binary(&1) and String.contains?(&1, token)))
+      assert stored["share_token_hash"] == :crypto.hash(:sha256, token)
+      assert is_binary(stored["share_token_encrypted"])
+
+      # Re-read from the database, the owner still gets the same link back.
+      fresh = Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, entry.id)
+      assert fresh.share_token == nil
+      assert Logs.share_token(fresh) == token
+      assert %{id: id} = Logs.fetch_entry_by_share_token(token)
+      assert id == entry.id
     end
 
     test "a non-owner cannot mint a public link", %{owner: owner, pet: pet} do
@@ -606,7 +630,7 @@ defmodule Goodmao2.LogsTest do
     } do
       entry = public_entry(owner, pet)
 
-      assert %{id: id} = Logs.fetch_entry_by_share_token(entry.share_token)
+      assert %{id: id} = Logs.fetch_entry_by_share_token(Logs.share_token(entry))
       assert id == entry.id
 
       # Wrong / malformed tokens are existence-hidden.
@@ -615,7 +639,7 @@ defmodule Goodmao2.LogsTest do
 
       # Narrowing revokes the link.
       {:ok, _} = Logs.update_entry(owner, pet, entry, %{"visibility" => "limited"})
-      assert Logs.fetch_entry_by_share_token(entry.share_token) == nil
+      assert Logs.fetch_entry_by_share_token(Logs.share_token(entry)) == nil
     end
 
     test "an expired link stops resolving", %{owner: owner, pet: pet} do
@@ -623,18 +647,18 @@ defmodule Goodmao2.LogsTest do
       future = DateTime.utc_now() |> DateTime.add(3600, :second)
 
       {:ok, entry} = Logs.set_share_expiry(owner, pet, entry, future)
-      assert %{} = Logs.fetch_entry_by_share_token(entry.share_token)
+      assert %{} = Logs.fetch_entry_by_share_token(Logs.share_token(entry))
 
       # Force the stored expiry into the past and confirm it no longer resolves.
       past = DateTime.utc_now() |> DateTime.add(-60, :second) |> DateTime.truncate(:second)
       Ecto.Changeset.change(entry, share_expires_at: past) |> Goodmao2.Repo.update!()
-      assert Logs.fetch_entry_by_share_token(entry.share_token) == nil
+      assert Logs.fetch_entry_by_share_token(Logs.share_token(entry)) == nil
     end
 
     test "hiding the pet's history kills a live link", %{owner: owner, pet: pet} do
       entry = public_entry(owner, pet)
       {:ok, _} = Goodmao2.Pets.set_history_hidden(owner, pet, true)
-      assert Logs.fetch_entry_by_share_token(entry.share_token) == nil
+      assert Logs.fetch_entry_by_share_token(Logs.share_token(entry)) == nil
     end
 
     test "set_share_expiry: owner-only, future-only, and only on a shared entry", %{
@@ -682,7 +706,7 @@ defmodule Goodmao2.LogsTest do
 
       fresh = Goodmao2.Repo.get!(Goodmao2.Logs.LogEntry, stale.id)
       assert fresh.visibility == "limited"
-      assert is_nil(fresh.share_token)
+      assert is_nil(Logs.share_token(fresh))
     end
 
     test "an entry deleted meanwhile can be neither edited nor deleted again",

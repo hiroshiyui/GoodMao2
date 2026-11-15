@@ -33,7 +33,7 @@ defmodule Goodmao2.Logs do
   alias Goodmao2.Accounts.User
   alias Goodmao2.Pets
   alias Goodmao2.Pets.Pet
-  alias Goodmao2.Logs.{LogEntry, LogEntryRevision}
+  alias Goodmao2.Logs.{LogEntry, LogEntryRevision, ShareTokenVault}
 
   @topic_prefix "pet_timeline:"
 
@@ -268,7 +268,7 @@ defmodule Goodmao2.Logs do
     query =
       from e in LogEntry,
         join: p in assoc(e, :pet),
-        where: e.share_token == ^token,
+        where: e.share_token_hash == ^ShareTokenVault.hash(token),
         where: e.visibility == "public" and is_nil(e.deleted_at),
         where: is_nil(e.share_expires_at) or e.share_expires_at > ^now,
         where: not p.history_hidden
@@ -597,7 +597,7 @@ defmodule Goodmao2.Logs do
       else: :ok
   end
 
-  defp ensure_shared(%LogEntry{share_token: nil}), do: {:error, :not_shared}
+  defp ensure_shared(%LogEntry{share_token_hash: nil}), do: {:error, :not_shared}
   defp ensure_shared(%LogEntry{}), do: :ok
 
   defp validate_future_or_nil(nil), do: :ok
@@ -615,16 +615,44 @@ defmodule Goodmao2.Logs do
   def put_share_token(changeset) do
     case Ecto.Changeset.get_field(changeset, :visibility) do
       "public" ->
-        if changeset.data.share_token,
+        if changeset.data.share_token_hash,
           do: changeset,
-          else: Ecto.Changeset.put_change(changeset, :share_token, generate_share_token())
+          else: mint_share_token(changeset, generate_share_token())
 
       _narrower ->
         changeset
         |> Ecto.Changeset.put_change(:share_token, nil)
+        |> Ecto.Changeset.put_change(:share_token_hash, nil)
+        |> Ecto.Changeset.put_change(:share_token_encrypted, nil)
         |> Ecto.Changeset.put_change(:share_expires_at, nil)
     end
   end
+
+  # Stored as its hash (the lookup) and encrypted (the owner's copy), never in the clear.
+  defp mint_share_token(changeset, token) do
+    changeset
+    |> Ecto.Changeset.put_change(:share_token, token)
+    |> Ecto.Changeset.put_change(:share_token_hash, ShareTokenVault.hash(token))
+    |> Ecto.Changeset.put_change(:share_token_encrypted, ShareTokenVault.encrypt(token))
+  end
+
+  @doc """
+  The raw share token of a `public` entry, for its owner's share URL, or `nil`.
+
+  Decrypted from `share_token_encrypted` (a freshly minted token is already on the struct).
+  `nil` too when it cannot be decrypted — `SECRET_KEY_BASE` was rotated — though the link
+  itself still resolves, being looked up by hash. Callers gate this to the owner.
+  """
+  def share_token(%LogEntry{share_token: token}) when is_binary(token), do: token
+
+  def share_token(%LogEntry{share_token_encrypted: blob}) when is_binary(blob) do
+    case ShareTokenVault.decrypt(blob) do
+      {:ok, token} -> token
+      :error -> nil
+    end
+  end
+
+  def share_token(%LogEntry{}), do: nil
 
   defp generate_share_token do
     Base.url_encode64(:crypto.strong_rand_bytes(32), padding: false)

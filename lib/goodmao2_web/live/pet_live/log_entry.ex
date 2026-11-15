@@ -54,7 +54,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
     editors = Accounts.get_users_map(Enum.map(revisions, & &1.edited_by_user_id))
 
     socket
-    |> assign(:role, Pets.effective_role(pet, user))
+    |> assign(:role, role)
     |> assign(:entry, entry)
     |> assign(:can_edit?, Logs.can_edit?(user, pet, entry))
     |> assign(:at_limit?, entry.edit_count >= Logs.max_edits())
@@ -87,9 +87,13 @@ defmodule Goodmao2Web.PetLive.LogEntry do
   defp weight_grams_to_field(%{"weight_grams" => g} = data, "weight", unit) do
     data
     |> Map.delete("weight_grams")
+    role = Pets.effective_role(pet, user)
+
     |> Map.put("weight", Goodmao2Web.Helpers.weight_input_value(g, unit))
   end
 
+    # Decrypted for an owner only — no other viewer's socket ever holds the raw token.
+    |> assign(:share_token, if(role == "owner", do: Logs.share_token(entry)))
   defp weight_grams_to_field(data, _type, _unit), do: data
 
   @impl true
@@ -410,7 +414,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
       </section>
 
       <section
-        :if={@role == "owner" and @entry.visibility == "public" and @entry.share_token}
+        :if={@role == "owner" and @entry.visibility == "public" and @share_token}
         id="log-share-section"
         aria-labelledby="log-share-heading"
         class="card card-border border-primary/40 bg-base-100 mt-6"
@@ -429,7 +433,7 @@ defmodule Goodmao2Web.PetLive.LogEntry do
 
           <.share_link
             id="log-share"
-            url={url(~p"/entries/shared/#{@entry.share_token}")}
+            url={url(~p"/entries/shared/#{@share_token}")}
             label={gettext("Share link URL")}
             share_title={@page_title}
           />

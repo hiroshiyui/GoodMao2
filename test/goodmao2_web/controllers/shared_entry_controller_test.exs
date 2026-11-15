@@ -28,7 +28,7 @@ defmodule Goodmao2Web.SharedEntryControllerTest do
   test "renders a public entry to an anonymous holder of the link", %{conn: conn} do
     %{entry: entry} = public_entry()
 
-    conn = get(conn, ~p"/entries/shared/#{entry.share_token}")
+    conn = get(conn, ~p"/entries/shared/#{Goodmao2.Logs.share_token(entry)}")
 
     assert html = html_response(conn, 200)
     assert html =~ "Symptom"
@@ -48,7 +48,7 @@ defmodule Goodmao2Web.SharedEntryControllerTest do
     %{owner: owner, pet: pet, entry: entry} = public_entry()
     {:ok, _} = Logs.update_entry(owner, pet, entry, %{"visibility" => "limited"})
 
-    conn = get(conn, ~p"/entries/shared/#{entry.share_token}")
+    conn = get(conn, ~p"/entries/shared/#{Goodmao2.Logs.share_token(entry)}")
     assert conn.status == 404
   end
 
@@ -60,7 +60,7 @@ defmodule Goodmao2Web.SharedEntryControllerTest do
     past = DateTime.utc_now() |> DateTime.add(-60, :second) |> DateTime.truncate(:second)
     Ecto.Changeset.change(entry, share_expires_at: past) |> Goodmao2.Repo.update!()
 
-    conn = get(conn, ~p"/entries/shared/#{entry.share_token}")
+    conn = get(conn, ~p"/entries/shared/#{Goodmao2.Logs.share_token(entry)}")
     assert conn.status == 404
   end
 end
