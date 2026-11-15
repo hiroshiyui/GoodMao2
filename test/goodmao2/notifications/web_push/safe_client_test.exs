@@ -45,6 +45,35 @@ defmodule Goodmao2.Notifications.WebPush.SafeClientTest do
       refute SafeClient.private_ip?({0, 0, 0, 0, 0, 0xFFFF, 0x0808, 0x0808})
     end
 
+    test "unwraps IPv4-translated IPv6 and re-checks (::ffff:0:127.0.0.1) — audit 2026-11-15" do
+      assert SafeClient.private_ip?({0, 0, 0, 0, 0xFFFF, 0, 0x7F00, 0x0001})
+      assert SafeClient.private_ip?({0, 0, 0, 0, 0xFFFF, 0, 0x0A00, 0x0001})
+      refute SafeClient.private_ip?({0, 0, 0, 0, 0xFFFF, 0, 0x0808, 0x0808})
+    end
+
+    test "flags the remaining special-purpose ranges — audit 2026-11-15" do
+      for ip <- [
+            {192, 88, 99, 1},
+            {0x2001, 0xDB8, 0, 0, 0, 0, 0, 1},
+            {0x2001, 2, 0, 0, 0, 0, 0, 1},
+            {0x3FFF, 0x0ABC, 0, 0, 0, 0, 0, 1},
+            {0x100, 0, 0, 0, 0, 0, 0, 1},
+            {0x5F00, 1, 0, 0, 0, 0, 0, 1}
+          ] do
+        assert SafeClient.private_ip?(ip), "expected #{inspect(ip)} to be private"
+      end
+
+      # Neighbours that are ordinary global unicast stay allowed.
+      for ip <- [
+            {192, 88, 100, 1},
+            {0x2001, 0xDB9, 0, 0, 0, 0, 0, 1},
+            {0x3FFF, 0x1000, 0, 0, 0, 0, 0, 1},
+            {0x2606, 0x4700, 0, 0, 0, 0, 0, 0x1111}
+          ] do
+        refute SafeClient.private_ip?(ip), "expected #{inspect(ip)} to be public"
+      end
+    end
+
     test "unwraps NAT64 IPv6 and re-checks (64:ff9b::127.0.0.1)" do
       assert SafeClient.private_ip?({0x64, 0xFF9B, 0, 0, 0, 0, 0x7F00, 0x0001})
       refute SafeClient.private_ip?({0x64, 0xFF9B, 0, 0, 0, 0, 0x0808, 0x0808})

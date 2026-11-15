@@ -179,6 +179,8 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
   def private_ip?({198, b, _, _}) when b in [18, 19], do: true
   def private_ip?({198, 51, 100, _}), do: true
   def private_ip?({203, 0, 113, _}), do: true
+  # 192.88.99.0/24 — the deprecated 6to4 relay anycast block (RFC 7526); nothing to push to.
+  def private_ip?({192, 88, 99, _}), do: true
   # 224.0.0.0/4 multicast and 240.0.0.0/4 reserved (covers 255.255.255.255)
   def private_ip?({a, _, _, _}) when a >= 224, do: true
   # IPv6 unspecified ::
@@ -197,10 +199,24 @@ defmodule Goodmao2.Notifications.WebPush.SafeClient do
   def private_ip?({0x2001, 0, _, _, _, _, _, _}), do: true
   # 64:ff9b:1::/48 local-use NAT64 (RFC 8215) — a site-private translator, deny outright.
   def private_ip?({0x64, 0xFF9B, 1, _, _, _, _, _}), do: true
+  # 2001:2::/48 benchmarking (RFC 5180) and 2001:db8::/32 documentation (RFC 3849).
+  def private_ip?({0x2001, 2, 0, _, _, _, _, _}), do: true
+  def private_ip?({0x2001, 0xDB8, _, _, _, _, _, _}), do: true
+  # 3fff::/20 documentation (RFC 9637).
+  def private_ip?({0x3FFF, b, _, _, _, _, _, _}) when b <= 0x0FFF, do: true
+  # 100::/64 discard-only (RFC 6666) and 5f00::/16 SRv6 SIDs (RFC 9602) — never a push host.
+  def private_ip?({0x100, 0, 0, 0, _, _, _, _}), do: true
+  def private_ip?({0x5F00, _, _, _, _, _, _, _}), do: true
   # IPv6 ff00::/8 (multicast)
   def private_ip?({a, _, _, _, _, _, _, _}) when a >= 0xFF00 and a <= 0xFFFF, do: true
   # IPv4-mapped IPv6 (::ffff:x.y.z.w) — extract embedded IPv4 and re-check.
   def private_ip?({0, 0, 0, 0, 0, 0xFFFF, hi, lo}) do
+    private_ip?({hi >>> 8, hi &&& 0xFF, lo >>> 8, lo &&& 0xFF})
+  end
+
+  # IPv4-translated IPv6 (::ffff:0:a.b.c.d, RFC 2765 SIIT) — a SIIT translator maps it onto
+  # the embedded IPv4, so re-check that exactly as for IPv4-mapped.
+  def private_ip?({0, 0, 0, 0, 0xFFFF, 0, hi, lo}) do
     private_ip?({hi >>> 8, hi &&& 0xFF, lo >>> 8, lo &&& 0xFF})
   end
 
