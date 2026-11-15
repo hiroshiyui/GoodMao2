@@ -67,6 +67,7 @@ defmodule Goodmao2.Accounts.WebAuthn do
     |> tap(fn
       {:ok, credential} ->
         Logger.info("accounts.security_key_added user_id=#{user.id} key_id=#{credential.id}")
+        Goodmao2.Accounts.notify_security_event(user, "security_key_added")
 
       _ ->
         :ok
@@ -87,6 +88,7 @@ defmodule Goodmao2.Accounts.WebAuthn do
            Repo.get_by(WebAuthnCredential, id: id, user_id: user.id),
          {:ok, deleted} <- Repo.delete(credential) do
       Logger.info("accounts.security_key_removed user_id=#{user.id} key_id=#{deleted.id}")
+      Goodmao2.Accounts.notify_security_event(user, "security_key_removed")
       {:ok, deleted}
     else
       _ -> {:error, :not_found}

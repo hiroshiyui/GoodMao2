@@ -86,4 +86,45 @@ defmodule Goodmao2.Accounts.UserNotifier do
     ==============================
     """)
   end
+
+  # What each security notice says changed (`Goodmao2.Accounts.SecurityNoticeWorker`).
+  @security_events %{
+    "password_changed" => "your password was changed",
+    "email_changed" => "the email address on your account was changed",
+    "totp_enabled" => "an authenticator app was set up for two-factor sign-in",
+    "totp_disabled" => "two-factor sign-in with an authenticator app was turned off",
+    "security_key_added" => "a security key was added for two-factor sign-in",
+    "security_key_removed" => "a security key was removed from two-factor sign-in",
+    "recovery_codes_generated" => "new two-factor recovery codes were generated",
+    "recovery_code_used" => "a recovery code was used to sign in"
+  }
+
+  @doc "The security events a notice can be sent for."
+  def security_events, do: Map.keys(@security_events)
+
+  @doc """
+  Tells `recipient` that a security setting on their account changed. No link and no token —
+  a phished copy of this mail grants nothing.
+  """
+  def deliver_security_notice(recipient, event, %DateTime{} = at)
+      when is_map_key(@security_events, event) do
+    deliver(recipient, "Security notice: your GoodMao account changed", """
+
+    ==============================
+
+    Hi,
+
+    On #{Calendar.strftime(at, "%Y-%m-%d %H:%M UTC")}, #{Map.fetch!(@security_events, event)}.
+
+    If this was you, there is nothing to do.
+
+    If it was not, sign in and change your password at once, then review two-factor sign-in
+    on your account settings page, or ask the site administrator for help.
+
+    ==============================
+    """)
+  end
+
+  def deliver_security_notice(recipient, event, %NaiveDateTime{} = at),
+    do: deliver_security_notice(recipient, event, DateTime.from_naive!(at, "Etc/UTC"))
 end

@@ -121,6 +121,7 @@ defmodule Goodmao2.Accounts.TwoFactor do
     |> User.totp_changeset(%{totp_secret: TotpVault.encrypt(secret), totp_confirmed_at: now})
     |> Repo.update()
     |> tap(&log_success(&1, "accounts.totp_enabled user_id=#{user.id}"))
+    |> tap(&notify_on_success(&1, "totp_enabled"))
   end
 
   # NimbleTOTP's default step; the replay claim below must agree with it.
@@ -186,6 +187,7 @@ defmodule Goodmao2.Accounts.TwoFactor do
            |> Repo.update() do
       delete_recovery_codes(user)
       Logger.info("accounts.totp_disabled user_id=#{user.id}")
+      Goodmao2.Accounts.notify_security_event(user, "totp_disabled")
       {:ok, user}
     end
   end
@@ -218,6 +220,7 @@ defmodule Goodmao2.Accounts.TwoFactor do
 
     Repo.insert_all(RecoveryCode, entries)
     Logger.info("accounts.recovery_codes_generated user_id=#{user.id}")
+    Goodmao2.Accounts.notify_security_event(user, "recovery_codes_generated")
 
     Enum.map(raw_codes, &format_recovery_code/1)
   end
@@ -251,6 +254,7 @@ defmodule Goodmao2.Accounts.TwoFactor do
     case Repo.update_all(query, set: [used_at: now]) do
       {1, _} ->
         Logger.info("accounts.recovery_code_used user_id=#{user.id}")
+        Goodmao2.Accounts.notify_security_event(user, "recovery_code_used")
         :ok
 
       {0, _} ->
@@ -262,6 +266,11 @@ defmodule Goodmao2.Accounts.TwoFactor do
 
   defp log_success({:ok, _}, line), do: Logger.info(line)
   defp log_success(_result, _line), do: :ok
+
+  defp notify_on_success({:ok, %User{} = user}, event),
+    do: Goodmao2.Accounts.notify_security_event(user, event)
+
+  defp notify_on_success(_result, _event), do: :ok
 
   defp delete_recovery_codes(%User{} = user) do
     Repo.delete_all(from rc in RecoveryCode, where: rc.user_id == ^user.id)

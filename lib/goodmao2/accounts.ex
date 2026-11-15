@@ -390,7 +390,8 @@ defmodule Goodmao2.Accounts do
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
-    context = "change:#{user.email}"
+    old_email = user.email
+    context = "change:#{old_email}"
 
     Repo.transact(fn ->
       with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
@@ -399,6 +400,8 @@ defmodule Goodmao2.Accounts do
            {_count, _result} <-
              Repo.delete_all(from(UserToken, where: [user_id: ^user.id, context: ^context])) do
         Logger.info("accounts.email_changed user_id=#{user.id}")
+        # Told to the address it replaced: from now on, magic links go to the new one.
+        notify_security_event(user, "email_changed", to: old_email)
         {:ok, user}
       else
         _ -> {:error, :transaction_aborted}
@@ -473,8 +476,10 @@ defmodule Goodmao2.Accounts do
     |> tap(&log_password_change/1)
   end
 
-  defp log_password_change({:ok, {user, _tokens}}),
-    do: Logger.info("accounts.password_changed user_id=#{user.id}")
+  defp log_password_change({:ok, {user, _tokens}}) do
+    Logger.info("accounts.password_changed user_id=#{user.id}")
+    notify_security_event(user, "password_changed")
+  end
 
   defp log_password_change(_result), do: :ok
 
@@ -594,6 +599,33 @@ defmodule Goodmao2.Accounts do
     end
 
     :ok
+  end
+
+  @doc """
+  Queues a security notice to `user` that `event` just happened on their account
+  (`Goodmao2.Accounts.SecurityNoticeWorker`): a password, email, or second-factor change.
+  `to:` sends it elsewhere — an email change is told to the address it replaced.
+
+  Best-effort: a failed enqueue is logged, never raised, so it cannot undo the change itself.
+  """
+  def notify_security_event(%User{id: user_id}, event, opts \\ []) when is_binary(event) do
+    args =
+      case Keyword.get(opts, :to) do
+        nil -> %{"user_id" => user_id, "event" => event}
+        to -> %{"user_id" => user_id, "event" => event, "to" => to}
+      end
+
+    case args |> Goodmao2.Accounts.SecurityNoticeWorker.new() |> Oban.insert() do
+      {:ok, _job} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning(
+          "accounts.security_notice_not_queued user_id=#{user_id} event=#{event} #{inspect(reason)}"
+        )
+
+        :ok
+    end
   end
 
   @doc """
