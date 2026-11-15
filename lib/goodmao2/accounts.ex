@@ -639,6 +639,23 @@ defmodule Goodmao2.Accounts do
   end
 
   @doc """
+  The magic-link request a public form makes for a typed `email`, doing **the same work**
+  whether or not the address has an account: the address's send limiter is charged and a job
+  is queued either way. For an unknown address the job carries no user and sends nothing (and
+  the address itself is never stored). Skipping both for an unknown address made a registered
+  one measurably slower to answer — a timing membership oracle. Always `:ok`.
+  """
+  def request_login_link_for_email(email, user \\ :lookup) when is_binary(email) do
+    user = if user == :lookup, do: get_user_by_email(email), else: user
+
+    if Goodmao2.Accounts.RegistrationRateLimiter.check(email) == :ok do
+      %{"user_id" => user && user.id} |> Goodmao2.Accounts.LoginLinkWorker.new() |> Oban.insert()
+    end
+
+    :ok
+  end
+
+  @doc """
   Delivers the magic link login instructions to the given user.
   """
   def deliver_login_instructions(%User{} = user, magic_link_url_fun)

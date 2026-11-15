@@ -15,6 +15,11 @@ defmodule Goodmao2.Accounts.LoginLinkWorker do
   alias Goodmao2.Accounts
 
   @impl Oban.Worker
+  # A request for an address with no account queues a job too (so the request path costs the
+  # same either way — `Accounts.request_login_link_for_email/2`); it carries no user and sends
+  # nothing.
+  def perform(%Oban.Job{args: %{"user_id" => nil}}), do: :ok
+
   def perform(%Oban.Job{args: %{"user_id" => user_id}}) do
     case Accounts.get_user(user_id) do
       nil ->

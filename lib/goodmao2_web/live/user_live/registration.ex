@@ -2,7 +2,6 @@ defmodule Goodmao2Web.UserLive.Registration do
   use Goodmao2Web, :live_view
 
   alias Goodmao2.Accounts
-  alias Goodmao2.Accounts.RegistrationRateLimiter
   alias Goodmao2.Accounts.User
 
   @impl true
@@ -98,9 +97,7 @@ defmodule Goodmao2Web.UserLive.Registration do
   # the insert attempt and the lookup, in which case there is simply nothing to send. The email
   # goes out from a background job, keeping outbound-mail latency off the response.
   defp deliver_and_ack(socket, email, user) do
-    if user && RegistrationRateLimiter.check(email) == :ok do
-      {:ok, _job} = Accounts.request_login_link(user)
-    end
+    :ok = Accounts.request_login_link_for_email(email, user)
 
     socket
     |> put_flash(

@@ -52,7 +52,12 @@ defmodule Goodmao2Web.UserLive.LoginTest do
         |> follow_redirect(conn, ~p"/users/log-in")
 
       assert html =~ "If your email is in our system"
-      refute_enqueued(worker: LoginLinkWorker)
+
+      # The same work as for a registered address (a timing oracle otherwise — audit
+      # 2026-11-15): a job is queued, but it carries no user and sends nothing.
+      assert_enqueued(worker: LoginLinkWorker, args: %{"user_id" => nil})
+      assert :ok = perform_job(LoginLinkWorker, %{"user_id" => nil})
+      refute_received {:email, _}
     end
   end
 

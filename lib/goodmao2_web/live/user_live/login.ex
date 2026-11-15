@@ -2,7 +2,6 @@ defmodule Goodmao2Web.UserLive.Login do
   use Goodmao2Web, :live_view
 
   alias Goodmao2.Accounts
-  alias Goodmao2.Accounts.RegistrationRateLimiter
 
   @impl true
   def render(assigns) do
@@ -119,14 +118,10 @@ defmodule Goodmao2Web.UserLive.Login do
 
   def handle_event("submit_magic", %{"user" => %{"email" => email}}, socket) do
     # Rate-limited per address (shared with registration) so the magic-link form can't be
-    # driven as an unbounded outbound-mail pump. Skipping the send when throttled is invisible
-    # here — the response below is already the same whether or not the address exists. The
-    # email itself is sent by a background job, so its latency can't tell the two apart either.
-    user = Accounts.get_user_by_email(email)
-
-    if user && RegistrationRateLimiter.check(email) == :ok do
-      {:ok, _job} = Accounts.request_login_link(user)
-    end
+    # driven as an unbounded outbound-mail pump. The answer below is the same whether or not
+    # the address exists, and so is the work behind it: the limiter is charged and a job is
+    # queued either way, and the email itself is sent off the request path.
+    :ok = Accounts.request_login_link_for_email(email)
 
     info =
       gettext(
