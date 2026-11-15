@@ -303,6 +303,23 @@ defmodule Goodmao2.PetsTest do
       assert Repo.get!(PetAccess, access.id).status == "revoked"
     end
 
+    test "a revoke guards the grant as it stands now, not as the caller listed it" do
+      a = user_fixture()
+      c = user_fixture()
+      pet = pet_fixture(a)
+
+      # The owner's grant list was read while C was a co-caretaker...
+      listed = grant_fixture(pet, a, c, "co_caretaker")
+
+      # ...then C became a permanent owner and A stepped down, leaving C the only owner.
+      {:ok, _} = Pets.grant_access(a, pet, %{"identifier" => c.email, "role" => "owner"})
+      {:ok, _} = Pets.revoke_access(c, pet, Pets.effective_access(pet, a))
+
+      # Revoking C through the stale "co_caretaker" copy must still meet the last-owner rule.
+      assert Pets.revoke_access(c, pet, listed) == {:error, :last_owner}
+      assert Pets.effective_role(pet, c) == "owner"
+    end
+
     test "the grant-update path cannot demote the last owner" do
       owner = user_fixture()
       pet = pet_fixture(owner)
@@ -369,23 +386,6 @@ defmodule Goodmao2.PetsTest do
     end
   end
 
-  describe "grant attempt rate limit (email membership oracle)" do
-    test "a granter's lookups are capped per hour, found or not" do
-      owner = user_fixture()
-      pet = pet_fixture(owner)
-      limit = Application.fetch_env!(:goodmao2, Goodmao2.Pets)[:grant_attempts_per_hour]
-
-      for _ <- 1..limit do
-        assert {:error, :grantee_not_found} =
-                 Pets.grant_access(owner, pet, %{
-                   "identifier" => "nobody-#{System.unique_integer([:positive])}@example.com",
-                   "role" => "viewer"
-                 })
-      end
-
-      real = user_fixture()
-
-      assert Pets.grant_access(owner, pet, %{"identifier" => real.email, "role" => "viewer"}) ==
   describe "a vet grant lapses with the vet's verification (ADR-0012)" do
     setup do
       owner = user_fixture()
@@ -440,6 +440,23 @@ defmodule Goodmao2.PetsTest do
     end
   end
 
+  describe "grant attempt rate limit (email membership oracle)" do
+    test "a granter's lookups are capped per hour, found or not" do
+      owner = user_fixture()
+      pet = pet_fixture(owner)
+      limit = Application.fetch_env!(:goodmao2, Goodmao2.Pets)[:grant_attempts_per_hour]
+
+      for _ <- 1..limit do
+        assert {:error, :grantee_not_found} =
+                 Pets.grant_access(owner, pet, %{
+                   "identifier" => "nobody-#{System.unique_integer([:positive])}@example.com",
+                   "role" => "viewer"
+                 })
+      end
+
+      real = user_fixture()
+
+      assert Pets.grant_access(owner, pet, %{"identifier" => real.email, "role" => "viewer"}) ==
                {:error, :rate_limited}
     end
   end

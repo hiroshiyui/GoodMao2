@@ -276,10 +276,15 @@ defmodule Goodmao2.Pets do
     # foreign grant would be checked against the wrong pet and could strip another pet's owner.
     with :ok <- require(pet, revoker, :manage),
          :ok <- ensure_grant_on_pet(access, pet) do
+      # Guard and claim the grant as it stands under the lock, not the caller's copy: a grant
+      # listed as a co-caretaker may have been promoted to the last permanent owner meanwhile
+      # (the owner lock serializes that promotion with this revoke), and a check of the stale
+      # role would skip the last-owner guard and leave the pet ownerless.
       result =
         with_owner_lock(pet, fn ->
-          with :ok <- guard_last_owner(pet, access) do
-            claim_revocation(access)
+          with %PetAccess{} = current <- lock_grant(access, pet),
+               :ok <- guard_last_owner(pet, current) do
+            claim_revocation(current)
           end
         end)
 
@@ -302,6 +307,11 @@ defmodule Goodmao2.Pets do
       {1, _} -> {:ok, %{access | status: "revoked", updated_at: updated_at}}
       {0, _} -> {:error, :already_revoked}
     end
+  end
+
+  defp lock_grant(%PetAccess{id: id}, %Pet{id: pet_id}) do
+    Repo.one(from a in PetAccess, where: a.id == ^id and a.pet_id == ^pet_id, lock: "FOR UPDATE") ||
+      {:error, :not_found}
   end
 
   defp ensure_grant_on_pet(%PetAccess{pet_id: pet_id}, %Pet{id: pet_id}), do: :ok
