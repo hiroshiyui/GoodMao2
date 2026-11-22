@@ -399,7 +399,7 @@ doesn't flash a connection error.
   has *this* project's GeckoDriver on its PATH).
 - **A revoked session's pages leave through a LiveView redirect, not the socket close.** Since
   Phoenix 1.8.16 (PR 6880) the `"disconnect"` broadcast closes the socket with code 1000, which
-  LiveView's client (still, as of 1.2.13) answers with a reload after a 5–10 s random delay, so a
+  LiveView's client (still, as of 1.2.15) answers with a reload after a 5–10 s random delay, so a
   browser whose session was revoked (logout, password change, magic-link login) would linger on a
   dead page. `UserAuth.revoke_live_session/1` therefore broadcasts `:session_revoked` on
   `<live_socket_id>:revoked` first; the hook `on_mount :require_authenticated` attaches re-checks
