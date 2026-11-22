@@ -422,6 +422,8 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/goodmao.tw/privkey.pem;
     # nginx owns HSTS. `force_ssl` in config/prod.exs sets `hsts: false` so the header is
     # sent once -- a browser honours only the first, so a duplicate would override this.
+    # Every other security header is the application's, on every response it answers
+    # (Plugs.BaselineSecurityHeaders covers the ones no pipeline does); never add them here.
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
 
     # Digested static assets straight from disk. An `add_header` here replaces the server's,

@@ -74,6 +74,10 @@ defmodule Goodmao2Web.Endpoint do
     plug Phoenix.Ecto.SQL.Sandbox
   end
 
+  # Security headers for responses no pipeline hardens (unmatched-route 404s, /health); the
+  # pipelines overwrite them with their own. After Plug.Static on purpose -- see the plug.
+  plug Goodmao2Web.Plugs.BaselineSecurityHeaders
+
   plug Goodmao2Web.Router
 
   @doc false

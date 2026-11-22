@@ -8,6 +8,17 @@ skill).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Some responses carried no security headers but HSTS.** The 404 for a path no route matches
+  is raised before any pipeline runs, and `/health` has no pipeline, so neither sent
+  `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` or a CSP; nginx adds only
+  HSTS. A new endpoint plug, `Goodmao2Web.Plugs.BaselineSecurityHeaders`, gives every response
+  the router answers a strict baseline that the pipelines then overwrite with their own.
+- **Media redirects and 404s allowed same-origin framing.** The `:serve_media` pipeline got
+  Phoenix's default CSP, `frame-ancestors 'self'`, which a browser obeys over the
+  `X-Frame-Options: DENY` sent beside it. They now carry the baseline's `frame-ancestors 'none'`.
+
 ## [1.7.1] - 2026-11-22
 
 Dependency patch release for five advisories reported by `hex.audit` (`deps.audit` reports none

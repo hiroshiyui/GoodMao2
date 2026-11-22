@@ -44,4 +44,33 @@ defmodule Goodmao2Web.SecurityHeadersTest do
     assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
     assert get_resp_header(conn, "referrer-policy") == ["strict-origin-when-cross-origin"]
   end
+
+  # These leave through no pipeline: an unmatched path raises before any pipeline runs, and
+  # /health has none. Before Plugs.BaselineSecurityHeaders they carried no security header at
+  # all, and nginx adds only HSTS.
+  for path <- ["/no-such-page", "/health"] do
+    test "#{path} carries the baseline security headers once", %{conn: conn} do
+      conn =
+        try do
+          get(conn, unquote(path))
+        rescue
+          e in Phoenix.Router.NoRouteError -> e.conn
+        end
+
+      for {header, value} <- Goodmao2Web.Plugs.BaselineSecurityHeaders.headers() do
+        assert get_resp_header(conn, header) == [value], "#{unquote(path)}: #{header}"
+      end
+    end
+  end
+
+  test "a media 404 refuses framing in its CSP too, not only in X-Frame-Options", %{conn: conn} do
+    # The :serve_media pipeline got Phoenix's default CSP, `frame-ancestors 'self'`, which a
+    # CSP-aware browser obeys over `X-Frame-Options: DENY`. put_secure_browser_headers adds
+    # that default only when no CSP is set yet, so the endpoint baseline now decides it.
+    conn = get(conn, "/entries/shared/no-such-token/media/0")
+
+    assert get_resp_header(conn, "x-frame-options") == ["DENY"]
+    assert [csp] = get_resp_header(conn, "content-security-policy")
+    assert csp =~ "frame-ancestors 'none'"
+  end
 end
