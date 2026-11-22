@@ -425,6 +425,7 @@ gate's coverage never rots. Each is named where its rule is stated above.
 | The ADR index agrees with every record's Status line and every ADR link resolves | `test/doc/adr_index_test.exs` |
 | Every route sets a `page_title`; the manifest, icons and service worker stay installable | `test/goodmao2_web/pwa_test.exs`, `page_controller_test.exs` |
 | nginx serves exactly the static paths the app exposes | `test/goodmao2/nginx_static_paths_test.exs` |
+| The app sets every security header but HSTS, once; responses outside any pipeline get `Plugs.BaselineSecurityHeaders` | `test/goodmao2_web/security_headers_test.exs` |
 | No JavaScript error, unknown hook or `phx-error` on any page (browser) | `features/js_errors_test.exs` |
 | No page scrolls sideways; every menu opens inside the viewport, both themes, phone and desktop (browser) | `features/layout_test.exs` |
 | A dropped socket reconnects and resubscribes; a revoked session's page leaves at once (browser) | `features/reconnect_test.exs`, `features/session_revocation_test.exs` |
