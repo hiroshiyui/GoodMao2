@@ -8,6 +8,11 @@ skill).
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-11-22
+
+Security-header hardening found by checking the live site. No migration and no configuration
+change.
+
 ### Fixed
 
 - **Some responses carried no security headers but HSTS.** The 404 for a path no route matches
