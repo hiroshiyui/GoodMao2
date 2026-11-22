@@ -8,6 +8,30 @@ skill).
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-11-22
+
+Dependency patch release for five advisories reported by `hex.audit` (`deps.audit` reports none
+of them). No migration and no configuration change.
+
+### Security
+
+- **LiveView 1.2.15** (EEF-CVE-2026-126334, GHSA-v4p7-3pm2-wq6c). A LiveView joined without a
+  `"url"` skipped its `live_session`'s `on_mount` hooks. Here those hooks are the sign-in,
+  administrator, admin-recent-sign-in and pending-second-factor gates, so this one mattered most.
+- **Phoenix 1.8.17** (EEF-CVE-2026-128361, EEF-CVE-2026-129344, both HIGH). An unsanitized
+  presence key crashed the Presence tracker, and a client choosing the V1 serializer could crash
+  broadcast dispatch on a shared topic, a denial of service for every subscriber.
+- **Plug 1.20.4** (EEF-CVE-2026-120287). The multipart `:length` limit did not count part and
+  header framing.
+- **idna 8.0.0** (EEF-CVE-2026-117678). A long `xn--` label used super-linear CPU. Reaching it
+  needed **Swoosh 1.30.0**, the first release that accepts idna 8, which also moves hackney to
+  4.12.3, Finch to 0.25.0, h2 to 0.18.3 and quic to 3.3.0.
+
+### Changed
+
+- Bandit 1.15.0.
+- daisyUI 5.8.2 (re-vendored).
+
 ## [1.7.0] - 2026-11-15
 
 A security audit release (2026-11-15) plus dependency bumps. **One migration**:
