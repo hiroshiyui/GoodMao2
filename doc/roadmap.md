@@ -207,6 +207,7 @@ The [changelog](../CHANGELOG.md) has the detail.
 | 1.7.0 | 11-15 | Security audit: a vet's grants lapse with their verification; the email-change form no longer reveals registered addresses; push gets its own queue, a per-user subscription cap and isolated sends; share tokens stored hashed + encrypted; uploads refused before staging; admin pages need a recent sign-in; security notice emails; atomic security-key sign count; plus purifier, magic-link timing, SSRF denylist and integrity fixes. Rust 1.100.0, daisyUI 5.8.0. |
 | 1.7.1 | 11-22 | Advisory patches found by `hex.audit` only: LiveView 1.2.15 (`on_mount` hooks skipped on a join without `"url"`), Phoenix 1.8.17 (two HIGH denial-of-service bugs), Plug 1.20.4, and idna 8.0.0 via Swoosh 1.30.0. Bandit 1.15.0, daisyUI 5.8.2. |
 | 1.7.2 | 11-22 | Security headers on the responses no pipeline hardened, found on the live site: unmatched-path 404s and `/health` carried only HSTS, and media redirects and 404s allowed same-origin framing. One endpoint plug, `Plugs.BaselineSecurityHeaders`, fixes both.
+| 1.7.3 | 11-25 | Advisory patches: db_connection 2.10.3 (HIGH, found by `hex.audit` only) and Erlang/OTP 29.1.3. Also bcrypt_elixir 4.0.0 (drops comeonin) and postgrex 0.23.0. |
 
 > **What the reviews taught, as classes of bug.** These come from the 2026-08-03 review (1.2.1),
 > the 2026-09-18 audit (1.3.0), the 2026-09-28 Baudrate comparison and the 2026-11-03 review.
