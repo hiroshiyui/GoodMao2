@@ -8,6 +8,33 @@ skill).
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-11-25
+
+Dependency patch release for a HIGH `db_connection` advisory and an Erlang/OTP patch carrying
+security fixes. No migration and no configuration change.
+
+**Upgrade notes.**
+
+- **The Erlang/OTP pin moves from 29.1.2 to 29.1.3.** The build host must have it installed
+  before this release is deployed: re-run the provisioning playbook first (`--tags elixir` is
+  enough), because the deploy preflight refuses a runtime the server lacks. Elixir stays at
+  1.20.5-otp-29.
+
+### Security
+
+- **db_connection 2.10.3** (EEF-CVE-2026-133555, HIGH). A forged `DBConnection.Stream` struct
+  could run code through its `:log` option. Found by `mix hex.audit`; `mix deps.audit` reported
+  none.
+- **Erlang/OTP 29.1.3**, a patch release fixing CVE-2026-115747, -116225, -116293, -116295,
+  -116382, -117642, -119443, -120961 and -125658, including fixes in `crypto` and `public_key`.
+
+### Changed
+
+- **bcrypt_elixir 3.3.2 → 4.0.0** (`mix.exs` constraint now `~> 4.0`). The major drops the
+  `comeonin` dependency; the hashing API, the default cost of 12 and existing `$2b$` hashes are
+  unaffected.
+- postgrex 0.22.4 → 0.23.0, eqrcode 0.2.1 → 0.3.0, lazy_html 0.1.14 → 0.1.15 (test only).
+
 ## [1.7.2] - 2026-11-22
 
 Security-header hardening found by checking the live site. No migration and no configuration
